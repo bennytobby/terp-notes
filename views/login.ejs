@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>
+        <%= title %>
+    </title>
+    <link rel="stylesheet" href="/styles/main.css" />
+</head>
+
+<body>
+    <header class="topbar">
+        <h2>Terp Notes</h2>
+        <div class="user-info">
+            <a href="/" class="logout-btn">Home</a>
+        </div>
+    </header>
+
+    <main class="centered">
+        <div class="auth-form">
+            <h1>Login to Terp Notes</h1>
+            <form action="/loginSubmit" method="POST">
+                <div class="form-group">
+                    <label for="userid">Username<span class="req">*</span></label>
+                    <input type="text" name="userid" id="userid" required placeholder="Enter your username" />
+                </div>
+                <div class="form-group">
+                    <label for="password">Password<span class="req">*</span></label>
+                    <input type="password" name="password" id="password" required placeholder="Enter your password" />
+                </div>
+                <div class="form-buttons">
+                    <input type="submit" value="Login" class="button primary" />
+                    <input type="reset" value="Clear" class="button secondary" />
+                </div>
+            </form>
+            <div class="alt-link">
+                <p>Don't have an account? <a href="/register">Sign up here</a></p>
+            </div>
+        </div>
+    </main>
+
+    <footer>
+        <p>&copy; <%= new Date().getFullYear() %> Terp Notes</p>
+    </footer>
+</body>
+
+</html>

@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title><%= title %></title>
+    <link rel="stylesheet" href="/styles/main.css" />
+</head>
+<body>
+    <header class="topbar">
+        <h2>Terp Notes</h2>
+    </header>
+
+    <main class="centered">
+        <div class="alert">
+            <h1 style="color: var(--umd-red);">✅ <%= title %></h1>
+            <p><%= message %></p>
+            <a href="<%= link %>" class="button primary"><%= linkText %></a>
+        </div>
+    </main>
+
+    <footer>
+        <p>&copy; <%= new Date().getFullYear() %> Terp Notes</p>
+    </footer>
+</body>
+</html>

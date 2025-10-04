@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>
+        <%= title %>
+    </title>
+    <link rel="stylesheet" href="/styles/main.css" />
+</head>
+
+<body>
+    <header class="topbar">
+        <h2>🐢 Terp Notes</h2>
+        <div class="user-info">
+            Welcome, <strong>
+                <%= user.firstname %>
+            </strong>
+            <span class="user-role role-<%= user.role %>">
+                <%= user.role %>
+            </span>
+            <% if (user.role==='admin' ) { %>
+                | <a href="/admin" class="logout-btn">Admin Panel</a>
+                <% } %>
+                    | <a href="/dashboard" class="logout-btn">Dashboard</a>
+                    | <a href="/logout" class="logout-btn">Logout</a>
+        </div>
+    </header>
+
+    <main class="container">
+        <div class="profile-page">
+            <h1>My Profile</h1>
+            <p class="profile-subtitle">Manage your account information</p>
+
+            <!-- Profile Information -->
+            <section class="profile-section">
+                <h2>Profile Information</h2>
+                <form action="/update-profile" method="POST" class="profile-form">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="firstname">First Name</label>
+                            <input type="text" id="firstname" name="firstname" value="<%= user.firstname %>" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="lastname">Last Name</label>
+                            <input type="text" id="lastname" name="lastname" value="<%= user.lastname %>" required>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="email">Email Address</label>
+                        <input type="email" id="email" name="email" value="<%= user.email %>" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="userid">Username (Cannot be changed)</label>
+                        <input type="text" id="userid" name="userid" value="<%= user.userid %>" disabled
+                            class="disabled-input">
+                        <small class="form-help">⚠️ Your username is permanent and cannot be changed</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Account Role</label>
+                        <div class="role-display">
+                            <span class="user-role role-<%= user.role %>">
+                                <%= user.role %>
+                            </span>
+                            <% if (user.role==='viewer' ) { %>
+                                <small class="form-help">View-only access - Contact admin to change</small>
+                                <% } %>
+                        </div>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="submit" class="button primary">Update Profile</button>
+                        <a href="/dashboard" class="button secondary">Cancel</a>
+                    </div>
+                </form>
+            </section>
+
+            <!-- Change Password -->
+            <section class="profile-section">
+                <h2>Change Password</h2>
+                <form action="/change-password" method="POST" class="profile-form">
+                    <div class="form-group">
+                        <label for="currentPassword">Current Password</label>
+                        <input type="password" id="currentPassword" name="currentPassword" required>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="newPassword">New Password</label>
+                            <input type="password" id="newPassword" name="newPassword" required minlength="6">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="confirmPassword">Confirm New Password</label>
+                            <input type="password" id="confirmPassword" name="confirmPassword" required minlength="6">
+                        </div>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="submit" class="button primary">Change Password</button>
+                    </div>
+                </form>
+            </section>
+
+            <!-- Account Information -->
+            <section class="profile-section info-section">
+                <h2>Account Information</h2>
+                <div class="info-grid">
+                    <div class="info-item">
+                        <strong>Account Created:</strong>
+                        <span>
+                            <%= user.createdAt ? new Date(user.createdAt).toLocaleDateString() : 'Unknown' %>
+                        </span>
+                    </div>
+                    <% if (user.updatedAt) { %>
+                        <div class="info-item">
+                            <strong>Last Updated:</strong>
+                            <span>
+                                <%= new Date(user.updatedAt).toLocaleDateString() %>
+                            </span>
+                        </div>
+                        <% } %>
+                            <% if (user.isProtected) { %>
+                                <div class="info-item">
+                                    <strong>Account Type:</strong>
+                                    <span class="protected-badge">🛡️ Protected System Account</span>
+                                </div>
+                                <% } %>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <footer>
+        <p>&copy; <%= new Date().getFullYear() %> Terp Notes | Built for UMD</p>
+    </footer>
+
+    <script src="/js/app.js"></script>
+    <script>
+        // Profile form change detection
+        document.addEventListener('DOMContentLoaded', function () {
+            const profileForm = document.querySelector('form[action="/update-profile"]');
+            const profileBtn = profileForm?.querySelector('button[type="submit"]');
+
+            if (profileForm && profileBtn) {
+                const initialValues = {
+                    firstname: document.getElementById('firstname').value,
+                    lastname: document.getElementById('lastname').value,
+                    email: document.getElementById('email').value
+                };
+
+                function checkProfileChanges() {
+                    const hasChanges =
+                        document.getElementById('firstname').value !== initialValues.firstname ||
+                        document.getElementById('lastname').value !== initialValues.lastname ||
+                        document.getElementById('email').value !== initialValues.email;
+
+                    profileBtn.disabled = !hasChanges;
+                    profileBtn.classList.toggle('disabled', !hasChanges);
+                }
+
+                // Check on input
+                profileForm.querySelectorAll('input:not([disabled])').forEach(input => {
+                    input.addEventListener('input', checkProfileChanges);
+                });
+
+                // Initial check
+                checkProfileChanges();
+            }
+
+            // Password form validation
+            const passwordForm = document.querySelector('form[action="/change-password"]');
+            const passwordBtn = passwordForm?.querySelector('button[type="submit"]');
+
+            if (passwordForm && passwordBtn) {
+                function checkPasswordFields() {
+                    const currentPassword = document.getElementById('currentPassword').value;
+                    const newPassword = document.getElementById('newPassword').value;
+                    const confirmPassword = document.getElementById('confirmPassword').value;
+
+                    const allFilled = currentPassword && newPassword && confirmPassword;
+                    const passwordsMatch = newPassword === confirmPassword;
+                    const passwordsDifferent = currentPassword !== newPassword;
+
+                    passwordBtn.disabled = !allFilled || !passwordsMatch || !passwordsDifferent;
+                    passwordBtn.classList.toggle('disabled', !allFilled || !passwordsMatch || !passwordsDifferent);
+
+                    // Show helpful messages for new password
+                    const newPassInput = document.getElementById('newPassword');
+                    const existingNewPassError = newPassInput.parentElement.querySelector('.password-error');
+
+                    if (existingNewPassError) existingNewPassError.remove();
+
+                    if (newPassword && currentPassword === newPassword) {
+                        const errorDiv = document.createElement('small');
+                        errorDiv.className = 'password-error';
+                        errorDiv.style.color = '#EF4444';
+                        errorDiv.style.display = 'block';
+                        errorDiv.style.marginTop = '0.25rem';
+                        errorDiv.textContent = '⚠️ New password must be different from current password';
+                        newPassInput.parentElement.appendChild(errorDiv);
+                    }
+
+                    // Show password match validation for confirm password
+                    const confirmPassInput = document.getElementById('confirmPassword');
+                    const existingConfirmError = confirmPassInput.parentElement.querySelector('.password-match-error');
+
+                    if (existingConfirmError) existingConfirmError.remove();
+
+                    if (confirmPassword) {
+                        if (!passwordsMatch) {
+                            const errorDiv = document.createElement('small');
+                            errorDiv.className = 'password-match-error';
+                            errorDiv.style.color = '#EF4444';
+                            errorDiv.style.display = 'block';
+                            errorDiv.style.marginTop = '0.25rem';
+                            errorDiv.textContent = '⚠️ Passwords do not match';
+                            confirmPassInput.parentElement.appendChild(errorDiv);
+                        } else if (newPassword) {
+                            const successDiv = document.createElement('small');
+                            successDiv.className = 'password-match-error';
+                            successDiv.style.color = '#10B981';
+                            successDiv.style.display = 'block';
+                            successDiv.style.marginTop = '0.25rem';
+                            successDiv.textContent = '✓ Passwords match';
+                            confirmPassInput.parentElement.appendChild(successDiv);
+                        }
+                    }
+                }
+
+                passwordForm.querySelectorAll('input[type="password"]').forEach(input => {
+                    input.addEventListener('input', checkPasswordFields);
+                });
+
+                // Initial check
+                checkPasswordFields();
+            }
+        });
+    </script>
+</body>
+
+</html>

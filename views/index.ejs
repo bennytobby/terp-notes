@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title><%= title %></title>
+    <link rel="stylesheet" href="/styles/main.css" />
+</head>
+<body>
+    <header class="topbar">
+        <h2>Terp Notes</h2>
+        <div class="user-info">
+            <a href="/login" class="logout-btn">Login</a>
+            <a href="/register" class="logout-btn">Sign Up</a>
+        </div>
+    </header>
+
+    <main class="centered">
+        <div class="hero-content">
+            <h1 class="title">🐢 Terp Notes</h1>
+            <p class="hero-description">
+                Share class notes and study materials with fellow University of Maryland students.
+                Organize by course code, collaborate, and succeed together.
+            </p>
+            <div class="button-group">
+                <a href="/register" class="button primary">Get Started</a>
+                <a href="/login" class="button gold">Login</a>
+            </div>
+        </div>
+
+        <div class="features-preview">
+            <div class="feature-item">
+                <div class="feature-icon">📚</div>
+                <h3>Class-Based Organization</h3>
+                <p>Upload and find notes organized by UMD course codes (CMSC330, MATH141, etc.)</p>
+            </div>
+            <div class="feature-item">
+                <div class="feature-icon">📤</div>
+                <h3>Bulk Upload</h3>
+                <p>Upload unlimited files at once to share with your classmates</p>
+            </div>
+            <div class="feature-item">
+                <div class="feature-icon">🔍</div>
+                <h3>Smart Search</h3>
+                <p>Filter by class code, search by filename, and find what you need fast</p>
+            </div>
+            <div class="feature-item">
+                <div class="feature-icon">🔐</div>
+                <h3>Secure & Safe</h3>
+                <p>Your uploads are secure with role-based access control</p>
+            </div>
+        </div>
+    </main>
+
+    <footer>
+        <p>&copy; <%= new Date().getFullYear() %> Terp Notes | Built for Terps, by Terps 🐢</p>
+    </footer>
+</body>
+</html>

@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>
+        <%= title %>
+    </title>
+    <link rel="stylesheet" href="/styles/main.css" />
+</head>
+
+<body>
+    <header class="topbar">
+        <h2>Terp Notes</h2>
+        <div class="user-info">
+            <a href="/" class="logout-btn">Home</a>
+        </div>
+    </header>
+
+    <main class="centered">
+        <div class="auth-form">
+            <h1>Join Terp Notes</h1>
+            <form action="/registerSubmit" method="POST">
+                <div class="form-group">
+                    <label for="first_name">First Name<span class="req">*</span></label>
+                    <input type="text" name="first_name" id="first_name" required placeholder="John" />
+                </div>
+                <div class="form-group">
+                    <label for="last_name">Last Name<span class="req">*</span></label>
+                    <input type="text" name="last_name" id="last_name" required placeholder="Doe" />
+                </div>
+                <div class="form-group">
+                    <label for="userid">Username<span class="req">*</span></label>
+                    <input type="text" name="userid" id="userid" required placeholder="johndoe" />
+                    <div class="username-warning">
+                        <strong>⚠️ Important:</strong> Your username is <strong>permanent</strong> and cannot be changed
+                        later. Choose carefully!
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="email">Email<span class="req">*</span></label>
+                    <input type="email" name="email" id="email" required placeholder="john@umd.edu" />
+                </div>
+                <div class="form-group">
+                    <label for="password">Password<span class="req">*</span></label>
+                    <input type="password" name="password" id="password" required
+                        placeholder="Enter a secure password" />
+                </div>
+                <div class="form-group">
+                    <label for="confirm_pass">Confirm Password<span class="req">*</span></label>
+                    <input type="password" name="confirm_pass" id="confirm_pass" required
+                        placeholder="Re-enter your password" />
+                </div>
+                <div class="form-group terms-agreement">
+                    <div class="terms-box">
+                        <h4>📋 Acceptable Use Policy</h4>
+                        <p class="terms-text">
+                            By creating an account, you agree to use Terp Notes <strong>responsibly and
+                                respectfully</strong>. This includes:
+                        </p>
+                        <ul class="terms-list">
+                            <li>Only uploading appropriate academic materials</li>
+                            <li>Not sharing copyrighted content without permission</li>
+                            <li>Being respectful to fellow students</li>
+                            <li>Not uploading malicious, offensive, or inappropriate content</li>
+                            <li><strong>NOT posting past exams, graded assignments, or projects unless explicitly
+                                    authorized by the instructor</strong></li>
+                        </ul>
+                        <p class="terms-warning">
+                            <strong>⚠️ Violation of these terms will result in:</strong><br>
+                            • Immediate revocation of upload privileges (viewer-only mode)<br>
+                            • Possible account deletion for serious violations<br>
+                            • Removal of all uploaded content
+                        </p>
+                        <p class="terms-warning academic-integrity">
+                            <strong>🚨 Academic Integrity Notice:</strong><br>
+                            Posting unauthorized academic materials (exams, graded projects, assignments) violates the
+                            University of Maryland Code of Academic Integrity. Such violations will be <strong>reported
+                                to the Office of Student Conduct</strong> and may result in disciplinary action by the
+                            university.
+                        </p>
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="agreeTerms" name="agreeTerms" required>
+                            <span>I agree to the Acceptable Use Policy and will use Terp Notes responsibly</span>
+                        </label>
+                    </div>
+                </div>
+                <div class="form-buttons">
+                    <input type="submit" value="Sign Up" class="button primary" id="submitBtn" />
+                    <input type="reset" value="Clear" class="button secondary" />
+                </div>
+            </form>
+            <div class="alt-link">
+                <p>Already have an account? <a href="/login">Login here</a></p>
+            </div>
+        </div>
+    </main>
+
+    <footer>
+        <p>&copy; <%= new Date().getFullYear() %> Terp Notes</p>
+    </footer>
+
+    <script>
+        // Password match validation for registration
+        document.addEventListener('DOMContentLoaded', function () {
+            const passwordInput = document.getElementById('password');
+            const confirmPasswordInput = document.getElementById('confirm_pass');
+            const termsCheckbox = document.getElementById('agreeTerms');
+            const submitBtn = document.getElementById('submitBtn');
+
+            function checkFormValidity() {
+                const password = passwordInput.value;
+                const confirmPassword = confirmPasswordInput.value;
+                const termsAgreed = termsCheckbox.checked;
+
+                // Remove existing error message
+                const existingError = confirmPasswordInput.parentElement.querySelector('.password-match-error');
+                if (existingError) existingError.remove();
+
+                let passwordsValid = true;
+
+                // Only show error if confirm password field has content
+                if (confirmPassword && password !== confirmPassword) {
+                    const errorDiv = document.createElement('small');
+                    errorDiv.className = 'password-match-error';
+                    errorDiv.style.color = '#EF4444';
+                    errorDiv.style.display = 'block';
+                    errorDiv.style.marginTop = '0.5rem';
+                    errorDiv.textContent = '⚠️ Passwords do not match';
+                    confirmPasswordInput.parentElement.appendChild(errorDiv);
+                    passwordsValid = false;
+                } else if (confirmPassword && password === confirmPassword) {
+                    const successDiv = document.createElement('small');
+                    successDiv.className = 'password-match-error';
+                    successDiv.style.color = '#10B981';
+                    successDiv.style.display = 'block';
+                    successDiv.style.marginTop = '0.5rem';
+                    successDiv.textContent = '✓ Passwords match';
+                    confirmPasswordInput.parentElement.appendChild(successDiv);
+                }
+
+                // Disable submit if passwords don't match OR terms not agreed
+                if (!passwordsValid || !termsAgreed) {
+                    submitBtn.disabled = true;
+                    submitBtn.style.opacity = '0.5';
+                    submitBtn.style.cursor = 'not-allowed';
+                } else {
+                    submitBtn.disabled = false;
+                    submitBtn.style.opacity = '1';
+                    submitBtn.style.cursor = 'pointer';
+                }
+            }
+
+            passwordInput.addEventListener('input', checkFormValidity);
+            confirmPasswordInput.addEventListener('input', checkFormValidity);
+            termsCheckbox.addEventListener('change', checkFormValidity);
+
+            // Initial check
+            checkFormValidity();
+        });
+    </script>
+</body>
+
+</html>

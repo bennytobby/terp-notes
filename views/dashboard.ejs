@@ -1,0 +1,641 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Dashboard - Terp Notes</title>
+    <link rel="stylesheet" href="/styles/main.css" />
+</head>
+
+<body>
+    <header class="topbar">
+        <h2>Terp Notes</h2>
+        <div class="user-info">
+            Welcome, <strong>
+                <%= firstname %>
+            </strong>
+            <span class="user-role role-<%= user.role %>">
+                <%= user.role %>
+            </span>
+            <% if (user.role==='admin' ) { %>
+                | <a href="/admin" class="logout-btn">Admin Panel</a>
+                <% } %>
+                    | <a href="/profile" class="logout-btn">My Profile</a>
+                    | <a href="/logout" class="logout-btn">Logout</a>
+        </div>
+    </header>
+
+    <main class="container">
+        <div class="dashboard-controls">
+            <div class="search-bar">
+                <input type="text" id="searchInput" placeholder="Search notes..." />
+                <button type="button" onclick="applyFilters()">Search</button>
+            </div>
+
+            <div class="filter-controls">
+                <select id="majorFilter" class="filter-select" onchange="handleMajorChange()">
+                    <option value="">All Majors</option>
+                    <% majors.forEach(major=> { %>
+                        <option value="<%= major %>">
+                            <%= major %>
+                        </option>
+                        <% }); %>
+                </select>
+
+                <select id="classFilter" class="filter-select" onchange="handleClassChange()">
+                    <option value="">All Classes</option>
+                    <% classCodes.forEach(code=> { %>
+                        <option value="<%= code %>" data-major="<%= code.replace(/[0-9]/g, '').trim() %>">
+                            <%= code %>
+                        </option>
+                        <% }); %>
+                </select>
+
+                <select id="semesterFilter" class="filter-select" onchange="applyFilters()">
+                    <option value="">All Semesters</option>
+                    <option value="Fall">Fall</option>
+                    <option value="Spring">Spring</option>
+                    <option value="Summer">Summer</option>
+                    <option value="Winter">Winter</option>
+                </select>
+
+                <input type="text" id="professorFilter" class="filter-select" placeholder="Professor..."
+                    onkeyup="applyFilters()" style="padding: 0.5rem 1rem;" />
+
+                <select id="sortFilter" class="filter-select" onchange="applyFilters()">
+                    <option value="newest">Newest First</option>
+                    <option value="oldest">Oldest First</option>
+                    <option value="name">Name A-Z</option>
+                </select>
+            </div>
+        </div>
+
+        <section class="file-list">
+            <% if (files.length===0) { %>
+                <div class="empty-state">
+                    <h3>No notes found</h3>
+                    <p>Be the first to share notes for your class!</p>
+                </div>
+                <% } else { %>
+                    <div class="file-grid">
+                        <% files.forEach(file=> { %>
+                            <div class="file-card animate-fade-in" data-class="<%= file.classCode %>"
+                                data-uploader="<%= file.uploadedBy %>"
+                                data-name="<%= file.originalName.toLowerCase() %>"
+                                data-date="<%= new Date(file.uploadDate).getTime() %>">
+                                <div class="file-header">
+                                    <div class="file-icon">📄</div>
+                                    <div class="file-info">
+                                        <h3>
+                                            <%= file.originalName %>
+                                        </h3>
+                                    </div>
+                                </div>
+
+                                <div class="file-meta">
+                                    <% if (file.major) { %>
+                                        <div class="file-meta-item">
+                                            <strong>Major:</strong> <span class="major-badge">
+                                                <%= file.major %>
+                                            </span>
+                                        </div>
+                                        <% } %>
+                                            <% if (file.classCode) { %>
+                                                <div class="file-meta-item">
+                                                    <strong>Class:</strong> <span class="class-code-badge">
+                                                        <%= file.classCode %>
+                                                    </span>
+                                                </div>
+                                                <% } %>
+                                                    <% if (file.professor) { %>
+                                                        <div class="file-meta-item">
+                                                            <strong>Professor:</strong>
+                                                            <%= file.professor %>
+                                                        </div>
+                                                        <% } %>
+                                                            <% if (file.semester && file.year) { %>
+                                                                <div class="file-meta-item">
+                                                                    <strong>Term:</strong>
+                                                                    <%= file.semester %>
+                                                                        <%= file.year %>
+                                                                </div>
+                                                                <% } %>
+                                                                    <div class="file-meta-item">
+                                                                        <strong>Uploaded by:</strong>
+                                                                        <%= file.uploadedBy %>
+                                                                    </div>
+                                                                    <div class="file-meta-item">
+                                                                        <strong>Size:</strong>
+                                                                        <%= (file.size / 1024).toFixed(1) %> KB
+                                                                    </div>
+                                                                    <% if (file.description) { %>
+                                                                        <div class="file-meta-item">
+                                                                            <strong>Description:</strong>
+                                                                            <%= file.description %>
+                                                                        </div>
+                                                                        <% } %>
+                                </div>
+
+                                <div class="file-actions">
+                                    <a href="/download/<%= encodeURIComponent(file.filename) %>"
+                                        class="button primary">Download</a>
+                                    <% if (user.role==='viewer' ) { %>
+                                        <button class="button danger disabled"
+                                            onclick="showViewerAlert(); return false;"
+                                            title="View-only mode">Delete</button>
+                                        <% } else if (user.role==='admin' || file.uploadedBy===user.userid) { %>
+                                            <a href="/delete/<%= encodeURIComponent(file.filename) %>"
+                                                class="button danger"
+                                                onclick="return confirm('Are you sure you want to delete this file?')">Delete</a>
+                                            <% } else { %>
+                                                <button class="button danger disabled" disabled
+                                                    title="You can only delete your own files">Delete</button>
+                                                <% } %>
+                                </div>
+                            </div>
+                            <% }); %>
+                    </div>
+                    <% } %>
+        </section>
+
+        <section class="upload-section">
+            <% if (user.role==='viewer' ) { %>
+                <div class="upload-disabled">
+                    <div class="upload-disabled-content">
+                        <div class="upload-disabled-icon">🔒</div>
+                        <h4>Upload Restricted - View-Only Mode</h4>
+                        <p>Your account has been set to view-only access. You can download files but cannot upload or
+                            delete.</p>
+                        <p style="margin-top: 1rem;">Contact an administrator if you need upload/delete permissions.</p>
+                        <button class="button primary" style="margin-top: 1rem;" onclick="showViewerAlert()">
+                            Learn More
+                        </button>
+                    </div>
+                </div>
+                <% } else { %>
+                    <div class="upload-header">
+                        <h3>Upload Notes</h3>
+                        <p>Share your class notes with fellow Terps. Select one or multiple files!</p>
+                    </div>
+
+                    <form action="/upload" method="POST" enctype="multipart/form-data" class="upload-form">
+                        <div class="form-group">
+                            <label for="documents" class="form-label">
+                                Select Files<span class="required">*</span>
+                            </label>
+                            <div class="upload-drop-zone" id="dropZone">
+                                <input type="file" name="documents" id="documents" required class="file-input-hidden"
+                                    multiple />
+                                <div class="drop-zone-content">
+                                    <div class="drop-zone-icon">📁</div>
+                                    <p class="drop-zone-text">
+                                        <strong>Click to browse</strong> or drag and drop files here
+                                    </p>
+                                    <p class="drop-zone-hint">
+                                        Upload one or multiple files (up to 50 files, 100MB each)
+                                    </p>
+                                </div>
+                                <div class="selected-files" id="selectedFiles"></div>
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="classCode" class="form-label">Class Code<span
+                                        class="required">*</span></label>
+                                <input type="text" name="classCode" id="classCode" required class="form-input"
+                                    placeholder="e.g. CMSC330, HIST000" />
+                                <small class="form-help">For general notes: MAJOR000 (e.g., HIST000)</small>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="professor" class="form-label">Professor<span
+                                        class="required">*</span></label>
+                                <input type="text" name="professor" id="professor" required class="form-input"
+                                    placeholder="e.g., Dr. Nelson, Prof. Smith" />
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="semester" class="form-label">Semester<span class="required">*</span></label>
+                                <select name="semester" id="semester" required class="form-input">
+                                    <option value="">Select semester</option>
+                                    <option value="Fall">Fall</option>
+                                    <option value="Spring">Spring</option>
+                                    <option value="Summer">Summer</option>
+                                    <option value="Winter">Winter</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="year" class="form-label">Year<span class="required">*</span></label>
+                                <select name="year" id="year" required class="form-input">
+                                    <option value="">Select year</option>
+                                    <% for (let y=new Date().getFullYear() + 1; y>= 2020; y--) { %>
+                                        <option value="<%= y %>">
+                                            <%= y %>
+                                        </option>
+                                        <% } %>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="description" class="form-label">Description<span
+                                    class="required">*</span></label>
+                            <textarea name="description" id="description" class="form-textarea" required
+                                placeholder="e.g., Week 1 Lectures, Midterm Study Guide, Chapter 3 Summary"
+                                rows="2"></textarea>
+                            <small class="form-help">
+                                Examples: "Week 5 Lectures", "Midterm Review", "Chapter 1-3 Notes"
+                            </small>
+                        </div>
+
+                        <div class="form-actions">
+                            <button type="submit" class="button primary">
+                                Upload Files
+                            </button>
+                        </div>
+                    </form>
+                    <% } %>
+        </section>
+    </main>
+
+    <!-- Floating Action Button for Upload -->
+    <% if (user.role !=='viewer' ) { %>
+        <button class="fab-upload" id="fabUpload" title="Upload Files">
+            <span class="fab-icon">📤</span>
+            <span class="fab-text">Upload</span>
+        </button>
+        <% } %>
+
+            <footer>
+                <p>&copy; <%= new Date().getFullYear() %> Terp Notes</p>
+            </footer>
+
+            <script type="application/json" id="filesData"><%- JSON.stringify(files) %></script>
+
+            <script src="/js/app.js"></script>
+            <script>
+                // Store all files data in JavaScript for client-side filtering
+                const allFilesData = JSON.parse(document.getElementById('filesData').textContent);
+
+                // Handle major filter change - updates class code dropdown
+                function handleMajorChange() {
+                    const classFilter = document.getElementById('classFilter');
+                    const currentClass = classFilter.value;
+
+                    // Update dropdown visibility
+                    updateClassDropdownVisibility();
+
+                    // If current class selection doesn't match the new major, clear it
+                    const selectedMajor = document.getElementById('majorFilter').value;
+                    if (currentClass && selectedMajor) {
+                        const currentOption = classFilter.querySelector(`option[value="${currentClass}"]`);
+                        if (currentOption && currentOption.dataset.major !== selectedMajor) {
+                            classFilter.value = '';
+                        }
+                    }
+
+                    // Apply filters (preserves semester, professor, etc.)
+                    applyFilters();
+                }
+
+                // Handle class filter change - auto-set major to match
+                function handleClassChange() {
+                    const classFilter = document.getElementById('classFilter');
+                    const majorFilter = document.getElementById('majorFilter');
+                    const selectedClass = classFilter.value;
+
+                    if (selectedClass) {
+                        const selectedOption = classFilter.querySelector(`option[value="${selectedClass}"]`);
+                        if (selectedOption) {
+                            const classMajor = selectedOption.dataset.major;
+                            // Auto-set major to match the class (without triggering change event)
+                            if (majorFilter.value !== classMajor) {
+                                majorFilter.value = classMajor;
+                                // Update dropdown visibility without resetting filters
+                                updateClassDropdownVisibility();
+                            }
+                        }
+                    }
+
+                    // Apply filters
+                    applyFilters();
+                }
+
+                // Update class dropdown visibility based on major (helper function)
+                function updateClassDropdownVisibility() {
+                    const selectedMajor = document.getElementById('majorFilter').value;
+                    const classFilter = document.getElementById('classFilter');
+                    const allOptions = classFilter.querySelectorAll('option');
+
+                    allOptions.forEach(option => {
+                        if (option.value === '') {
+                            option.style.display = 'block';
+                        } else {
+                            const optionMajor = option.dataset.major;
+                            if (!selectedMajor || optionMajor === selectedMajor) {
+                                option.style.display = 'block';
+                            } else {
+                                option.style.display = 'none';
+                            }
+                        }
+                    });
+                }
+
+                // Client-side filtering - instant, no page reloads!
+                function applyFilters() {
+                    const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+                    const majorFilter = document.getElementById('majorFilter').value;
+                    const classFilter = document.getElementById('classFilter').value;
+                    const semesterFilter = document.getElementById('semesterFilter').value;
+                    const professorFilter = document.getElementById('professorFilter').value.toLowerCase();
+                    const sortBy = document.getElementById('sortFilter').value;
+
+                    // Filter files
+                    let filteredFiles = allFilesData.filter(file => {
+                        // Search filter
+                        const matchesSearch = !searchTerm ||
+                            file.originalName.toLowerCase().includes(searchTerm) ||
+                            file.uploadedBy.toLowerCase().includes(searchTerm) ||
+                            (file.classCode && file.classCode.toLowerCase().includes(searchTerm)) ||
+                            (file.description && file.description.toLowerCase().includes(searchTerm)) ||
+                            (file.professor && file.professor.toLowerCase().includes(searchTerm));
+
+                        // Major filter
+                        const matchesMajor = !majorFilter || file.major === majorFilter;
+
+                        // Class filter
+                        const matchesClass = !classFilter || file.classCode === classFilter;
+
+                        // Semester filter
+                        const matchesSemester = !semesterFilter || file.semester === semesterFilter;
+
+                        // Professor filter
+                        const matchesProfessor = !professorFilter ||
+                            (file.professor && file.professor.toLowerCase().includes(professorFilter));
+
+                        return matchesSearch && matchesMajor && matchesClass && matchesSemester && matchesProfessor;
+                    });
+
+                    // Sort files
+                    filteredFiles.sort((a, b) => {
+                        switch (sortBy) {
+                            case 'oldest':
+                                return new Date(a.uploadDate) - new Date(b.uploadDate);
+                            case 'name':
+                                return a.originalName.localeCompare(b.originalName);
+                            case 'newest':
+                            default:
+                                return new Date(b.uploadDate) - new Date(a.uploadDate);
+                        }
+                    });
+
+                    // Update the DOM
+                    displayFiles(filteredFiles);
+                }
+
+                function displayFiles(files) {
+                    const fileGrid = document.querySelector('.file-grid');
+                    const emptyState = document.querySelector('.empty-state');
+                    const fileList = document.querySelector('.file-list');
+
+                    if (files.length === 0) {
+                        if (fileGrid) fileGrid.style.display = 'none';
+                        if (!emptyState) {
+                            fileList.innerHTML = '<div class="empty-state"><h3>No notes found</h3><p>Try different filters or search terms</p></div>';
+                        } else {
+                            emptyState.style.display = 'block';
+                        }
+                        return;
+                    }
+
+                    if (emptyState) emptyState.style.display = 'none';
+
+                    if (!fileGrid) {
+                        // Create file grid if it doesn't exist
+                        fileList.innerHTML = '<div class="file-grid"></div>';
+                    }
+
+                    const grid = document.querySelector('.file-grid');
+                    grid.style.display = 'grid';
+                    grid.innerHTML = files.map(file => `
+                <div class="file-card animate-fade-in">
+                    <div class="file-header">
+                        <div class="file-icon">📄</div>
+                        <div class="file-info">
+                            <h3>${escapeHtml(file.originalName)}</h3>
+                        </div>
+                    </div>
+                    <div class="file-meta">
+                        ${file.major ? `<div class="file-meta-item"><strong>Major:</strong> <span class="major-badge">${escapeHtml(file.major)}</span></div>` : ''}
+                        ${file.classCode ? `<div class="file-meta-item"><strong>Class:</strong> <span class="class-code-badge">${escapeHtml(file.classCode)}</span></div>` : ''}
+                        ${file.professor ? `<div class="file-meta-item"><strong>Professor:</strong> ${escapeHtml(file.professor)}</div>` : ''}
+                        ${file.semester && file.year ? `<div class="file-meta-item"><strong>Term:</strong> ${file.semester} ${file.year}</div>` : ''}
+                        <div class="file-meta-item"><strong>Uploaded by:</strong> ${escapeHtml(file.uploadedBy)}</div>
+                        <div class="file-meta-item"><strong>Size:</strong> ${(file.size / 1024).toFixed(1)} KB</div>
+                        ${file.description ? `<div class="file-meta-item"><strong>Description:</strong> ${escapeHtml(file.description)}</div>` : ''}
+                    </div>
+                    <div class="file-actions">
+                        <a href="/download/${encodeURIComponent(file.filename)}" class="button primary">Download</a>
+                        ${getDeleteButton(file)}
+                    </div>
+                </div>
+            `).join('');
+                }
+
+                function canDeleteFile(file) {
+                    const userRole = '<%= user.role %>';
+                    const userId = '<%= user.userid %>';
+                    return userRole === 'admin' || file.uploadedBy === userId;
+                }
+
+                function getDeleteButton(file) {
+                    const userRole = '<%= user.role %>';
+                    const userId = '<%= user.userid %>';
+
+                    if (userRole === 'viewer') {
+                        return `<button class="button danger disabled" onclick="showViewerAlert(); return false;" title="View-only mode">Delete</button>`;
+                    } else if (userRole === 'admin' || file.uploadedBy === userId) {
+                        return `<a href="/delete/${encodeURIComponent(file.filename)}" class="button danger" onclick="return confirm('Are you sure you want to delete this file?')">Delete</a>`;
+                    } else {
+                        return `<button class="button danger disabled" disabled title="You can only delete your own files">Delete</button>`;
+                    }
+                }
+
+                function showViewerAlert() {
+                    alert('🔒 View-Only Mode\n\nYour account has been set to view-only access. You can download files but cannot upload or delete.\n\nPlease contact an administrator if you need upload/delete permissions.');
+                }
+
+                function escapeHtml(text) {
+                    const div = document.createElement('div');
+                    div.textContent = text;
+                    return div.innerHTML;
+                }
+
+                // Initialize on page load
+                document.addEventListener('DOMContentLoaded', function () {
+                    // Real-time search as you type
+                    const searchInput = document.getElementById('searchInput');
+                    if (searchInput) {
+                        searchInput.addEventListener('input', applyFilters);
+                    }
+
+                    // Auto-uppercase class code input
+                    const classCodeInput = document.getElementById('classCode');
+                    if (classCodeInput) {
+                        classCodeInput.addEventListener('input', function () {
+                            this.value = this.value.toUpperCase();
+                        });
+                    }
+
+                    // Initialize drag-and-drop upload
+                    initDragAndDrop();
+
+                    // Initialize Floating Action Button
+                    initFAB();
+                });
+
+                // Drag and Drop Upload Functionality
+                function initDragAndDrop() {
+                    const dropZone = document.getElementById('dropZone');
+                    const fileInput = document.getElementById('documents');
+                    const selectedFilesContainer = document.getElementById('selectedFiles');
+
+                    if (!dropZone || !fileInput) return;
+
+                    // Click to browse
+                    dropZone.addEventListener('click', () => {
+                        fileInput.click();
+                    });
+
+                    // Prevent default drag behaviors
+                    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+                        dropZone.addEventListener(eventName, preventDefaults, false);
+                        document.body.addEventListener(eventName, preventDefaults, false);
+                    });
+
+                    // Highlight drop zone when dragging over
+                    ['dragenter', 'dragover'].forEach(eventName => {
+                        dropZone.addEventListener(eventName, () => {
+                            dropZone.classList.add('drag-over');
+                        }, false);
+                    });
+
+                    ['dragleave', 'drop'].forEach(eventName => {
+                        dropZone.addEventListener(eventName, () => {
+                            dropZone.classList.remove('drag-over');
+                        }, false);
+                    });
+
+                    // Handle dropped files
+                    dropZone.addEventListener('drop', (e) => {
+                        const dt = e.dataTransfer;
+                        const files = dt.files;
+                        fileInput.files = files;
+                        displaySelectedFiles(files);
+                    });
+
+                    // Handle selected files via click
+                    fileInput.addEventListener('change', (e) => {
+                        displaySelectedFiles(e.target.files);
+                    });
+
+                    function preventDefaults(e) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                    }
+
+                    function displaySelectedFiles(files) {
+                        if (!files || files.length === 0) {
+                            selectedFilesContainer.innerHTML = '';
+                            return;
+                        }
+
+                        let totalSize = 0;
+                        let html = '<div class="selected-files-header">📎 Selected Files:</div>';
+
+                        Array.from(files).forEach((file, index) => {
+                            const size = (file.size / 1024).toFixed(1);
+                            totalSize += file.size;
+                            const icon = getFileIcon(file.name);
+
+                            html += `
+                        <div class="file-item">
+                            <div class="file-item-info">
+                                <span class="file-item-icon">${icon}</span>
+                                <span class="file-item-name">${escapeHtml(file.name)}</span>
+                            </div>
+                            <span class="file-item-size">${size} KB</span>
+                        </div>
+                    `;
+                        });
+
+                        const totalSizeMB = (totalSize / (1024 * 1024)).toFixed(2);
+                        html += `<div class="files-summary">Total: ${files.length} file(s) · ${totalSizeMB} MB</div>`;
+
+                        selectedFilesContainer.innerHTML = html;
+                    }
+
+                    function getFileIcon(filename) {
+                        const ext = filename.split('.').pop().toLowerCase();
+                        const iconMap = {
+                            pdf: '📕',
+                            doc: '📘', docx: '📘',
+                            xls: '📗', xlsx: '📗',
+                            ppt: '📙', pptx: '📙',
+                            txt: '📄',
+                            zip: '📦', rar: '📦',
+                            jpg: '🖼️', jpeg: '🖼️', png: '🖼️', gif: '🖼️',
+                            mp4: '🎥', mov: '🎥',
+                            mp3: '🎵',
+                        };
+                        return iconMap[ext] || '📄';
+                    }
+                }
+
+                // Floating Action Button functionality
+                function initFAB() {
+                    const fab = document.getElementById('fabUpload');
+                    const uploadSection = document.querySelector('.upload-section');
+
+                    if (!fab || !uploadSection) return;
+
+                    // Smooth scroll to upload section
+                    fab.addEventListener('click', () => {
+                        uploadSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+                        // Optional: Focus on the drop zone after scrolling
+                        setTimeout(() => {
+                            const dropZone = document.getElementById('dropZone');
+                            if (dropZone) {
+                                dropZone.style.animation = 'pulse 0.5s ease-in-out';
+                                setTimeout(() => {
+                                    dropZone.style.animation = '';
+                                }, 500);
+                            }
+                        }, 500);
+                    });
+
+                    // Hide FAB when upload section is visible
+                    const observer = new IntersectionObserver((entries) => {
+                        entries.forEach(entry => {
+                            if (entry.isIntersecting) {
+                                fab.style.opacity = '0';
+                                fab.style.pointerEvents = 'none';
+                            } else {
+                                fab.style.opacity = '1';
+                                fab.style.pointerEvents = 'all';
+                            }
+                        });
+                    }, { threshold: 0.1 });
+
+                    observer.observe(uploadSection);
+                }
+            </script>
+</body>
+
+</html>
