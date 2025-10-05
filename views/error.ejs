@@ -1,11 +1,15 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title><%= title %></title>
+    <title>
+        <%= title %>
+    </title>
     <link rel="stylesheet" href="/styles/main.css" />
 </head>
+
 <body>
     <header class="topbar">
         <h2>Terp Notes</h2>
@@ -13,9 +17,17 @@
 
     <main class="centered">
         <div class="alert">
-            <h1 style="color: var(--umd-red);">❌ <%= title %></h1>
-            <p><%= message %></p>
-            <a href="<%= link %>" class="button primary"><%= linkText %></a>
+            <h1 style="color: var(--umd-red);">❌ <%= title %>
+            </h1>
+            <p>
+                <%= message %>
+            </p>
+            <div style="display: flex; gap: 1rem; justify-content: center; margin-top: 1.5rem;">
+                <a href="<%= link %>" class="button primary">
+                    <%= linkText %>
+                </a>
+                <a href="/contact" class="button secondary">Need Help?</a>
+            </div>
         </div>
     </main>
 
@@ -23,4 +35,5 @@
         <p>&copy; <%= new Date().getFullYear() %> Terp Notes</p>
     </footer>
 </body>
+
 </html>

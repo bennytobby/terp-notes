@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Terms of Service - Terp Notes</title>
+    <link rel="stylesheet" href="/styles/main.css" />
+</head>
+
+<body>
+    <header class="topbar">
+        <h2>🐢 Terp Notes</h2>
+        <div class="user-info">
+            <% if (user) { %>
+                Welcome, <strong>
+                    <%= user.firstname %>
+                </strong> |
+                <a href="/dashboard" class="logout-btn">Dashboard</a> |
+                <a href="/logout" class="logout-btn">Logout</a>
+                <% } else { %>
+                    <a href="/" class="logout-btn">Home</a> |
+                    <a href="/login" class="logout-btn">Login</a>
+                    <% } %>
+        </div>
+    </header>
+
+    <main class="container" style="max-width: 900px; padding: 3rem 2rem;">
+        <h1>Terms of Service</h1>
+        <p style="color: #6B7280; margin-bottom: 2rem;"><strong>Last Updated:</strong>
+            <%= new Date().toLocaleDateString() %>
+        </p>
+
+        <div class="legal-content">
+            <section>
+                <h2>1. Acceptance of Terms</h2>
+                <p>
+                    By accessing or using Terp Notes, you agree to be bound by these Terms of Service and our
+                    Privacy Policy. If you do not agree to these terms, do not use the platform.
+                </p>
+                <p>
+                    <strong>We reserve the right to modify these terms at any time.</strong> Continued use of
+                    the platform after changes constitutes acceptance of the revised terms.
+                </p>
+            </section>
+
+            <section>
+                <h2>2. Platform Description and Disclaimer</h2>
+                <p>
+                    Terp Notes is an <strong>independent, student-run platform</strong> that facilitates
+                    note-sharing among university students.
+                </p>
+                <div
+                    style="background: #FEE2E2; border-left: 4px solid #DC2626; padding: 1.5rem; margin: 1rem 0; border-radius: 8px;">
+                    <strong>🚨 CRITICAL DISCLAIMER:</strong>
+                    <ul style="margin-top: 0.5rem; margin-bottom: 0;">
+                        <li>We are <strong>NOT affiliated with, endorsed by, or officially connected to</strong>
+                            the University of Maryland or any other educational institution</li>
+                        <li>All content is user-generated and <strong>not verified</strong> by university faculty or
+                            staff</li>
+                        <li>Use of this platform is <strong>entirely at your own risk</strong></li>
+                        <li>We make <strong>no guarantees</strong> about the accuracy, completeness, or legality of
+                            shared content</li>
+                    </ul>
+                </div>
+            </section>
+
+            <section>
+                <h2>3. Eligibility</h2>
+                <p>To use Terp Notes, you must:</p>
+                <ul>
+                    <li>Be at least 18 years old</li>
+                    <li>Have a valid university email address (verified)</li>
+                    <li>Agree to these Terms of Service and our Privacy Policy</li>
+                    <li>Comply with all applicable laws and regulations</li>
+                </ul>
+            </section>
+
+            <section>
+                <h2>4. Account Responsibilities</h2>
+                <p>You are responsible for:</p>
+                <ul>
+                    <li><strong>Account Security:</strong> Keep your password confidential</li>
+                    <li><strong>Account Activity:</strong> All actions taken under your account</li>
+                    <li><strong>Accurate Information:</strong> Provide truthful registration details</li>
+                    <li><strong>Username Permanence:</strong> Usernames cannot be changed once created</li>
+                    <li><strong>Unauthorized Access:</strong> Notify us immediately of any security breach</li>
+                </ul>
+                <p>
+                    <strong>We reserve the right to terminate accounts</strong> that violate these terms or
+                    engage in abusive behavior.
+                </p>
+            </section>
+
+            <section>
+                <h2>5. Acceptable Use Policy</h2>
+                <p>You agree to use Terp Notes only for lawful purposes. <strong>You may NOT:</strong></p>
+
+                <h3>5.1 Prohibited Content</h3>
+                <ul>
+                    <li>Upload copyrighted materials without permission</li>
+                    <li>Share exam questions, answers, or completed assignments unless explicitly authorized</li>
+                    <li>Upload malware, viruses, or malicious code</li>
+                    <li>Share personal information of others without consent</li>
+                    <li>Post discriminatory, harassing, or offensive content</li>
+                    <li>Upload pornographic or illegal content</li>
+                </ul>
+
+                <h3>5.2 Prohibited Activities</h3>
+                <ul>
+                    <li>Attempt to hack, bypass, or manipulate the platform</li>
+                    <li>Use automated tools to scrape or download content</li>
+                    <li>Create multiple accounts to circumvent restrictions</li>
+                    <li>Impersonate others or create fake accounts</li>
+                    <li>Spam, advertise, or solicit users</li>
+                    <li>Sell or monetize access to the platform</li>
+                </ul>
+
+                <h3>5.3 Academic Integrity</h3>
+                <div
+                    style="background: #FEF3C7; border-left: 4px solid #F59E0B; padding: 1.5rem; margin: 1rem 0; border-radius: 8px;">
+                    <strong>⚠️ Academic Integrity Warning:</strong>
+                    <ul style="margin-top: 0.5rem; margin-bottom: 0;">
+                        <li>Do not upload materials that violate your institution's academic integrity policies</li>
+                        <li>Respect professor guidelines on note-sharing and collaboration</li>
+                        <li>Do not use this platform to facilitate cheating or plagiarism</li>
+                        <li><strong>Violations may be reported to your institution's Office of Student Conduct</strong>
+                        </li>
+                    </ul>
+                </div>
+            </section>
+
+            <section>
+                <h2>6. Content Ownership and Licensing</h2>
+
+                <h3>6.1 Your Content</h3>
+                <p>You retain ownership of files you upload. However, by uploading to Terp Notes, you grant us:</p>
+                <ul>
+                    <li>A non-exclusive license to store, display, and distribute your content on the platform</li>
+                    <li>The right to scan files for viruses and malware</li>
+                    <li>The right to remove content that violates these terms</li>
+                </ul>
+
+                <h3>6.2 Other Users' Content</h3>
+                <p>Files shared on Terp Notes are provided "as-is" for educational purposes. You:</p>
+                <ul>
+                    <li>May download and use files for personal study</li>
+                    <li>May NOT redistribute files outside the platform</li>
+                    <li>May NOT claim others' work as your own</li>
+                    <li>Must respect copyright and intellectual property rights</li>
+                </ul>
+            </section>
+
+            <section>
+                <h2>7. Content Moderation</h2>
+                <p>We reserve the right to:</p>
+                <ul>
+                    <li>Review uploaded files and user reports</li>
+                    <li>Remove content that violates these terms</li>
+                    <li>Restrict or terminate accounts for violations</li>
+                    <li>Cooperate with law enforcement when necessary</li>
+                </ul>
+                <p>
+                    <strong>We are not liable for user-generated content</strong> and do not pre-screen all uploads.
+                </p>
+            </section>
+
+            <section>
+                <h2>8. Virus Scanning and Security</h2>
+                <p>
+                    We use VirusTotal to scan uploaded files. However:
+                </p>
+                <ul>
+                    <li>No antivirus is 100% effective</li>
+                    <li>You download files at your own risk</li>
+                    <li>Always scan downloads with your own antivirus software</li>
+                    <li>We are not liable for malware or security incidents</li>
+                </ul>
+            </section>
+
+            <section>
+                <h2>9. Disclaimer of Warranties</h2>
+                <p>Terp Notes is provided "AS IS" and "AS AVAILABLE" without warranties of any kind:</p>
+                <ul>
+                    <li>We do not guarantee uptime, availability, or data integrity</li>
+                    <li>We do not guarantee the accuracy, quality, or legality of shared content</li>
+                    <li>We do not guarantee that the platform is error-free or secure</li>
+                    <li>We do not guarantee that files are virus-free</li>
+                </ul>
+            </section>
+
+            <section>
+                <h2>10. Limitation of Liability</h2>
+                <p>
+                    <strong>To the fullest extent permitted by law, Terp Notes and its operators shall not be
+                        liable for:</strong>
+                </p>
+                <ul>
+                    <li>Loss of data or files</li>
+                    <li>Academic consequences from using shared content</li>
+                    <li>Disciplinary action by educational institutions</li>
+                    <li>Malware, viruses, or security breaches</li>
+                    <li>Indirect, incidental, or consequential damages</li>
+                    <li>Actions or content of other users</li>
+                </ul>
+                <p>
+                    <strong>Use of this platform is entirely at your own risk.</strong> You are solely responsible
+                    for how you use shared materials and for complying with your institution's policies.
+                </p>
+            </section>
+
+            <section>
+                <h2>11. Indemnification</h2>
+                <p>
+                    You agree to indemnify and hold harmless Terp Notes and its operators from any claims,
+                    damages, or expenses arising from:
+                </p>
+                <ul>
+                    <li>Your use of the platform</li>
+                    <li>Content you upload</li>
+                    <li>Violation of these terms</li>
+                    <li>Violation of any laws or third-party rights</li>
+                </ul>
+            </section>
+
+            <section>
+                <h2>12. Termination</h2>
+                <p>We may terminate or suspend your account immediately, without notice, for:</p>
+                <ul>
+                    <li>Violation of these terms</li>
+                    <li>Academic integrity violations</li>
+                    <li>Abusive or malicious behavior</li>
+                    <li>Legal requirements</li>
+                </ul>
+                <p>
+                    Upon termination, your access to the platform will cease, and we may delete your
+                    account and uploaded files.
+                </p>
+            </section>
+
+            <section>
+                <h2>13. Governing Law</h2>
+                <p>
+                    These Terms of Service shall be governed by the laws of the State of Maryland, United States,
+                    without regard to conflict of law provisions.
+                </p>
+            </section>
+
+            <section>
+                <h2>14. Changes to Terms</h2>
+                <p>
+                    We may modify these terms at any time. Changes will be posted on this page with an updated
+                    "Last Updated" date. Your continued use of the platform after changes constitutes acceptance.
+                </p>
+            </section>
+
+            <section>
+                <h2>15. Contact Us</h2>
+                <p>
+                    Questions about these terms? Contact us at:
+                </p>
+                <p><a href="/contact" style="color: var(--umd-red); font-weight: 600;">Contact Support</a></p>
+            </section>
+
+            <div
+                style="background: #D1FAE5; border-left: 4px solid #10B981; padding: 1.5rem; margin-top: 2rem; border-radius: 8px;">
+                <strong>✅ By using Terp Notes, you acknowledge that you have read, understood, and agree to be bound by
+                    these Terms of Service.</strong>
+            </div>
+        </div>
+    </main>
+
+    <footer>
+        <p>&copy; <%= new Date().getFullYear() %> Terp Notes |
+                <a href="/privacy">Privacy Policy</a> |
+                <a href="/terms">Terms of Service</a> |
+                <a href="/contact">Contact</a>
+        </p>
+    </footer>
+</body>
+
+</html>

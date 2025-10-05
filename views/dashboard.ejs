@@ -298,7 +298,12 @@
         <% } %>
 
             <footer>
-                <p>&copy; <%= new Date().getFullYear() %> Terp Notes</p>
+                <p>
+                    &copy; <%= new Date().getFullYear() %> Terp Notes<br>
+                        <a href="/privacy">Privacy</a> |
+                        <a href="/terms">Terms</a> |
+                        <a href="/contact">Contact</a>
+                </p>
             </footer>
 
             <script type="application/json" id="filesData"><%- JSON.stringify(files) %></script>

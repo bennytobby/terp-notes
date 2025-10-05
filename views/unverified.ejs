@@ -40,12 +40,17 @@
                 </ul>
             </div>
 
-            <form action="/resend-verification" method="POST" style="margin-bottom: 1.5rem;">
-                <input type="hidden" name="email" value="<%= email %>" />
-                <button type="submit" class="button primary" style="padding: 0.75rem 2rem;">
-                    Resend Verification Email
-                </button>
-            </form>
+            <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; margin-bottom: 1.5rem;">
+                <form action="/resend-verification" method="POST" style="display: inline;">
+                    <input type="hidden" name="email" value="<%= email %>" />
+                    <button type="submit" class="button primary">
+                        📧 Resend Verification
+                    </button>
+                </form>
+                <a href="/contact" class="button secondary" style="background: #6B7280;">
+                    Need Help?
+                </a>
+            </div>
 
             <p>
                 <a href="/register">Register with different email</a> |

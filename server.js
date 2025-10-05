@@ -508,6 +508,90 @@ app.get('/', function (req, res) {
     res.render('index', { title: "Terp Notes - UMD Resource Sharing" });
 });
 
+// Legal Pages (accessible both logged in and logged out)
+app.get('/privacy', function (req, res) {
+    res.render('privacy', {
+        title: "Privacy Policy - Terp Notes",
+        user: req.session.user || null
+    });
+});
+
+app.get('/terms', function (req, res) {
+    res.render('terms', {
+        title: "Terms of Service - Terp Notes",
+        user: req.session.user || null
+    });
+});
+
+app.get('/contact', function (req, res) {
+    res.render('contact', {
+        title: "Contact & Support - Terp Notes",
+        user: req.session.user || null
+    });
+});
+
+// Contact Form Submission
+app.post('/contact/submit', async function (req, res) {
+    try {
+        const { name, email, subject, message } = req.body;
+
+        if (!name || !email || !subject || !message) {
+            return res.render('error', {
+                title: "Missing Information",
+                message: "Please fill out all required fields.",
+                link: "/contact",
+                linkText: "Back to Contact"
+            });
+        }
+
+        // Send email to admin
+        const adminEmail = process.env.ADMIN_EMAIL || process.env.EMAIL_USER;
+
+        const mailOptions = {
+            from: process.env.EMAIL_USER,
+            to: adminEmail,
+            replyTo: email,
+            subject: `[Terp Notes Support] ${subject}`,
+            text: `
+Support Request from Terp Notes
+
+Name: ${name}
+Email: ${email}
+Subject: ${subject}
+
+Message:
+${message}
+
+---
+Sent via Terp Notes Contact Form
+            `
+        };
+
+        transporter.sendMail(mailOptions, (err, info) => {
+            if (err) {
+                console.error("Error sending contact email:", err);
+            } else {
+                console.log('Contact form submitted:', email);
+            }
+        });
+
+        res.render('success', {
+            title: "Message Sent",
+            message: "Thank you for contacting us! We'll get back to you within 24-48 hours.",
+            link: "/",
+            linkText: "Back to Home"
+        });
+    } catch (error) {
+        console.error('Contact form error:', error);
+        res.render('error', {
+            title: "Submission Error",
+            message: "Failed to send message. Please try again later.",
+            link: "/contact",
+            linkText: "Back to Contact"
+        });
+    }
+});
+
 app.get('/register', function (req, res) {
     res.render('register', { title: "Register - Terp Notes" });
 });

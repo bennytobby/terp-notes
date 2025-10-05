@@ -1007,6 +1007,17 @@ footer {
   font-size: var(--font-size-sm);
 }
 
+footer a {
+  color: var(--umd-red);
+  text-decoration: underline;
+  margin: 0 0.5rem;
+  font-weight: 600;
+}
+
+footer a:hover {
+  color: #991B1B;
+}
+
 /* ===== ANIMATIONS ===== */
 @keyframes fadeIn {
   from { opacity: 0; transform: translateY(10px); }
@@ -1565,4 +1576,44 @@ button:disabled {
   display: flex;
   gap: var(--space-2);
   flex-wrap: wrap;
+}
+
+/* ===== LEGAL PAGES STYLING ===== */
+.legal-content {
+  line-height: 1.8;
+}
+
+.legal-content h2 {
+  color: var(--umd-red);
+  margin-top: 2.5rem;
+  margin-bottom: 1rem;
+  font-size: 1.75rem;
+  border-bottom: 2px solid var(--umd-red);
+  padding-bottom: 0.5rem;
+}
+
+.legal-content h3 {
+  color: #374151;
+  margin-top: 1.5rem;
+  margin-bottom: 0.75rem;
+  font-size: 1.25rem;
+}
+
+.legal-content section {
+  margin-bottom: 2rem;
+}
+
+.legal-content ul {
+  margin-left: 1.5rem;
+  margin-top: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.legal-content li {
+  margin-bottom: 0.5rem;
+}
+
+.legal-content p {
+  margin-bottom: 1rem;
+  color: #4B5563;
 }
