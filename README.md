@@ -151,11 +151,18 @@ Terp Notes prioritizes user security and academic integrity:
 4. Start the server: `npm start`
 5. Visit `http://localhost:3000`
 
-### Default Accounts
-- **Admin:** `admin` / `admin`
-- **Contributor:** `terp` / `terp`
-- **Viewer:** `viewer` / `viewer`
-- Or create your own with a UMD email!
+### Admin Setup
+**All users register as "contributors" by default.**
+
+To set yourself as admin:
+1. Register with your UMD email and verify
+2. Go to MongoDB Atlas → Database → Browse Collections
+3. Find your user in `users` collection
+4. Edit document: Change `"role": "contributor"` to `"role": "admin"`
+5. Optionally set `"isProtected": true` to prevent accidental deletion
+6. Refresh your dashboard → You're now admin! 👑
+
+From then on, you can promote other admins via the admin dashboard.
 
 ### VirusTotal Integration
 To enable virus scanning:

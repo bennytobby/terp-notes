@@ -186,81 +186,9 @@ const bcrypt = require('bcrypt');
 /* File Hashing for Deduplication */
 const crypto = require('crypto');
 
-// Function to create protected system accounts
-async function createProtectedSystemAccounts() {
-    try {
-        await client.connect();
-
-        const systemAccounts = [
-            {
-                firstname: 'System',
-                lastname: 'Admin',
-                userid: 'admin',
-                email: 'admin@terpnotes.umd.edu',
-                pass: await bcrypt.hash('admin', 10),
-                role: 'admin',
-                isProtected: true,
-                isVerified: true,
-                createdAt: new Date()
-            },
-            {
-                firstname: 'Test',
-                lastname: 'Terp',
-                userid: 'terp',
-                email: 'terp@terpnotes.umd.edu',
-                pass: await bcrypt.hash('terp', 10),
-                role: 'contributor',
-                isProtected: true,
-                isVerified: true,
-                createdAt: new Date()
-            },
-            {
-                firstname: 'View',
-                lastname: 'Only',
-                userid: 'viewer',
-                email: 'viewer@terpnotes.umd.edu',
-                pass: await bcrypt.hash('viewer', 10),
-                role: 'viewer',
-                isProtected: true,
-                isVerified: true,
-                createdAt: new Date()
-            }
-        ];
-
-        for (const account of systemAccounts) {
-            const existingUser = await client
-                .db(userCollection.db)
-                .collection(userCollection.collection)
-                .findOne({ userid: account.userid });
-
-            if (!existingUser) {
-                await client
-                    .db(userCollection.db)
-                    .collection(userCollection.collection)
-                    .insertOne(account);
-                console.log(`✅ Created protected system account: ${account.userid}`);
-            } else {
-                if (!existingUser.isProtected) {
-                    await client
-                        .db(userCollection.db)
-                        .collection(userCollection.collection)
-                        .updateOne(
-                            { userid: account.userid },
-                            { $set: { isProtected: true } }
-                        );
-                    console.log(`🛡️ Updated existing account to protected: ${account.userid}`);
-                }
-            }
-        }
-    } catch (error) {
-        console.error('Error creating protected system accounts:', error);
-    } finally {
-        await client.close();
-    }
-}
-
-// Create protected system accounts on server startup
-createProtectedSystemAccounts();
+// No default accounts created
+// First registered user will automatically become admin
+console.log('📝 No default accounts - first registered user will be admin');
 
 /* VirusTotal Scanning Function */
 async function scanFileWithVirusTotal(fileId, fileBuffer, filename) {
@@ -1396,6 +1324,8 @@ app.post('/registerSubmit', registerLimiter, async function (req, res) {
         // Generate verification token
         const verificationToken = crypto.randomBytes(32).toString('hex');
 
+        // All new users are contributors by default
+        // Admin can manually set roles via MongoDB or admin dashboard
         const newUser = {
             firstname: req.body.first_name,
             lastname: req.body.last_name,
