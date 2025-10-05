@@ -954,13 +954,22 @@ app.get('/dashboard', async (req, res) => {
         const uniqueMajors = [...new Set(allFiles.map(f => f.major).filter(Boolean))].sort();
         const uniqueClassCodes = [...new Set(allFiles.map(f => f.classCode).filter(Boolean))].sort();
 
+        // Get active announcements
+        const announcements = await client
+            .db(fileCollection.db)
+            .collection('announcements')
+            .find({ isActive: true })
+            .sort({ createdAt: -1 })
+            .toArray();
+
         res.render('dashboard', {
             firstname: req.session.user.firstname,
             email: req.session.user.email,
             user: req.session.user,
             files: allFiles,
             majors: uniqueMajors,
-            classCodes: uniqueClassCodes
+            classCodes: uniqueClassCodes,
+            announcements: announcements
         });
     } catch (e) {
         console.error(e);
@@ -1671,11 +1680,20 @@ app.get('/admin', async (req, res) => {
             .sort({ reportedAt: -1 })
             .toArray();
 
+        // Get announcements
+        const announcements = await client
+            .db(fileCollection.db)
+            .collection('announcements')
+            .find({})
+            .sort({ createdAt: -1 })
+            .toArray();
+
         res.render('admin', {
             title: "Admin Dashboard",
             user: req.session.user,
             users: users,
-            reports: reports
+            reports: reports,
+            announcements: announcements
         });
     } catch (error) {
         console.error('Error fetching admin data:', error);
@@ -1836,6 +1854,121 @@ app.post('/api/report-file', apiLimiter, async (req, res) => {
     } catch (error) {
         console.error('Error submitting report:', error);
         res.status(500).json({ error: 'Failed to submit report' });
+    } finally {
+        await client.close();
+    }
+});
+
+// API: Create Announcement
+app.post('/api/create-announcement', apiLimiter, async (req, res) => {
+    if (!req.session.user || req.session.user.role !== 'admin') {
+        return res.status(401).json({ error: 'Unauthorized' });
+    }
+
+    try {
+        const { message, type } = req.body;
+
+        if (!message || !type) {
+            return res.status(400).json({ error: 'Missing required fields' });
+        }
+
+        if (!['info', 'warning', 'success'].includes(type)) {
+            return res.status(400).json({ error: 'Invalid announcement type' });
+        }
+
+        await client.connect();
+
+        const announcement = {
+            message: message.trim(),
+            type: type,
+            createdBy: req.session.user.userid,
+            createdAt: new Date(),
+            isActive: true
+        };
+
+        await client
+            .db(fileCollection.db)
+            .collection('announcements')
+            .insertOne(announcement);
+
+        res.json({ success: true, message: 'Announcement created successfully' });
+    } catch (error) {
+        console.error('Error creating announcement:', error);
+        res.status(500).json({ error: 'Failed to create announcement' });
+    } finally {
+        await client.close();
+    }
+});
+
+// API: Delete Announcement
+app.post('/api/delete-announcement', apiLimiter, async (req, res) => {
+    if (!req.session.user || req.session.user.role !== 'admin') {
+        return res.status(401).json({ error: 'Unauthorized' });
+    }
+
+    try {
+        const { announcementId } = req.body;
+
+        if (!announcementId) {
+            return res.status(400).json({ error: 'Missing announcement ID' });
+        }
+
+        await client.connect();
+
+        await client
+            .db(fileCollection.db)
+            .collection('announcements')
+            .deleteOne({ _id: new ObjectId(announcementId) });
+
+        res.json({ success: true, message: 'Announcement deleted successfully' });
+    } catch (error) {
+        console.error('Error deleting announcement:', error);
+        res.status(500).json({ error: 'Failed to delete announcement' });
+    } finally {
+        await client.close();
+    }
+});
+
+// API: Toggle Announcement Status
+app.post('/api/toggle-announcement', apiLimiter, async (req, res) => {
+    if (!req.session.user || req.session.user.role !== 'admin') {
+        return res.status(401).json({ error: 'Unauthorized' });
+    }
+
+    try {
+        const { announcementId } = req.body;
+
+        if (!announcementId) {
+            return res.status(400).json({ error: 'Missing announcement ID' });
+        }
+
+        await client.connect();
+
+        const announcement = await client
+            .db(fileCollection.db)
+            .collection('announcements')
+            .findOne({ _id: new ObjectId(announcementId) });
+
+        if (!announcement) {
+            return res.status(404).json({ error: 'Announcement not found' });
+        }
+
+        await client
+            .db(fileCollection.db)
+            .collection('announcements')
+            .updateOne(
+                { _id: new ObjectId(announcementId) },
+                { $set: { isActive: !announcement.isActive } }
+            );
+
+        res.json({
+            success: true,
+            message: 'Announcement toggled successfully',
+            isActive: !announcement.isActive
+        });
+    } catch (error) {
+        console.error('Error toggling announcement:', error);
+        res.status(500).json({ error: 'Failed to toggle announcement' });
     } finally {
         await client.close();
     }

@@ -1617,3 +1617,58 @@ button:disabled {
   margin-bottom: 1rem;
   color: #4B5563;
 }
+
+/* ===== ANNOUNCEMENTS ===== */
+.announcement-banner {
+  padding: 1rem 1.5rem;
+  border-radius: var(--radius-md);
+  margin-bottom: var(--space-4);
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.announcement-banner-info {
+  background: #DBEAFE;
+  border-left: 4px solid #3B82F6;
+  color: #1E40AF;
+}
+
+.announcement-banner-warning {
+  background: #FEF3C7;
+  border-left: 4px solid #F59E0B;
+  color: #92400E;
+}
+
+.announcement-banner-success {
+  background: #D1FAE5;
+  border-left: 4px solid #10B981;
+  color: #065F46;
+}
+
+.announcement-card {
+  background: white;
+  padding: 1rem;
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  border-left: 4px solid;
+}
+
+.announcement-card.announcement-info {
+  border-left-color: #3B82F6;
+  background: #EFF6FF;
+}
+
+.announcement-card.announcement-warning {
+  border-left-color: #F59E0B;
+  background: #FFFBEB;
+}
+
+.announcement-card.announcement-success {
+  border-left-color: #10B981;
+  background: #ECFDF5;
+}

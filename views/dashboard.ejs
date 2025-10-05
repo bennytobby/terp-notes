@@ -27,266 +27,302 @@
     </header>
 
     <main class="container">
-        <div class="dashboard-controls">
-            <div class="search-bar">
-                <input type="text" id="searchInput" placeholder="Search notes..." />
-                <button type="button" onclick="applyFilters()">Search</button>
-            </div>
-
-            <div class="filter-controls">
-                <select id="majorFilter" class="filter-select" onchange="handleMajorChange()">
-                    <option value="">All Majors</option>
-                    <% majors.forEach(major=> { %>
-                        <option value="<%= major %>">
-                            <%= major %>
-                        </option>
-                        <% }); %>
-                </select>
-
-                <select id="classFilter" class="filter-select" onchange="handleClassChange()">
-                    <option value="">All Classes</option>
-                    <% classCodes.forEach(code=> { %>
-                        <option value="<%= code %>" data-major="<%= code.replace(/[0-9]/g, '').trim() %>">
-                            <%= code %>
-                        </option>
-                        <% }); %>
-                </select>
-
-                <select id="semesterFilter" class="filter-select" onchange="applyFilters()">
-                    <option value="">All Semesters</option>
-                    <option value="Fall">Fall</option>
-                    <option value="Spring">Spring</option>
-                    <option value="Summer">Summer</option>
-                    <option value="Winter">Winter</option>
-                </select>
-
-                <input type="text" id="professorFilter" class="filter-select" placeholder="Professor..."
-                    onkeyup="applyFilters()" style="padding: 0.5rem 1rem;" />
-
-                <select id="sortFilter" class="filter-select" onchange="applyFilters()">
-                    <option value="newest">Newest First</option>
-                    <option value="oldest">Oldest First</option>
-                    <option value="name">Name A-Z</option>
-                </select>
-            </div>
-        </div>
-
-        <section class="file-list">
-            <% if (files.length===0) { %>
-                <div class="empty-state">
-                    <h3>No notes found</h3>
-                    <p>Be the first to share notes for your class!</p>
-                </div>
-                <% } else { %>
-                    <div class="file-grid">
-                        <% files.forEach(file=> { %>
-                            <div class="file-card animate-fade-in" data-class="<%= file.classCode %>"
-                                data-uploader="<%= file.uploadedBy %>"
-                                data-name="<%= file.originalName.toLowerCase() %>"
-                                data-date="<%= new Date(file.uploadDate).getTime() %>">
-                                <div class="file-header">
-                                    <div class="file-icon">📄</div>
-                                    <div class="file-info">
-                                        <h3>
-                                            <%= file.originalName %>
-                                        </h3>
-                                    </div>
-                                </div>
-
-                                <div class="file-meta">
-                                    <% if (file.virusScanStatus) { %>
-                                        <div class="file-meta-item">
-                                            <strong>Security:</strong>
-                                            <% if (file.virusScanStatus==='clean' ) { %>
-                                                <span class="scan-badge scan-clean">✓ Virus Scanned</span>
-                                                <% } else if (file.virusScanStatus==='pending' ) { %>
-                                                    <span class="scan-badge scan-pending">⏳ Scanning...</span>
-                                                    <% } else if (file.virusScanStatus==='error' ) { %>
-                                                        <span class="scan-badge scan-error">⚠️ Scan Error</span>
-                                                        <% } %>
-                                        </div>
-                                        <% } %>
-                                            <% if (file.major) { %>
-                                                <div class="file-meta-item">
-                                                    <strong>Major:</strong> <span class="major-badge">
-                                                        <%= file.major %>
-                                                    </span>
-                                                </div>
-                                                <% } %>
-                                                    <% if (file.classCode) { %>
-                                                        <div class="file-meta-item">
-                                                            <strong>Class:</strong> <span class="class-code-badge">
-                                                                <%= file.classCode %>
-                                                            </span>
-                                                        </div>
-                                                        <% } %>
-                                                            <% if (file.professor) { %>
-                                                                <div class="file-meta-item">
-                                                                    <strong>Professor:</strong>
-                                                                    <%= file.professor %>
-                                                                </div>
-                                                                <% } %>
-                                                                    <% if (file.semester && file.year) { %>
-                                                                        <div class="file-meta-item">
-                                                                            <strong>Term:</strong>
-                                                                            <%= file.semester %>
-                                                                                <%= file.year %>
-                                                                        </div>
-                                                                        <% } %>
-                                                                            <div class="file-meta-item">
-                                                                                <strong>Uploaded by:</strong>
-                                                                                <%= file.uploadedBy %>
-                                                                            </div>
-                                                                            <div class="file-meta-item">
-                                                                                <strong>Size:</strong>
-                                                                                <%= (file.size / 1024).toFixed(1) %> KB
-                                                                            </div>
-                                                                            <% if (file.description) { %>
-                                                                                <div class="file-meta-item">
-                                                                                    <strong>Description:</strong>
-                                                                                    <%= file.description %>
-                                                                                </div>
-                                                                                <% } %>
-                                </div>
-
-                                <div class="file-actions">
-                                    <a href="/download/<%= encodeURIComponent(file.filename) %>?force=download"
-                                        class="button primary">Download</a>
-                                    <% if (user.role==='viewer' ) { %>
-                                        <button class="button danger disabled"
-                                            onclick="showViewerAlert(); return false;"
-                                            title="View-only mode">Delete</button>
-                                        <% } else if (user.role==='admin' || file.uploadedBy===user.userid) { %>
-                                            <a href="/delete/<%= encodeURIComponent(file.filename) %>"
-                                                class="button danger"
-                                                onclick="return confirm('Are you sure you want to delete this file?')">Delete</a>
-                                            <% } else { %>
-                                                <button class="button danger disabled" disabled
-                                                    title="You can only delete your own files">Delete</button>
-                                                <% } %>
-                                                    <button class="button secondary small report-btn"
-                                                        data-filename="<%= file.filename %>"
-                                                        data-original-name="<%= file.originalName %>">🚩 Report</button>
-                                </div>
-                            </div>
-                            <% }); %>
+        <!-- Announcements Section -->
+        <% if (announcements && announcements.length> 0) { %>
+            <% announcements.forEach(announcement=> { %>
+                <div class="announcement-banner announcement-banner-<%= announcement.type %>">
+                    <div style="flex: 1; font-weight: 600;">
+                        <%= announcement.message %>
                     </div>
+                </div>
+                <% }); %>
                     <% } %>
-        </section>
 
-        <section class="upload-section">
-            <% if (user.role==='viewer' ) { %>
-                <div class="upload-disabled">
-                    <div class="upload-disabled-content">
-                        <div class="upload-disabled-icon">🔒</div>
-                        <h4>Upload Restricted - View-Only Mode</h4>
-                        <p>Your account has been set to view-only access. You can download files but cannot upload or
-                            delete.</p>
-                        <p style="margin-top: 1rem;">Contact an administrator if you need upload/delete permissions.</p>
-                        <button class="button primary" style="margin-top: 1rem;" onclick="showViewerAlert()">
-                            Learn More
-                        </button>
-                    </div>
-                </div>
-                <% } else { %>
-                    <div class="upload-header">
-                        <h3>Upload Notes</h3>
-                        <p>Share your class notes with fellow Terps. Select one or multiple files!</p>
-                        <div class="file-type-notice">
-                            <strong>📄 Supported File Types:</strong> Documents (.pdf, .docx, .pptx, .xlsx, .txt),
-                            Images (.jpg, .png, .gif, .svg), Code files (.py, .java, .c, .cpp, .js, .html, .css),
-                            Archives (.zip)
-                            <br>
-                            <small style="color: #6B7280; margin-top: 0.5rem; display: block;">
-                                🔒 For your safety, we currently limit file types to those commonly used in academic
-                                settings. We're actively working on implementing virus scanning to support additional
-                                file formats in the future!
-                            </small>
-                        </div>
-                    </div>
-
-                    <form action="/upload" method="POST" enctype="multipart/form-data" class="upload-form">
-                        <div class="form-group">
-                            <label for="documents" class="form-label">
-                                Select Files<span class="required">*</span>
-                            </label>
-                            <div class="upload-drop-zone" id="dropZone">
-                                <input type="file" name="documents" id="documents" required class="file-input-hidden"
-                                    multiple />
-                                <div class="drop-zone-content">
-                                    <div class="drop-zone-icon">📁</div>
-                                    <p class="drop-zone-text">
-                                        <strong>Click to browse</strong> or drag and drop files here
-                                    </p>
-                                    <p class="drop-zone-hint">
-                                        Upload one or multiple files (up to 50 files, 100MB each)
-                                    </p>
-                                </div>
-                                <div class="selected-files" id="selectedFiles"></div>
-                            </div>
-                        </div>
-
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label for="classCode" class="form-label">Class Code<span
-                                        class="required">*</span></label>
-                                <input type="text" name="classCode" id="classCode" required class="form-input"
-                                    placeholder="e.g. CMSC330, HIST000" />
-                                <small class="form-help">For general notes: MAJOR000 (e.g., HIST000)</small>
+                        <div class="dashboard-controls">
+                            <div class="search-bar">
+                                <input type="text" id="searchInput" placeholder="Search notes..." />
+                                <button type="button" onclick="applyFilters()">Search</button>
                             </div>
 
-                            <div class="form-group">
-                                <label for="professor" class="form-label">Professor<span
-                                        class="required">*</span></label>
-                                <input type="text" name="professor" id="professor" required class="form-input"
-                                    placeholder="e.g., Dr. Nelson, Prof. Smith" />
-                            </div>
-                        </div>
+                            <div class="filter-controls">
+                                <select id="majorFilter" class="filter-select" onchange="handleMajorChange()">
+                                    <option value="">All Majors</option>
+                                    <% majors.forEach(major=> { %>
+                                        <option value="<%= major %>">
+                                            <%= major %>
+                                        </option>
+                                        <% }); %>
+                                </select>
 
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label for="semester" class="form-label">Semester<span class="required">*</span></label>
-                                <select name="semester" id="semester" required class="form-input">
-                                    <option value="">Select semester</option>
+                                <select id="classFilter" class="filter-select" onchange="handleClassChange()">
+                                    <option value="">All Classes</option>
+                                    <% classCodes.forEach(code=> { %>
+                                        <option value="<%= code %>"
+                                            data-major="<%= code.replace(/[0-9]/g, '').trim() %>">
+                                            <%= code %>
+                                        </option>
+                                        <% }); %>
+                                </select>
+
+                                <select id="semesterFilter" class="filter-select" onchange="applyFilters()">
+                                    <option value="">All Semesters</option>
                                     <option value="Fall">Fall</option>
                                     <option value="Spring">Spring</option>
                                     <option value="Summer">Summer</option>
                                     <option value="Winter">Winter</option>
                                 </select>
-                            </div>
 
-                            <div class="form-group">
-                                <label for="year" class="form-label">Year<span class="required">*</span></label>
-                                <select name="year" id="year" required class="form-input">
-                                    <option value="">Select year</option>
-                                    <% for (let y=new Date().getFullYear() + 1; y>= 2020; y--) { %>
-                                        <option value="<%= y %>">
-                                            <%= y %>
-                                        </option>
-                                        <% } %>
+                                <input type="text" id="professorFilter" class="filter-select" placeholder="Professor..."
+                                    onkeyup="applyFilters()" style="padding: 0.5rem 1rem;" />
+
+                                <select id="sortFilter" class="filter-select" onchange="applyFilters()">
+                                    <option value="newest">Newest First</option>
+                                    <option value="oldest">Oldest First</option>
+                                    <option value="name">Name A-Z</option>
                                 </select>
                             </div>
                         </div>
 
-                        <div class="form-group">
-                            <label for="description" class="form-label">Description<span
-                                    class="required">*</span></label>
-                            <textarea name="description" id="description" class="form-textarea" required
-                                placeholder="e.g., Week 1 Lectures, Midterm Study Guide, Chapter 3 Summary"
-                                rows="2"></textarea>
-                            <small class="form-help">
-                                Examples: "Week 5 Lectures", "Midterm Review", "Chapter 1-3 Notes"
-                            </small>
-                        </div>
+                        <section class="file-list">
+                            <% if (files.length===0) { %>
+                                <div class="empty-state">
+                                    <h3>No notes found</h3>
+                                    <p>Be the first to share notes for your class!</p>
+                                </div>
+                                <% } else { %>
+                                    <div class="file-grid">
+                                        <% files.forEach(file=> { %>
+                                            <div class="file-card animate-fade-in" data-class="<%= file.classCode %>"
+                                                data-uploader="<%= file.uploadedBy %>"
+                                                data-name="<%= file.originalName.toLowerCase() %>"
+                                                data-date="<%= new Date(file.uploadDate).getTime() %>">
+                                                <div class="file-header">
+                                                    <div class="file-icon">📄</div>
+                                                    <div class="file-info">
+                                                        <h3>
+                                                            <%= file.originalName %>
+                                                        </h3>
+                                                    </div>
+                                                </div>
 
-                        <div class="form-actions">
-                            <button type="submit" class="button primary">
-                                Upload Files
-                            </button>
-                        </div>
-                    </form>
-                    <% } %>
-        </section>
+                                                <div class="file-meta">
+                                                    <% if (file.virusScanStatus) { %>
+                                                        <div class="file-meta-item">
+                                                            <strong>Security:</strong>
+                                                            <% if (file.virusScanStatus==='clean' ) { %>
+                                                                <span class="scan-badge scan-clean">✓ Virus
+                                                                    Scanned</span>
+                                                                <% } else if (file.virusScanStatus==='pending' ) { %>
+                                                                    <span class="scan-badge scan-pending">⏳
+                                                                        Scanning...</span>
+                                                                    <% } else if (file.virusScanStatus==='error' ) { %>
+                                                                        <span class="scan-badge scan-error">⚠️ Scan
+                                                                            Error</span>
+                                                                        <% } %>
+                                                        </div>
+                                                        <% } %>
+                                                            <% if (file.major) { %>
+                                                                <div class="file-meta-item">
+                                                                    <strong>Major:</strong> <span class="major-badge">
+                                                                        <%= file.major %>
+                                                                    </span>
+                                                                </div>
+                                                                <% } %>
+                                                                    <% if (file.classCode) { %>
+                                                                        <div class="file-meta-item">
+                                                                            <strong>Class:</strong> <span
+                                                                                class="class-code-badge">
+                                                                                <%= file.classCode %>
+                                                                            </span>
+                                                                        </div>
+                                                                        <% } %>
+                                                                            <% if (file.professor) { %>
+                                                                                <div class="file-meta-item">
+                                                                                    <strong>Professor:</strong>
+                                                                                    <%= file.professor %>
+                                                                                </div>
+                                                                                <% } %>
+                                                                                    <% if (file.semester && file.year) {
+                                                                                        %>
+                                                                                        <div class="file-meta-item">
+                                                                                            <strong>Term:</strong>
+                                                                                            <%= file.semester %>
+                                                                                                <%= file.year %>
+                                                                                        </div>
+                                                                                        <% } %>
+                                                                                            <div class="file-meta-item">
+                                                                                                <strong>Uploaded
+                                                                                                    by:</strong>
+                                                                                                <%= file.uploadedBy %>
+                                                                                            </div>
+                                                                                            <div class="file-meta-item">
+                                                                                                <strong>Size:</strong>
+                                                                                                <%= (file.size /
+                                                                                                    1024).toFixed(1) %>
+                                                                                                    KB
+                                                                                            </div>
+                                                                                            <% if (file.description) {
+                                                                                                %>
+                                                                                                <div
+                                                                                                    class="file-meta-item">
+                                                                                                    <strong>Description:</strong>
+                                                                                                    <%= file.description
+                                                                                                        %>
+                                                                                                </div>
+                                                                                                <% } %>
+                                                </div>
+
+                                                <div class="file-actions">
+                                                    <a href="/download/<%= encodeURIComponent(file.filename) %>?force=download"
+                                                        class="button primary">Download</a>
+                                                    <% if (user.role==='viewer' ) { %>
+                                                        <button class="button danger disabled"
+                                                            onclick="showViewerAlert(); return false;"
+                                                            title="View-only mode">Delete</button>
+                                                        <% } else if (user.role==='admin' ||
+                                                            file.uploadedBy===user.userid) { %>
+                                                            <a href="/delete/<%= encodeURIComponent(file.filename) %>"
+                                                                class="button danger"
+                                                                onclick="return confirm('Are you sure you want to delete this file?')">Delete</a>
+                                                            <% } else { %>
+                                                                <button class="button danger disabled" disabled
+                                                                    title="You can only delete your own files">Delete</button>
+                                                                <% } %>
+                                                                    <button class="button secondary small report-btn"
+                                                                        data-filename="<%= file.filename %>"
+                                                                        data-original-name="<%= file.originalName %>">🚩
+                                                                        Report</button>
+                                                </div>
+                                            </div>
+                                            <% }); %>
+                                    </div>
+                                    <% } %>
+                        </section>
+
+                        <section class="upload-section">
+                            <% if (user.role==='viewer' ) { %>
+                                <div class="upload-disabled">
+                                    <div class="upload-disabled-content">
+                                        <div class="upload-disabled-icon">🔒</div>
+                                        <h4>Upload Restricted - View-Only Mode</h4>
+                                        <p>Your account has been set to view-only access. You can download files but
+                                            cannot upload or
+                                            delete.</p>
+                                        <p style="margin-top: 1rem;">Contact an administrator if you need upload/delete
+                                            permissions.</p>
+                                        <button class="button primary" style="margin-top: 1rem;"
+                                            onclick="showViewerAlert()">
+                                            Learn More
+                                        </button>
+                                    </div>
+                                </div>
+                                <% } else { %>
+                                    <div class="upload-header">
+                                        <h3>Upload Notes</h3>
+                                        <p>Share your class notes with fellow Terps. Select one or multiple files!</p>
+                                        <div class="file-type-notice">
+                                            <strong>📄 Supported File Types:</strong> Documents (.pdf, .docx, .pptx,
+                                            .xlsx, .txt),
+                                            Images (.jpg, .png, .gif, .svg), Code files (.py, .java, .c, .cpp, .js,
+                                            .html, .css),
+                                            Archives (.zip)
+                                            <br>
+                                            <small style="color: #6B7280; margin-top: 0.5rem; display: block;">
+                                                🔒 For your safety, we currently limit file types to those commonly used
+                                                in academic
+                                                settings. We're actively working on implementing virus scanning to
+                                                support additional
+                                                file formats in the future!
+                                            </small>
+                                        </div>
+                                    </div>
+
+                                    <form action="/upload" method="POST" enctype="multipart/form-data"
+                                        class="upload-form">
+                                        <div class="form-group">
+                                            <label for="documents" class="form-label">
+                                                Select Files<span class="required">*</span>
+                                            </label>
+                                            <div class="upload-drop-zone" id="dropZone">
+                                                <input type="file" name="documents" id="documents" required
+                                                    class="file-input-hidden" multiple />
+                                                <div class="drop-zone-content">
+                                                    <div class="drop-zone-icon">📁</div>
+                                                    <p class="drop-zone-text">
+                                                        <strong>Click to browse</strong> or drag and drop files here
+                                                    </p>
+                                                    <p class="drop-zone-hint">
+                                                        Upload one or multiple files (up to 50 files, 100MB each)
+                                                    </p>
+                                                </div>
+                                                <div class="selected-files" id="selectedFiles"></div>
+                                            </div>
+                                        </div>
+
+                                        <div class="form-row">
+                                            <div class="form-group">
+                                                <label for="classCode" class="form-label">Class Code<span
+                                                        class="required">*</span></label>
+                                                <input type="text" name="classCode" id="classCode" required
+                                                    class="form-input" placeholder="e.g. CMSC330, HIST000" />
+                                                <small class="form-help">For general notes: MAJOR000 (e.g.,
+                                                    HIST000)</small>
+                                            </div>
+
+                                            <div class="form-group">
+                                                <label for="professor" class="form-label">Professor<span
+                                                        class="required">*</span></label>
+                                                <input type="text" name="professor" id="professor" required
+                                                    class="form-input" placeholder="e.g., Dr. Nelson, Prof. Smith" />
+                                            </div>
+                                        </div>
+
+                                        <div class="form-row">
+                                            <div class="form-group">
+                                                <label for="semester" class="form-label">Semester<span
+                                                        class="required">*</span></label>
+                                                <select name="semester" id="semester" required class="form-input">
+                                                    <option value="">Select semester</option>
+                                                    <option value="Fall">Fall</option>
+                                                    <option value="Spring">Spring</option>
+                                                    <option value="Summer">Summer</option>
+                                                    <option value="Winter">Winter</option>
+                                                </select>
+                                            </div>
+
+                                            <div class="form-group">
+                                                <label for="year" class="form-label">Year<span
+                                                        class="required">*</span></label>
+                                                <select name="year" id="year" required class="form-input">
+                                                    <option value="">Select year</option>
+                                                    <% for (let y=new Date().getFullYear() + 1; y>= 2020; y--) { %>
+                                                        <option value="<%= y %>">
+                                                            <%= y %>
+                                                        </option>
+                                                        <% } %>
+                                                </select>
+                                            </div>
+                                        </div>
+
+                                        <div class="form-group">
+                                            <label for="description" class="form-label">Description<span
+                                                    class="required">*</span></label>
+                                            <textarea name="description" id="description" class="form-textarea" required
+                                                placeholder="e.g., Week 1 Lectures, Midterm Study Guide, Chapter 3 Summary"
+                                                rows="2"></textarea>
+                                            <small class="form-help">
+                                                Examples: "Week 5 Lectures", "Midterm Review", "Chapter 1-3 Notes"
+                                            </small>
+                                        </div>
+
+                                        <div class="form-actions">
+                                            <button type="submit" class="button primary">
+                                                Upload Files
+                                            </button>
+                                        </div>
+                                    </form>
+                                    <% } %>
+                        </section>
     </main>
 
     <!-- Floating Action Button for Upload -->

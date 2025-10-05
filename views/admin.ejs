@@ -29,13 +29,41 @@
     <main class="container">
         <div class="admin-header">
             <h1>Admin Dashboard</h1>
-            <p>Manage users, review reported files, and moderate content</p>
+            <p>Manage users, review reported files, moderate content, and post announcements</p>
         </div>
 
-        <!-- Reported Files Section -->
+        <!-- Platform Statistics -->
+        <div class="admin-stats">
+            <div class="stat-card">
+                <h3 id="totalUsers">
+                    <%= users.length %>
+                </h3>
+                <p>Total Users</p>
+            </div>
+            <div class="stat-card">
+                <h3 id="adminCount">
+                    <%= users.filter(u=> u.role === 'admin').length %>
+                </h3>
+                <p>Admins</p>
+            </div>
+            <div class="stat-card">
+                <h3 id="contributorCount">
+                    <%= users.filter(u=> u.role === 'contributor').length %>
+                </h3>
+                <p>Contributors</p>
+            </div>
+            <div class="stat-card">
+                <h3 id="viewerCount">
+                    <%= users.filter(u=> u.role === 'viewer').length %>
+                </h3>
+                <p>Viewers</p>
+            </div>
+        </div>
+
+        <!-- Reported Files Section (Critical Alerts) -->
         <% if (reports && reports.length> 0) { %>
-            <section class="reports-section">
-                <h2>🚩 Reported Files (<%= reports.length %>)</h2>
+            <section class="reports-section" style="margin-top: 3rem;">
+                <h2>🚩 Reported Files (<%= reports.length %>) - Needs Review</h2>
                 <div class="reports-grid">
                     <% reports.forEach(report=> { %>
                         <div class="report-card">
@@ -87,135 +115,240 @@
             </section>
             <% } %>
 
-                <div class="admin-stats">
-                    <div class="stat-card">
-                        <h3 id="totalUsers">
-                            <%= users.length %>
-                        </h3>
-                        <p>Total Users</p>
-                    </div>
-                    <div class="stat-card">
-                        <h3 id="adminCount">
-                            <%= users.filter(u=> u.role === 'admin').length %>
-                        </h3>
-                        <p>Admins</p>
-                    </div>
-                    <div class="stat-card">
-                        <h3 id="contributorCount">
-                            <%= users.filter(u=> u.role === 'contributor').length %>
-                        </h3>
-                        <p>Contributors</p>
-                    </div>
-                    <div class="stat-card">
-                        <h3 id="viewerCount">
-                            <%= users.filter(u=> u.role === 'viewer').length %>
-                        </h3>
-                        <p>Viewers</p>
-                    </div>
-                </div>
+                <!-- Announcements Management Section -->
+                <section class="announcements-management" style="margin-bottom: 3rem;">
+                    <h2>📢 Announcements</h2>
+                    <p style="color: #6B7280; margin-bottom: 1.5rem;">Create platform-wide announcements visible on all
+                        user
+                        dashboards</p>
 
-                <section class="users-section">
-                    <div class="section-header">
-                        <h2>All Users</h2>
-                        <div class="search-controls">
-                            <input type="text" id="userSearch" placeholder="Search users..." class="search-input">
-                            <select id="roleFilter" class="filter-select">
-                                <option value="">All Roles</option>
-                                <option value="admin">Admins</option>
-                                <option value="contributor">Contributors</option>
-                                <option value="viewer">Viewers</option>
-                            </select>
+                    <!-- Create Announcement Form -->
+                    <div
+                        style="background: white; padding: 2rem; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); margin-bottom: 2rem;">
+                        <h3>Create New Announcement</h3>
+                        <form id="announcementForm" style="margin-top: 1rem;">
+                            <div class="form-group">
+                                <label for="announcementMessage">Message</label>
+                                <textarea id="announcementMessage" required rows="3"
+                                    placeholder="Enter announcement message..."
+                                    style="width: 100%; padding: 0.75rem; border: 1px solid #D1D5DB; border-radius: 8px; font-size: 1rem; resize: vertical;"></textarea>
+                            </div>
+                            <div class="form-group" style="margin-top: 1rem;">
+                                <label for="announcementType">Type</label>
+                                <select id="announcementType" required
+                                    style="width: 100%; padding: 0.75rem; border: 1px solid #D1D5DB; border-radius: 8px; font-size: 1rem;">
+                                    <option value="info">ℹ️ Info (Blue)</option>
+                                    <option value="warning">⚠️ Warning (Yellow)</option>
+                                    <option value="success">✓ Success (Green)</option>
+                                </select>
+                            </div>
+                            <button type="submit" class="button primary" style="margin-top: 1rem;">
+                                📢 Create Announcement
+                            </button>
+                        </form>
+                    </div>
+
+                    <!-- Existing Announcements -->
+                    <% if (announcements && announcements.length> 0) { %>
+                        <div class="announcements-list">
+                            <h3>Existing Announcements (<%= announcements.length %>)</h3>
+                            <% announcements.forEach(announcement=> { %>
+                                <div class="announcement-card announcement-<%= announcement.type %>"
+                                    style="margin-top: 1rem;">
+                                    <div style="flex: 1;">
+                                        <p style="margin: 0; font-weight: 600;">
+                                            <%= announcement.message %>
+                                        </p>
+                                        <small style="color: #6B7280;">
+                                            Created by <%= announcement.createdBy %> on <%= new
+                                                    Date(announcement.createdAt).toLocaleDateString() %>
+                                                    • Status: <strong>
+                                                        <%= announcement.isActive ? 'Active' : 'Hidden' %>
+                                                    </strong>
+                                        </small>
+                                    </div>
+                                    <div style="display: flex; gap: 0.5rem;">
+                                        <button class="button secondary small toggle-announcement-btn"
+                                            data-id="<%= announcement._id %>">
+                                            <%= announcement.isActive ? '👁️ Hide' : '👁️‍🗨️ Show' %>
+                                        </button>
+                                        <button class="button danger small delete-announcement-btn"
+                                            data-id="<%= announcement._id %>">
+                                            🗑️ Delete
+                                        </button>
+                                    </div>
+                                </div>
+                                <% }); %>
                         </div>
-                    </div>
+                        <% } else { %>
+                            <p style="text-align: center; color: #6B7280; padding: 2rem;">No announcements yet. Create
+                                one to
+                                get started!</p>
+                            <% } %>
+                </section>
 
-                    <div class="users-grid">
-                        <% users.forEach(currentUser=> { %>
-                            <div class="user-card" data-user-id="<%= currentUser.userid %>"
-                                data-role="<%= currentUser.role %>"
-                                data-name="<%= (currentUser.firstname + ' ' + currentUser.lastname).toLowerCase() %>"
-                                data-email="<%= currentUser.email.toLowerCase() %>">
-                                <div class="user-header">
-                                    <div class="user-avatar">
-                                        <%= currentUser.firstname.charAt(0).toUpperCase() %>
-                                            <%= currentUser.lastname.charAt(0).toUpperCase() %>
-                                    </div>
-                                    <div class="user-info">
-                                        <h3>
-                                            <%= currentUser.firstname %>
-                                                <%= currentUser.lastname %>
+                <!-- Reported Files Section -->
+                <% if (reports && reports.length> 0) { %>
+                    <section class="reports-section">
+                        <h2>🚩 Reported Files (<%= reports.length %>)</h2>
+                        <div class="reports-grid">
+                            <% reports.forEach(report=> { %>
+                                <div class="report-card">
+                                    <div class="report-header">
+                                        <h3 style="margin-bottom: 0.5rem;">
+                                            <%= report.originalName %>
                                         </h3>
-                                        <p class="user-email">
-                                            <%= currentUser.email %>
+                                    </div>
+                                    <div class="report-reason-box">
+                                        <strong>🚩 Reason:</strong>
+                                        <%= report.reason %>
+                                    </div>
+                                    <div class="report-details">
+                                        <p><strong>Reported by:</strong>
+                                            <%= report.reportedBy %>
                                         </p>
-                                        <p class="user-id">@<%= currentUser.userid %>
+                                        <p><strong>File uploader:</strong>
+                                            <%= report.fileUploader %>
                                         </p>
+                                        <p><strong>Class:</strong>
+                                            <%= report.classCode %>
+                                        </p>
+                                        <p><strong>Date:</strong>
+                                            <%= new Date(report.reportedAt).toLocaleString() %>
+                                        </p>
+                                        <% if (report.details) { %>
+                                            <p><strong>Additional details:</strong>
+                                                <%= report.details %>
+                                            </p>
+                                            <% } %>
+                                    </div>
+                                    <div class="report-actions">
+                                        <button class="button report-delete-btn"
+                                            onclick="resolveReport('<%= report._id %>', 'delete')">
+                                            Delete File
+                                        </button>
+                                        <button class="button report-dismiss-btn"
+                                            onclick="resolveReport('<%= report._id %>', 'dismiss')">
+                                            Dismiss Report
+                                        </button>
+                                        <a href="/download/<%= encodeURIComponent(report.filename) %>"
+                                            class="button report-review-btn" target="_blank" rel="noopener noreferrer">
+                                            Review File
+                                        </a>
                                     </div>
                                 </div>
+                                <% }); %>
+                        </div>
+                    </section>
+                    <% } %>
 
-                                <div class="user-details">
-                                    <div class="user-meta">
-                                        <div class="meta-item">
-                                            <strong>Role:</strong>
-                                            <span class="user-role role-<%= currentUser.role %>">
-                                                <%= currentUser.role %>
-                                            </span>
-                                        </div>
-                                        <div class="meta-item">
-                                            <strong>Joined:</strong>
-                                            <%= currentUser.createdAt ? new
-                                                Date(currentUser.createdAt).toLocaleDateString() : 'Unknown' %>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div class="user-actions">
-                                    <div class="role-controls">
-                                        <label for="role-<%= currentUser.userid %>">Change Role:</label>
-                                        <% if (currentUser.isProtected) { %>
-                                            <select id="role-<%= currentUser.userid %>" class="role-select" disabled>
-                                                <option value="<%= currentUser.role %>" selected>
-                                                    <%= currentUser.role %>
-                                                </option>
-                                            </select>
-                                            <button class="button primary small disabled" disabled>Update</button>
-                                            <% } else { %>
-                                                <select id="role-<%= currentUser.userid %>" class="role-select"
-                                                    data-user-id="<%= currentUser.userid %>">
-                                                    <option value="admin" <%=currentUser.role==='admin' ? 'selected'
-                                                        : '' %>
-                                                        >Admin</option>
-                                                    <option value="contributor" <%=currentUser.role==='contributor'
-                                                        ? 'selected' : '' %>>Contributor</option>
-                                                    <option value="viewer" <%=currentUser.role==='viewer' ? 'selected'
-                                                        : '' %>
-                                                        >Viewer</option>
-                                                </select>
-                                                <button class="button primary small update-role-btn"
-                                                    data-user-id="<%= currentUser.userid %>">
-                                                    Update
-                                                </button>
-                                                <% } %>
-                                    </div>
-
-                                    <div class="action-buttons">
-                                        <% if (user.userid !==currentUser.userid) { %>
-                                            <% if (currentUser.isProtected) { %>
-                                                <span class="protected-badge">🛡️ Protected</span>
-                                                <% } else { %>
-                                                    <button class="button danger small delete-btn"
-                                                        data-user-id="<%= currentUser.userid %>">
-                                                        Delete User
-                                                    </button>
-                                                    <% } %>
-                                                        <% } else { %>
-                                                            <span class="current-user-badge">Current User</span>
-                                                            <% } %>
-                                    </div>
+                        <!-- User Management Section -->
+                        <section class="users-section" style="margin-top: 3rem;">
+                            <div class="section-header">
+                                <h2>All Users</h2>
+                                <div class="search-controls">
+                                    <input type="text" id="userSearch" placeholder="Search users..."
+                                        class="search-input">
+                                    <select id="roleFilter" class="filter-select">
+                                        <option value="">All Roles</option>
+                                        <option value="admin">Admins</option>
+                                        <option value="contributor">Contributors</option>
+                                        <option value="viewer">Viewers</option>
+                                    </select>
                                 </div>
                             </div>
-                            <% }); %>
-                    </div>
-                </section>
+
+                            <div class="users-grid">
+                                <% users.forEach(currentUser=> { %>
+                                    <div class="user-card" data-user-id="<%= currentUser.userid %>"
+                                        data-role="<%= currentUser.role %>"
+                                        data-name="<%= (currentUser.firstname + ' ' + currentUser.lastname).toLowerCase() %>"
+                                        data-email="<%= currentUser.email.toLowerCase() %>">
+                                        <div class="user-header">
+                                            <div class="user-avatar">
+                                                <%= currentUser.firstname.charAt(0).toUpperCase() %>
+                                                    <%= currentUser.lastname.charAt(0).toUpperCase() %>
+                                            </div>
+                                            <div class="user-info">
+                                                <h3>
+                                                    <%= currentUser.firstname %>
+                                                        <%= currentUser.lastname %>
+                                                </h3>
+                                                <p class="user-email">
+                                                    <%= currentUser.email %>
+                                                </p>
+                                                <p class="user-id">@<%= currentUser.userid %>
+                                                </p>
+                                            </div>
+                                        </div>
+
+                                        <div class="user-details">
+                                            <div class="user-meta">
+                                                <div class="meta-item">
+                                                    <strong>Role:</strong>
+                                                    <span class="user-role role-<%= currentUser.role %>">
+                                                        <%= currentUser.role %>
+                                                    </span>
+                                                </div>
+                                                <div class="meta-item">
+                                                    <strong>Joined:</strong>
+                                                    <%= currentUser.createdAt ? new
+                                                        Date(currentUser.createdAt).toLocaleDateString() : 'Unknown' %>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="user-actions">
+                                            <div class="role-controls">
+                                                <label for="role-<%= currentUser.userid %>">Change Role:</label>
+                                                <% if (currentUser.isProtected) { %>
+                                                    <select id="role-<%= currentUser.userid %>" class="role-select"
+                                                        disabled>
+                                                        <option value="<%= currentUser.role %>" selected>
+                                                            <%= currentUser.role %>
+                                                        </option>
+                                                    </select>
+                                                    <button class="button primary small disabled"
+                                                        disabled>Update</button>
+                                                    <% } else { %>
+                                                        <select id="role-<%= currentUser.userid %>" class="role-select"
+                                                            data-user-id="<%= currentUser.userid %>">
+                                                            <option value="admin" <%=currentUser.role==='admin'
+                                                                ? 'selected' : '' %>
+                                                                >Admin</option>
+                                                            <option value="contributor"
+                                                                <%=currentUser.role==='contributor' ? 'selected' : '' %>
+                                                                >Contributor</option>
+                                                            <option value="viewer" <%=currentUser.role==='viewer'
+                                                                ? 'selected' : '' %>
+                                                                >Viewer</option>
+                                                        </select>
+                                                        <button class="button primary small update-role-btn"
+                                                            data-user-id="<%= currentUser.userid %>">
+                                                            Update
+                                                        </button>
+                                                        <% } %>
+                                            </div>
+
+                                            <div class="action-buttons">
+                                                <% if (user.userid !==currentUser.userid) { %>
+                                                    <% if (currentUser.isProtected) { %>
+                                                        <span class="protected-badge">🛡️ Protected</span>
+                                                        <% } else { %>
+                                                            <button class="button danger small delete-btn"
+                                                                data-user-id="<%= currentUser.userid %>">
+                                                                Delete User
+                                                            </button>
+                                                            <% } %>
+                                                                <% } else { %>
+                                                                    <span class="current-user-badge">Current User</span>
+                                                                    <% } %>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <% }); %>
+                            </div>
+                        </section>
     </main>
 
     <!-- Confirmation Modal -->
@@ -404,6 +537,90 @@
                 document.getElementById('contributorCount').textContent = contributorCount;
                 document.getElementById('viewerCount').textContent = viewerCount;
             }
+
+            // Announcement Form Submission
+            const announcementForm = document.getElementById('announcementForm');
+            if (announcementForm) {
+                announcementForm.addEventListener('submit', async (e) => {
+                    e.preventDefault();
+
+                    const message = document.getElementById('announcementMessage').value;
+                    const type = document.getElementById('announcementType').value;
+
+                    try {
+                        const response = await fetch('/api/create-announcement', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ message, type })
+                        });
+
+                        const result = await response.json();
+
+                        if (response.ok) {
+                            showNotification('Announcement created successfully!', 'success');
+                            setTimeout(() => window.location.reload(), 1500);
+                        } else {
+                            showNotification('Error: ' + result.error, 'error');
+                        }
+                    } catch (error) {
+                        showNotification('Error creating announcement', 'error');
+                    }
+                });
+            }
+
+            // Toggle Announcement
+            document.querySelectorAll('.toggle-announcement-btn').forEach(btn => {
+                btn.addEventListener('click', async function () {
+                    const id = this.dataset.id;
+
+                    try {
+                        const response = await fetch('/api/toggle-announcement', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ announcementId: id })
+                        });
+
+                        const result = await response.json();
+
+                        if (response.ok) {
+                            showNotification('Announcement updated!', 'success');
+                            setTimeout(() => window.location.reload(), 1000);
+                        } else {
+                            showNotification('Error: ' + result.error, 'error');
+                        }
+                    } catch (error) {
+                        showNotification('Error toggling announcement', 'error');
+                    }
+                });
+            });
+
+            // Delete Announcement
+            document.querySelectorAll('.delete-announcement-btn').forEach(btn => {
+                btn.addEventListener('click', async function () {
+                    if (!confirm('Are you sure you want to delete this announcement?')) return;
+
+                    const id = this.dataset.id;
+
+                    try {
+                        const response = await fetch('/api/delete-announcement', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ announcementId: id })
+                        });
+
+                        const result = await response.json();
+
+                        if (response.ok) {
+                            showNotification('Announcement deleted!', 'success');
+                            setTimeout(() => window.location.reload(), 1000);
+                        } else {
+                            showNotification('Error: ' + result.error, 'error');
+                        }
+                    } catch (error) {
+                        showNotification('Error deleting announcement', 'error');
+                    }
+                });
+            });
         });
     </script>
 </body>
