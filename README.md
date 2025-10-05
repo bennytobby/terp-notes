@@ -33,7 +33,8 @@ As a UMD student, I noticed a recurring problem: **students struggle to find qua
 ### Technical Excellence
 - **☁️ AWS S3 Storage** - Scalable cloud storage for files up to 100MB each
 - **💾 MongoDB** - Fast metadata queries with major/class indexing
-- **📧 Email Notifications** - Automated confirmations for uploads and profile changes
+- **📧 Email Verification** - UMD email verification required for account creation
+- **🔒 Secure File Uploads** - Whitelisted file types for safety (documents, images, code, .zip only)
 - **🎨 UMD-Themed UI** - Official red and gold colors with responsive design
 
 ## 🛠️ Tech Stack
@@ -65,10 +66,14 @@ Accountability prevents abuse. Every file is tied to a user, encouraging respons
 
 ## 🔮 Future Scope
 
-### Phase 1: Enhanced Security & Verification
-- **Email Verification** - Require `@umd.edu` or `@terpmail.umd.edu` emails for registration
-- **Two-Factor Authentication** - Optional 2FA for account security
-- **Automated Content Moderation** - Flag suspicious files for admin review
+### Phase 1: Enhanced Security & Verification *(Completed! 🎉)*
+- ✅ **Email Verification** - Require `@umd.edu` or `@terpmail.umd.edu` emails for registration
+- ✅ **File Type Whitelisting** - Safe academic file types only
+- ✅ **User Reporting System** - Flag inappropriate content for admin review
+- ✅ **Rate Limiting** - Prevent abuse and DDoS attacks
+- ✅ **Virus Scanning** - VirusTotal integration with background scanning
+- 🔄 **Expanded File Types** - Add more formats (.rar, .7z, etc.) after testing scanning
+- ⏳ **Two-Factor Authentication** - Optional 2FA for account security *(Future)*
 
 ### Phase 2: Multi-University Platform
 - **School Selection** - Expand beyond UMD to other universities
@@ -103,21 +108,61 @@ Accountability prevents abuse. Every file is tied to a user, encouraging respons
 - **Gap Detection** - Alert users to classes with few resources
 - **Download History** - Track your study materials for review
 
-## 🎓 Academic Integrity
+## 🔒 Security & Safety
 
-Terp Notes takes academic integrity seriously. The platform:
+Terp Notes prioritizes user security and academic integrity:
+
+### Current Security Measures
+- ✅ **Email Verification** - Only verified `@umd.edu` or `@terpmail.umd.edu` addresses
+- ✅ **File Type Whitelisting** - Only safe academic files (documents, images, code, .zip)
+- ✅ **Virus Scanning** - VirusTotal integration with 70+ antivirus engines
+  - Background scanning (files upload immediately, scan happens asynchronously)
+  - Auto-deletion of infected files
+  - Visual status badges (✓ Virus Scanned, ⏳ Scanning, ⚠️ Error)
+- ✅ **Rate Limiting** - Protection against abuse and automated attacks
+- ✅ **User Reporting** - Community-driven moderation with admin review
+- ✅ **Role-Based Access** - Granular permission control (Admin/Contributor/Viewer)
+- ✅ **Secure Authentication** - JWT + bcrypt password hashing
+- ✅ **File Deduplication** - SHA-256 hashing prevents duplicate storage
+
+### Coming Soon
+- 🔄 **Expanded File Support** - More file types (.rar, .7z) once scanning is battle-tested
+- 🔄 **Download Warnings** - Enhanced security alerts for compressed files
+- 🔄 **Scan History Dashboard** - Admin view of all scan results and threats blocked
+
+### Academic Integrity
 - Prohibits unauthorized exam/project sharing
-- Includes clear acceptable use policies
-- Reports violations to the Office of Student Conduct
-- Empowers admins with moderation tools
+- Clear acceptable use policies with consequences
+- Reports serious violations to UMD Office of Student Conduct
+- Admin moderation dashboard for swift action
 
 ## 🚀 Getting Started
 
-Visit `http://localhost:3000` and login with:
+### Prerequisites
+- Node.js (v14 or higher)
+- MongoDB database
+- AWS S3 bucket
+- (Optional) VirusTotal API key for virus scanning
+
+### Setup
+1. Clone the repository
+2. Copy `.env.example` to `.env` and fill in your credentials
+3. Install dependencies: `npm install`
+4. Start the server: `npm start`
+5. Visit `http://localhost:3000`
+
+### Default Accounts
 - **Admin:** `admin` / `admin`
 - **Contributor:** `terp` / `terp`
 - **Viewer:** `viewer` / `viewer`
-- Or create your own credentials!
+- Or create your own with a UMD email!
+
+### VirusTotal Integration
+To enable virus scanning:
+1. Sign up for free at [virustotal.com](https://www.virustotal.com/)
+2. Get your API key from [My API Key](https://www.virustotal.com/gui/my-apikey)
+3. Add `VIRUSTOTAL_API_KEY=your_key` to `.env`
+4. Free tier: 500 scans/day, 4 requests/minute
 
 ## 🏗️ Architecture
 

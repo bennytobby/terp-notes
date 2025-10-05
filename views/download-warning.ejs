@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>
+        <%= title %> - Terp Notes
+    </title>
+    <link rel="stylesheet" href="/styles/main.css" />
+</head>
+
+<body>
+    <div class="message-page">
+        <div class="message-container warning">
+            <div class="message-icon">⚠️</div>
+            <h1>Compressed File Warning</h1>
+            <p class="message-text">
+                You're about to download a compressed file: <strong>
+                    <%= originalName %>
+                </strong>
+            </p>
+            <div class="warning-box">
+                <h3>⚠️ Important Security Notice</h3>
+                <p><strong>Before opening this file:</strong></p>
+                <ul style="text-align: left; margin: 1rem auto; max-width: 500px;">
+                    <li>Scan the file with antivirus software</li>
+                    <li>Extract and inspect contents before opening any files</li>
+                    <li>Be cautious of .exe, .bat, .sh, or other executable files</li>
+                    <li>Only open if you trust the uploader</li>
+                </ul>
+                <p style="margin-top: 1rem; color: #DC2626; font-weight: bold;">
+                    Terp Notes is not responsible for file contents. Users upload at their own discretion.
+                </p>
+            </div>
+            <div class="message-actions" style="margin-top: 2rem; display: flex; gap: 1rem; justify-content: center;">
+                <a href="/download/<%= encodeURIComponent(filename) %>?warn=skip" class="button primary">
+                    I Understand - Download File
+                </a>
+                <a href="/dashboard" class="button secondary">
+                    Cancel - Go Back
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        .warning-box {
+            background: #FEF3C7;
+            border: 2px solid #F59E0B;
+            border-radius: 0.5rem;
+            padding: 1.5rem;
+            margin: 1.5rem 0;
+        }
+
+        .warning-box h3 {
+            color: #B45309;
+            margin-bottom: 1rem;
+        }
+
+        .warning-box ul {
+            line-height: 1.8;
+        }
+    </style>
+</body>
+
+</html>

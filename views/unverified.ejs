@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>
+        <%= title %> - Terp Notes
+    </title>
+    <link rel="stylesheet" href="/styles/main.css" />
+</head>
+
+<body>
+    <header class="topbar">
+        <h2>Terp Notes</h2>
+    </header>
+
+    <main class="centered">
+        <div class="message-box warning-box" style="max-width: 600px; padding: 3rem;">
+            <div class="message-icon" style="font-size: 4rem; margin-bottom: 1.5rem;">📧</div>
+            <h1 style="color: #DC2626; margin-bottom: 1rem;">
+                <%= title %>
+            </h1>
+            <p style="margin-bottom: 1rem; font-size: 1.1rem;">
+                Your account needs to be verified before you can login.
+            </p>
+            <p style="margin-bottom: 2rem;">
+                Please check your email <strong>
+                    <%= email %>
+                </strong> for a verification link.
+            </p>
+
+            <div
+                style="background: #FEF3C7; padding: 1.5rem; border-radius: 0.5rem; margin-bottom: 2rem; text-align: left;">
+                <h3 style="margin-bottom: 1rem; color: #B45309;">Didn't receive the email?</h3>
+                <ul style="margin-left: 1.5rem; line-height: 1.8;">
+                    <li>Check your spam/junk folder</li>
+                    <li>Wait a few minutes for delivery</li>
+                    <li>Make sure you used the correct email</li>
+                </ul>
+            </div>
+
+            <form action="/resend-verification" method="POST" style="margin-bottom: 1.5rem;">
+                <input type="hidden" name="email" value="<%= email %>" />
+                <button type="submit" class="button primary" style="padding: 0.75rem 2rem;">
+                    Resend Verification Email
+                </button>
+            </form>
+
+            <p>
+                <a href="/register">Register with different email</a> |
+                <a href="/login">Back to Login</a>
+            </p>
+        </div>
+    </main>
+
+    <footer>
+        <p>&copy; <%= new Date().getFullYear() %> Terp Notes</p>
+    </footer>
+</body>
+
+</html>

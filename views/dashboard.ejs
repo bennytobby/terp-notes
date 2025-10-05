@@ -94,51 +94,63 @@
                                 </div>
 
                                 <div class="file-meta">
-                                    <% if (file.major) { %>
+                                    <% if (file.virusScanStatus) { %>
                                         <div class="file-meta-item">
-                                            <strong>Major:</strong> <span class="major-badge">
-                                                <%= file.major %>
-                                            </span>
+                                            <strong>Security:</strong>
+                                            <% if (file.virusScanStatus==='clean' ) { %>
+                                                <span class="scan-badge scan-clean">✓ Virus Scanned</span>
+                                                <% } else if (file.virusScanStatus==='pending' ) { %>
+                                                    <span class="scan-badge scan-pending">⏳ Scanning...</span>
+                                                    <% } else if (file.virusScanStatus==='error' ) { %>
+                                                        <span class="scan-badge scan-error">⚠️ Scan Error</span>
+                                                        <% } %>
                                         </div>
                                         <% } %>
-                                            <% if (file.classCode) { %>
+                                            <% if (file.major) { %>
                                                 <div class="file-meta-item">
-                                                    <strong>Class:</strong> <span class="class-code-badge">
-                                                        <%= file.classCode %>
+                                                    <strong>Major:</strong> <span class="major-badge">
+                                                        <%= file.major %>
                                                     </span>
                                                 </div>
                                                 <% } %>
-                                                    <% if (file.professor) { %>
+                                                    <% if (file.classCode) { %>
                                                         <div class="file-meta-item">
-                                                            <strong>Professor:</strong>
-                                                            <%= file.professor %>
+                                                            <strong>Class:</strong> <span class="class-code-badge">
+                                                                <%= file.classCode %>
+                                                            </span>
                                                         </div>
                                                         <% } %>
-                                                            <% if (file.semester && file.year) { %>
+                                                            <% if (file.professor) { %>
                                                                 <div class="file-meta-item">
-                                                                    <strong>Term:</strong>
-                                                                    <%= file.semester %>
-                                                                        <%= file.year %>
+                                                                    <strong>Professor:</strong>
+                                                                    <%= file.professor %>
                                                                 </div>
                                                                 <% } %>
-                                                                    <div class="file-meta-item">
-                                                                        <strong>Uploaded by:</strong>
-                                                                        <%= file.uploadedBy %>
-                                                                    </div>
-                                                                    <div class="file-meta-item">
-                                                                        <strong>Size:</strong>
-                                                                        <%= (file.size / 1024).toFixed(1) %> KB
-                                                                    </div>
-                                                                    <% if (file.description) { %>
+                                                                    <% if (file.semester && file.year) { %>
                                                                         <div class="file-meta-item">
-                                                                            <strong>Description:</strong>
-                                                                            <%= file.description %>
+                                                                            <strong>Term:</strong>
+                                                                            <%= file.semester %>
+                                                                                <%= file.year %>
                                                                         </div>
                                                                         <% } %>
+                                                                            <div class="file-meta-item">
+                                                                                <strong>Uploaded by:</strong>
+                                                                                <%= file.uploadedBy %>
+                                                                            </div>
+                                                                            <div class="file-meta-item">
+                                                                                <strong>Size:</strong>
+                                                                                <%= (file.size / 1024).toFixed(1) %> KB
+                                                                            </div>
+                                                                            <% if (file.description) { %>
+                                                                                <div class="file-meta-item">
+                                                                                    <strong>Description:</strong>
+                                                                                    <%= file.description %>
+                                                                                </div>
+                                                                                <% } %>
                                 </div>
 
                                 <div class="file-actions">
-                                    <a href="/download/<%= encodeURIComponent(file.filename) %>"
+                                    <a href="/download/<%= encodeURIComponent(file.filename) %>?force=download"
                                         class="button primary">Download</a>
                                     <% if (user.role==='viewer' ) { %>
                                         <button class="button danger disabled"
@@ -152,6 +164,9 @@
                                                 <button class="button danger disabled" disabled
                                                     title="You can only delete your own files">Delete</button>
                                                 <% } %>
+                                                    <button class="button secondary small report-btn"
+                                                        data-filename="<%= file.filename %>"
+                                                        data-original-name="<%= file.originalName %>">🚩 Report</button>
                                 </div>
                             </div>
                             <% }); %>
@@ -177,6 +192,17 @@
                     <div class="upload-header">
                         <h3>Upload Notes</h3>
                         <p>Share your class notes with fellow Terps. Select one or multiple files!</p>
+                        <div class="file-type-notice">
+                            <strong>📄 Supported File Types:</strong> Documents (.pdf, .docx, .pptx, .xlsx, .txt),
+                            Images (.jpg, .png, .gif, .svg), Code files (.py, .java, .c, .cpp, .js, .html, .css),
+                            Archives (.zip)
+                            <br>
+                            <small style="color: #6B7280; margin-top: 0.5rem; display: block;">
+                                🔒 For your safety, we currently limit file types to those commonly used in academic
+                                settings. We're actively working on implementing virus scanning to support additional
+                                file formats in the future!
+                            </small>
+                        </div>
                     </div>
 
                     <form action="/upload" method="POST" enctype="multipart/form-data" class="upload-form">
@@ -431,6 +457,7 @@
                         </div>
                     </div>
                     <div class="file-meta">
+                        ${file.virusScanStatus ? `<div class="file-meta-item"><strong>Security:</strong> ${getScanBadge(file.virusScanStatus)}</div>` : ''}
                         ${file.major ? `<div class="file-meta-item"><strong>Major:</strong> <span class="major-badge">${escapeHtml(file.major)}</span></div>` : ''}
                         ${file.classCode ? `<div class="file-meta-item"><strong>Class:</strong> <span class="class-code-badge">${escapeHtml(file.classCode)}</span></div>` : ''}
                         ${file.professor ? `<div class="file-meta-item"><strong>Professor:</strong> ${escapeHtml(file.professor)}</div>` : ''}
@@ -440,8 +467,9 @@
                         ${file.description ? `<div class="file-meta-item"><strong>Description:</strong> ${escapeHtml(file.description)}</div>` : ''}
                     </div>
                     <div class="file-actions">
-                        <a href="/download/${encodeURIComponent(file.filename)}" class="button primary">Download</a>
+                        <a href="/download/${encodeURIComponent(file.filename)}?force=download" class="button primary">Download</a>
                         ${getDeleteButton(file)}
+                        <button class="button secondary small report-btn" data-filename="${file.filename}" data-original-name="${escapeHtml(file.originalName)}">🚩 Report</button>
                     </div>
                 </div>
             `).join('');
@@ -470,10 +498,82 @@
                     alert('🔒 View-Only Mode\n\nYour account has been set to view-only access. You can download files but cannot upload or delete.\n\nPlease contact an administrator if you need upload/delete permissions.');
                 }
 
+                // Add event delegation for report buttons
+                document.addEventListener('click', function (e) {
+                    if (e.target.classList.contains('report-btn') || e.target.closest('.report-btn')) {
+                        const btn = e.target.classList.contains('report-btn') ? e.target : e.target.closest('.report-btn');
+                        const filename = btn.dataset.filename;
+                        const originalName = btn.dataset.originalName;
+                        reportFile(filename, originalName);
+                    }
+                });
+
+                // File reporting function
+                async function reportFile(filename, originalName) {
+                    const reasons = [
+                        'Inappropriate content',
+                        'Copyright violation',
+                        'Malicious file',
+                        'Academic integrity violation (unauthorized exam/project)',
+                        'Spam or irrelevant content',
+                        'Other'
+                    ];
+
+                    const reason = prompt(`Why are you reporting "${originalName}"?\n\nEnter the reason:\n1. ${reasons[0]}\n2. ${reasons[1]}\n3. ${reasons[2]}\n4. ${reasons[3]}\n5. ${reasons[4]}\n6. ${reasons[5]}\n\nEnter number (1-6):`);
+
+                    if (!reason) return; // User cancelled
+
+                    const reasonIndex = parseInt(reason) - 1;
+                    if (reasonIndex < 0 || reasonIndex >= reasons.length) {
+                        alert('Invalid selection. Please try again.');
+                        return;
+                    }
+
+                    const selectedReason = reasons[reasonIndex];
+                    const additionalDetails = prompt(`Optional: Add more details about the issue:`) || '';
+
+                    try {
+                        const response = await fetch('/api/report-file', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify({
+                                filename: filename,
+                                originalName: originalName,
+                                reason: selectedReason,
+                                details: additionalDetails
+                            })
+                        });
+
+                        const result = await response.json();
+
+                        if (response.ok) {
+                            alert('✅ Report submitted successfully. An admin will review this file.');
+                        } else {
+                            alert('❌ Error: ' + result.error);
+                        }
+                    } catch (error) {
+                        alert('❌ Failed to submit report. Please try again.');
+                        console.error('Report error:', error);
+                    }
+                }
+
                 function escapeHtml(text) {
                     const div = document.createElement('div');
                     div.textContent = text;
                     return div.innerHTML;
+                }
+
+                function getScanBadge(status) {
+                    if (status === 'clean') {
+                        return '<span class="scan-badge scan-clean">✓ Virus Scanned</span>';
+                    } else if (status === 'pending') {
+                        return '<span class="scan-badge scan-pending">⏳ Scanning...</span>';
+                    } else if (status === 'error') {
+                        return '<span class="scan-badge scan-error">⚠️ Scan Error</span>';
+                    }
+                    return '';
                 }
 
                 // Initialize on page load

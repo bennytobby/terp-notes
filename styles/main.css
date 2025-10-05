@@ -648,6 +648,21 @@ input[type="reset"] {
   margin-bottom: var(--space-2);
 }
 
+.file-type-notice {
+  background: #F0F9FF;
+  border: 1px solid #BAE6FD;
+  border-radius: var(--radius-md);
+  padding: var(--space-3);
+  margin-top: var(--space-4);
+  font-size: var(--font-size-sm);
+  line-height: 1.6;
+  text-align: left;
+  color: #0C4A6E;
+  max-width: 700px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
 .upload-form {
   max-width: 600px;
   margin: 0 auto;
@@ -1398,4 +1413,156 @@ button:disabled {
   .fab-text {
     font-size: 0.6rem;
   }
+}
+
+/* ===== ADMIN REPORTS SECTION ===== */
+.reports-section {
+  margin-bottom: var(--space-8);
+  padding: var(--space-6);
+  background: #FEF2F2;
+  border: 2px solid #FCA5A5;
+  border-radius: var(--radius-lg);
+}
+
+.reports-section h2 {
+  color: #DC2626;
+  margin-bottom: var(--space-4);
+}
+
+.reports-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+  gap: var(--space-4);
+}
+
+.report-card {
+  background: white;
+  border: 1px solid #FCA5A5;
+  border-radius: var(--radius-md);
+  padding: var(--space-4);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.report-header {
+  margin-bottom: var(--space-3);
+}
+
+.report-header h3 {
+  font-size: var(--font-size-md);
+  color: var(--text-primary);
+  word-break: break-word;
+}
+
+.report-reason-box {
+  background: #FEE2E2;
+  border-left: 4px solid #DC2626;
+  padding: var(--space-3);
+  margin-bottom: var(--space-3);
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-sm);
+  color: #991B1B;
+  word-wrap: break-word;
+  line-height: 1.5;
+}
+
+/* Report action buttons - color coded */
+.report-delete-btn {
+  background: #DC2626 !important;
+  color: white !important;
+  border: none;
+  padding: 0.5rem 1rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  transition: background 0.2s;
+}
+
+.report-delete-btn:hover {
+  background: #B91C1C !important;
+}
+
+.report-dismiss-btn {
+  background: #10B981 !important;
+  color: white !important;
+  border: none;
+  padding: 0.5rem 1rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  transition: background 0.2s;
+}
+
+.report-dismiss-btn:hover {
+  background: #059669 !important;
+}
+
+.report-review-btn {
+  background: #3B82F6 !important;
+  color: white !important;
+  border: none;
+  padding: 0.5rem 1rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  text-decoration: none;
+  display: inline-block;
+  transition: background 0.2s;
+}
+
+.report-review-btn:hover {
+  background: #2563EB !important;
+}
+
+
+.report-details {
+  margin-bottom: var(--space-4);
+  font-size: var(--font-size-sm);
+  line-height: 1.6;
+}
+
+/* Virus Scan Status Badges */
+.scan-badge {
+  display: inline-block;
+  padding: 0.25rem 0.75rem;
+  border-radius: var(--radius-sm);
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.scan-clean {
+  background: #D1FAE5;
+  color: #065F46;
+  border: 1px solid #10B981;
+}
+
+.scan-pending {
+  background: #FEF3C7;
+  color: #92400E;
+  border: 1px solid #F59E0B;
+  animation: pulse-scan 2s infinite;
+}
+
+.scan-error {
+  background: #FEE2E2;
+  color: #991B1B;
+  border: 1px solid #EF4444;
+}
+
+@keyframes pulse-scan {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
+}
+
+.report-details p {
+  margin-bottom: var(--space-2);
+  color: var(--text-secondary);
+}
+
+.report-actions {
+  display: flex;
+  gap: var(--space-2);
+  flex-wrap: wrap;
 }
