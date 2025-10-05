@@ -187,8 +187,39 @@ const bcrypt = require('bcrypt');
 const crypto = require('crypto');
 
 // No default accounts created
-// First registered user will automatically become admin
-console.log('📝 No default accounts - first registered user will be admin');
+// All users register as contributors
+console.log('📝 No default accounts - manually set admin via MongoDB');
+
+// Cleanup function: Delete unverified accounts older than 7 days
+async function cleanupUnverifiedAccounts() {
+    try {
+        await client.connect();
+
+        const sevenDaysAgo = new Date();
+        sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+
+        const result = await client
+            .db(userCollection.db)
+            .collection(userCollection.collection)
+            .deleteMany({
+                isVerified: false,
+                createdAt: { $lt: sevenDaysAgo }
+            });
+
+        if (result.deletedCount > 0) {
+            console.log(`🧹 Cleaned up ${result.deletedCount} unverified account(s) older than 7 days`);
+        }
+    } catch (error) {
+        console.error('Error cleaning up unverified accounts:', error);
+    } finally {
+        await client.close();
+    }
+}
+
+// Run cleanup every 24 hours
+setInterval(cleanupUnverifiedAccounts, 24 * 60 * 60 * 1000);
+// Run on server startup
+cleanupUnverifiedAccounts();
 
 /* VirusTotal Scanning Function */
 async function scanFileWithVirusTotal(fileId, fileBuffer, filename) {
@@ -1287,11 +1318,17 @@ app.post('/registerSubmit', registerLimiter, async function (req, res) {
             });
         }
 
-        // Check for existing email/username
+        // Normalize email to prevent duplicates (@umd.edu and @terpmail.umd.edu are the same)
+        // Extract username part and always use @terpmail.umd.edu for storage
+        const emailUsername = email.split('@')[0];
+        const normalizedEmail = `${emailUsername}@terpmail.umd.edu`;
+
+        // Check for existing email/username (check both formats)
         await client.connect();
         let conflictFilter = {
             $or: [
-                { email: email },
+                { email: normalizedEmail },
+                { email: `${emailUsername}@umd.edu` }, // Also check the other format
                 { userid: req.body.userid }
             ]
         };
@@ -1330,7 +1367,7 @@ app.post('/registerSubmit', registerLimiter, async function (req, res) {
             firstname: req.body.first_name,
             lastname: req.body.last_name,
             userid: req.body.userid,
-            email: email,
+            email: normalizedEmail, // Store normalized email (always @terpmail.umd.edu)
             pass: hashedPassword,
             role: 'contributor',
             isProtected: false,
