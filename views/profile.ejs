@@ -12,7 +12,7 @@
 
 <body>
     <header class="topbar">
-        <h2>🐢 Terp Notes</h2>
+        <h2>Terp Notes</h2>
         <div class="user-info">
             Welcome, <strong>
                 <%= user.firstname %>
@@ -137,7 +137,12 @@
     </main>
 
     <footer>
-        <p>&copy; <%= new Date().getFullYear() %> Terp Notes | Built for UMD</p>
+        <p>
+            &copy; <%= new Date().getFullYear() %> Terp Notes<br>
+                <a href="/privacy">Privacy</a> |
+                <a href="/terms">Terms</a> |
+                <a href="/contact">Contact</a>
+        </p>
     </footer>
 
     <script src="/js/app.js"></script>

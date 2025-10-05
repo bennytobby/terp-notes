@@ -771,8 +771,8 @@ app.post('/reset-password/:token', async (req, res) => {
         const mailOptions = {
             from: process.env.EMAIL_USER,
             to: user.email,
-            subject: "Terp Notes Password Reset Successful",
-            text: `Hello ${user.firstname},\n\nYour Terp Notes password has been successfully reset.\n\nIf you didn't make this change, please contact support immediately.\n\n- Terp Notes Team 🐢`
+            subject: "Password Reset Successful - Terp Notes",
+            text: `Hello ${user.firstname},\n\nYour password has been successfully reset. You can now login with your new password.\n\nIf you didn't make this change, please contact support immediately at ${process.env.EMAIL_USER || 'support@terpnotes.com'}.\n\n- Terp Notes Team 🐢`
         };
         transporter.sendMail(mailOptions, (err) => {
             if (err) console.error("Error sending email:", err);
@@ -1051,8 +1051,8 @@ app.post('/update-profile', async (req, res) => {
         const mailOptions = {
             from: process.env.EMAIL_USER,
             to: email,
-            subject: "Terp Notes Profile Updated",
-            text: `Hi ${firstname},\n\nYour profile has been successfully updated.\n\n- Terp Notes Team`
+            subject: "Profile Updated - Terp Notes",
+            text: `Hi ${firstname},\n\nYour profile has been successfully updated.\n\nIf you didn't make this change, please contact support immediately.\n\n- Terp Notes Team 🐢`
         };
         transporter.sendMail(mailOptions, (err) => {
             if (err) console.error("Error sending email:", err);
@@ -1143,8 +1143,8 @@ app.post('/change-password', async (req, res) => {
         const mailOptions = {
             from: process.env.EMAIL_USER,
             to: user.email,
-            subject: "Terp Notes Password Changed",
-            text: `Hi ${user.firstname},\n\nYour password has been successfully changed.\n\nIf you didn't make this change, please contact support immediately.\n\n- Terp Notes Team`
+            subject: "Password Changed - Terp Notes",
+            text: `Hi ${user.firstname},\n\nYour password has been successfully changed.\n\nIf you didn't make this change, please contact support immediately at ${process.env.EMAIL_USER || 'support@terpnotes.com'}.\n\n- Terp Notes Team 🐢`
         };
         transporter.sendMail(mailOptions, (err) => {
             if (err) console.error("Error sending email:", err);
@@ -1236,8 +1236,8 @@ app.get("/delete/:filename", async (req, res) => {
         const mailOptions = {
             from: process.env.EMAIL_USER,
             to: req.session.user.email,
-            subject: "Terp Notes - File Deletion Notice",
-            text: `Hi ${req.session.user.firstname},\n\nThe file '${sanitizeForHeader(filename)}' has been deleted from your account.\n\n- Terp Notes Team`
+            subject: "File Deleted - Terp Notes",
+            text: `Hi ${req.session.user.firstname},\n\nThe file '${sanitizeForHeader(filename)}' has been deleted from your account.\n\n- Terp Notes Team 🐢`
         };
         transporter.sendMail(mailOptions, (err, info) => {
             if (err) console.error("Error sending deletion email:", err);
@@ -1613,8 +1613,8 @@ app.post("/upload", uploadLimiter, upload.array("documents", 50), async (req, re
         const mailOptions = {
             from: process.env.EMAIL_USER,
             to: req.session.user.email,
-            subject: "Terp Notes - Upload Confirmation",
-            text: `Hello ${req.session.user.firstname},\n\nYou have successfully uploaded ${uploadedFiles.length} file(s) to ${classCode}.\n\n- Terp Notes Team 🐢`
+            subject: "Upload Successful - Terp Notes",
+            text: `Hello ${req.session.user.firstname},\n\nYou successfully uploaded ${uploadedFiles.length} file(s) to ${classCode}.\n\nThanks for contributing!\n\n- Terp Notes Team 🐢`
         };
         transporter.sendMail(mailOptions, (err) => {
             if (err) console.error("Error sending email:", err);
