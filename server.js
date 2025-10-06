@@ -901,7 +901,11 @@ app.post('/forgot-password', async (req, res) => {
                 <p>Or copy this link: ${resetLink}</p>
                 <p><strong>This link will expire in 1 hour.</strong></p>
                 <p><small>If you didn't request this, please ignore this email. Your password will not be changed.</small></p>
-                <p>- Terp Notes Team 🐢</p>
+                <hr style="margin: 2rem 0; border: none; border-top: 1px solid #E5E7EB;">
+                <p style="color: #6B7280; font-size: 0.875rem;">
+                    <strong>Terp Notes</strong> - Built for Terps, by Terps<br>
+                    <em>Not affiliated with, endorsed by, or officially connected to the University of Maryland.</em>
+                </p>
             `
         };
         transporter.sendMail(mailOptions, (err) => {
@@ -1019,7 +1023,17 @@ app.post('/reset-password/:token', async (req, res) => {
             from: process.env.EMAIL_USER,
             to: user.email,
             subject: "Password Reset Successful - Terp Notes",
-            text: `Hello ${user.firstname},\n\nYour password has been successfully reset. You can now login with your new password.\n\nIf you didn't make this change, please contact support immediately at ${process.env.EMAIL_USER || 'support@terpnotes.com'}.\n\n- Terp Notes Team 🐢`
+            html: `
+                <h2>Password Reset Successful</h2>
+                <p>Hello ${user.firstname},</p>
+                <p>Your Terp Notes password has been successfully reset. You can now login with your new password.</p>
+                <p><strong style="color: #DC2626;">If you didn't make this change, please contact support immediately at ${process.env.EMAIL_USER}.</strong></p>
+                <hr style="margin: 2rem 0; border: none; border-top: 1px solid #E5E7EB;">
+                <p style="color: #6B7280; font-size: 0.875rem;">
+                    <strong>Terp Notes</strong> - Built for Terps, by Terps<br>
+                    <em>Not affiliated with, endorsed by, or officially connected to the University of Maryland.</em>
+                </p>
+            `
         };
         transporter.sendMail(mailOptions, (err) => {
             if (err) console.error("Error sending email:", err);
@@ -1155,7 +1169,11 @@ app.post('/resend-verification', async (req, res) => {
                 <p>Click the button below to verify your email address:</p>
                 <p><a href="${verificationLink}" style="background: #E03A3C; color: white; padding: 12px 24px; text-decoration: none; border-radius: 8px; display: inline-block;">Verify Email Address</a></p>
                 <p>Or copy this link: ${verificationLink}</p>
-                <p>- Terp Notes Team</p>
+                <hr style="margin: 2rem 0; border: none; border-top: 1px solid #E5E7EB;">
+                <p style="color: #6B7280; font-size: 0.875rem;">
+                    <strong>Terp Notes</strong> - Built for Terps, by Terps<br>
+                    <em>Not affiliated with, endorsed by, or officially connected to the University of Maryland.</em>
+                </p>
             `
         };
         transporter.sendMail(mailOptions, (err) => {
@@ -1349,7 +1367,17 @@ app.post('/update-profile', async (req, res) => {
             from: process.env.EMAIL_USER,
             to: email,
             subject: "Profile Updated - Terp Notes",
-            text: `Hi ${firstname},\n\nYour profile has been successfully updated.\n\nIf you didn't make this change, please contact support immediately.\n\n- Terp Notes Team 🐢`
+            html: `
+                <h2>Profile Updated Successfully</h2>
+                <p>Hi ${firstname},</p>
+                <p>Your Terp Notes profile has been successfully updated.</p>
+                <p>If you didn't make this change, please contact support immediately.</p>
+                <hr style="margin: 2rem 0; border: none; border-top: 1px solid #E5E7EB;">
+                <p style="color: #6B7280; font-size: 0.875rem;">
+                    <strong>Terp Notes</strong> - Built for Terps, by Terps<br>
+                    <em>Not affiliated with, endorsed by, or officially connected to the University of Maryland.</em>
+                </p>
+            `
         };
         transporter.sendMail(mailOptions, (err) => {
             if (err) console.error("Error sending email:", err);
@@ -1441,7 +1469,17 @@ app.post('/change-password', async (req, res) => {
             from: process.env.EMAIL_USER,
             to: user.email,
             subject: "Password Changed - Terp Notes",
-            text: `Hi ${user.firstname},\n\nYour password has been successfully changed.\n\nIf you didn't make this change, please contact support immediately at ${process.env.EMAIL_USER || 'support@terpnotes.com'}.\n\n- Terp Notes Team 🐢`
+            html: `
+                <h2>Password Changed Successfully</h2>
+                <p>Hi ${user.firstname},</p>
+                <p>Your Terp Notes password has been successfully changed.</p>
+                <p><strong style="color: #DC2626;">If you didn't make this change, please contact support immediately at ${process.env.EMAIL_USER}.</strong></p>
+                <hr style="margin: 2rem 0; border: none; border-top: 1px solid #E5E7EB;">
+                <p style="color: #6B7280; font-size: 0.875rem;">
+                    <strong>Terp Notes</strong> - Built for Terps, by Terps<br>
+                    <em>Not affiliated with, endorsed by, or officially connected to the University of Maryland.</em>
+                </p>
+            `
         };
         transporter.sendMail(mailOptions, (err) => {
             if (err) console.error("Error sending email:", err);
@@ -1534,7 +1572,17 @@ app.get("/delete/:filename", async (req, res) => {
             from: process.env.EMAIL_USER,
             to: req.session.user.email,
             subject: "File Deleted - Terp Notes",
-            text: `Hi ${req.session.user.firstname},\n\nThe file '${sanitizeForHeader(filename)}' has been deleted from your account.\n\n- Terp Notes Team 🐢`
+            html: `
+                <h2>File Deleted</h2>
+                <p>Hi ${req.session.user.firstname},</p>
+                <p>The file <strong>'${sanitizeForHeader(filename)}'</strong> has been deleted from your account.</p>
+                <p>If you didn't perform this action, please contact support immediately.</p>
+                <hr style="margin: 2rem 0; border: none; border-top: 1px solid #E5E7EB;">
+                <p style="color: #6B7280; font-size: 0.875rem;">
+                    <strong>Terp Notes</strong> - Built for Terps, by Terps<br>
+                    <em>Not affiliated with, endorsed by, or officially connected to the University of Maryland.</em>
+                </p>
+            `
         };
         transporter.sendMail(mailOptions, (err, info) => {
             if (err) console.error("Error sending deletion email:", err);
@@ -1728,7 +1776,11 @@ app.post('/registerSubmit', registerLimiter, async function (req, res) {
                 <p>Or copy this link: ${verificationLink}</p>
                 <p>This link will expire in 24 hours.</p>
                 <p><small>If you didn't create this account, please ignore this email.</small></p>
-                <p>- Terp Notes Team</p>
+                <hr style="margin: 2rem 0; border: none; border-top: 1px solid #E5E7EB;">
+                <p style="color: #6B7280; font-size: 0.875rem;">
+                    <strong>Terp Notes</strong> - Built for Terps, by Terps<br>
+                    <em>Not affiliated with, endorsed by, or officially connected to the University of Maryland.</em>
+                </p>
             `
         };
         transporter.sendMail(mailOptions, (err) => {
@@ -1926,7 +1978,17 @@ app.post("/upload", uploadLimiter, upload.array("documents", 50), async (req, re
             from: process.env.EMAIL_USER,
             to: req.session.user.email,
             subject: "Upload Successful - Terp Notes",
-            text: `Hello ${req.session.user.firstname},\n\nYou successfully uploaded ${uploadedFiles.length} file(s) to ${classCode}.\n\nThanks for contributing!\n\n- Terp Notes Team 🐢`
+            html: `
+                <h2>Upload Successful! 🎉</h2>
+                <p>Hello ${req.session.user.firstname},</p>
+                <p>You successfully uploaded <strong>${uploadedFiles.length} file(s)</strong> to <strong>${classCode}</strong>.</p>
+                <p>Thanks for contributing to the Terp Notes community!</p>
+                <hr style="margin: 2rem 0; border: none; border-top: 1px solid #E5E7EB;">
+                <p style="color: #6B7280; font-size: 0.875rem;">
+                    <strong>Terp Notes</strong> - Built for Terps, by Terps<br>
+                    <em>Not affiliated with, endorsed by, or officially connected to the University of Maryland.</em>
+                </p>
+            `
         };
         transporter.sendMail(mailOptions, (err) => {
             if (err) console.error("Error sending email:", err);

@@ -303,10 +303,6 @@
                                                     <p class="drop-zone-hint">
                                                         Upload one or multiple files (up to 50 files, 100MB each)
                                                     </p>
-                                                    <p class="drop-zone-hint"
-                                                        style="color: #10B981; font-size: 0.75rem; margin-top: 0.25rem;">
-                                                        ✅ Direct S3 uploads - no file size limits!
-                                                    </p>
                                                 </div>
                                                 <div class="selected-files" id="selectedFiles"></div>
                                             </div>
@@ -729,7 +725,16 @@
                         const files = filesInput.files;
 
                         if (files.length === 0) {
-                            alert('Please select at least one file');
+                            // Show styled notification instead of alert
+                            const notification = document.createElement('div');
+                            notification.style.cssText = `
+                                position: fixed; top: 20px; right: 20px; background: #EF4444; color: white;
+                                padding: 1rem 1.5rem; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+                                font-weight: 500; z-index: 10000; animation: slideIn 0.3s ease;
+                            `;
+                            notification.textContent = '⚠️ Please select at least one file to upload';
+                            document.body.appendChild(notification);
+                            setTimeout(() => notification.remove(), 3000);
                             return;
                         }
 
@@ -741,7 +746,15 @@
                         const description = document.getElementById('description').value.trim();
 
                         if (!classCode || !professor || !description) {
-                            alert('Please fill in all required fields');
+                            const notification = document.createElement('div');
+                            notification.style.cssText = `
+                                position: fixed; top: 20px; right: 20px; background: #EF4444; color: white;
+                                padding: 1rem 1.5rem; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+                                font-weight: 500; z-index: 10000; animation: slideIn 0.3s ease;
+                            `;
+                            notification.textContent = '⚠️ Please fill in all required fields';
+                            document.body.appendChild(notification);
+                            setTimeout(() => notification.remove(), 3000);
                             return;
                         }
 
