@@ -1,220 +1,311 @@
 # 🐢 Terp Notes
 
-> A collaborative class note-sharing platform built for University of Maryland students, by a UMD student.
+> **A free, student-driven platform for sharing class notes, study guides, and academic resources at the University of Maryland.**
 
-**Independent platform** - Not affiliated with, endorsed by, or officially connected to the University of Maryland.
+**🚀 Live at:** [terp-notes.vercel.app](https://terp-notes.vercel.app/)
 
-## 🎯 The Problem
+---
 
-As a UMD student, I saw a recurring issue: **students struggle to find quality study materials**. Notes get lost, study guides aren't shared, and valuable resources remain siloed in individual Google Drives. While file-sharing platforms exist, there's no centralized, class-specific repository designed for UMD's course structure.
+## 💡 The Story
 
-**Terp Notes** solves this by creating a dedicated space where Terps can share and discover resources organized by UMD's class codes—making it effortless to find materials for CMSC330, MATH141, or any course.
+I graduated from UMD and remember the struggle: hunting for study materials before exams, relying on fragmented GroupMe chats, and watching resources get lost semester after semester. **Notes that could help hundreds of students were trapped in individual Google Drives.**
+
+I built **Terp Notes** to solve this problem—a centralized, searchable repository where Terps help Terps succeed. Whether you need CMSC330 lecture notes, MATH141 practice problems, or HIST156 study guides, it's all here. **Free. Always.**
+
+This platform is **built for students, by a student** (now alum), with zero profit motive. Just Terps helping Terps. 🐢
+
+**Note:** Terp Notes is an independent platform—not affiliated with, endorsed by, or officially connected to the University of Maryland.
+
+---
+
+## ✨ Features
+
+### 📚 **For Students**
+- **Instant Search** - Find notes by class code, professor, or keyword (no page reloads)
+- **Smart Filtering** - Filter by major, class, semester, year, and professor
+- **My Files Toggle** - Quickly view and manage only your uploads
+- **Drag & Drop Upload** - Bulk upload up to 50 files at once (up to 5GB each!)
+- **Direct S3 Uploads** - Files upload directly to cloud storage (no size limits)
+- **File Preview** - PDFs and images open inline; download warnings for archives
+- **Virus Scanning** - Every file scanned by 70+ antivirus engines (VirusTotal)
+- **Mobile Responsive** - Works seamlessly on phones, tablets, and desktops
+- **Email Notifications** - Confirmations for uploads, deletions, and account changes
+
+### 🔐 **Security & Safety**
+- **UMD Email Required** - Only verified `@umd.edu` / `@terpmail.umd.edu` emails can join
+- **File Type Whitelisting** - Only safe academic files (PDFs, docs, images, code, zips)
+- **Real-time Virus Scanning** - VirusTotal integration with auto-deletion of threats
+- **Download Warnings** - Alerts for compressed files with additional security tips
+- **Rate Limiting** - Protection against spam and abuse
+- **File Reporting** - Flag inappropriate content for admin review
+- **Account Deduplication** - Prevents multiple accounts for the same student
+
+### 👥 **Community Features**
+- **Platform Announcements** - Stay updated on important news and updates
+- **Uploader Attribution** - See who contributed each file
+- **File Metadata** - Class, professor, semester, year, and descriptions
+- **Duplicate Detection** - System prevents re-uploading the same file
+
+### 🛡️ **For Admins**
+- **Moderation Dashboard** - Review reported files with one-click actions
+- **User Management** - Change roles, set view-only mode, or remove accounts
+- **Usage Statistics** - Track total users, files, and storage
+- **Announcement System** - Create color-coded banners (info/warning/success)
+- **Role-Based Access Control** - Admin, Contributor, and Viewer roles
+
+### ⚡ **Technical Excellence**
+- **Client-Side Filtering** - Instant results without server roundtrips
+- **File Deduplication** - SHA-256 hashing saves storage costs
+- **Database Indexing** - Fast queries even with thousands of files
+- **Session Persistence** - Stay logged in across pages with JWT + cookies
+- **Vercel Analytics** - Real-time traffic monitoring and performance insights
+- **Cron Jobs** - Automated background tasks (virus scanning, cleanup)
+- **Serverless Architecture** - Scales automatically with demand
+- **No File Size Limits** - Direct S3 uploads support files up to 5GB
+
+---
+
+## 🚀 Why Use Terp Notes?
+
+### **For Students Searching for Notes:**
+✅ **Find resources in seconds** - No more digging through GroupMe or emailing classmates
+✅ **Filter by your specific class** - CMSC330, MATH141, HIST156, etc.
+✅ **Safe & virus-scanned** - Every file checked by 70+ antivirus engines
+✅ **Free forever** - No paywalls, no ads, no subscription fees
+
+### **For Students Contributing Notes:**
+✅ **Help fellow Terps succeed** - Your notes could help hundreds of students
+✅ **Build your reputation** - Your username is credited on every upload
+✅ **Easy to upload** - Drag & drop, bulk upload, auto-fill metadata
+✅ **Secure & private** - UMD email required, virus scanning enabled
+
+### **For the UMD Community:**
+✅ **Centralized knowledge base** - No more lost resources
+✅ **Semester-to-semester continuity** - Help future students succeed
+✅ **Class-specific organization** - Designed around UMD's course structure
+✅ **Student-run** - Built by Terps, for Terps, with no corporate interests
 
 ---
 
 ## 🛠️ Tech Stack
 
-| Layer | Technology | Why |
-|-------|-----------|-----|
-| **Backend** | Node.js + Express | Fast, scalable, serverless-ready |
-| **Database** | MongoDB | Flexible schema for metadata, fast queries |
-| **Storage** | AWS S3 | Scalable file storage, pay-per-use |
-| **Auth** | JWT + Sessions + bcrypt | Secure, stateless tokens + server sessions |
-| **Frontend** | EJS + Vanilla JS | Simple, fast, no build step needed |
-| **Security** | VirusTotal API | 70+ antivirus engines, background scanning |
-| **Monitoring** | Vercel Analytics + Speed Insights | Real-time traffic & performance tracking |
+| Layer | Technology | Purpose |
+|-------|-----------|---------|
+| **Backend** | Node.js + Express | Serverless API & routing |
+| **Database** | MongoDB Atlas | File metadata & user management |
+| **Storage** | AWS S3 | Scalable file storage with direct uploads |
+| **Auth** | JWT + Sessions + bcrypt | Secure authentication & password hashing |
+| **Frontend** | EJS + Vanilla JS + CSS | Server-side rendering with no build step |
+| **Security** | VirusTotal API | 70+ antivirus engines scan every file |
+| **Email** | Nodemailer + Gmail | Verification & notifications |
+| **Deployment** | Vercel | Serverless functions, cron jobs, analytics |
+| **Monitoring** | Vercel Analytics & Speed Insights | Performance tracking |
 
 ---
 
-## 🎨 Design Philosophy
+## 📊 Current Stats
 
-### **Why These Architectural Decisions?**
+**Platform Capacity (Free Tier):**
+- ✅ Supports **1 million+** function invocations/month
+- ✅ Handles **100GB** bandwidth/month
+- ✅ Unlimited file uploads (storage costs ~$0.023/GB on S3)
+- ✅ **5GB** max file size (S3 direct upload limit)
+- ✅ **1 cron job** for daily virus scanning
 
-#### **1. Class-Based Organization (Not File Types)**
-Students think in courses: *"I need CMSC330 notes"* is more natural than *"I need PDFs."* The entire UI revolves around class codes as the primary navigation paradigm.
-
-#### **2. Two-Level Filtering (Major → Class)**
-With 100+ courses at UMD, filtering by department (CMSC, MATH, HIST) first reduces cognitive load. Users narrow down by major, then select their specific class.
-
-#### **3. Client-Side Filtering (Not Server Queries)**
-Load all file metadata once, filter in-browser. This provides **instant search** without database roundtrips or page reloads—crucial for good UX.
-
-**Trade-off:** Higher initial load (all metadata) vs. instant subsequent searches. For hundreds of files, this is still faster than repeated server queries.
-
-#### **4. File Deduplication via SHA-256**
-Multiple users upload the same "Lecture1.pdf"? Store it once in S3, reference it multiple times in MongoDB. Saves storage costs and prevents redundancy.
-
-**Implementation:** Hash file buffer on upload → Check if hash exists → Reuse S3 key or upload new.
-
-#### **5. Role-Based Access (Admin/Contributor/Viewer)**
-Instead of banning violators, admins can revoke upload privileges ("Viewer" mode). Users still benefit from the platform while the community is protected.
-
-**Rationale:** Encourages rehabilitation over punishment; users can regain privileges.
-
-#### **6. Background Virus Scanning (Not Blocking)**
-Files upload immediately (fast UX), scan happens asynchronously in background (slow but thorough). Users see "⏳ Scanning..." → "✓ Virus Scanned" within 1-5 minutes.
-
-**Vercel Optimization:** Cron job runs every 5 minutes to scan pending files (serverless functions timeout at 10s, scans take 30-60s).
-
-#### **7. Email Normalization (@umd.edu ↔ @terpmail.umd.edu)**
-Both domains route to the same inbox. System normalizes to `@terpmail.umd.edu` to prevent duplicate accounts for the same user.
-
-#### **8. No Anonymous Uploads**
-Every file is tied to a verified UMD email. Accountability prevents abuse and enables moderation.
+**Perfect for a student community!** 🎓
 
 ---
 
-## ✨ Current Features
+## 🎯 How It Works
 
-### **Core Functionality**
-- 📚 **Class-Based Organization** - Files organized by major (CMSC, MATH) → class code (CMSC330)
-- 🔍 **Instant Search** - Filter by filename, uploader, description (client-side, no reloads)
-- 📤 **Drag-and-Drop Upload** - Bulk uploads (up to 50 files, 100MB each)
-- 🎈 **Floating Action Button** - Quick access to upload from anywhere on page
-- ⚡ **Smart Filtering** - Major dropdown dynamically updates class list
+### **1. Register with UMD Email**
+Sign up with your `@umd.edu` or `@terpmail.umd.edu` email → Receive verification link → Activate account
 
-### **User Management**
-- 🔐 **JWT + Session Auth** - Stateless tokens + server-side session validation
-- 📧 **Email Verification** - Mandatory UMD email verification (`@umd.edu` / `@terpmail.umd.edu`)
-- 👤 **Profile Management** - Update name/email/password (username permanent for accountability)
-- 🛡️ **Three Roles:**
-  - **Admin** - User management, moderation, announcements
-  - **Contributor** - Upload, download, delete own files
-  - **Viewer** - View-only (for policy violations)
+### **2. Browse & Search**
+Filter by major (CMSC, MATH, etc.) → Select class (CMSC330) → Search by professor, semester, or keywords
 
-### **Security & Moderation**
-- 🦠 **VirusTotal Integration** - Background scanning with 70+ antivirus engines
-- 🚩 **File Reporting** - Users flag inappropriate content → admin review dashboard
-- 🛑 **Rate Limiting** - Prevents abuse (login, register, upload, API endpoints)
-- 📝 **Audit Logs** - Track uploads, deletions, role changes
-- ⚠️ **Download Warnings** - Security alerts for compressed files
+### **3. Upload & Share**
+Drag & drop your notes → Add class info & description → Upload directly to S3 → Files are virus scanned automatically
 
-### **Admin Tools**
-- 📊 **Statistics Dashboard** - User count, file count, storage usage
-- ⚖️ **Moderation Panel** - Review reported files, delete/dismiss
-- 👥 **User Management** - Change roles, delete accounts, set view-only mode
-- 📢 **Announcements** - Platform-wide banners (info/warning/success)
-
-### **Technical Excellence**
-- 💾 **File Deduplication** - SHA-256 hashing prevents duplicate storage
-- 🔒 **Secure File Types** - Whitelist: documents, images, code files, archives
-- 🗄️ **Database Indexing** - Fast queries on class codes, majors, dates
-- 📊 **Vercel Analytics** - Page views, traffic sources, Web Vitals
-- 🚀 **Serverless-Ready** - Cron jobs for background tasks on Vercel
-
----
-
-## 🔒 Security Approach
-
-### **Defense in Depth**
-1. **Email Verification** - Only verified UMD emails can access
-2. **File Whitelisting** - Safe academic file types only
-3. **Virus Scanning** - VirusTotal with auto-deletion of threats
-4. **Rate Limiting** - DDoS protection on all critical endpoints
-5. **User Reporting** - Community-driven moderation
-6. **Role-Based Access** - Granular permissions (Admin/Contributor/Viewer)
-7. **Audit Trail** - All actions logged with timestamps
-
-### **Academic Integrity**
-- Prohibits unauthorized exam/project sharing
-- Clear acceptable use policy during registration
-- Reports serious violations to UMD Office of Student Conduct
-- Admins can revoke upload privileges instead of banning
-
----
-
-## 🔮 Future Vision
-
-### **Optional (Future):**
-- **Comments/Ratings** - Users can comment on and rate files for quality feedback
-- **Download Analytics** - Track which files are most helpful to students
-- **File Versioning** - Upload and manage multiple versions of the same file
-- **AI Summaries** - Auto-generate summaries of uploaded PDFs and study guides
-- **Gamification/Leaderboards** - Points for uploads and downloads, class-based leaderboards
-
-### **Phase 2: Multi-University Expansion**
-Expand beyond UMD to other universities with school-specific domains and admin teams.
-
-### **Phase 3: Advanced Features**
-- Study groups with private sharing
-- Real-time collaborative annotations
-- Class-specific discussion forums
-- Q&A bot trained on class materials
-- Auto-generate practice quizzes from notes
-- LaTeX OCR for handwritten math
-
-### **Phase 4: Analytics & Insights**
-- Usage insights per class/department
-- Trend analysis (popular topics before exams)
-- Gap detection (classes with few resources)
-- Download history tracking
-
----
-
-## 🚀 Deployment & Development
-
-**For detailed setup instructions, environment variables, and deployment guide:**
-📖 **See [DEPLOYMENT.md](DEPLOYMENT.md)**
-
-**Quick Start:**
-```bash
-npm install
-npm start  # Runs on localhost:3000
-```
-
-**Tech Requirements:** Node.js 14+, MongoDB, AWS S3, (optional) VirusTotal API key
-
-**Production:** Vercel-ready with cron jobs for background virus scanning
+### **4. Download & Study**
+Click any file → Preview PDFs inline or download → Help others by uploading your own materials
 
 ---
 
 ## 🏗️ Architecture Highlights
 
-**Key Technical Decisions:**
+### **Why These Design Decisions?**
 
-1. **Client-Side Filtering**
-   - Load all metadata once → instant search
-   - Reduces server load + database queries
+**Class-Based Organization**
+Students think in courses ("I need CMSC330 notes"), not file types. The entire platform is organized around UMD's class code structure.
 
-2. **Serverless Virus Scanning**
-   - Files upload immediately (10s function timeout)
-   - Cron job scans every 5 minutes
-   - Users see "Scanning..." → "Scanned" within 1-5 min
+**Client-Side Filtering**
+Load file metadata once, filter in-browser. Instant search without server delays.
 
-3. **File Deduplication**
-   - SHA-256 hash before upload
-   - Reuse existing S3 objects if hash matches
-   - Multiple metadata records → one file
+**Direct S3 Uploads**
+Files upload directly to AWS S3, bypassing Vercel's 4.5MB limit. Supports files up to 5GB!
 
-4. **Email Normalization**
-   - `pmachre@umd.edu` = `pmachre@terpmail.umd.edu`
-   - Prevents duplicate accounts for same user
+**Background Virus Scanning**
+Files upload immediately (fast UX), then scan asynchronously. No waiting for security checks.
 
-5. **Database Indexing**
-   - Indexes on: `classCode`, `major`, `uploadDate`, `fileHash`
-   - Fast queries even with 10K+ files
+**File Deduplication**
+Same file uploaded by multiple users? Stored once in S3, referenced multiple times in MongoDB. Saves storage costs.
 
-**For full architecture details:** See `server.js` (2300+ lines of documented code)
+**Email Normalization**
+`@umd.edu` and `@terpmail.umd.edu` route to the same inbox, preventing duplicate accounts.
+
+**Role-Based Moderation**
+Instead of banning violators, revoke upload privileges ("Viewer" mode). Encourages rehabilitation over punishment.
+
+---
+
+## 🛡️ Security & Privacy
+
+### **Data We Collect:**
+- UMD email (for verification)
+- Name & username (for attribution)
+- Uploaded files (stored on AWS S3)
+- File metadata (class, professor, semester, description)
+
+### **Data We DON'T Collect:**
+- ❌ Browsing history
+- ❌ Personal conversations
+- ❌ Credit card info (platform is 100% free)
+- ❌ Third-party tracking (only Vercel Analytics for performance)
+
+### **Security Measures:**
+- ✅ All passwords hashed with bcrypt (10 rounds)
+- ✅ JWT tokens for stateless auth (24hr expiration)
+- ✅ HTTPS enforced (Vercel auto-provisioned SSL)
+- ✅ Rate limiting on all endpoints (prevents brute force)
+- ✅ Session cookies are httpOnly & secure
+- ✅ File virus scanning with auto-deletion
+- ✅ Download warnings for potentially risky file types
+
+**Full details:** [Privacy Policy](https://terp-notes.vercel.app/privacy)
+
+---
+
+## 📱 Screenshots
+
+**Dashboard:**
+Instant search, multi-select filters, drag & drop upload, virus scan status
+
+**Admin Panel:**
+User management, file moderation, usage statistics, announcement system
+
+**Mobile Responsive:**
+Works perfectly on phones, tablets, and desktops
+
+---
+
+## 🎓 Academic Integrity
+
+**Terp Notes supports academic success, not academic dishonesty.**
+
+### **✅ Allowed:**
+- Lecture notes and study guides
+- Practice problems and solutions (non-graded)
+- Textbook summaries and chapter reviews
+- Professor-approved materials
+- Past exam study guides (with permission)
+
+### **❌ Prohibited:**
+- Current exams or quizzes
+- Graded homework/projects
+- Copyrighted materials without permission
+- Answer keys for ongoing assignments
+- Any content that violates UMD's academic integrity policy
+
+**Violations are taken seriously** and may be reported to the UMD Office of Student Conduct.
+
+---
+
+## 🚀 Deployment
+
+**Live Production:** [terp-notes.vercel.app](https://terp-notes.vercel.app/)
+
+**Hosting:** Vercel (Serverless functions, auto-scaling, free tier)
+**Storage:** AWS S3 (Direct client uploads, no file size limits)
+**Database:** MongoDB Atlas (Free tier supports 512MB storage)
+
+**Deployment Requirements:**
+- MongoDB connection string
+- AWS S3 bucket with CORS configured
+- Gmail app password for email notifications
+- (Optional) VirusTotal API key for scanning
+
+**Full deployment guide:** See [ARCHITECTURE.md](ARCHITECTURE.md)
 
 ---
 
 ## 🤝 Contributing
 
-This is a community-driven project for UMD students. Contributions welcome:
+This platform is **community-driven**. Here's how you can help:
+
+**For Students:**
+- 📤 Upload quality study materials
+- 🚩 Report inappropriate content
+- 📣 Share Terp Notes with classmates
+
+**For Developers:**
 - 🐛 Report bugs via GitHub Issues
-- 💡 Suggest features (especially UMD-specific needs)
-- 📣 Spread the word to fellow Terps!
+- 💡 Suggest features
+- 🔧 Submit pull requests
 
 **Follow UMD's academic integrity guidelines when contributing.**
 
 ---
 
-## 📄 License
+## 📞 Contact & Support
 
-MIT License - Built for Terps, by Terps 🐢
+**Need help?** Visit [Contact & Support](https://terp-notes.vercel.app/contact)
+
+**Questions about:**
+- 🔐 Account issues → [Contact Form](https://terp-notes.vercel.app/contact)
+- 🐛 Bugs or errors → GitHub Issues
+- 📋 Feature requests → GitHub Discussions
+- 📧 Direct support → Via contact form (we respond within 24-48 hours)
 
 ---
 
-**Built with 💙 for the University of Maryland community**
+## 📄 Legal
 
-*Fear the Turtle!* 🐢
+- **Privacy Policy:** [terp-notes.vercel.app/privacy](https://terp-notes.vercel.app/privacy)
+- **Terms of Service:** [terp-notes.vercel.app/terms](https://terp-notes.vercel.app/terms)
+- **License:** MIT (see LICENSE file)
+
+**Disclaimer:** Terp Notes is an independent, student-run platform. We are not affiliated with, endorsed by, or officially connected to the University of Maryland or any educational institution.
+
+---
+
+## 👨‍💻 Built By
+
+**Paramraj Singh Machre**
+UMD Alum | Full-Stack Developer | Building tools to help students succeed
+
+- 🌐 **Portfolio:** [devcorpwebsite.vercel.app](https://devcorpwebsite.vercel.app/)
+- 💼 **LinkedIn:** [linkedin.com/in/pmachre](https://linkedin.com/in/pmachre)
+- 💻 **GitHub:** [github.com/bennytobby](https://github.com/bennytobby)
+
+*Built with 💙 for the Terp community*
+
+---
+
+## 🎉 Get Started
+
+**Ready to access thousands of study materials?**
+
+👉 **[Join Terp Notes Now](https://terp-notes.vercel.app/)** 👈
+
+1. **Sign up** with your UMD email
+2. **Verify** your account (check inbox/spam)
+3. **Browse** thousands of notes, guides, and resources
+4. **Upload** your own materials to help fellow Terps
+5. **Succeed** together! 🐢
+
+---
+
+**Fear the Turtle!** 🐢
+
+*Questions? Feature ideas? Reach out via the [contact form](https://terp-notes.vercel.app/contact).*
