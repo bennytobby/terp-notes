@@ -113,15 +113,16 @@ const jwt = require('jsonwebtoken');
 
 app.use(session({
     secret: process.env.SECRET_KEY,
-    resave: true,
-    saveUninitialized: true,
+    resave: false,
+    saveUninitialized: false,
     rolling: true,
     name: 'terpnotes.sid',
     cookie: {
         secure: process.env.NODE_ENV === 'production',
         httpOnly: true,
         maxAge: 24 * 60 * 60 * 1000, // 24 hours
-        sameSite: 'lax'
+        sameSite: 'lax',
+        path: '/'
     }
 }));
 
