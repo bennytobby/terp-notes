@@ -34,25 +34,25 @@
 
         <!-- Platform Statistics -->
         <div class="admin-stats">
-            <div class="stat-card">
+            <div class="admin-stat-card">
                 <h3 id="totalUsers">
                     <%= users.length %>
                 </h3>
                 <p>Total Users</p>
             </div>
-            <div class="stat-card">
+            <div class="admin-stat-card">
                 <h3 id="adminCount">
                     <%= users.filter(u=> u.role === 'admin').length %>
                 </h3>
                 <p>Admins</p>
             </div>
-            <div class="stat-card">
+            <div class="admin-stat-card">
                 <h3 id="contributorCount">
                     <%= users.filter(u=> u.role === 'contributor').length %>
                 </h3>
                 <p>Contributors</p>
             </div>
-            <div class="stat-card">
+            <div class="admin-stat-card">
                 <h3 id="viewerCount">
                     <%= users.filter(u=> u.role === 'viewer').length %>
                 </h3>
@@ -63,7 +63,7 @@
         <!-- Reported Files Section (Critical Alerts) -->
         <% if (reports && reports.length> 0) { %>
             <section class="reports-section" style="margin-top: 3rem;">
-                <h2>🚩 Reported Files (<%= reports.length %>) - Needs Review</h2>
+                <h2>Reported Files (<%= reports.length %>) - Needs Review</h2>
                 <div class="reports-grid">
                     <% reports.forEach(report=> { %>
                         <div class="report-card">
@@ -73,7 +73,7 @@
                                 </h3>
                             </div>
                             <div class="report-reason-box">
-                                <strong>🚩 Reason:</strong>
+                                <strong>Reason:</strong>
                                 <%= report.reason %>
                             </div>
                             <div class="report-details">
@@ -116,8 +116,8 @@
             <% } %>
 
                 <!-- Announcements Management Section -->
-                <section class="announcements-management" style="margin-bottom: 3rem;">
-                    <h2>📢 Announcements</h2>
+                <section class="announcements-section">
+                    <h2>Announcements</h2>
                     <p style="color: #6B7280; margin-bottom: 1.5rem;">Create platform-wide announcements visible on all
                         user
                         dashboards</p>
@@ -134,16 +134,44 @@
                                     style="width: 100%; padding: 0.75rem; border: 1px solid #D1D5DB; border-radius: 8px; font-size: 1rem; resize: vertical;"></textarea>
                             </div>
                             <div class="form-group" style="margin-top: 1rem;">
-                                <label for="announcementType">Type</label>
-                                <select id="announcementType" required
-                                    style="width: 100%; padding: 0.75rem; border: 1px solid #D1D5DB; border-radius: 8px; font-size: 1rem;">
-                                    <option value="info">ℹ️ Info (Blue)</option>
-                                    <option value="warning">⚠️ Warning (Yellow)</option>
-                                    <option value="success">✓ Success (Green)</option>
-                                </select>
+                                <label>Announcement Type</label>
+                                <div
+                                    style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-top: 0.5rem;">
+                                    <label class="announcement-type-option">
+                                        <input type="radio" name="announcementTypeRadio" value="info" checked
+                                            style="display: none;">
+                                        <div class="type-card type-card-info" data-type="info">
+                                            <div class="type-indicator"
+                                                style="width: 20px; height: 20px; background: #3B82F6; border-radius: 4px;">
+                                            </div>
+                                            <span>Info</span>
+                                        </div>
+                                    </label>
+                                    <label class="announcement-type-option">
+                                        <input type="radio" name="announcementTypeRadio" value="warning"
+                                            style="display: none;">
+                                        <div class="type-card type-card-warning" data-type="warning">
+                                            <div class="type-indicator"
+                                                style="width: 20px; height: 20px; background: #F59E0B; border-radius: 4px;">
+                                            </div>
+                                            <span>Warning</span>
+                                        </div>
+                                    </label>
+                                    <label class="announcement-type-option">
+                                        <input type="radio" name="announcementTypeRadio" value="success"
+                                            style="display: none;">
+                                        <div class="type-card type-card-success" data-type="success">
+                                            <div class="type-indicator"
+                                                style="width: 20px; height: 20px; background: #10B981; border-radius: 4px;">
+                                            </div>
+                                            <span>Success</span>
+                                        </div>
+                                    </label>
+                                </div>
+                                <input type="hidden" id="announcementType" value="info" required>
                             </div>
                             <button type="submit" class="button primary" style="margin-top: 1rem;">
-                                📢 Create Announcement
+                                Create Announcement
                             </button>
                         </form>
                     </div>
@@ -170,11 +198,11 @@
                                     <div style="display: flex; gap: 0.5rem;">
                                         <button class="button secondary small toggle-announcement-btn"
                                             data-id="<%= announcement._id %>">
-                                            <%= announcement.isActive ? '👁️ Hide' : '👁️‍🗨️ Show' %>
+                                            <%= announcement.isActive ? 'Hide' : 'Show' %>
                                         </button>
                                         <button class="button danger small delete-announcement-btn"
                                             data-id="<%= announcement._id %>">
-                                            🗑️ Delete
+                                            Delete
                                         </button>
                                     </div>
                                 </div>
@@ -187,168 +215,110 @@
                             <% } %>
                 </section>
 
-                <!-- Reported Files Section -->
-                <% if (reports && reports.length> 0) { %>
-                    <section class="reports-section">
-                        <h2>🚩 Reported Files (<%= reports.length %>)</h2>
-                        <div class="reports-grid">
-                            <% reports.forEach(report=> { %>
-                                <div class="report-card">
-                                    <div class="report-header">
-                                        <h3 style="margin-bottom: 0.5rem;">
-                                            <%= report.originalName %>
-                                        </h3>
-                                    </div>
-                                    <div class="report-reason-box">
-                                        <strong>🚩 Reason:</strong>
-                                        <%= report.reason %>
-                                    </div>
-                                    <div class="report-details">
-                                        <p><strong>Reported by:</strong>
-                                            <%= report.reportedBy %>
-                                        </p>
-                                        <p><strong>File uploader:</strong>
-                                            <%= report.fileUploader %>
-                                        </p>
-                                        <p><strong>Class:</strong>
-                                            <%= report.classCode %>
-                                        </p>
-                                        <p><strong>Date:</strong>
-                                            <%= new Date(report.reportedAt).toLocaleString() %>
-                                        </p>
-                                        <% if (report.details) { %>
-                                            <p><strong>Additional details:</strong>
-                                                <%= report.details %>
-                                            </p>
-                                            <% } %>
-                                    </div>
-                                    <div class="report-actions">
-                                        <button class="button report-delete-btn"
-                                            onclick="resolveReport('<%= report._id %>', 'delete')">
-                                            Delete File
-                                        </button>
-                                        <button class="button report-dismiss-btn"
-                                            onclick="resolveReport('<%= report._id %>', 'dismiss')">
-                                            Dismiss Report
-                                        </button>
-                                        <a href="/download/<%= encodeURIComponent(report.filename) %>"
-                                            class="button report-review-btn" target="_blank" rel="noopener noreferrer">
-                                            Review File
-                                        </a>
-                                    </div>
-                                </div>
-                                <% }); %>
+                <!-- User Management Section -->
+                <section class="users-section" style="margin-top: 3rem;">
+                    <div class="section-header">
+                        <h2>All Users</h2>
+                        <div class="search-controls">
+                            <input type="text" id="userSearch" placeholder="Search users..." class="search-input">
+                            <select id="roleFilter" class="filter-select">
+                                <option value="">All Roles</option>
+                                <option value="admin">Admins</option>
+                                <option value="contributor">Contributors</option>
+                                <option value="viewer">Viewers</option>
+                            </select>
                         </div>
-                    </section>
-                    <% } %>
+                    </div>
 
-                        <!-- User Management Section -->
-                        <section class="users-section" style="margin-top: 3rem;">
-                            <div class="section-header">
-                                <h2>All Users</h2>
-                                <div class="search-controls">
-                                    <input type="text" id="userSearch" placeholder="Search users..."
-                                        class="search-input">
-                                    <select id="roleFilter" class="filter-select">
-                                        <option value="">All Roles</option>
-                                        <option value="admin">Admins</option>
-                                        <option value="contributor">Contributors</option>
-                                        <option value="viewer">Viewers</option>
-                                    </select>
+                    <div class="users-grid">
+                        <% users.forEach(currentUser=> { %>
+                            <div class="user-card" data-user-id="<%= currentUser.userid %>"
+                                data-role="<%= currentUser.role %>"
+                                data-name="<%= (currentUser.firstname + ' ' + currentUser.lastname).toLowerCase() %>"
+                                data-email="<%= currentUser.email.toLowerCase() %>">
+                                <div class="user-header">
+                                    <div class="user-avatar">
+                                        <%= currentUser.firstname.charAt(0).toUpperCase() %>
+                                            <%= currentUser.lastname.charAt(0).toUpperCase() %>
+                                    </div>
+                                    <div class="user-info">
+                                        <h3>
+                                            <%= currentUser.firstname %>
+                                                <%= currentUser.lastname %>
+                                        </h3>
+                                        <p class="user-email">
+                                            <%= currentUser.email %>
+                                        </p>
+                                        <p class="user-id">@<%= currentUser.userid %>
+                                        </p>
+                                    </div>
                                 </div>
-                            </div>
 
-                            <div class="users-grid">
-                                <% users.forEach(currentUser=> { %>
-                                    <div class="user-card" data-user-id="<%= currentUser.userid %>"
-                                        data-role="<%= currentUser.role %>"
-                                        data-name="<%= (currentUser.firstname + ' ' + currentUser.lastname).toLowerCase() %>"
-                                        data-email="<%= currentUser.email.toLowerCase() %>">
-                                        <div class="user-header">
-                                            <div class="user-avatar">
-                                                <%= currentUser.firstname.charAt(0).toUpperCase() %>
-                                                    <%= currentUser.lastname.charAt(0).toUpperCase() %>
-                                            </div>
-                                            <div class="user-info">
-                                                <h3>
-                                                    <%= currentUser.firstname %>
-                                                        <%= currentUser.lastname %>
-                                                </h3>
-                                                <p class="user-email">
-                                                    <%= currentUser.email %>
-                                                </p>
-                                                <p class="user-id">@<%= currentUser.userid %>
-                                                </p>
-                                            </div>
+                                <div class="user-details">
+                                    <div class="user-meta">
+                                        <div class="meta-item">
+                                            <strong>Role:</strong>
+                                            <span class="user-role role-<%= currentUser.role %>">
+                                                <%= currentUser.role %>
+                                            </span>
                                         </div>
-
-                                        <div class="user-details">
-                                            <div class="user-meta">
-                                                <div class="meta-item">
-                                                    <strong>Role:</strong>
-                                                    <span class="user-role role-<%= currentUser.role %>">
-                                                        <%= currentUser.role %>
-                                                    </span>
-                                                </div>
-                                                <div class="meta-item">
-                                                    <strong>Joined:</strong>
-                                                    <%= currentUser.createdAt ? new
-                                                        Date(currentUser.createdAt).toLocaleDateString() : 'Unknown' %>
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        <div class="user-actions">
-                                            <div class="role-controls">
-                                                <label for="role-<%= currentUser.userid %>">Change Role:</label>
-                                                <% if (currentUser.isProtected) { %>
-                                                    <select id="role-<%= currentUser.userid %>" class="role-select"
-                                                        disabled>
-                                                        <option value="<%= currentUser.role %>" selected>
-                                                            <%= currentUser.role %>
-                                                        </option>
-                                                    </select>
-                                                    <button class="button primary small disabled"
-                                                        disabled>Update</button>
-                                                    <% } else { %>
-                                                        <select id="role-<%= currentUser.userid %>" class="role-select"
-                                                            data-user-id="<%= currentUser.userid %>">
-                                                            <option value="admin" <%=currentUser.role==='admin'
-                                                                ? 'selected' : '' %>
-                                                                >Admin</option>
-                                                            <option value="contributor"
-                                                                <%=currentUser.role==='contributor' ? 'selected' : '' %>
-                                                                >Contributor</option>
-                                                            <option value="viewer" <%=currentUser.role==='viewer'
-                                                                ? 'selected' : '' %>
-                                                                >Viewer</option>
-                                                        </select>
-                                                        <button class="button primary small update-role-btn"
-                                                            data-user-id="<%= currentUser.userid %>">
-                                                            Update
-                                                        </button>
-                                                        <% } %>
-                                            </div>
-
-                                            <div class="action-buttons">
-                                                <% if (user.userid !==currentUser.userid) { %>
-                                                    <% if (currentUser.isProtected) { %>
-                                                        <span class="protected-badge">🛡️ Protected</span>
-                                                        <% } else { %>
-                                                            <button class="button danger small delete-btn"
-                                                                data-user-id="<%= currentUser.userid %>">
-                                                                Delete User
-                                                            </button>
-                                                            <% } %>
-                                                                <% } else { %>
-                                                                    <span class="current-user-badge">Current User</span>
-                                                                    <% } %>
-                                            </div>
+                                        <div class="meta-item">
+                                            <strong>Joined:</strong>
+                                            <%= currentUser.createdAt ? new
+                                                Date(currentUser.createdAt).toLocaleDateString() : 'Unknown' %>
                                         </div>
                                     </div>
-                                    <% }); %>
+                                </div>
+
+                                <div class="user-actions">
+                                    <div class="role-controls">
+                                        <label for="role-<%= currentUser.userid %>">Change Role:</label>
+                                        <% if (currentUser.isProtected) { %>
+                                            <select id="role-<%= currentUser.userid %>" class="role-select" disabled>
+                                                <option value="<%= currentUser.role %>" selected>
+                                                    <%= currentUser.role %>
+                                                </option>
+                                            </select>
+                                            <button class="button primary small disabled" disabled>Update</button>
+                                            <% } else { %>
+                                                <select id="role-<%= currentUser.userid %>" class="role-select"
+                                                    data-user-id="<%= currentUser.userid %>">
+                                                    <option value="admin" <%=currentUser.role==='admin' ? 'selected'
+                                                        : '' %>
+                                                        >Admin</option>
+                                                    <option value="contributor" <%=currentUser.role==='contributor'
+                                                        ? 'selected' : '' %>
+                                                        >Contributor</option>
+                                                    <option value="viewer" <%=currentUser.role==='viewer' ? 'selected'
+                                                        : '' %>
+                                                        >Viewer</option>
+                                                </select>
+                                                <button class="button primary small update-role-btn"
+                                                    data-user-id="<%= currentUser.userid %>">
+                                                    Update
+                                                </button>
+                                                <% } %>
+                                    </div>
+
+                                    <div class="action-buttons">
+                                        <% if (user.userid !==currentUser.userid) { %>
+                                            <% if (currentUser.isProtected) { %>
+                                                <span class="protected-badge">🛡️ Protected</span>
+                                                <% } else { %>
+                                                    <button class="button danger small delete-btn"
+                                                        data-user-id="<%= currentUser.userid %>">
+                                                        Delete User
+                                                    </button>
+                                                    <% } %>
+                                                        <% } else { %>
+                                                            <span class="current-user-badge">Current User</span>
+                                                            <% } %>
+                                    </div>
+                                </div>
                             </div>
-                        </section>
+                            <% }); %>
+                    </div>
+                </section>
     </main>
 
     <!-- Confirmation Modal -->
@@ -363,10 +333,6 @@
             </div>
         </div>
     </div>
-
-    <footer>
-        <p>&copy; <%= new Date().getFullYear() %> Terp Notes</p>
-    </footer>
 
     <script src="/js/app.js"></script>
     <script>
@@ -392,7 +358,8 @@
                 const result = await response.json();
 
                 if (response.ok) {
-                    showNotification(`Report ${action}d successfully!`, 'success');
+                    const successMessage = action === 'delete' ? 'File deleted successfully!' : 'Report dismissed successfully!';
+                    showNotification(successMessage, 'success');
                     setTimeout(() => {
                         window.location.reload();
                     }, 1500);
@@ -538,6 +505,20 @@
                 document.getElementById('viewerCount').textContent = viewerCount;
             }
 
+            // Announcement Type Card Selection
+            document.querySelectorAll('.type-card').forEach(card => {
+                card.addEventListener('click', function () {
+                    const type = this.dataset.type;
+                    document.getElementById('announcementType').value = type;
+
+                    // Update radio button
+                    const radio = this.previousElementSibling;
+                    if (radio && radio.type === 'radio') {
+                        radio.checked = true;
+                    }
+                });
+            });
+
             // Announcement Form Submission
             const announcementForm = document.getElementById('announcementForm');
             if (announcementForm) {
@@ -623,6 +604,7 @@
             });
         });
     </script>
+    <%- include('partials/footer') %>
 </body>
 
 </html>

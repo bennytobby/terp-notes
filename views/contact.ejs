@@ -20,7 +20,8 @@
                 <a href="/logout" class="logout-btn">Logout</a>
                 <% } else { %>
                     <a href="/" class="logout-btn">Home</a> |
-                    <a href="/login" class="logout-btn">Login</a>
+                    <a href="/login" class="logout-btn">Login</a> |
+                    <a href="/register" class="logout-btn">Register</a>
                     <% } %>
         </div>
     </header>
@@ -34,7 +35,7 @@
         <div class="legal-content">
             <!-- FAQ Section -->
             <section style="background: #F3F4F6; padding: 2rem; border-radius: 12px; margin-bottom: 2rem;">
-                <h2>📚 Frequently Asked Questions</h2>
+                <h2>Frequently Asked Questions</h2>
 
                 <div style="margin-top: 1.5rem;">
                     <h3>How do I verify my email?</h3>
@@ -83,7 +84,7 @@
 
             <!-- Contact Form -->
             <section>
-                <h2>✉️ Send Us a Message</h2>
+                <h2>Send Us a Message</h2>
                 <p style="margin-bottom: 1.5rem;">
                     For issues not covered in the FAQ, fill out the form below and we'll get back to you within 24-48
                     hours.
@@ -93,14 +94,31 @@
                     style="background: white; padding: 2rem; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
                     <div class="form-group">
                         <label for="name">Your Name <span style="color: var(--umd-red);">*</span></label>
-                        <input type="text" id="name" name="name" required placeholder="Enter your name"
-                            style="width: 100%; padding: 0.75rem; border: 1px solid #D1D5DB; border-radius: 8px; font-size: 1rem;">
+                        <input type="text" id="name" name="name" required <% if (user) { %>
+                        value="<%= user.firstname %>
+                            <%= user.lastname %>"
+                                readonly
+                                style="width: 100%; padding: 0.75rem; border: 1px solid #D1D5DB; border-radius: 8px;
+                                font-size: 1rem; background: #F3F4F6; cursor: not-allowed;"
+                                <% } else { %>
+                                    placeholder="Enter your name"
+                                    style="width: 100%; padding: 0.75rem; border: 1px solid #D1D5DB; border-radius: 8px;
+                                    font-size: 1rem;"
+                                    <% } %>>
                     </div>
 
                     <div class="form-group" style="margin-top: 1.5rem;">
                         <label for="email">Your Email <span style="color: var(--umd-red);">*</span></label>
-                        <input type="email" id="email" name="email" required placeholder="your.email@umd.edu"
-                            style="width: 100%; padding: 0.75rem; border: 1px solid #D1D5DB; border-radius: 8px; font-size: 1rem;">
+                        <input type="email" id="email" name="email" required <% if (user) { %>
+                        value="<%= user.email %>"
+                            readonly
+                            style="width: 100%; padding: 0.75rem; border: 1px solid #D1D5DB; border-radius: 8px;
+                            font-size: 1rem; background: #F3F4F6; cursor: not-allowed;"
+                            <% } else { %>
+                                placeholder="your.email@umd.edu"
+                                style="width: 100%; padding: 0.75rem; border: 1px solid #D1D5DB; border-radius: 8px;
+                                font-size: 1rem;"
+                                <% } %>>
                     </div>
 
                     <div class="form-group" style="margin-top: 1.5rem;">
@@ -132,7 +150,7 @@
 
             <!-- Direct Contact Info -->
             <section style="margin-top: 3rem; background: #EFF6FF; padding: 2rem; border-radius: 12px;">
-                <h2>📧 Direct Contact</h2>
+                <h2>Direct Contact</h2>
                 <p>
                     For urgent security issues or abuse reports, you can also email us directly at:
                 </p>
@@ -163,13 +181,7 @@
         </div>
     </main>
 
-    <footer>
-        <p>&copy; <%= new Date().getFullYear() %> Terp Notes |
-                <a href="/privacy">Privacy Policy</a> |
-                <a href="/terms">Terms of Service</a> |
-                <a href="/contact">Contact</a>
-        </p>
-    </footer>
+    <%- include('partials/footer') %>
 </body>
 
 </html>

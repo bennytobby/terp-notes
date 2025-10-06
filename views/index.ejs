@@ -8,62 +8,417 @@
         <%= title %>
     </title>
     <link rel="stylesheet" href="/styles/main.css" />
+    <style>
+        .landing-page {
+            min-height: 100vh;
+            background: linear-gradient(135deg, #FFFFFF 0%, #FEF2F2 100%);
+        }
+
+        .landing-header {
+            background: white;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+            padding: 1.5rem 0;
+        }
+
+        .landing-nav {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .landing-logo {
+            font-size: 1.75rem;
+            font-weight: 800;
+            color: #DC2626;
+        }
+
+        .landing-nav-links {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .hero-section {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 5rem 2rem 4rem;
+            text-align: center;
+        }
+
+        .hero-title {
+            font-size: 3.5rem;
+            font-weight: 900;
+            color: #1F2937;
+            margin-bottom: 1.5rem;
+            line-height: 1.2;
+        }
+
+        .hero-subtitle {
+            font-size: 1.5rem;
+            color: #6B7280;
+            margin-bottom: 3rem;
+            max-width: 700px;
+            margin-left: auto;
+            margin-right: auto;
+            line-height: 1.6;
+        }
+
+        .hero-cta {
+            display: flex;
+            gap: 1.5rem;
+            justify-content: center;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .cta-primary {
+            background: linear-gradient(135deg, #DC2626 0%, #B91C1C 100%);
+            color: white;
+            padding: 1.25rem 3rem;
+            border-radius: 12px;
+            font-size: 1.25rem;
+            font-weight: 700;
+            text-decoration: none;
+            transition: transform 0.2s, box-shadow 0.2s;
+            box-shadow: 0 4px 14px rgba(220, 38, 38, 0.4);
+        }
+
+        .cta-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(220, 38, 38, 0.5);
+        }
+
+        .cta-secondary {
+            background: white;
+            color: #DC2626;
+            padding: 1.25rem 3rem;
+            border-radius: 12px;
+            font-size: 1.25rem;
+            font-weight: 700;
+            text-decoration: none;
+            border: 2px solid #DC2626;
+            transition: all 0.2s;
+        }
+
+        .cta-secondary:hover {
+            background: #FEE2E2;
+        }
+
+        .trust-badges {
+            margin-top: 4rem;
+            padding: 2rem;
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
+            display: flex;
+            justify-content: center;
+            gap: 3rem;
+            flex-wrap: wrap;
+        }
+
+        .trust-item {
+            text-align: center;
+        }
+
+        .trust-icon {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .trust-text {
+            font-size: 0.9rem;
+            color: #6B7280;
+            font-weight: 600;
+        }
+
+        .features-section {
+            max-width: 1200px;
+            margin: 4rem auto;
+            padding: 0 2rem;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 2rem;
+            margin-top: 3rem;
+        }
+
+        .feature-card {
+            background: white;
+            padding: 2.5rem;
+            border-radius: 16px;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 12px 32px rgba(220, 38, 38, 0.15);
+        }
+
+        .feature-icon-large {
+            font-size: 3rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .feature-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #1F2937;
+            margin-bottom: 1rem;
+        }
+
+        .feature-desc {
+            color: #6B7280;
+            line-height: 1.6;
+        }
+
+        .how-it-works {
+            background: linear-gradient(135deg, #DC2626 0%, #B91C1C 100%);
+            color: white;
+            padding: 5rem 2rem;
+            margin: 4rem 0;
+        }
+
+        .how-it-works-content {
+            max-width: 1000px;
+            margin: 0 auto;
+            text-align: center;
+        }
+
+        .how-it-works h2 {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .steps {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+            margin-top: 3rem;
+        }
+
+        .step {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 2rem;
+            border-radius: 12px;
+            backdrop-filter: blur(10px);
+        }
+
+        .step-number {
+            font-size: 3rem;
+            font-weight: 900;
+            opacity: 0.5;
+            margin-bottom: 1rem;
+        }
+
+        .step h3 {
+            font-size: 1.25rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .final-cta {
+            max-width: 800px;
+            margin: 5rem auto;
+            padding: 0 2rem;
+            text-align: center;
+        }
+
+        .final-cta h2 {
+            font-size: 2.5rem;
+            color: #1F2937;
+            margin-bottom: 1.5rem;
+        }
+
+        .final-cta p {
+            font-size: 1.25rem;
+            color: #6B7280;
+            margin-bottom: 2.5rem;
+        }
+    </style>
 </head>
 
-<body>
-    <header class="topbar">
-        <h2>Terp Notes</h2>
-        <div class="user-info">
-            <a href="/login" class="logout-btn">Login</a>
-            <a href="/register" class="logout-btn">Sign Up</a>
-        </div>
+<body class="landing-page">
+    <header class="landing-header">
+        <nav class="landing-nav">
+            <div class="landing-logo">🐢 Terp Notes</div>
+            <div class="landing-nav-links">
+                <a href="/login" class="button secondary">Login</a>
+                <a href="/register" class="button primary">Sign Up Free</a>
+            </div>
+        </nav>
     </header>
 
-    <main class="centered">
-        <div class="hero-content">
-            <h1 class="title">🐢 Terp Notes</h1>
-            <p class="hero-description">
-                Share class notes and study materials with fellow students.
-                Organize by course code, collaborate, and succeed together.
-            </p>
-            <div class="button-group">
-                <a href="/register" class="button primary">Get Started</a>
-                <a href="/login" class="button gold">Login</a>
-            </div>
-        </div>
-
-        <div class="features-preview">
-            <div class="feature-item">
-                <div class="feature-icon">📚</div>
-                <h3>Class-Based Organization</h3>
-                <p>Upload and find notes organized by course codes (CMSC330, MATH141, etc.)</p>
-            </div>
-            <div class="feature-item">
-                <div class="feature-icon">📤</div>
-                <h3>Bulk Upload</h3>
-                <p>Upload unlimited files at once to share with your classmates</p>
-            </div>
-            <div class="feature-item">
-                <div class="feature-icon">🔍</div>
-                <h3>Smart Search</h3>
-                <p>Filter by class code, search by filename, and find what you need fast</p>
-            </div>
-            <div class="feature-item">
-                <div class="feature-icon">🔐</div>
-                <h3>Secure & Safe</h3>
-                <p>Your uploads are secure with role-based access control</p>
-            </div>
-        </div>
-    </main>
-
-    <footer>
-        <p>
-            &copy; <%= new Date().getFullYear() %> Terp Notes | Built for Terps, by Terps 🐢<br>
-                <a href="/privacy">Privacy Policy</a> |
-                <a href="/terms">Terms of Service</a> |
-                <a href="/contact">Contact</a>
+    <!-- Hero Section -->
+    <section class="hero-section">
+        <h1 class="hero-title">
+            Share Notes.<br>
+            Ace Your Classes. 🎓
+        </h1>
+        <p class="hero-subtitle">
+            The easiest way to share and discover class notes, study guides, and course materials.
+            Built by students, for students.
         </p>
-    </footer>
+        <div class="hero-cta">
+            <a href="/register" class="cta-primary">Get Started Free</a>
+            <a href="/login" class="cta-secondary">I Have an Account</a>
+        </div>
+
+        <!-- Trust Badges -->
+        <div class="trust-badges">
+            <div class="trust-item">
+                <div class="trust-icon">🔒</div>
+                <div class="trust-text">Virus Scanned</div>
+            </div>
+            <div class="trust-item">
+                <div class="trust-icon">📧</div>
+                <div class="trust-text">UMD Verified Emails</div>
+            </div>
+            <div class="trust-item">
+                <div class="trust-icon">⚡</div>
+                <div class="trust-text">Instant Search</div>
+            </div>
+            <div class="trust-item">
+                <div class="trust-icon">🆓</div>
+                <div class="trust-text">100% Free</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section class="features-section">
+        <div style="text-align: center; margin-bottom: 3rem;">
+            <h2 style="font-size: 2.5rem; color: #1F2937; margin-bottom: 1rem;">Everything You Need to Succeed</h2>
+            <p style="font-size: 1.25rem; color: #6B7280;">Powerful features designed for students</p>
+        </div>
+
+        <div class="features-grid">
+            <div class="feature-card">
+                <div class="feature-icon-large">📚</div>
+                <h3 class="feature-title">Class-Based Organization</h3>
+                <p class="feature-desc">
+                    Find exactly what you need. Files organized by course code (CMSC330, MATH141)
+                    and searchable by semester, professor, and topic.
+                </p>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-icon-large">⚡</div>
+                <h3 class="feature-title">Lightning Fast Search</h3>
+                <p class="feature-desc">
+                    Instant client-side filtering. Search by class, major, professor, or filename.
+                    No waiting, no page reloads.
+                </p>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-icon-large">🛡️</div>
+                <h3 class="feature-title">Virus Scanned & Secure</h3>
+                <p class="feature-desc">
+                    Every file scanned by 70+ antivirus engines. Email verification required.
+                    Your data is safe with us.
+                </p>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-icon-large">📤</div>
+                <h3 class="feature-title">Bulk Upload</h3>
+                <p class="feature-desc">
+                    Upload unlimited files at once with drag-and-drop. Share an entire semester
+                    of notes in seconds.
+                </p>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-icon-large">👥</div>
+                <h3 class="feature-title">Community Driven</h3>
+                <p class="feature-desc">
+                    Built by UMD students for UMD students. Report inappropriate content.
+                    Community moderation keeps quality high.
+                </p>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-icon-large">📱</div>
+                <h3 class="feature-title">Works Everywhere</h3>
+                <p class="feature-desc">
+                    Responsive design works on phone, tablet, and desktop. Access your notes
+                    from anywhere.
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <!-- How It Works Section -->
+    <section class="how-it-works">
+        <div class="how-it-works-content">
+            <h2>How It Works</h2>
+            <p style="font-size: 1.25rem; opacity: 0.95; margin-bottom: 1rem;">
+                Share notes in 3 simple steps
+            </p>
+
+            <div class="steps">
+                <div class="step">
+                    <div class="step-number">1</div>
+                    <h3>Sign Up</h3>
+                    <p>Register with your UMD email. Verify your account. That's it!</p>
+                </div>
+                <div class="step">
+                    <div class="step-number">2</div>
+                    <h3>Upload Notes</h3>
+                    <p>Drag and drop your files. Add class code and description. Share with classmates.</p>
+                </div>
+                <div class="step">
+                    <div class="step-number">3</div>
+                    <h3>Discover & Download</h3>
+                    <p>Search by class, major, or professor. Preview files. Download what you need.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Social Proof / Stats Section -->
+    <section class="stats-section">
+        <div class="stats-container">
+            <h2 class="stats-title">Why Students Love Terp Notes</h2>
+            <div class="stats-grid">
+                <div class="homepage-stat-card">
+                    <div class="stat-number">100%</div>
+                    <div class="stat-label">Free Forever</div>
+                </div>
+                <div class="homepage-stat-card">
+                    <div class="stat-number">70+</div>
+                    <div class="stat-label">Antivirus Engines</div>
+                </div>
+                <div class="homepage-stat-card">
+                    <div class="stat-number">∞</div>
+                    <div class="stat-label">Unlimited Files</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Final CTA -->
+    <section class="final-cta">
+        <div class="cta-container">
+            <div class="cta-content">
+                <h2>Ready to Get Started?</h2>
+                <p>Join fellow Terps and start sharing notes today. Free forever, no credit card required.</p>
+                <div class="cta-buttons">
+                    <a href="/register" class="cta-primary">Create Free Account</a>
+                    <a href="/contact" class="cta-secondary">Contact Us</a>
+                </div>
+            </div>
+            <p class="cta-disclaimer">
+                Independent student platform • Not affiliated with University of Maryland
+            </p>
+        </div>
+    </section>
+
+    <%- include('partials/footer') %>
 </body>
 
 </html>

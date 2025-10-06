@@ -17,7 +17,7 @@
 
     <main class="centered">
         <div class="message-box warning-box" style="max-width: 600px; padding: 3rem;">
-            <div class="message-icon" style="font-size: 4rem; margin-bottom: 1.5rem;">📧</div>
+            <div class="message-icon" style="font-size: 4rem; margin-bottom: 1.5rem;">✉️</div>
             <h1 style="color: #DC2626; margin-bottom: 1rem;">
                 <%= title %>
             </h1>
@@ -44,7 +44,7 @@
                 <form action="/resend-verification" method="POST" style="display: inline;">
                     <input type="hidden" name="email" value="<%= email %>" />
                     <button type="submit" class="button primary">
-                        📧 Resend Verification
+                        Resend Verification
                     </button>
                 </form>
                 <a href="/contact" class="button secondary" style="background: #6B7280;">
@@ -59,9 +59,7 @@
         </div>
     </main>
 
-    <footer>
-        <p>&copy; <%= new Date().getFullYear() %> Terp Notes</p>
-    </footer>
+    <%- include('partials/footer') %>
 </body>
 
 </html>

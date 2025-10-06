@@ -173,8 +173,8 @@
                                                 </div>
 
                                                 <div class="file-actions">
-                                                    <a href="/download/<%= encodeURIComponent(file.filename) %>?force=download"
-                                                        class="button primary">Download</a>
+                                                    <a href="/download/<%= encodeURIComponent(file.filename) %>"
+                                                        class="button primary" target="_blank">Download</a>
                                                     <% if (user.role==='viewer' ) { %>
                                                         <button class="button danger disabled"
                                                             onclick="showViewerAlert(); return false;"
@@ -221,7 +221,7 @@
                                         <h3>Upload Notes</h3>
                                         <p>Share your class notes with fellow Terps. Select one or multiple files!</p>
                                         <div class="file-type-notice">
-                                            <strong>📄 Supported File Types:</strong> Documents (.pdf, .docx, .pptx,
+                                            <strong>Supported File Types:</strong> Documents (.pdf, .docx, .pptx,
                                             .xlsx, .txt),
                                             Images (.jpg, .png, .gif, .svg), Code files (.py, .java, .c, .cpp, .js,
                                             .html, .css),
@@ -238,7 +238,7 @@
                                     </div>
 
                                     <form action="/upload" method="POST" enctype="multipart/form-data"
-                                        class="upload-form">
+                                        class="upload-form" id="uploadForm">
                                         <div class="form-group">
                                             <label for="documents" class="form-label">
                                                 Select Files<span class="required">*</span>
@@ -316,7 +316,7 @@
                                         </div>
 
                                         <div class="form-actions">
-                                            <button type="submit" class="button primary">
+                                            <button type="submit" class="button primary" id="uploadSubmitBtn">
                                                 Upload Files
                                             </button>
                                         </div>
@@ -328,19 +328,10 @@
     <!-- Floating Action Button for Upload -->
     <% if (user.role !=='viewer' ) { %>
         <button class="fab-upload" id="fabUpload" title="Upload Files">
-            <span class="fab-icon">📤</span>
+            <span class="fab-icon">+</span>
             <span class="fab-text">Upload</span>
         </button>
         <% } %>
-
-            <footer>
-                <p>
-                    &copy; <%= new Date().getFullYear() %> Terp Notes<br>
-                        <a href="/privacy">Privacy</a> |
-                        <a href="/terms">Terms</a> |
-                        <a href="/contact">Contact</a>
-                </p>
-            </footer>
 
             <script type="application/json" id="filesData"><%- JSON.stringify(files) %></script>
 
@@ -508,9 +499,9 @@
                         ${file.description ? `<div class="file-meta-item"><strong>Description:</strong> ${escapeHtml(file.description)}</div>` : ''}
                     </div>
                     <div class="file-actions">
-                        <a href="/download/${encodeURIComponent(file.filename)}?force=download" class="button primary">Download</a>
+                        <a href="/download/${encodeURIComponent(file.filename)}" class="button primary" target="_blank">Download</a>
                         ${getDeleteButton(file)}
-                        <button class="button secondary small report-btn" data-filename="${file.filename}" data-original-name="${escapeHtml(file.originalName)}">🚩 Report</button>
+                        <button class="button secondary small report-btn" data-filename="${file.filename}" data-original-name="${escapeHtml(file.originalName)}">Report</button>
                     </div>
                 </div>
             `).join('');
@@ -615,6 +606,46 @@
                         return '<span class="scan-badge scan-error">⚠️ Scan Error</span>';
                     }
                     return '';
+                }
+
+                // Upload Form Loading State
+                const uploadForm = document.getElementById('uploadForm');
+                if (uploadForm) {
+                    uploadForm.addEventListener('submit', function (e) {
+                        const submitBtn = document.getElementById('uploadSubmitBtn');
+                        const filesInput = document.getElementById('documents');
+
+                        if (filesInput.files.length > 0) {
+                            // Show loading state
+                            submitBtn.value = 'Uploading...';
+                            submitBtn.disabled = true;
+                            submitBtn.style.opacity = '0.7';
+                            submitBtn.style.cursor = 'not-allowed';
+
+                            // Show loading overlay
+                            const overlay = document.createElement('div');
+                            overlay.id = 'uploadOverlay';
+                            overlay.innerHTML = `
+                                <div style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.7); display: flex; align-items: center; justify-content: center; z-index: 9999;">
+                                    <div style="background: white; padding: 3rem; border-radius: 12px; text-align: center; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);">
+                                        <div style="width: 60px; height: 60px; border: 4px solid #E5E7EB; border-top-color: #DC2626; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 1.5rem;"></div>
+                                        <h3 style="color: #DC2626; margin-bottom: 0.5rem;">Uploading Files...</h3>
+                                        <p style="color: #6B7280;">Please wait while we upload and scan your files</p>
+                                        <p style="color: #9CA3AF; font-size: 0.85rem; margin-top: 1rem;">
+                                            ${filesInput.files.length} file(s) • Virus scanning enabled
+                                        </p>
+                                    </div>
+                                </div>
+                                <style>
+                                    @keyframes spin {
+                                        0% { transform: rotate(0deg); }
+                                        100% { transform: rotate(360deg); }
+                                    }
+                                </style>
+                            `;
+                            document.body.appendChild(overlay);
+                        }
+                    });
                 }
 
                 // Initialize on page load
@@ -777,6 +808,8 @@
                     observer.observe(uploadSection);
                 }
             </script>
+
+            <%- include('partials/footer') %>
 </body>
 
 </html>

@@ -149,7 +149,7 @@ function sanitizeForHeader(filename) {
 
 // Session validation middleware
 app.use((req, res, next) => {
-    const publicRoutes = ['/', '/login', '/register', '/loginSubmit', '/registerSubmit', '/forgot-password', '/resend-verification'];
+    const publicRoutes = ['/', '/login', '/register', '/loginSubmit', '/registerSubmit', '/forgot-password', '/resend-verification', '/privacy', '/terms', '/contact', '/contact/submit'];
     const publicRoutesRegex = /^\/(verify|reset-password)\/.+/; // Match /verify/:token and /reset-password/:token
 
     if (publicRoutes.includes(req.path) || publicRoutesRegex.test(req.path)) {
@@ -190,15 +190,102 @@ const crypto = require('crypto');
 // All users register as contributors
 console.log('📝 No default accounts - manually set admin via MongoDB');
 
+// Create database indexes for performance
+async function createDatabaseIndexes() {
+    const indexClient = new MongoClient(uri, { serverApi: ServerApiVersion.v1 });
+    try {
+        await indexClient.connect();
+
+        // Users collection indexes
+        await indexClient
+            .db(userCollection.db)
+            .collection(userCollection.collection)
+            .createIndex({ userid: 1 }, { unique: true });
+
+        await indexClient
+            .db(userCollection.db)
+            .collection(userCollection.collection)
+            .createIndex({ email: 1 }, { unique: true });
+
+        await indexClient
+            .db(userCollection.db)
+            .collection(userCollection.collection)
+            .createIndex({ role: 1 });
+
+        await indexClient
+            .db(userCollection.db)
+            .collection(userCollection.collection)
+            .createIndex({ isVerified: 1, createdAt: 1 }); // For cleanup queries
+
+        // Files collection indexes
+        await indexClient
+            .db(fileCollection.db)
+            .collection(fileCollection.collection)
+            .createIndex({ classCode: 1 });
+
+        await indexClient
+            .db(fileCollection.db)
+            .collection(fileCollection.collection)
+            .createIndex({ major: 1 });
+
+        await indexClient
+            .db(fileCollection.db)
+            .collection(fileCollection.collection)
+            .createIndex({ uploadedBy: 1 });
+
+        await indexClient
+            .db(fileCollection.db)
+            .collection(fileCollection.collection)
+            .createIndex({ fileHash: 1 }); // For deduplication
+
+        await indexClient
+            .db(fileCollection.db)
+            .collection(fileCollection.collection)
+            .createIndex({ uploadDate: -1 }); // For sorting by newest
+
+        await indexClient
+            .db(fileCollection.db)
+            .collection(fileCollection.collection)
+            .createIndex({ virusScanStatus: 1 }); // For filtering scanned files
+
+        // Reports collection indexes
+        await indexClient
+            .db(fileCollection.db)
+            .collection('reports')
+            .createIndex({ status: 1, reportedAt: -1 }); // For admin dashboard
+
+        await indexClient
+            .db(fileCollection.db)
+            .collection('reports')
+            .createIndex({ filename: 1 }); // For cascading deletes
+
+        // Announcements collection indexes
+        await indexClient
+            .db(fileCollection.db)
+            .collection('announcements')
+            .createIndex({ isActive: 1, createdAt: -1 }); // For dashboard queries
+
+        console.log('📊 Database indexes created successfully');
+    } catch (error) {
+        // Indexes may already exist, that's fine
+        if (error.code !== 85 && error.code !== 86) {
+            console.error('Error creating indexes:', error.message);
+        }
+    } finally {
+        await indexClient.close();
+    }
+}
+
 // Cleanup function: Delete unverified accounts older than 7 days
 async function cleanupUnverifiedAccounts() {
+    const cleanupClient = new MongoClient(uri, { serverApi: ServerApiVersion.v1 });
     try {
-        await client.connect();
+        await cleanupClient.connect();
 
         const sevenDaysAgo = new Date();
         sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
 
-        const result = await client
+        const result = await cleanupClient
             .db(userCollection.db)
             .collection(userCollection.collection)
             .deleteMany({
@@ -212,14 +299,66 @@ async function cleanupUnverifiedAccounts() {
     } catch (error) {
         console.error('Error cleaning up unverified accounts:', error);
     } finally {
-        await client.close();
+        await cleanupClient.close();
     }
 }
 
+// Retry failed/stuck virus scans on startup
+async function retryStuckScans() {
+    if (!VIRUSTOTAL_ENABLED) {
+        return;
+    }
+
+    const scanRetryClient = new MongoClient(uri, { serverApi: ServerApiVersion.v1 });
+    try {
+        await scanRetryClient.connect();
+
+        // Find files stuck in "pending" or "error" status for more than 10 minutes
+        const tenMinutesAgo = new Date();
+        tenMinutesAgo.setMinutes(tenMinutesAgo.getMinutes() - 10);
+
+        const stuckFiles = await scanRetryClient
+            .db(fileCollection.db)
+            .collection(fileCollection.collection)
+            .find({
+                virusScanStatus: { $in: ['pending', 'error'] },
+                uploadDate: { $lt: tenMinutesAgo }
+            })
+            .toArray();
+
+        if (stuckFiles.length > 0) {
+            console.log(`🔄 Retrying ${stuckFiles.length} stuck virus scan(s)...`);
+
+            for (const file of stuckFiles) {
+                // Re-download file from S3 and scan
+                try {
+                    const s3Data = await s3.getObject({
+                        Bucket: AWS_BUCKET,
+                        Key: file.filename
+                    }).promise();
+
+                    scanFileWithVirusTotal(file._id, s3Data.Body, file.originalName).catch(err => {
+                        console.error('Retry scan error:', err);
+                    });
+                } catch (s3Error) {
+                    console.error('Error fetching file for retry scan:', s3Error);
+                }
+            }
+        }
+    } catch (error) {
+        console.error('Error retrying stuck scans:', error);
+    } finally {
+        await scanRetryClient.close();
+    }
+}
+
+// Run on server startup
+createDatabaseIndexes();
+cleanupUnverifiedAccounts();
+retryStuckScans();
+
 // Run cleanup every 24 hours
 setInterval(cleanupUnverifiedAccounts, 24 * 60 * 60 * 1000);
-// Run on server startup
-cleanupUnverifiedAccounts();
 
 /* VirusTotal Scanning Function */
 async function scanFileWithVirusTotal(fileId, fileBuffer, filename) {
@@ -977,12 +1116,35 @@ app.post('/update-profile', async (req, res) => {
 
         const { firstname, lastname, email } = req.body;
 
-        // Check if email is being changed and if it already exists
+        // Check if email is being changed
         if (email !== req.session.user.email) {
+            // Validate UMD email domain
+            const validDomains = ['umd.edu', 'terpmail.umd.edu'];
+            const emailDomain = email.toLowerCase().split('@')[1];
+
+            if (!validDomains.includes(emailDomain)) {
+                return res.render('error', {
+                    title: "Invalid Email Domain",
+                    message: "Please use a UMD email address (@umd.edu or @terpmail.umd.edu).",
+                    link: "/profile",
+                    linkText: "Back to Profile"
+                });
+            }
+
+            // Normalize email (same logic as registration)
+            const emailUsername = email.toLowerCase().split('@')[0];
+            const normalizedEmail = `${emailUsername}@terpmail.umd.edu`;
+
+            // Check if normalized email already exists (check both formats)
             const existingUser = await client
                 .db(userCollection.db)
                 .collection(userCollection.collection)
-                .findOne({ email: email });
+                .findOne({
+                    $or: [
+                        { email: normalizedEmail },
+                        { email: `${emailUsername}@umd.edu` }
+                    ]
+                });
 
             if (existingUser && existingUser.userid !== req.session.user.userid) {
                 return res.render('error', {
@@ -992,6 +1154,9 @@ app.post('/update-profile', async (req, res) => {
                     linkText: "Back to Profile"
                 });
             }
+
+            // Use normalized email for update
+            email = normalizedEmail;
         }
 
         // Update user information
@@ -2087,6 +2252,13 @@ app.use((error, req, res, next) => {
     next(error);
 });
 
+// 404 Handler - Must be last route
+app.use((req, res) => {
+    res.status(404).render('404', {
+        title: "Page Not Found - Terp Notes"
+    });
+});
+
 // Health check endpoint
 app.get('/health', (req, res) => {
     res.json({
@@ -2094,6 +2266,70 @@ app.get('/health', (req, res) => {
         timestamp: new Date().toISOString(),
         service: 'Terp Notes'
     });
+});
+
+// Cron endpoint for Vercel: Scan pending files
+app.get('/api/cron/scan-pending-files', async (req, res) => {
+    // Verify request is from Vercel Cron (optional security)
+    const authHeader = req.headers.authorization;
+    if (process.env.CRON_SECRET && authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
+        return res.status(401).json({ error: 'Unauthorized' });
+    }
+
+    if (!VIRUSTOTAL_ENABLED) {
+        return res.json({ message: 'VirusTotal disabled' });
+    }
+
+    try {
+        await client.connect();
+
+        // Find files pending scan (uploaded more than 1 minute ago to avoid race conditions)
+        const oneMinuteAgo = new Date();
+        oneMinuteAgo.setMinutes(oneMinuteAgo.getMinutes() - 1);
+
+        const pendingFiles = await client
+            .db(fileCollection.db)
+            .collection(fileCollection.collection)
+            .find({
+                virusScanStatus: 'pending',
+                uploadDate: { $lt: oneMinuteAgo }
+            })
+            .limit(5) // Process max 5 files per cron run (avoid timeout)
+            .toArray();
+
+        if (pendingFiles.length === 0) {
+            return res.json({ message: 'No pending scans', scanned: 0 });
+        }
+
+        console.log(`🔄 Cron: Processing ${pendingFiles.length} pending scan(s)...`);
+
+        // Trigger scans (they run asynchronously)
+        for (const file of pendingFiles) {
+            try {
+                const s3Data = await s3.getObject({
+                    Bucket: AWS_BUCKET,
+                    Key: file.filename
+                }).promise();
+
+                // Don't await - let it run in background
+                scanFileWithVirusTotal(file._id, s3Data.Body, file.originalName).catch(err => {
+                    console.error('Cron scan error:', err);
+                });
+            } catch (s3Error) {
+                console.error('Error fetching file for scan:', s3Error);
+            }
+        }
+
+        res.json({
+            message: 'Scan jobs triggered',
+            scanned: pendingFiles.length
+        });
+    } catch (error) {
+        console.error('Cron error:', error);
+        res.status(500).json({ error: 'Cron job failed' });
+    } finally {
+        await client.close();
+    }
 });
 
 // Export the app for testing

@@ -17,7 +17,8 @@
 
     <main class="centered">
         <div class="alert">
-            <h1 style="color: var(--umd-red);">❌ <%= title %>
+            <h1 style="color: var(--umd-red);">
+                <%= title %>
             </h1>
             <p>
                 <%= message %>
@@ -31,9 +32,7 @@
         </div>
     </main>
 
-    <footer>
-        <p>&copy; <%= new Date().getFullYear() %> Terp Notes</p>
-    </footer>
+    <%- include('partials/footer') %>
 </body>
 
 </html>

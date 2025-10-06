@@ -136,15 +136,6 @@
         </div>
     </main>
 
-    <footer>
-        <p>
-            &copy; <%= new Date().getFullYear() %> Terp Notes<br>
-                <a href="/privacy">Privacy</a> |
-                <a href="/terms">Terms</a> |
-                <a href="/contact">Contact</a>
-        </p>
-    </footer>
-
     <script src="/js/app.js"></script>
     <script>
         // Profile form change detection
@@ -247,6 +238,7 @@
             }
         });
     </script>
+    <%- include('partials/footer') %>
 </body>
 
 </html>

@@ -102,15 +102,6 @@
         </div>
     </main>
 
-    <footer>
-        <p>
-            &copy; <%= new Date().getFullYear() %> Terp Notes<br>
-                <a href="/privacy">Privacy</a> |
-                <a href="/terms">Terms</a> |
-                <a href="/contact">Contact</a>
-        </p>
-    </footer>
-
     <script>
         // Password match validation for registration
         document.addEventListener('DOMContentLoaded', function () {
@@ -173,6 +164,8 @@
             checkFormValidity();
         });
     </script>
+
+    <%- include('partials/footer') %>
 </body>
 
 </html>

@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Page Not Found - Terp Notes</title>
+    <link rel="stylesheet" href="/styles/main.css" />
+</head>
+
+<body>
+    <header class="topbar">
+        <h2>🐢 Terp Notes</h2>
+        <div class="user-info">
+            <a href="/" class="logout-btn">Home</a>
+        </div>
+    </header>
+
+    <main class="centered">
+        <div class="alert" style="max-width: 600px;">
+            <h1 style="color: #6B7280; font-size: 6rem; margin: 0;">404</h1>
+            <h2 style="color: var(--umd-red); margin-top: 1rem;">Page Not Found</h2>
+            <p style="color: #6B7280; margin: 1.5rem 0; font-size: 1.1rem;">
+                The page you're looking for doesn't exist or has been moved.
+            </p>
+            <div style="display: flex; gap: 1rem; justify-content: center; margin-top: 2rem; flex-wrap: wrap;">
+                <a href="/" class="button primary">Go Home</a>
+                <a href="/dashboard" class="button secondary">Dashboard</a>
+                <a href="/contact" class="button secondary">Contact Support</a>
+            </div>
+        </div>
+    </main>
+
+    <%- include('partials/footer') %>
+</body>
+
+</html>
