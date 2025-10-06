@@ -43,6 +43,9 @@
                                 <input type="text" id="searchInput" placeholder="Search notes..." />
                                 <button type="button" onclick="applyFilters()">Search</button>
                             </div>
+                            <p style="color: #6B7280; font-size: 0.875rem; margin: 0.5rem 0;">
+                                💡 <strong>Tip:</strong> Click Year or Semester filters to select multiple options
+                            </p>
 
                             <div class="filter-controls">
                                 <select id="majorFilter" class="filter-select" onchange="handleMajorChange()">
@@ -64,13 +67,45 @@
                                         <% }); %>
                                 </select>
 
-                                <select id="semesterFilter" class="filter-select" onchange="applyFilters()">
-                                    <option value="">All Semesters</option>
-                                    <option value="Fall">Fall</option>
-                                    <option value="Spring">Spring</option>
-                                    <option value="Summer">Summer</option>
-                                    <option value="Winter">Winter</option>
-                                </select>
+                                <!-- Year Multi-Select Dropdown -->
+                                <div class="multi-select-wrapper">
+                                    <button type="button" class="multi-select-btn" id="yearBtn"
+                                        onclick="toggleDropdown('year')">
+                                        <span id="yearLabel">All Years</span>
+                                        <span class="dropdown-arrow">▼</span>
+                                    </button>
+                                    <div class="multi-select-dropdown" id="yearDropdown">
+                                        <% years.forEach(year=> { %>
+                                            <label class="multi-select-option">
+                                                <input type="checkbox" value="<%= year %>"
+                                                    onchange="updateMultiSelect('year')">
+                                                <span>
+                                                    <%= year %>
+                                                </span>
+                                            </label>
+                                            <% }); %>
+                                    </div>
+                                </div>
+
+                                <!-- Semester Multi-Select Dropdown -->
+                                <div class="multi-select-wrapper">
+                                    <button type="button" class="multi-select-btn" id="semesterBtn"
+                                        onclick="toggleDropdown('semester')">
+                                        <span id="semesterLabel">All Semesters</span>
+                                        <span class="dropdown-arrow">▼</span>
+                                    </button>
+                                    <div class="multi-select-dropdown" id="semesterDropdown">
+                                        <% semesters.forEach(semester=> { %>
+                                            <label class="multi-select-option">
+                                                <input type="checkbox" value="<%= semester %>"
+                                                    onchange="updateMultiSelect('semester')">
+                                                <span>
+                                                    <%= semester %>
+                                                </span>
+                                            </label>
+                                            <% }); %>
+                                    </div>
+                                </div>
 
                                 <input type="text" id="professorFilter" class="filter-select" placeholder="Professor..."
                                     onkeyup="applyFilters()" style="padding: 0.5rem 1rem;" />
@@ -93,6 +128,10 @@
                                     <div class="file-grid">
                                         <% files.forEach(file=> { %>
                                             <div class="file-card animate-fade-in" data-class="<%= file.classCode %>"
+                                                data-major="<%= file.major || '' %>"
+                                                data-semester="<%= file.semester || '' %>"
+                                                data-year="<%= file.year || '' %>"
+                                                data-professor="<%= (file.professor || '').toLowerCase() %>"
                                                 data-uploader="<%= file.uploadedBy %>"
                                                 data-name="<%= file.originalName.toLowerCase() %>"
                                                 data-date="<%= new Date(file.uploadDate).getTime() %>">
@@ -404,14 +443,61 @@
                     });
                 }
 
+                // Toggle multi-select dropdown
+                function toggleDropdown(type) {
+                    const dropdown = document.getElementById(`${type}Dropdown`);
+                    const allDropdowns = document.querySelectorAll('.multi-select-dropdown');
+
+                    // Close other dropdowns
+                    allDropdowns.forEach(dd => {
+                        if (dd.id !== `${type}Dropdown`) {
+                            dd.classList.remove('show');
+                        }
+                    });
+
+                    // Toggle current dropdown
+                    dropdown.classList.toggle('show');
+                }
+
+                // Update multi-select label and apply filters
+                function updateMultiSelect(type) {
+                    const checkboxes = document.querySelectorAll(`#${type}Dropdown input[type="checkbox"]:checked`);
+                    const label = document.getElementById(`${type}Label`);
+                    const values = Array.from(checkboxes).map(cb => cb.value);
+
+                    if (values.length === 0) {
+                        label.textContent = type === 'year' ? 'All Years' : 'All Semesters';
+                    } else if (values.length === 1) {
+                        label.textContent = values[0];
+                    } else {
+                        label.textContent = `${values.length} selected`;
+                    }
+
+                    applyFilters();
+                }
+
+                // Close dropdowns when clicking outside
+                document.addEventListener('click', function (e) {
+                    if (!e.target.closest('.multi-select-wrapper')) {
+                        document.querySelectorAll('.multi-select-dropdown').forEach(dd => {
+                            dd.classList.remove('show');
+                        });
+                    }
+                });
+
                 // Client-side filtering - instant, no page reloads!
                 function applyFilters() {
                     const searchTerm = document.getElementById('searchInput').value.toLowerCase();
                     const majorFilter = document.getElementById('majorFilter').value;
                     const classFilter = document.getElementById('classFilter').value;
-                    const semesterFilter = document.getElementById('semesterFilter').value;
                     const professorFilter = document.getElementById('professorFilter').value.toLowerCase();
                     const sortBy = document.getElementById('sortFilter').value;
+
+                    // Get multi-select values from checkboxes
+                    const selectedYears = Array.from(document.querySelectorAll('#yearDropdown input[type="checkbox"]:checked'))
+                        .map(cb => cb.value);
+                    const selectedSemesters = Array.from(document.querySelectorAll('#semesterDropdown input[type="checkbox"]:checked'))
+                        .map(cb => cb.value);
 
                     // Filter files
                     let filteredFiles = allFilesData.filter(file => {
@@ -429,14 +515,17 @@
                         // Class filter
                         const matchesClass = !classFilter || file.classCode === classFilter;
 
-                        // Semester filter
-                        const matchesSemester = !semesterFilter || file.semester === semesterFilter;
+                        // Year filter (multi-select)
+                        const matchesYear = selectedYears.length === 0 || selectedYears.includes(file.year);
+
+                        // Semester filter (multi-select)
+                        const matchesSemester = selectedSemesters.length === 0 || selectedSemesters.includes(file.semester);
 
                         // Professor filter
                         const matchesProfessor = !professorFilter ||
                             (file.professor && file.professor.toLowerCase().includes(professorFilter));
 
-                        return matchesSearch && matchesMajor && matchesClass && matchesSemester && matchesProfessor;
+                        return matchesSearch && matchesMajor && matchesClass && matchesYear && matchesSemester && matchesProfessor;
                     });
 
                     // Sort files

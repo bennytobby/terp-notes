@@ -1052,6 +1052,16 @@ app.get('/dashboard', async (req, res) => {
         const uniqueMajors = [...new Set(allFiles.map(f => f.major).filter(Boolean))].sort();
         const uniqueClassCodes = [...new Set(allFiles.map(f => f.classCode).filter(Boolean))].sort();
 
+        // Get unique semesters and years for filter dropdowns
+        const uniqueSemesters = [...new Set(allFiles.map(f => f.semester).filter(Boolean))];
+        const uniqueYears = [...new Set(allFiles.map(f => f.year).filter(Boolean))].sort((a, b) => b - a); // Descending order (newest first)
+
+        // Sort semesters in academic order: Spring, Summer, Fall, Winter
+        const semesterOrder = ['Spring', 'Summer', 'Fall', 'Winter'];
+        const sortedSemesters = uniqueSemesters.sort((a, b) =>
+            semesterOrder.indexOf(a) - semesterOrder.indexOf(b)
+        );
+
         // Get active announcements
         const announcements = await client
             .db(fileCollection.db)
@@ -1067,6 +1077,8 @@ app.get('/dashboard', async (req, res) => {
             files: allFiles,
             majors: uniqueMajors,
             classCodes: uniqueClassCodes,
+            semesters: sortedSemesters,
+            years: uniqueYears,
             announcements: announcements
         });
     } catch (e) {
