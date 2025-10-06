@@ -12,6 +12,12 @@
       "dest": "server.js"
     }
   ],
+  "functions": {
+    "server.js": {
+      "maxDuration": 60,
+      "memory": 3008
+    }
+  },
   "env": {
     "NODE_ENV": "production"
   },

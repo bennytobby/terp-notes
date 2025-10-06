@@ -303,6 +303,10 @@
                                                     <p class="drop-zone-hint">
                                                         Upload one or multiple files (up to 50 files, 100MB each)
                                                     </p>
+                                                    <p class="drop-zone-hint"
+                                                        style="color: #10B981; font-size: 0.75rem; margin-top: 0.25rem;">
+                                                        ✅ Direct S3 uploads - no file size limits!
+                                                    </p>
                                                 </div>
                                                 <div class="selected-files" id="selectedFiles"></div>
                                             </div>
@@ -384,7 +388,7 @@
 
             <script type="application/json" id="filesData"><%- JSON.stringify(files) %></script>
 
-            <script src="/js/app.js"></script>
+            <!-- App.js functionality now integrated directly in pages -->
             <script>
                 // Store all files data in JavaScript for client-side filtering
                 const allFilesData = JSON.parse(document.getElementById('filesData').textContent);
@@ -714,43 +718,144 @@
                     return '';
                 }
 
-                // Upload Form Loading State
+                // Direct S3 Upload Form Handler
                 const uploadForm = document.getElementById('uploadForm');
                 if (uploadForm) {
-                    uploadForm.addEventListener('submit', function (e) {
+                    uploadForm.addEventListener('submit', async function (e) {
+                        e.preventDefault(); // Prevent default form submission
+
                         const submitBtn = document.getElementById('uploadSubmitBtn');
                         const filesInput = document.getElementById('documents');
+                        const files = filesInput.files;
 
-                        if (filesInput.files.length > 0) {
-                            // Show loading state
-                            submitBtn.value = 'Uploading...';
-                            submitBtn.disabled = true;
-                            submitBtn.style.opacity = '0.7';
-                            submitBtn.style.cursor = 'not-allowed';
-
-                            // Show loading overlay
-                            const overlay = document.createElement('div');
-                            overlay.id = 'uploadOverlay';
-                            overlay.innerHTML = `
-                                <div style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.7); display: flex; align-items: center; justify-content: center; z-index: 9999;">
-                                    <div style="background: white; padding: 3rem; border-radius: 12px; text-align: center; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);">
-                                        <div style="width: 60px; height: 60px; border: 4px solid #E5E7EB; border-top-color: #DC2626; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 1.5rem;"></div>
-                                        <h3 style="color: #DC2626; margin-bottom: 0.5rem;">Uploading Files...</h3>
-                                        <p style="color: #6B7280;">Please wait while we upload and scan your files</p>
-                                        <p style="color: #9CA3AF; font-size: 0.85rem; margin-top: 1rem;">
-                                            ${filesInput.files.length} file(s) • Virus scanning enabled
-                                        </p>
-                                    </div>
-                                </div>
-                                <style>
-                                    @keyframes spin {
-                                        0% { transform: rotate(0deg); }
-                                        100% { transform: rotate(360deg); }
-                                    }
-                                </style>
-                            `;
-                            document.body.appendChild(overlay);
+                        if (files.length === 0) {
+                            alert('Please select at least one file');
+                            return;
                         }
+
+                        // Get form data
+                        const classCode = document.getElementById('classCode').value.trim();
+                        const professor = document.getElementById('professor').value.trim();
+                        const semester = document.getElementById('semester').value;
+                        const year = document.getElementById('year').value;
+                        const description = document.getElementById('description').value.trim();
+
+                        if (!classCode || !professor || !description) {
+                            alert('Please fill in all required fields');
+                            return;
+                        }
+
+                        // Disable submit button
+                        submitBtn.disabled = true;
+                        submitBtn.textContent = 'Uploading...';
+
+                        // Show loading overlay
+                        const overlay = document.createElement('div');
+                        overlay.id = 'uploadOverlay';
+                        overlay.innerHTML = `
+                            <div style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.7); display: flex; align-items: center; justify-content: center; z-index: 9999;">
+                                <div style="background: white; padding: 3rem; border-radius: 12px; text-align: center; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3); min-width: 400px;">
+                                    <div style="width: 60px; height: 60px; border: 4px solid #E5E7EB; border-top-color: #DC2626; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 1.5rem;"></div>
+                                    <h3 style="color: #DC2626; margin-bottom: 0.5rem;">Uploading Files...</h3>
+                                    <p style="color: #6B7280;" id="uploadStatus">Preparing upload...</p>
+                                    <p style="color: #9CA3AF; font-size: 0.85rem; margin-top: 1rem;">
+                                        <span id="uploadProgress">0</span> / ${files.length} files • Direct S3 upload
+                                    </p>
+                                </div>
+                            </div>
+                            <style>
+                                @keyframes spin {
+                                    0% { transform: rotate(0deg); }
+                                    100% { transform: rotate(360deg); }
+                                }
+                            </style>
+                        `;
+                        document.body.appendChild(overlay);
+
+                        const statusEl = document.getElementById('uploadStatus');
+                        const progressEl = document.getElementById('uploadProgress');
+
+                        let successCount = 0;
+                        let errorCount = 0;
+
+                        // Upload each file
+                        for (let i = 0; i < files.length; i++) {
+                            const file = files[i];
+                            statusEl.textContent = `Uploading ${file.name}...`;
+
+                            try {
+                                // Step 1: Get presigned URL
+                                const urlResponse = await fetch('/api/get-upload-url', {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify({
+                                        filename: file.name,
+                                        filetype: file.type
+                                    })
+                                });
+
+                                if (!urlResponse.ok) {
+                                    throw new Error('Failed to get upload URL');
+                                }
+
+                                const { uploadUrl, s3Key, s3Url } = await urlResponse.json();
+
+                                // Step 2: Upload directly to S3
+                                const s3Response = await fetch(uploadUrl, {
+                                    method: 'PUT',
+                                    body: file,
+                                    headers: {
+                                        'Content-Type': file.type
+                                    }
+                                });
+
+                                if (!s3Response.ok) {
+                                    throw new Error('S3 upload failed');
+                                }
+
+                                // Step 3: Confirm upload to backend
+                                const confirmResponse = await fetch('/api/confirm-upload', {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify({
+                                        s3Key: s3Key,
+                                        s3Url: s3Url,
+                                        filename: file.name,
+                                        filetype: file.type,
+                                        filesize: file.size,
+                                        classCode: classCode,
+                                        professor: professor,
+                                        semester: semester,
+                                        year: year,
+                                        description: description
+                                    })
+                                });
+
+                                if (!confirmResponse.ok) {
+                                    throw new Error('Failed to save file metadata');
+                                }
+
+                                const result = await confirmResponse.json();
+                                if (result.duplicate) {
+                                    statusEl.textContent = `${file.name} already exists (skipped)`;
+                                } else {
+                                    successCount++;
+                                }
+
+                            } catch (error) {
+                                console.error('Upload error:', error);
+                                errorCount++;
+                                statusEl.textContent = `Error uploading ${file.name}`;
+                            }
+
+                            progressEl.textContent = i + 1;
+                        }
+
+                        // Show completion message
+                        statusEl.textContent = `Upload complete! ${successCount} uploaded, ${errorCount} failed`;
+                        setTimeout(() => {
+                            window.location.reload();
+                        }, 1500);
                     });
                 }
 

@@ -64,6 +64,9 @@ const fetch = require('node-fetch');
 const FormData = require('form-data');
 const app = express();
 
+// Trust proxy - required for Vercel/behind reverse proxy
+app.set('trust proxy', 1);
+
 // Security headers
 app.use(helmet({
     contentSecurityPolicy: false // Allow inline scripts for EJS
@@ -96,8 +99,9 @@ const apiLimiter = rateLimit({
     message: 'Too many requests. Please slow down.',
 });
 
-app.use(express.urlencoded({ extended: false }));
-app.use(express.json());
+// Increased body size limits for file uploads
+app.use(express.urlencoded({ extended: false, limit: '50mb' }));
+app.use(express.json({ limit: '50mb' }));
 app.use(cookieParser());
 app.set("views", path.resolve(__dirname, "views"));
 app.set("view engine", "ejs");
@@ -153,10 +157,9 @@ app.use((req, res, next) => {
     const publicRoutes = ['/', '/login', '/register', '/loginSubmit', '/registerSubmit', '/forgot-password', '/resend-verification', '/privacy', '/terms', '/contact', '/contact/submit'];
     const publicRoutesRegex = /^\/(verify|reset-password)\/.+/; // Match /verify/:token and /reset-password/:token
 
-    if (publicRoutes.includes(req.path) || publicRoutesRegex.test(req.path)) {
-        return next();
-    }
+    const isPublicRoute = publicRoutes.includes(req.path) || publicRoutesRegex.test(req.path);
 
+    // Always restore session from JWT if available (for all routes, public or protected)
     const sessionUser = req.session.user;
     const authToken = req.cookies ? req.cookies.authToken : null;
     const jwtUser = authToken ? verifyToken(authToken) : null;
@@ -165,6 +168,12 @@ app.use((req, res, next) => {
         req.session.user = jwtUser;
     }
 
+    // Public routes don't require authentication
+    if (isPublicRoute) {
+        return next();
+    }
+
+    // Protected routes require authentication
     if (!req.session.user && req.path !== '/logout') {
         return res.redirect('/login');
     }
@@ -353,13 +362,19 @@ async function retryStuckScans() {
     }
 }
 
-// Run on server startup
-createDatabaseIndexes();
-cleanupUnverifiedAccounts();
-retryStuckScans();
+// Run on server startup (non-blocking for Vercel serverless)
+// These run in the background and won't block requests
+if (process.env.NODE_ENV !== 'production') {
+    // Only run these in development - Vercel Cron handles them in production
+    createDatabaseIndexes().catch(err => console.error('Index creation failed:', err));
+    cleanupUnverifiedAccounts().catch(err => console.error('Cleanup failed:', err));
+    retryStuckScans().catch(err => console.error('Retry scans failed:', err));
 
-// Run cleanup every 24 hours
-setInterval(cleanupUnverifiedAccounts, 24 * 60 * 60 * 1000);
+    // Run cleanup every 24 hours (dev only)
+    setInterval(() => {
+        cleanupUnverifiedAccounts().catch(err => console.error('Cleanup failed:', err));
+    }, 24 * 60 * 60 * 1000);
+}
 
 /* VirusTotal Scanning Function */
 async function scanFileWithVirusTotal(fileId, fileBuffer, filename) {
@@ -630,6 +645,138 @@ app.get('/contact', function (req, res) {
 });
 
 // Contact Form Submission
+// Generate presigned URL for direct S3 upload
+app.post('/api/get-upload-url', async (req, res) => {
+    if (!req.session.user) {
+        return res.status(401).json({ error: 'Not authenticated' });
+    }
+
+    // Check if user is viewer
+    if (req.session.user.role === 'viewer') {
+        return res.status(403).json({ error: 'No upload permission' });
+    }
+
+    const { filename, filetype } = req.body;
+
+    if (!filename || !filetype) {
+        return res.status(400).json({ error: 'Filename and filetype required' });
+    }
+
+    // Generate unique S3 key
+    const s3Key = `${Date.now()}_${Math.random().toString(36).substring(7)}_${filename}`;
+
+    // Generate presigned URL (expires in 5 minutes)
+    const presignedUrl = s3.getSignedUrl('putObject', {
+        Bucket: AWS_BUCKET,
+        Key: s3Key,
+        ContentType: filetype,
+        Expires: 300, // 5 minutes
+        ACL: 'private'
+    });
+
+    res.json({
+        uploadUrl: presignedUrl,
+        s3Key: s3Key,
+        s3Url: `https://${AWS_BUCKET}.s3.${process.env.AWS_REGION}.amazonaws.com/${s3Key}`
+    });
+});
+
+// Confirm upload and save metadata after direct S3 upload
+app.post('/api/confirm-upload', async (req, res) => {
+    if (!req.session.user) {
+        return res.status(401).json({ error: 'Not authenticated' });
+    }
+
+    const {
+        s3Key,
+        s3Url,
+        filename,
+        filetype,
+        filesize,
+        classCode,
+        major,
+        professor,
+        semester,
+        year,
+        description
+    } = req.body;
+
+    if (!s3Key || !s3Url || !filename || !classCode) {
+        return res.status(400).json({ error: 'Missing required fields' });
+    }
+
+    try {
+        await client.connect();
+
+        // Calculate file hash by downloading from S3
+        const s3File = await s3.getObject({ Bucket: AWS_BUCKET, Key: s3Key }).promise();
+        const fileHash = crypto.createHash('sha256').update(s3File.Body).digest('hex');
+
+        // Check for duplicates
+        const existingFile = await client
+            .db(fileCollection.db)
+            .collection(fileCollection.collection)
+            .findOne({ fileHash: fileHash });
+
+        if (existingFile) {
+            // Delete newly uploaded file from S3 (it's a duplicate)
+            await s3.deleteObject({ Bucket: AWS_BUCKET, Key: s3Key }).promise();
+
+            return res.json({
+                success: true,
+                duplicate: true,
+                message: 'File already exists',
+                existingFile: existingFile
+            });
+        }
+
+        // Save file metadata
+        const fileMeta = {
+            filename: s3Key,
+            originalName: filename,
+            s3Url: s3Url,
+            mimetype: filetype,
+            size: filesize,
+            fileHash: fileHash,
+            uploadDate: new Date(),
+            uploadedBy: req.session.user.userid,
+            description: description || "",
+            classCode: classCode.trim().toUpperCase(),
+            major: major || classCode.replace(/[0-9]/g, '').trim(),
+            semester: semester || "",
+            year: year || "",
+            professor: professor || "",
+            virusScanStatus: 'pending',
+            virusScanDate: null,
+            virusScanDetails: null
+        };
+
+        const insertResult = await client
+            .db(fileCollection.db)
+            .collection(fileCollection.collection)
+            .insertOne(fileMeta);
+
+        // Trigger background virus scan
+        if (VIRUSTOTAL_ENABLED) {
+            scanFileWithVirusTotal(insertResult.insertedId, s3File.Body, filename).catch(err => {
+                console.error('Background virus scan error:', err);
+            });
+        }
+
+        res.json({
+            success: true,
+            duplicate: false,
+            fileId: insertResult.insertedId,
+            message: 'File uploaded successfully'
+        });
+    } catch (error) {
+        console.error('Confirm upload error:', error);
+        res.status(500).json({ error: 'Failed to save file metadata' });
+    } finally {
+        await client.close();
+    }
+});
+
 app.post('/contact/submit', async function (req, res) {
     try {
         const { name, email, subject, message } = req.body;
@@ -1127,13 +1274,16 @@ app.post('/update-profile', async (req, res) => {
     try {
         await client.connect();
 
-        const { firstname, lastname, email } = req.body;
+        // Trim user inputs to prevent spacing issues
+        const firstname = req.body.firstname.trim();
+        const lastname = req.body.lastname.trim();
+        let email = req.body.email.trim().toLowerCase();
 
         // Check if email is being changed
         if (email !== req.session.user.email) {
             // Validate UMD email domain
             const validDomains = ['umd.edu', 'terpmail.umd.edu'];
-            const emailDomain = email.toLowerCase().split('@')[1];
+            const emailDomain = email.split('@')[1];
 
             if (!validDomains.includes(emailDomain)) {
                 return res.render('error', {
@@ -1145,7 +1295,7 @@ app.post('/update-profile', async (req, res) => {
             }
 
             // Normalize email (same logic as registration)
-            const emailUsername = email.toLowerCase().split('@')[0];
+            const emailUsername = email.split('@')[0];
             const normalizedEmail = `${emailUsername}@terpmail.umd.edu`;
 
             // Check if normalized email already exists (check both formats)
@@ -1501,13 +1651,18 @@ app.post('/registerSubmit', registerLimiter, async function (req, res) {
         const emailUsername = email.split('@')[0];
         const normalizedEmail = `${emailUsername}@terpmail.umd.edu`;
 
+        // Trim and normalize user inputs
+        const userid = req.body.userid.trim();
+        const firstname = req.body.first_name.trim();
+        const lastname = req.body.last_name.trim();
+
         // Check for existing email/username (check both formats)
         await client.connect();
         let conflictFilter = {
             $or: [
                 { email: normalizedEmail },
                 { email: `${emailUsername}@umd.edu` }, // Also check the other format
-                { userid: req.body.userid }
+                { userid: userid }
             ]
         };
         const result = await client
@@ -1524,7 +1679,7 @@ app.post('/registerSubmit', registerLimiter, async function (req, res) {
                     linkText: "Go to Login"
                 });
             }
-            if (result.userid === req.body.userid) {
+            if (result.userid === userid) {
                 return res.render('error', {
                     title: "Username Taken",
                     message: "Please choose a different username.",
@@ -1542,9 +1697,9 @@ app.post('/registerSubmit', registerLimiter, async function (req, res) {
         // All new users are contributors by default
         // Admin can manually set roles via MongoDB or admin dashboard
         const newUser = {
-            firstname: req.body.first_name,
-            lastname: req.body.last_name,
-            userid: req.body.userid,
+            firstname: firstname,
+            lastname: lastname,
+            userid: userid,
             email: normalizedEmail, // Store normalized email (always @terpmail.umd.edu)
             pass: hashedPassword,
             role: 'contributor',
@@ -1566,7 +1721,7 @@ app.post('/registerSubmit', registerLimiter, async function (req, res) {
             to: email,
             subject: "Verify Your Terp Notes Account",
             html: `
-                <h2>Welcome to Terp Notes, ${req.body.first_name}! 🐢</h2>
+                <h2>Welcome to Terp Notes, ${firstname}! 🐢</h2>
                 <p>Thank you for registering. Please verify your email address to activate your account.</p>
                 <p><a href="${verificationLink}" style="background: #E03A3C; color: white; padding: 12px 24px; text-decoration: none; border-radius: 8px; display: inline-block;">Verify Email Address</a></p>
                 <p>Or copy this link: ${verificationLink}</p>
@@ -1601,7 +1756,9 @@ app.post('/registerSubmit', registerLimiter, async function (req, res) {
 app.post('/loginSubmit', loginLimiter, async function (req, res) {
     try {
         await client.connect();
-        let filter = { userid: req.body.userid };
+        // Trim userid to handle accidental spaces
+        const loginUserid = req.body.userid.trim();
+        let filter = { userid: loginUserid };
         const result = await client
             .db(userCollection.db)
             .collection(userCollection.collection)
@@ -1634,8 +1791,8 @@ app.post('/loginSubmit', loginLimiter, async function (req, res) {
             });
         }
 
-        const { firstname, lastname, userid, email, role } = result;
-        const userData = { firstname, lastname, userid, email, role };
+        const { firstname, lastname, userid: userId, email, role } = result;
+        const userData = { firstname, lastname, userid: userId, email, role };
 
         const token = createToken(userData);
 
