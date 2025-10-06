@@ -693,6 +693,7 @@ app.post('/api/confirm-upload', async (req, res) => {
         filename,
         filetype,
         filesize,
+        fileHash,
         classCode,
         major,
         professor,
@@ -701,16 +702,12 @@ app.post('/api/confirm-upload', async (req, res) => {
         description
     } = req.body;
 
-    if (!s3Key || !s3Url || !filename || !classCode) {
+    if (!s3Key || !s3Url || !filename || !classCode || !fileHash) {
         return res.status(400).json({ error: 'Missing required fields' });
     }
 
     try {
         await client.connect();
-
-        // Calculate file hash by downloading from S3
-        const s3File = await s3.getObject({ Bucket: AWS_BUCKET, Key: s3Key }).promise();
-        const fileHash = crypto.createHash('sha256').update(s3File.Body).digest('hex');
 
         // Check for duplicates
         const existingFile = await client
@@ -756,11 +753,15 @@ app.post('/api/confirm-upload', async (req, res) => {
             .collection(fileCollection.collection)
             .insertOne(fileMeta);
 
-        // Trigger background virus scan
+        // Trigger background virus scan (download from S3 asynchronously)
         if (VIRUSTOTAL_ENABLED) {
-            scanFileWithVirusTotal(insertResult.insertedId, s3File.Body, filename).catch(err => {
-                console.error('Background virus scan error:', err);
-            });
+            s3.getObject({ Bucket: AWS_BUCKET, Key: s3Key }).promise()
+                .then(s3Data => {
+                    scanFileWithVirusTotal(insertResult.insertedId, s3Data.Body, filename).catch(err => {
+                        console.error('Background virus scan error:', err);
+                    });
+                })
+                .catch(err => console.error('Error fetching file for scan:', err));
         }
 
         res.json({

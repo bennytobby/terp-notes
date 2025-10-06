@@ -781,10 +781,18 @@
                         // Upload each file
                         for (let i = 0; i < files.length; i++) {
                             const file = files[i];
-                            statusEl.textContent = `Uploading ${file.name}...`;
+                            statusEl.textContent = `Processing ${file.name}...`;
 
                             try {
-                                // Step 1: Get presigned URL
+                                // Step 1: Calculate file hash (client-side to avoid server timeout)
+                                const arrayBuffer = await file.arrayBuffer();
+                                const hashBuffer = await crypto.subtle.digest('SHA-256', arrayBuffer);
+                                const hashArray = Array.from(new Uint8Array(hashBuffer));
+                                const fileHash = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+
+                                statusEl.textContent = `Uploading ${file.name}...`;
+
+                                // Step 2: Get presigned URL
                                 const urlResponse = await fetch('/api/get-upload-url', {
                                     method: 'POST',
                                     headers: { 'Content-Type': 'application/json' },
@@ -823,6 +831,7 @@
                                         filename: file.name,
                                         filetype: file.type,
                                         filesize: file.size,
+                                        fileHash: fileHash,
                                         classCode: classCode,
                                         professor: professor,
                                         semester: semester,
