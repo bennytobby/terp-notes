@@ -1,15 +1,8 @@
 {
-  "version": 2,
-  "builds": [
+  "rewrites": [
     {
-      "src": "server.js",
-      "use": "@vercel/node"
-    }
-  ],
-  "routes": [
-    {
-      "src": "/(.*)",
-      "dest": "server.js"
+      "source": "/(.*)",
+      "destination": "/server.js"
     }
   ],
   "functions": {
@@ -17,9 +10,6 @@
       "maxDuration": 60,
       "memory": 3008
     }
-  },
-  "env": {
-    "NODE_ENV": "production"
   },
   "crons": [
     {
