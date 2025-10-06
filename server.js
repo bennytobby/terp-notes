@@ -2282,9 +2282,12 @@ app.get('/health', (req, res) => {
 
 // Cron endpoint for Vercel: Scan pending files
 app.get('/api/cron/scan-pending-files', async (req, res) => {
-    // Verify request is from Vercel Cron (optional security)
-    const authHeader = req.headers.authorization;
-    if (process.env.CRON_SECRET && authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
+    // Verify request is from Vercel Cron (required for security)
+    const authHeader = req.get('Authorization');
+    if (!process.env.CRON_SECRET) {
+        return res.status(500).json({ error: 'CRON_SECRET not configured' });
+    }
+    if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
         return res.status(401).json({ error: 'Unauthorized' });
     }
 

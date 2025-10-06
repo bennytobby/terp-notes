@@ -18,7 +18,7 @@
   "crons": [
     {
       "path": "/api/cron/scan-pending-files",
-      "schedule": "*/5 * * * *"
+      "schedule": "0 10 * * *"
     }
   ]
 }
