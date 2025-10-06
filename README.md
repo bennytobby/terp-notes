@@ -125,29 +125,29 @@ Every file is tied to a verified UMD email. Accountability prevents abuse and en
 
 ## 🔮 Future Vision
 
+### **Optional (Future):**
+- **Comments/Ratings** - Users can comment on and rate files for quality feedback
+- **Download Analytics** - Track which files are most helpful to students
+- **File Versioning** - Upload and manage multiple versions of the same file
+- **AI Summaries** - Auto-generate summaries of uploaded PDFs and study guides
+- **Gamification/Leaderboards** - Points for uploads and downloads, class-based leaderboards
+
 ### **Phase 2: Multi-University Expansion**
 Expand beyond UMD to other universities with school-specific domains and admin teams.
 
-### **Phase 3: Gamification**
-- Contribution tokens + leaderboards
-- Achievement badges (10 uploads, 100 downloads, etc.)
-- Upvote/downvote system to surface best content
-
-### **Phase 4: AI-Powered Study Assistant**
-- Smart summaries of uploaded PDFs
+### **Phase 3: Advanced Features**
+- Study groups with private sharing
+- Real-time collaborative annotations
+- Class-specific discussion forums
 - Q&A bot trained on class materials
 - Auto-generate practice quizzes from notes
 - LaTeX OCR for handwritten math
 
-### **Phase 5: Collaboration Features**
-- Study groups with private sharing
-- Real-time collaborative annotations
-- Class-specific discussion forums
-
-### **Phase 6: Advanced Analytics**
+### **Phase 4: Analytics & Insights**
 - Usage insights per class/department
 - Trend analysis (popular topics before exams)
 - Gap detection (classes with few resources)
+- Download history tracking
 
 ---
 
