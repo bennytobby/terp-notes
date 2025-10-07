@@ -6,7 +6,7 @@
 
 ---
 
-## 💡 The Story
+## The Story
 
 I graduated from UMD and remember the struggle: hunting for study materials before exams, relying on fragmented GroupMe chats, and watching resources get lost semester after semester. **Notes that could help hundreds of students were trapped in individual Google Drives.**
 
