@@ -867,6 +867,141 @@ input[type="reset"] {
   color: white;
 }
 
+/* Custom Dropdown for Course Selection */
+.custom-dropdown-wrapper {
+  position: relative;
+}
+
+.custom-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: white;
+  border: 2px solid var(--umd-red);
+  border-top: none;
+  border-radius: 0 0 8px 8px;
+  max-height: 400px;
+  overflow-y: auto;
+  z-index: 1000;
+  display: none;
+  box-shadow: 0 8px 24px rgba(224, 58, 60, 0.15);
+}
+
+.custom-dropdown.show {
+  display: block;
+  animation: slideDown 0.2s ease;
+}
+
+.custom-dropdown-item {
+  padding: 0.875rem 1rem;
+  cursor: pointer;
+  border-bottom: 1px solid #F3F4F6;
+  transition: all 0.2s ease;
+}
+
+.custom-dropdown-item:last-child {
+  border-bottom: none;
+}
+
+.custom-dropdown-item:hover,
+.custom-dropdown-item.selected {
+  background: linear-gradient(135deg, rgba(224, 58, 60, 0.05) 0%, rgba(224, 58, 60, 0.1) 100%);
+  border-left: 3px solid var(--umd-red);
+  padding-left: calc(1rem - 3px);
+}
+
+.custom-dropdown-item.selected {
+  background: linear-gradient(135deg, rgba(224, 58, 60, 0.1) 0%, rgba(224, 58, 60, 0.15) 100%);
+}
+
+.course-code {
+  font-weight: 700;
+  font-size: 0.95rem;
+  color: var(--umd-red);
+  display: block;
+  margin-bottom: 0.25rem;
+}
+
+.course-name {
+  font-size: 0.85rem;
+  color: #6B7280;
+  display: block;
+  line-height: 1.4;
+}
+
+.custom-dropdown-empty {
+  padding: 1.5rem 1rem;
+  text-align: center;
+  color: #9CA3AF;
+  font-size: 0.875rem;
+}
+
+.custom-dropdown::-webkit-scrollbar {
+  width: 8px;
+}
+
+.custom-dropdown::-webkit-scrollbar-track {
+  background: #F9FAFB;
+}
+
+.custom-dropdown::-webkit-scrollbar-thumb {
+  background: var(--umd-red);
+  border-radius: 4px;
+}
+
+.custom-dropdown::-webkit-scrollbar-thumb:hover {
+  background: #C42F31;
+}
+
+/* Highlight matching text */
+.highlight {
+  background: rgba(255, 215, 0, 0.4);
+  font-weight: 600;
+}
+
+/* Professor-specific styles */
+.professor-name {
+  font-weight: 700;
+  font-size: 0.95rem;
+  color: #1F2937;
+  display: block;
+  margin-bottom: 0.25rem;
+}
+
+.professor-semesters {
+  font-size: 0.8rem;
+  color: #6B7280;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.semester-tag {
+  display: inline-block;
+  padding: 0.15rem 0.5rem;
+  background: linear-gradient(135deg, rgba(224, 58, 60, 0.1) 0%, rgba(224, 58, 60, 0.15) 100%);
+  border: 1px solid rgba(224, 58, 60, 0.3);
+  border-radius: 4px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: var(--umd-red);
+  white-space: nowrap;
+}
+
+/* Dropdown animation */
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 @media (max-width: 768px) {
   .file-grid {
     grid-template-columns: 1fr;
@@ -884,6 +1019,14 @@ input[type="reset"] {
   .course-header {
     font-size: 0.875rem;
     padding: 0.75rem 1rem;
+  }
+
+  .custom-dropdown {
+    max-height: 300px;
+  }
+
+  .custom-dropdown-item {
+    padding: 0.75rem 0.875rem;
   }
 }
 
