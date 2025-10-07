@@ -2,7 +2,7 @@
 
 > **A free, student-driven platform for sharing class notes, study guides, and academic resources at the University of Maryland.**
 
-**🚀 Live at:** [terp-notes.vercel.app](https://terp-notes.vercel.app/)
+**Live at:** [terp-notes.vercel.app](https://terp-notes.vercel.app/)
 
 ---
 
@@ -168,19 +168,19 @@ Instead of banning violators, revoke upload privileges ("Viewer" mode). Encourag
 - File metadata (class, professor, semester, description)
 
 ### **Data We DON'T Collect:**
-- ❌ Browsing history
-- ❌ Personal conversations
-- ❌ Credit card info (platform is 100% free)
-- ❌ Third-party tracking (only Vercel Analytics for performance)
+- Browsing history
+- Personal conversations
+- Credit card info (platform is 100% free)
+- Third-party tracking (only Vercel Analytics for performance)
 
 ### **Security Measures:**
-- ✅ All passwords hashed with bcrypt (10 rounds)
-- ✅ JWT tokens for stateless auth (24hr expiration)
-- ✅ HTTPS enforced (Vercel auto-provisioned SSL)
-- ✅ Rate limiting on all endpoints (prevents brute force)
-- ✅ Session cookies are httpOnly & secure
-- ✅ File virus scanning with auto-deletion
-- ✅ Download warnings for potentially risky file types
+- All passwords hashed with bcrypt (10 rounds)
+- JWT tokens for stateless auth (24hr expiration)
+- HTTPS enforced (Vercel auto-provisioned SSL)
+- Rate limiting on all endpoints (prevents brute force)
+- Session cookies are httpOnly & secure
+- File virus scanning with auto-deletion
+- Download warnings for potentially risky file types
 
 **Full details:** [Privacy Policy](https://terp-notes.vercel.app/privacy)
 
