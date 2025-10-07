@@ -103,19 +103,6 @@ This platform is **built for students, by a student** (now alum), with zero prof
 
 ---
 
-## Current Stats
-
-**Platform Capacity (Free Tier):**
-- Supports **1 million+** function invocations/month
-- Handles **100GB** bandwidth/month
-- Unlimited file uploads (storage costs ~$0.023/GB on S3)
-- **5GB** max file size (S3 direct upload limit)
-- **1 cron job** for daily virus scanning
-
-**Perfect for a student community!** 🎓
-
----
-
 ## How It Works
 
 ### **1. Register with UMD Email**
