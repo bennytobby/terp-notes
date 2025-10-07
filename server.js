@@ -50,6 +50,71 @@ if (VIRUSTOTAL_ENABLED) {
     console.log('⚠️ VirusTotal integration disabled (no API key found)');
 }
 
+/* UMD.io API Configuration */
+const UMD_API_BASE = 'https://api.umd.io/v1';
+const UMD_API_ENABLED = true; // Public API, always available
+
+// Helper: Fetch UMD.io data with caching & fallback
+async function fetchUMDData(endpoint, cacheKey, cacheDuration = 24 * 60 * 60 * 1000) {
+    try {
+        const cacheClient = new MongoClient(uri, { serverApi: ServerApiVersion.v1 });
+        await cacheClient.connect();
+
+        // Check cache first
+        const cached = await cacheClient
+            .db(fileCollection.db)
+            .collection('api_cache')
+            .findOne({ key: cacheKey });
+
+        const now = new Date();
+        if (cached && (now - new Date(cached.timestamp)) < cacheDuration) {
+            await cacheClient.close();
+            return cached.data;
+        }
+
+        // Fetch from API
+        const response = await fetch(`${UMD_API_BASE}${endpoint}`);
+        if (!response.ok) throw new Error(`API returned ${response.status}`);
+
+        const data = await response.json();
+
+        // Update cache
+        await cacheClient
+            .db(fileCollection.db)
+            .collection('api_cache')
+            .updateOne(
+                { key: cacheKey },
+                { $set: { key: cacheKey, data: data, timestamp: now } },
+                { upsert: true }
+            );
+
+        await cacheClient.close();
+        return data;
+    } catch (error) {
+        console.error(`UMD.io API error (${endpoint}):`, error.message);
+
+        // Fallback to stale cache if available
+        try {
+            const fallbackClient = new MongoClient(uri, { serverApi: ServerApiVersion.v1 });
+            await fallbackClient.connect();
+            const staleCache = await fallbackClient
+                .db(fileCollection.db)
+                .collection('api_cache')
+                .findOne({ key: cacheKey });
+            await fallbackClient.close();
+
+            if (staleCache) {
+                console.log(`Using stale cache for ${cacheKey}`);
+                return staleCache.data;
+            }
+        } catch (fallbackError) {
+            console.error('Fallback cache error:', fallbackError);
+        }
+
+        return null;
+    }
+}
+
 /* Port Configuration */
 const portNumber = process.env.PORT || 3000;
 console.log(`🐢 Terp Notes Server starting on port ${portNumber}`);
@@ -645,6 +710,213 @@ app.get('/contact', function (req, res) {
 });
 
 // Contact Form Submission
+// API: Get UMD courses for autocomplete
+app.get('/api/umd/courses', async (req, res) => {
+    try {
+        const semester = req.query.semester || '202501'; // Default to Spring 2025
+        const courses = await fetchUMDData(`/courses/list?semester=${semester}&per_page=100`, `courses_${semester}`);
+
+        if (!courses) {
+            // Fallback to existing class codes from DB if API fails
+            await client.connect();
+            const existingCodes = await client
+                .db(fileCollection.db)
+                .collection(fileCollection.collection)
+                .distinct('classCode');
+            await client.close();
+
+            return res.json(existingCodes.map(code => ({ course_id: code, name: code })));
+        }
+
+        res.json(courses);
+    } catch (error) {
+        console.error('Error fetching courses:', error);
+        res.status(500).json({ error: 'Failed to fetch courses' });
+    }
+});
+
+// API: Get course details with comprehensive historical data from UMD.io
+app.get('/api/umd/course/:courseId', async (req, res) => {
+    try {
+        const courseId = req.params.courseId.toUpperCase();
+        console.log(`🔍 [API] Fetching course data for: ${courseId}`);
+
+        // Get query parameters for filtering
+        const querySemester = req.query.filter_semester;
+        const queryYear = req.query.filter_year;
+        console.log(`🔍 [API] Filters - Semester: ${querySemester}, Year: ${queryYear}`);
+
+        // Determine which semesters to fetch based on filters
+        let semestersToCheck = [];
+
+        if (querySemester && queryYear) {
+            // Specific semester and year
+            const semesterMap = { 'Spring': '01', 'Summer': '05', 'Fall': '08', 'Winter': '12' };
+            const semesterId = `${queryYear}${semesterMap[querySemester] || '01'}`;
+            semestersToCheck = [semesterId];
+            console.log(`🔍 [API] Fetching specific: ${querySemester} ${queryYear} (${semesterId})`);
+        } else if (querySemester) {
+            // All years for this semester
+            const semesterMap = { 'Spring': '01', 'Summer': '05', 'Fall': '08', 'Winter': '12' };
+            const semesterNum = semesterMap[querySemester] || '01';
+            for (let year = 2020; year <= 2025; year++) {
+                semestersToCheck.push(`${year}${semesterNum}`);
+            }
+            console.log(`🔍 [API] Fetching all years for ${querySemester}: ${semestersToCheck.length} semesters`);
+        } else if (queryYear) {
+            // All semesters for this year
+            semestersToCheck = [`${queryYear}01`, `${queryYear}05`, `${queryYear}08`, `${queryYear}12`];
+            console.log(`🔍 [API] Fetching all semesters for ${queryYear}: ${semestersToCheck.length} semesters`);
+        } else {
+            // Default: current semester only (fast and efficient)
+            const now = new Date();
+            const currentYear = now.getFullYear();
+            const currentMonth = now.getMonth() + 1; // 1-12
+
+            // Determine current semester
+            let currentSemester;
+            if (currentMonth >= 1 && currentMonth <= 5) currentSemester = 'Spring';
+            else if (currentMonth >= 6 && currentMonth <= 7) currentSemester = 'Summer';
+            else if (currentMonth >= 8 && currentMonth <= 12) currentSemester = 'Fall';
+
+            const semesterMap = { 'Spring': '01', 'Summer': '05', 'Fall': '08', 'Winter': '12' };
+            const currentSemesterId = `${currentYear}${semesterMap[currentSemester] || '01'}`;
+
+            semestersToCheck = [currentSemesterId];
+            console.log(`🔍 [API] Fetching current semester only: ${currentSemester} ${currentYear} (${currentSemesterId})`);
+        }
+
+        // Fetch course info from first semester to get basic course data
+        const firstSemester = semestersToCheck[0];
+        const courseData = await fetchUMDData(
+            `/courses/${courseId}?semester=${firstSemester}`,
+            `course_${courseId}_${firstSemester}`,
+            7 * 24 * 60 * 60 * 1000
+        );
+
+        if (!courseData || courseData.length === 0) {
+            console.log(`❌ [API] Course not found: ${courseId}`);
+            return res.status(404).json({ error: 'Course not found' });
+        }
+
+        const course = courseData[0];
+        console.log(`✅ [API] Course found: ${course.name || courseId}`);
+
+        // Fetch professor data for all required semesters
+        const historicalData = {};
+        const allProfessors = new Set();
+        const allSemesters = new Set();
+        const allYears = new Set();
+
+        console.log(`🔍 [API] Fetching professor data for ${semestersToCheck.length} semester(s)...`);
+
+        for (const semester of semestersToCheck) {
+            try {
+                console.log(`🔍 [API] Fetching sections for semester: ${semester}`);
+                const sectionsData = await fetchUMDData(
+                    `/courses/sections?course_id=${courseId}&semester=${semester}&per_page=100`,
+                    `sections_${courseId}_${semester}`,
+                    7 * 24 * 60 * 60 * 1000
+                );
+
+                if (sectionsData && sectionsData.length > 0) {
+                    const professors = [...new Set(
+                        sectionsData
+                            .map(section => section.instructors)
+                            .flat()
+                            .filter(prof => prof && prof !== 'Instructor: TBA')
+                    )];
+
+                    if (professors.length > 0) {
+                        // Convert semester ID to readable format
+                        const year = semester.substring(0, 4);
+                        const semesterNum = semester.substring(4, 6);
+                        const semesterName = {
+                            '01': 'Spring', '05': 'Summer', '08': 'Fall', '12': 'Winter'
+                        }[semesterNum];
+
+                        const key = `${semesterName}_${year}`;
+                        historicalData[key] = professors; // Send as array, not Set
+
+                        professors.forEach(prof => allProfessors.add(prof));
+                        allSemesters.add(semesterName);
+                        allYears.add(year);
+
+                        console.log(`✅ [API] Found ${professors.length} professors for ${semesterName} ${year}: ${professors.join(', ')}`);
+                    } else {
+                        console.log(`⚠️ [API] No professors found for ${semester}`);
+                    }
+                } else {
+                    console.log(`⚠️ [API] No sections found for ${semester}`);
+                }
+            } catch (error) {
+                console.log(`❌ [API] Error fetching data for ${semester}:`, error.message);
+            }
+        }
+
+        // Convert Sets to Arrays and sort
+        const professorList = [...allProfessors].sort();
+        const semesterList = [...allSemesters].sort();
+        const yearList = [...allYears].sort((a, b) => b - a);
+
+        console.log(`📊 [API] Final results:`);
+        console.log(`   - Total professors: ${professorList.length}`);
+        console.log(`   - Semesters: ${semesterList.join(', ')}`);
+        console.log(`   - Years: ${yearList.join(', ')}`);
+        console.log(`   - Historical data keys: ${Object.keys(historicalData).join(', ')}`);
+
+        // Determine current semester for response
+        const now = new Date();
+        const currentYear = now.getFullYear();
+        const currentMonth = now.getMonth() + 1;
+        let currentSemester;
+        if (currentMonth >= 1 && currentMonth <= 5) currentSemester = 'Spring';
+        else if (currentMonth >= 6 && currentMonth <= 7) currentSemester = 'Summer';
+        else if (currentMonth >= 8 && currentMonth <= 12) currentSemester = 'Fall';
+
+        res.json({
+            course_id: course.course_id || courseId,
+            name: course.name || courseId,
+            all_professors: professorList,
+            filtered_professors: professorList, // Same as all_professors since we filter on server
+            historical_semesters: semesterList,
+            historical_years: yearList,
+            historical_data: historicalData,
+            current_semester: currentSemester,
+            current_year: currentYear.toString(),
+            description: course.description || '',
+            source: 'umd_api_historical'
+        });
+    } catch (error) {
+        console.error('❌ [API] Error fetching course details:', error);
+        res.status(500).json({ error: 'Failed to fetch course details' });
+    }
+});
+
+// API: Get all UMD majors
+app.get('/api/umd/majors', async (req, res) => {
+    try {
+        const majors = await fetchUMDData('/majors/list', 'majors_list', 30 * 24 * 60 * 60 * 1000); // Cache 30 days
+
+        if (!majors) {
+            // Fallback to existing majors from DB
+            await client.connect();
+            const existingMajors = await client
+                .db(fileCollection.db)
+                .collection(fileCollection.collection)
+                .distinct('major');
+            await client.close();
+
+            return res.json(existingMajors.map(m => ({ major_id: m, name: m })));
+        }
+
+        res.json(majors);
+    } catch (error) {
+        console.error('Error fetching majors:', error);
+        res.status(500).json({ error: 'Failed to fetch majors' });
+    }
+});
+
 // Generate presigned URL for direct S3 upload
 app.post('/api/get-upload-url', async (req, res) => {
     if (!req.session.user) {

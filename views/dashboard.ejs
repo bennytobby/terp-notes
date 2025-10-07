@@ -313,16 +313,26 @@
                                                 <label for="classCode" class="form-label">Class Code<span
                                                         class="required">*</span></label>
                                                 <input type="text" name="classCode" id="classCode" required
-                                                    class="form-input" placeholder="e.g. CMSC330, HIST000" />
-                                                <small class="form-help">For general notes: MAJOR000 (e.g.,
-                                                    HIST000)</small>
+                                                    class="form-input" list="coursesList"
+                                                    placeholder="e.g. CMSC330, HIST000" autocomplete="off" />
+                                                <datalist id="coursesList"></datalist>
+                                                <small class="form-help" id="courseInfo"
+                                                    style="color: #6B7280; font-size: 0.75rem;">
+                                                    Start typing to see course suggestions...
+                                                </small>
                                             </div>
 
                                             <div class="form-group">
                                                 <label for="professor" class="form-label">Professor<span
                                                         class="required">*</span></label>
                                                 <input type="text" name="professor" id="professor" required
-                                                    class="form-input" placeholder="e.g., Dr. Nelson, Prof. Smith" />
+                                                    class="form-input" list="professorsList"
+                                                    placeholder="e.g., Dr. Nelson, Prof. Smith" autocomplete="off" />
+                                                <datalist id="professorsList"></datalist>
+                                                <small class="form-help" id="professorHelp"
+                                                    style="color: #9CA3AF; font-size: 0.75rem;">
+                                                    Select course first to see professors
+                                                </small>
                                             </div>
                                         </div>
 
@@ -344,12 +354,15 @@
                                                         class="required">*</span></label>
                                                 <select name="year" id="year" required class="form-input">
                                                     <option value="">Select year</option>
-                                                    <% for (let y=new Date().getFullYear() + 1; y>= 2020; y--) { %>
+                                                    <% for (let y=new Date().getFullYear(); y>= 2020; y--) { %>
                                                         <option value="<%= y %>">
                                                             <%= y %>
                                                         </option>
                                                         <% } %>
                                                 </select>
+                                                <small class="form-help" style="color: #9CA3AF; font-size: 0.75rem;">
+                                                    Past semesters only (2020-2025)
+                                                </small>
                                             </div>
                                         </div>
 
@@ -889,12 +902,338 @@
                         searchInput.addEventListener('input', applyFilters);
                     }
 
-                    // Auto-uppercase class code input
+                    // Load UMD.io course data for autocomplete
                     const classCodeInput = document.getElementById('classCode');
-                    if (classCodeInput) {
+                    const coursesList = document.getElementById('coursesList');
+                    const courseInfo = document.getElementById('courseInfo');
+                    const professorInput = document.getElementById('professor');
+                    const professorsList = document.getElementById('professorsList');
+
+                    if (classCodeInput && coursesList) {
+                        // Fetch courses on load
+                        fetch('/api/umd/courses?per_page=100')
+                            .then(res => res.json())
+                            .then(courses => {
+                                if (courses && courses.length > 0) {
+                                    courses.forEach(course => {
+                                        const option = document.createElement('option');
+                                        option.value = course.course_id;
+                                        option.textContent = `${course.course_id} - ${course.name || course.course_id}`;
+                                        coursesList.appendChild(option);
+                                    });
+                                    courseInfo.textContent = 'Course suggestions loaded';
+                                    courseInfo.style.color = '#10B981';
+                                }
+                            })
+                            .catch(err => {
+                                console.error('Failed to load courses:', err);
+                                courseInfo.textContent = 'Type any class code to continue';
+                                courseInfo.style.color = '#9CA3AF';
+                            });
+
+                        // Auto-uppercase and fetch professors when course changes
                         classCodeInput.addEventListener('input', function () {
                             this.value = this.value.toUpperCase();
                         });
+
+                        // Helper: Convert semester/year to UMD.io semester ID
+                        function getSemesterId() {
+                            const semester = document.getElementById('semester').value;
+                            const year = document.getElementById('year').value;
+                            if (!semester || !year) return '202501'; // Default to Spring 2025
+
+                            const semesterMap = {
+                                'Spring': '01',
+                                'Summer': '05',
+                                'Fall': '08',
+                                'Winter': '12'
+                            };
+                            return `${year}${semesterMap[semester] || '01'}`;
+                        }
+
+                        // Helper: Reset dropdowns to show all options
+                        function resetDropdowns() {
+                            // Reset semester dropdown to show all options
+                            const semesterSelect = document.getElementById('semester');
+                            const semesterOptions = Array.from(semesterSelect.options);
+                            semesterOptions.forEach(option => {
+                                option.style.display = 'block';
+                                option.disabled = false;
+                            });
+
+                            // Reset year dropdown to show all options
+                            const yearSelect = document.getElementById('year');
+                            const yearOptions = Array.from(yearSelect.options);
+                            yearOptions.forEach(option => {
+                                option.style.display = 'block';
+                                option.disabled = false;
+                            });
+                        }
+
+                        // Store course data globally
+                        let currentCourseData = null;
+
+                        // Fetch course data with comprehensive debugging
+                        async function fetchCourseData() {
+                            const courseCode = classCodeInput.value.trim().toUpperCase();
+                            console.log(`🔍 [FRONTEND] Fetching data for course: ${courseCode}`);
+
+                            if (!courseCode) {
+                                console.log(`🔍 [FRONTEND] No course code, resetting...`);
+                                resetDropdowns();
+                                currentCourseData = null;
+                                return;
+                            }
+
+                            // Get current filter values
+                            const selectedSemester = document.getElementById('semester').value;
+                            const selectedYear = document.getElementById('year').value;
+                            console.log(`🔍 [FRONTEND] Current filters - Semester: ${selectedSemester}, Year: ${selectedYear}`);
+
+                            // Build query parameters
+                            let queryParams = '';
+                            if (selectedSemester) {
+                                queryParams += `&filter_semester=${encodeURIComponent(selectedSemester)}`;
+                            }
+                            if (selectedYear) {
+                                queryParams += `&filter_year=${encodeURIComponent(selectedYear)}`;
+                            }
+
+                            console.log(`🔍 [FRONTEND] API URL: /api/umd/course/${courseCode}?${queryParams}`);
+
+                            try {
+                                const response = await fetch(`/api/umd/course/${courseCode}?${queryParams}`);
+                                console.log(`🔍 [FRONTEND] Response status: ${response.status}`);
+
+                                if (response.ok) {
+                                    currentCourseData = await response.json();
+                                    console.log(`✅ [FRONTEND] Course data received:`, currentCourseData);
+
+                                    // Update course info display
+                                    if (currentCourseData.name && currentCourseData.name !== 'undefined' && currentCourseData.name !== courseCode) {
+                                        courseInfo.innerHTML = `✓ <strong>${currentCourseData.course_id || courseCode}:</strong> ${currentCourseData.name}`;
+                                        courseInfo.style.color = '#10B981';
+                                    } else {
+                                        courseInfo.textContent = '';
+                                    }
+
+                                    // Set default semester and year to current semester (only on first load)
+                                    if (!selectedSemester && !selectedYear && currentCourseData.current_semester && currentCourseData.current_year) {
+                                        const semesterSelect = document.getElementById('semester');
+                                        const yearSelect = document.getElementById('year');
+
+                                        if (semesterSelect) {
+                                            semesterSelect.value = currentCourseData.current_semester;
+                                            console.log(`🔍 [FRONTEND] Set default semester: ${currentCourseData.current_semester}`);
+                                        }
+                                        if (yearSelect) {
+                                            yearSelect.value = currentCourseData.current_year;
+                                            console.log(`🔍 [FRONTEND] Set default year: ${currentCourseData.current_year}`);
+                                        }
+                                    }
+
+                                    // Update professor list
+                                    updateProfessorList();
+                                } else {
+                                    console.log(`❌ [FRONTEND] Course not found: ${courseCode}`);
+                                    courseInfo.textContent = 'Could not verify course - you can still upload';
+                                    courseInfo.style.color = '#9CA3AF';
+                                    currentCourseData = null;
+                                    resetDropdowns();
+                                }
+                            } catch (error) {
+                                console.error('❌ [FRONTEND] Error fetching course details:', error);
+                                courseInfo.textContent = 'Could not verify course - you can still upload';
+                                courseInfo.style.color = '#9CA3AF';
+                                currentCourseData = null;
+                                resetDropdowns();
+                            }
+                        }
+
+                        // Update professor list based on current selections
+                        function updateProfessorList() {
+                            console.log(`🔍 [FRONTEND] Updating professor list...`);
+
+                            if (!currentCourseData) {
+                                console.log(`🔍 [FRONTEND] No course data, clearing professor list`);
+                                professorsList.innerHTML = '';
+                                professorInput.placeholder = 'Enter professor name';
+                                document.getElementById('professorHelp').textContent = 'Select course first to see professors';
+                                return;
+                            }
+
+                            const selectedSemester = document.getElementById('semester').value;
+                            const selectedYear = document.getElementById('year').value;
+                            console.log(`🔍 [FRONTEND] Filtering professors for: ${selectedSemester} ${selectedYear}`);
+
+                            let filteredProfessors = [];
+
+                            if (selectedSemester && selectedYear) {
+                                // Filter by both semester and year
+                                const key = `${selectedSemester}_${selectedYear}`;
+                                console.log(`🔍 [FRONTEND] Looking for key: ${key}`);
+                                console.log(`🔍 [FRONTEND] Available keys:`, Object.keys(currentCourseData.historical_data || {}));
+
+                                if (currentCourseData.historical_data && currentCourseData.historical_data[key]) {
+                                    filteredProfessors = [...currentCourseData.historical_data[key]].sort();
+                                    console.log(`✅ [FRONTEND] Found ${filteredProfessors.length} professors for ${key}:`, filteredProfessors);
+                                } else {
+                                    console.log(`⚠️ [FRONTEND] No professors found for ${key}`);
+                                }
+                            } else if (selectedSemester) {
+                                // Filter by semester only
+                                console.log(`🔍 [FRONTEND] Filtering by semester: ${selectedSemester}`);
+                                if (currentCourseData.historical_data) {
+                                    filteredProfessors = Object.keys(currentCourseData.historical_data)
+                                        .filter(key => key.startsWith(selectedSemester + '_'))
+                                        .flatMap(key => currentCourseData.historical_data[key])
+                                        .filter((prof, index, arr) => arr.indexOf(prof) === index) // Remove duplicates
+                                        .sort();
+                                    console.log(`✅ [FRONTEND] Found ${filteredProfessors.length} professors for ${selectedSemester}:`, filteredProfessors);
+                                }
+                            } else if (selectedYear) {
+                                // Filter by year only
+                                console.log(`🔍 [FRONTEND] Filtering by year: ${selectedYear}`);
+                                if (currentCourseData.historical_data) {
+                                    filteredProfessors = Object.keys(currentCourseData.historical_data)
+                                        .filter(key => key.endsWith('_' + selectedYear))
+                                        .flatMap(key => currentCourseData.historical_data[key])
+                                        .filter((prof, index, arr) => arr.indexOf(prof) === index) // Remove duplicates
+                                        .sort();
+                                    console.log(`✅ [FRONTEND] Found ${filteredProfessors.length} professors for ${selectedYear}:`, filteredProfessors);
+                                }
+                            } else {
+                                // No filtering - show all professors
+                                filteredProfessors = currentCourseData.all_professors || [];
+                                console.log(`🔍 [FRONTEND] No filters, showing all ${filteredProfessors.length} professors:`, filteredProfessors);
+                            }
+
+                            // Populate professor dropdown
+                            professorsList.innerHTML = '';
+                            if (filteredProfessors.length > 0) {
+                                filteredProfessors.forEach(prof => {
+                                    const option = document.createElement('option');
+                                    option.value = prof;
+                                    professorsList.appendChild(option);
+                                });
+
+                                let filterText = '';
+                                if (selectedSemester && selectedYear) {
+                                    filterText = ` for ${selectedSemester} ${selectedYear}`;
+                                } else if (selectedSemester) {
+                                    filterText = ` for ${selectedSemester}`;
+                                } else if (selectedYear) {
+                                    filterText = ` for ${selectedYear}`;
+                                }
+
+                                professorInput.placeholder = `${filteredProfessors.length} professor${filteredProfessors.length !== 1 ? 's' : ''} taught this course${filterText}`;
+                                document.getElementById('professorHelp').textContent = `${filteredProfessors.length} professor${filteredProfessors.length !== 1 ? 's' : ''} available${filterText}`;
+                                console.log(`✅ [FRONTEND] Updated professor dropdown with ${filteredProfessors.length} professors`);
+                            } else {
+                                professorInput.placeholder = 'Enter professor name';
+                                document.getElementById('professorHelp').textContent = 'No professors found for this semester/year';
+                                console.log(`⚠️ [FRONTEND] No professors found, showing manual entry`);
+                            }
+                        }
+
+
+                        // Trigger professor fetch when course changes
+                        classCodeInput.addEventListener('change', function () {
+                            console.log(`🔍 [FRONTEND] Course changed to: ${this.value}`);
+                            fetchCourseData();
+                        });
+
+                        // Helper: Reset dropdowns to show all options
+                        function resetDropdowns() {
+                            console.log(`🔍 [FRONTEND] Resetting dropdowns...`);
+                            // Reset semester dropdown to show all options
+                            const semesterSelect = document.getElementById('semester');
+                            const semesterOptions = Array.from(semesterSelect.options);
+                            semesterOptions.forEach(option => {
+                                option.style.display = 'block';
+                                option.disabled = false;
+                            });
+
+                            // Reset year dropdown to show all options
+                            const yearSelect = document.getElementById('year');
+                            const yearOptions = Array.from(yearSelect.options);
+                            yearOptions.forEach(option => {
+                                option.style.display = 'block';
+                                option.disabled = false;
+                            });
+                        }
+
+                        // Validate semester/year selection (prevent future semesters)
+                        function validateSemesterYear() {
+                            const semester = document.getElementById('semester').value;
+                            const year = parseInt(document.getElementById('year').value);
+                            if (!semester || !year) return true;
+
+                            const now = new Date();
+                            const currentYear = now.getFullYear();
+                            const currentMonth = now.getMonth() + 1; // 1-12
+
+                            // Determine current semester
+                            let currentSemester;
+                            if (currentMonth >= 1 && currentMonth <= 5) currentSemester = 'Spring';
+                            else if (currentMonth >= 6 && currentMonth <= 7) currentSemester = 'Summer';
+                            else if (currentMonth >= 8 && currentMonth <= 12) currentSemester = 'Fall';
+
+                            const semesterOrder = { 'Spring': 1, 'Summer': 2, 'Fall': 3, 'Winter': 4 };
+
+                            // Check if future semester
+                            if (year > currentYear) {
+                                const notification = document.createElement('div');
+                                notification.style.cssText = `
+                                    position: fixed; top: 20px; right: 20px; background: #EF4444; color: white;
+                                    padding: 1rem 1.5rem; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+                                    font-weight: 500; z-index: 10000; animation: slideIn 0.3s ease;
+                                `;
+                                notification.textContent = '⚠️ Cannot select future years';
+                                document.body.appendChild(notification);
+                                setTimeout(() => notification.remove(), 3000);
+                                document.getElementById('year').value = '';
+                                return false;
+                            }
+
+                            if (year === currentYear && semesterOrder[semester] > semesterOrder[currentSemester]) {
+                                const notification = document.createElement('div');
+                                notification.style.cssText = `
+                                    position: fixed; top: 20px; right: 20px; background: #EF4444; color: white;
+                                    padding: 1rem 1.5rem; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+                                    font-weight: 500; z-index: 10000; animation: slideIn 0.3s ease;
+                                `;
+                                notification.textContent = `⚠️ Cannot select future semesters (currently ${currentSemester} ${currentYear})`;
+                                document.body.appendChild(notification);
+                                setTimeout(() => notification.remove(), 3000);
+                                document.getElementById('semester').value = '';
+                                return false;
+                            }
+
+                            return true;
+                        }
+
+                        // Re-fetch professors when semester or year changes
+                        const semesterInput = document.getElementById('semester');
+                        const yearInput = document.getElementById('year');
+
+                        if (semesterInput) {
+                            semesterInput.addEventListener('change', function () {
+                                console.log(`🔍 [FRONTEND] Semester changed to: ${this.value}`);
+                                if (validateSemesterYear() && classCodeInput.value.trim()) {
+                                    fetchCourseData(); // Refetch with new semester filter
+                                }
+                            });
+                        }
+
+                        if (yearInput) {
+                            yearInput.addEventListener('change', function () {
+                                console.log(`🔍 [FRONTEND] Year changed to: ${this.value}`);
+                                if (validateSemesterYear() && classCodeInput.value.trim()) {
+                                    fetchCourseData(); // Refetch with new year filter
+                                }
+                            });
+                        }
                     }
 
                     // Initialize drag-and-drop upload
