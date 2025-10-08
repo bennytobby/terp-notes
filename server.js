@@ -1897,6 +1897,17 @@ app.get("/download/:filename", async (req, res) => {
             });
         }
 
+        // Increment download count
+        if (fileDoc) {
+            await client
+                .db(fileCollection.db)
+                .collection(fileCollection.collection)
+                .updateOne(
+                    { filename: filename },
+                    { $inc: { downloadCount: 1 } }
+                );
+        }
+
         const data = await s3.getObject(params).promise();
 
         let downloadFilename = filename;
@@ -2221,6 +2232,8 @@ app.post("/upload", uploadLimiter, upload.array("documents", 50), async (req, re
                     semester: req.body.semester || "",
                     year: req.body.year || "",
                     professor: req.body.professor || "",
+                    category: req.body.category || "Other", // New: File category
+                    downloadCount: 0, // New: Track downloads
                     virusScanStatus: existingFile ? existingFile.virusScanStatus : 'pending', // pending, clean, infected
                     virusScanDate: existingFile ? existingFile.virusScanDate : null,
                     virusScanDetails: existingFile ? existingFile.virusScanDetails : null

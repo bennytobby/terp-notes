@@ -43,6 +43,21 @@
                                 <input type="text" id="searchInput" placeholder="Search notes..." />
                                 <button type="button" onclick="applyFilters()">Search</button>
                             </div>
+
+                            <!-- Sort Options -->
+                            <div style="display: flex; align-items: center; gap: 0.75rem; margin: 0.5rem 0;">
+                                <label style="color: #374151; font-weight: 600; font-size: 0.875rem;">Sort by:</label>
+                                <select id="sortFilter" class="filter-select" onchange="applyFilters()"
+                                    style="flex: 0 0 auto; min-width: 180px;">
+                                    <option value="newest">📅 Newest First</option>
+                                    <option value="oldest">📅 Oldest First</option>
+                                    <option value="popular">🔥 Most Downloaded</option>
+                                    <option value="name">📝 Name (A-Z)</option>
+                                    <option value="size-desc">📊 Size (Largest)</option>
+                                    <option value="size-asc">📊 Size (Smallest)</option>
+                                </select>
+                            </div>
+
                             <div
                                 style="display: flex; justify-content: space-between; align-items: center; margin: 0.5rem 0; flex-wrap: wrap; gap: 1rem;">
                                 <p style="color: #6B7280; font-size: 0.875rem; margin: 0;">
@@ -88,6 +103,20 @@
                                             <%= code %>
                                         </option>
                                         <% }); %>
+                                </select>
+
+                                <select id="categoryFilter" class="filter-select" onchange="applyFilters()">
+                                    <option value="">All Categories</option>
+                                    <option value="Exam">📝 Exam</option>
+                                    <option value="Lecture Notes">📓 Lecture Notes</option>
+                                    <option value="Homework">📋 Homework</option>
+                                    <option value="Study Guide">📚 Study Guide</option>
+                                    <option value="Cheat Sheet">📄 Cheat Sheet</option>
+                                    <option value="Project">💻 Project</option>
+                                    <option value="Lab">🔬 Lab</option>
+                                    <option value="Textbook">📖 Textbook</option>
+                                    <option value="Practice Problems">✏️ Practice Problems</option>
+                                    <option value="Other">📎 Other</option>
                                 </select>
 
                                 <!-- Year Multi-Select Dropdown -->
@@ -156,17 +185,128 @@
                                                 data-major="<%= file.major || '' %>"
                                                 data-semester="<%= file.semester || '' %>"
                                                 data-year="<%= file.year || '' %>"
+                                                data-category="<%= (file.category || '').toLowerCase() %>"
                                                 data-professor="<%= (file.professor || '').toLowerCase() %>"
                                                 data-uploader="<%= file.uploadedBy %>"
                                                 data-name="<%= file.originalName.toLowerCase() %>"
-                                                data-date="<%= new Date(file.uploadDate).getTime() %>">
+                                                data-date="<%= new Date(file.uploadDate).getTime() %>"
+                                                data-downloads="<%= file.downloadCount || 0 %>"
+                                                data-size="<%= file.size || 0 %>">
                                                 <div class="file-header">
-                                                    <div class="file-icon">📄</div>
-                                                    <div class="file-info">
-                                                        <h3>
-                                                            <%= file.originalName %>
-                                                        </h3>
-                                                    </div>
+                                                    <% 
+                                                        // Dynamic file icon based on mimetype
+                                                        let fileIcon = '📄';
+                                                        let fileTypeLabel = '';
+                                                        if (file.mimetype) {
+                                                            if (file.mimetype.includes('pdf')) {
+                                                                fileIcon = '📕';
+                                                                fileTypeLabel = 'PDF';
+                                                            } else if (file.mimetype.includes('word') || file.mimetype.includes('document')) {
+                                                                fileIcon = '📘';
+                                                                fileTypeLabel = 'DOC';
+                                                            } else if (file.mimetype.includes('presentation') || file.mimetype.includes('powerpoint')) {
+                                                                fileIcon = '📙';
+                                                                fileTypeLabel = 'PPT';
+                                                            } else if (file.mimetype.includes('spreadsheet') || file.mimetype.includes('excel')) {
+                                                                fileIcon = '📗';
+                                                                fileTypeLabel = 'XLS';
+                                                            } else if (file.mimetype.includes('image')) {
+                                                                fileIcon = '🖼️';
+                                                                fileTypeLabel = 'IMG';
+                                                            } else if (file.mimetype.includes('text')) {
+                                                                fileIcon = '📃';
+                                                                fileTypeLabel = 'TXT';
+                                                            } else if (file.mimetype.includes('zip') || file.mimetype.includes('compressed')) {
+                                                                fileIcon = '📦';
+                                                                fileTypeLabel = 'ZIP';
+                                                            } else if (file.mimetype.includes('python')) {
+                                                                fileIcon = '🐍';
+                                                                fileTypeLabel = 'PY';
+                                                            } else if (file.mimetype.includes('java')) {
+                                                                fileIcon = '☕';
+                                                                fileTypeLabel = 'JAVA';
+                                                            }
+                                                        }
+                                                    %>
+                                                        <div class="file-icon" style="font-size: 2.5rem;">
+                                                            <%= fileIcon %>
+                                                        </div>
+                                                        <div class="file-info">
+                                                            <h3 style="margin: 0 0 0.5rem 0; font-size: 1rem;">
+                                                                <%= file.originalName %>
+                                                            </h3>
+                                                            <div
+                                                                style="display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center;">
+                                                                <% if (fileTypeLabel) { %>
+                                                                    <span
+                                                                        style="background: #E0E7FF; color: #4338CA; padding: 2px 8px; border-radius: 4px; font-size: 0.7rem; font-weight: 600;">
+                                                                        <%= fileTypeLabel %>
+                                                                    </span>
+                                                                    <% } %>
+                                                                        <% if (file.category) { let
+                                                                            categoryClass='category-other' ; if
+                                                                            (file.category==='Exam' ) {
+                                                                                categoryClass = 'category-exam';
+                                                                            } else if
+                                                                            (file.category==='Lecture Notes' ) {
+                                                                            categoryClass='category-lecture' ; } else if
+                                                                            (file.category==='Homework' ) {
+                                                                            categoryClass='category-homework' ; } else
+                                                                            if (file.category==='Study Guide' ) {
+                                                                            categoryClass='category-study' ; } else if
+                                                                            (file.category==='Cheat Sheet' ) {
+                                                                            categoryClass='category-cheat' ; } else if
+                                                                            (file.category==='Project' ) {
+                                                                            categoryClass='category-project' ; } else if
+                                                                            (file.category==='Lab' ) {
+                                                                            categoryClass='category-lab' ; } %>
+                                                                            <span class="category-badge <%= categoryClass %>">
+                                                                                <%= file.category %>
+                                                                            </span>
+                                                                            <% } %>
+                                                                                <% if (file.downloadCount &&
+                                                                                    file.downloadCount> 0) { %>
+                                                                                    <span
+                                                                                        style="background: #FEF3C7; color: #92400E; padding: 2px 8px; border-radius: 4px; font-size: 0.7rem; font-weight: 600;">
+                                                                                        <% if (file.downloadCount >= 50) { %>
+                                                                                            🔥 <%= file.downloadCount %> downloads
+                                                                                        <% } else if (file.downloadCount >= 20) { %>
+                                                                                            ⭐ <%= file.downloadCount %> downloads
+                                                                                        <% } else { %>
+                                                                                            <%= file.downloadCount %> downloads
+                                                                                        <% } %>
+                                                                                    </span>
+                                                                                    <% } %>
+                                                                                        <% 
+                                                                                            // Calculate days ago
+                                                                                            const uploadDate = new Date(file.uploadDate);
+                                                                                            const now = new Date();
+                                                                                            const daysAgo = Math.floor((now - uploadDate) / (1000 * 60 * 60 * 24));
+                                                                                        %>
+                                                                                            <% if (daysAgo <= 7) { %>
+                                                                                                <span
+                                                                                                    style="background: #D1FAE5; color: #065F46; padding: 2px 8px; border-radius: 4px; font-size: 0.7rem; font-weight: 600;">
+                                                                                                    🆕 New
+                                                                                                </span>
+                                                                                                <% } %>
+                                                                                                    <% 
+                                                                                                        const sizeKB = file.size / 1024;
+                                                                                                        let sizeClass = 'size-normal';
+                                                                                                        let sizeLabel = '';
+                                                                                                        if (sizeKB < 1024) {
+                                                                                                            sizeLabel = sizeKB.toFixed(0) + ' KB';
+                                                                                                        } else {
+                                                                                                            sizeLabel = (sizeKB / 1024).toFixed(1) + ' MB';
+                                                                                                            if (sizeKB / 1024 > 10) {
+                                                                                                                sizeClass = 'size-large';
+                                                                                                            }
+                                                                                                        }
+                                                                                                    %>
+                                                                                                        <span class="size-badge <%= sizeClass %>">
+                                                                                                            <%= sizeLabel %>
+                                                                                                        </span>
+                                                            </div>
+                                                        </div>
                                                 </div>
 
                                                 <div class="file-meta">
@@ -391,6 +531,27 @@
                                         </div>
 
                                         <div class="form-group">
+                                            <label for="category" class="form-label">Category<span
+                                                    class="required">*</span></label>
+                                            <select name="category" id="category" required class="form-input">
+                                                <option value="">Select category</option>
+                                                <option value="Exam">📝 Exam</option>
+                                                <option value="Lecture Notes">📓 Lecture Notes</option>
+                                                <option value="Homework">📋 Homework</option>
+                                                <option value="Study Guide">📚 Study Guide</option>
+                                                <option value="Cheat Sheet">📄 Cheat Sheet</option>
+                                                <option value="Project">💻 Project</option>
+                                                <option value="Lab">🔬 Lab</option>
+                                                <option value="Textbook">📖 Textbook</option>
+                                                <option value="Practice Problems">✏️ Practice Problems</option>
+                                                <option value="Other">📎 Other</option>
+                                            </select>
+                                            <small class="form-help">
+                                                Help others find your notes by categorizing them
+                                            </small>
+                                        </div>
+
+                                        <div class="form-group">
                                             <label for="description" class="form-label">Description<span
                                                     class="required">*</span></label>
                                             <textarea name="description" id="description" class="form-textarea" required
@@ -479,56 +640,150 @@
                         return;
                     }
 
-                    // Group files by major and then by course
+                    // Group files: Major > Semester/Year > Course > Category > Files
                     const grouped = {};
-                    fileCards.forEach(card => {
+                    fileCards.forEach(function (card) {
                         const major = card.dataset.major || 'Other';
+                        const semester = card.dataset.semester || 'Unknown Semester';
+                        const year = card.dataset.year || 'Unknown Year';
                         const classCode = card.dataset.class || 'Unknown';
+                        const category = card.dataset.category || 'other';
 
-                        if (!grouped[major]) {
-                            grouped[major] = {};
-                        }
-                        if (!grouped[major][classCode]) {
-                            grouped[major][classCode] = [];
-                        }
-                        grouped[major][classCode].push(card);
+                        const semesterKey = `${semester} ${year}`;
+
+                        if (!grouped[major]) grouped[major] = {};
+                        if (!grouped[major][semesterKey]) grouped[major][semesterKey] = {};
+                        if (!grouped[major][semesterKey][classCode]) grouped[major][semesterKey][classCode] = {};
+                        if (!grouped[major][semesterKey][classCode][category]) grouped[major][semesterKey][classCode][category] = [];
+
+                        grouped[major][semesterKey][classCode][category].push(card);
                     });
 
-                    // Generate HTML
-                    let html = '<div class="expand-collapse-all"><button onclick="toggleAllGroups()">Expand All</button></div>';
+                    // Sort semesters chronologically (newest first)
+                    function sortSemesters(semesters) {
+                        const semesterOrder = { 'Spring': 1, 'Summer': 2, 'Fall': 3, 'Winter': 4 };
+                        return semesters.sort(function (a, b) {
+                            const aParts = a.split(' ');
+                            const bParts = b.split(' ');
+                            const semA = aParts[0];
+                            const yearA = aParts[1];
+                            const semB = bParts[0];
+                            const yearB = bParts[1];
+                            if (yearB !== yearA) return parseInt(yearB) - parseInt(yearA);
+                            return (semesterOrder[semB] || 0) - (semesterOrder[semA] || 0);
+                        });
+                    }
 
-                    Object.keys(grouped).sort().forEach(major => {
-                        const majorFileCount = Object.values(grouped[major]).reduce((sum, files) => sum + files.length, 0);
-                        const majors = Object.keys(grouped[major]).sort();
+                    // Category icon mapping
+                    const categoryIcons = {
+                        'exam': '📝',
+                        'lecture notes': '📓',
+                        'homework': '📋',
+                        'study guide': '📚',
+                        'cheat sheet': '📄',
+                        'project': '💻',
+                        'lab': '🔬',
+                        'textbook': '📖',
+                        'practice problems': '✏️',
+                        'other': '📎'
+                    };
+
+                    // Generate HTML
+                    let html = '<div class="expand-collapse-all" style="margin-bottom: 1rem;"><button onclick="toggleAllGroups()" style="background: var(--umd-red); color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-weight: 600;">Expand All</button></div>';
+
+                    Object.keys(grouped).sort().forEach(function (major) {
+                        const majorFileCount = Object.values(grouped[major]).reduce(function (sum, semesters) {
+                            return sum + Object.values(semesters).reduce(function (sum2, courses) {
+                                return sum2 + Object.values(courses).reduce(function (sum3, categories) {
+                                    return sum3 + Object.values(categories).reduce(function (sum4, files) {
+                                        return sum4 + files.length;
+                                    }, 0);
+                                }, 0);
+                            }, 0);
+                        }, 0);
 
                         html += `
-                            <div class="major-group">
-                                <div class="major-header" onclick="toggleMajor(this)">
-                                    <div>
-                                        <span class="expand-icon">▶</span>
-                                        <strong>${major}</strong>
+                            <div class="major-group" style="margin-bottom: 1rem; border: 2px solid #E5E7EB; border-radius: 12px; overflow: hidden; background: white;">
+                                <div class="major-header" onclick="toggleMajor(this)" style="background: linear-gradient(135deg, #DC143C 0%, #A50E2A 100%); color: white; padding: 1rem 1.25rem; cursor: pointer; display: flex; justify-content: space-between; align-items: center; transition: all 0.2s;">
+                                    <div style="display: flex; align-items: center; gap: 0.75rem;">
+                                        <span class="expand-icon" style="font-size: 0.875rem; transition: transform 0.2s;">▶</span>
+                                        <strong style="font-size: 1.125rem;">📁 ${major}</strong>
                                     </div>
-                                    <span class="file-count">${majorFileCount} file${majorFileCount !== 1 ? 's' : ''}</span>
+                                    <span class="file-count" style="background: rgba(255,255,255,0.2); padding: 4px 12px; border-radius: 12px; font-size: 0.875rem; font-weight: 600;">${majorFileCount} file${majorFileCount !== 1 ? 's' : ''}</span>
                                 </div>
-                                <div class="course-list">
+                                <div class="semester-list" style="display: none; padding: 1rem;">
                         `;
 
-                        majors.forEach(course => {
-                            const files = grouped[major][course];
+                        // Sort semesters chronologically
+                        const sortedSemesters = sortSemesters(Object.keys(grouped[major]));
+
+                        sortedSemesters.forEach(function (semesterKey) {
+                            const courses = grouped[major][semesterKey];
+                            const semesterFileCount = Object.values(courses).reduce(function (sum, courses) {
+                                return sum + Object.values(courses).reduce(function (sum2, categories) {
+                                    return sum2 + Object.values(categories).reduce(function (sum3, files) {
+                                        return sum3 + files.length;
+                                    }, 0);
+                                }, 0);
+                            }, 0);
+
                             html += `
-                                <div class="course-group">
-                                    <div class="course-header" onclick="toggleCourse(this)">
-                                        <div>
-                                            <span class="expand-icon">▶</span>
-                                            <strong>${course}</strong>
+                                <div class="semester-group" style="margin-bottom: 0.75rem; border: 1px solid #E5E7EB; border-radius: 8px; overflow: hidden;">
+                                    <div class="semester-header" onclick="toggleSemester(this)" style="background: #F9FAFB; padding: 0.875rem 1rem; cursor: pointer; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #E5E7EB;">
+                                        <div style="display: flex; align-items: center; gap: 0.625rem;">
+                                            <span class="expand-icon" style="font-size: 0.75rem; transition: transform 0.2s;">▶</span>
+                                            <strong style="color: #1F2937; font-size: 1rem;">📅 ${semesterKey}</strong>
                                         </div>
-                                        <span class="file-count">${files.length} file${files.length !== 1 ? 's' : ''}</span>
+                                        <span class="file-count" style="background: #E0E7FF; color: #4338CA; padding: 3px 10px; border-radius: 10px; font-size: 0.8rem; font-weight: 600;">${semesterFileCount} file${semesterFileCount !== 1 ? 's' : ''}</span>
                                     </div>
-                                    <div class="course-files">
-                                        ${files.map(card => createGroupedFileCard(card)).join('')}
-                                    </div>
-                                </div>
+                                    <div class="course-list" style="display: none; padding: 0.75rem;">
                             `;
+
+                            Object.keys(courses).sort().forEach(function (course) {
+                                const categories = courses[course];
+                                const courseFileCount = Object.values(categories).reduce(function (sum, categories) {
+                                    return sum + Object.values(categories).reduce(function (sum2, files) {
+                                        return sum2 + files.length;
+                                    }, 0);
+                                }, 0);
+
+                                html += `
+                                    <div class="course-group" style="margin-bottom: 0.625rem; border: 1px solid #E5E7EB; border-radius: 6px; overflow: hidden;">
+                                        <div class="course-header" onclick="toggleCourse(this)" style="background: #FFFFFF; padding: 0.75rem; cursor: pointer; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #F3F4F6;">
+                                            <div style="display: flex; align-items: center; gap: 0.5rem;">
+                                                <span class="expand-icon" style="font-size: 0.7rem; transition: transform 0.2s;">▶</span>
+                                                <strong style="color: #374151; font-size: 0.9375rem;">💼 ${course}</strong>
+                                            </div>
+                                            <span class="file-count" style="background: #F3F4F6; color: #6B7280; padding: 2px 8px; border-radius: 8px; font-size: 0.75rem; font-weight: 600;">${courseFileCount}</span>
+                                        </div>
+                                        <div class="category-list" style="display: none; padding: 0.5rem;">
+                                `;
+
+                                Object.keys(categories).sort().forEach(function (category) {
+                                    const files = categories[category];
+                                    const categoryIcon = categoryIcons[category] || '📎';
+                                    const categoryLabel = category.split(' ').map(function (word) { return word.charAt(0).toUpperCase() + word.slice(1); }).join(' ');
+
+                                    html += `
+                                        <div class="category-group" style="margin-bottom: 0.5rem;">
+                                            <div class="category-header" onclick="toggleCategory(this)" style="background: #F9FAFB; padding: 0.625rem; cursor: pointer; display: flex; justify-content: space-between; align-items: center; border-radius: 4px; border: 1px solid #F3F4F6;">
+                                                <div style="display: flex; align-items: center; gap: 0.375rem;">
+                                                    <span class="expand-icon" style="font-size: 0.65rem; transition: transform 0.2s;">▶</span>
+                                                    <span style="color: #4B5563; font-size: 0.875rem; font-weight: 600;">${categoryIcon} ${categoryLabel}</span>
+                                                </div>
+                                                <span style="background: #E5E7EB; color: #374151; padding: 2px 6px; border-radius: 6px; font-size: 0.7rem; font-weight: 600;">${files.length}</span>
+                                            </div>
+                                            <div class="category-files" style="display: none; padding: 0.5rem 0 0 1.5rem;">
+                                                ${files.map(function (card) { return createGroupedFileCard(card); }).join('')}
+                                            </div>
+                                        </div>
+                                    `;
+                                });
+
+                                html += '</div></div>';
+                            });
+
+                            html += '</div></div>';
                         });
 
                         html += '</div></div>';
@@ -597,32 +852,42 @@
 
                 // Toggle major accordion
                 function toggleMajor(header) {
-                    const courseList = header.nextElementSibling;
+                    const semesterList = header.nextElementSibling;
                     const icon = header.querySelector('.expand-icon');
-                    header.classList.toggle('expanded');
-                    courseList.classList.toggle('show');
+                    const isCurrentlyExpanded = semesterList.style.display !== 'none';
 
-                    // Rotate icon
-                    if (header.classList.contains('expanded')) {
-                        icon.style.transform = 'rotate(90deg)';
-                    } else {
-                        icon.style.transform = 'rotate(0deg)';
-                    }
+                    semesterList.style.display = isCurrentlyExpanded ? 'none' : 'block';
+                    icon.style.transform = isCurrentlyExpanded ? 'rotate(0deg)' : 'rotate(90deg)';
                 }
 
                 // Toggle course accordion
                 function toggleCourse(header) {
+                    const categoryList = header.nextElementSibling;
+                    const icon = header.querySelector('.expand-icon');
+                    const isCurrentlyExpanded = categoryList.style.display !== 'none';
+
+                    categoryList.style.display = isCurrentlyExpanded ? 'none' : 'block';
+                    icon.style.transform = isCurrentlyExpanded ? 'rotate(0deg)' : 'rotate(90deg)';
+                }
+
+                // Toggle semester accordion
+                function toggleSemester(header) {
+                    const courseList = header.nextElementSibling;
+                    const icon = header.querySelector('.expand-icon');
+                    const isCurrentlyExpanded = courseList.style.display !== 'none';
+
+                    courseList.style.display = isCurrentlyExpanded ? 'none' : 'block';
+                    icon.style.transform = isCurrentlyExpanded ? 'rotate(0deg)' : 'rotate(90deg)';
+                }
+
+                // Toggle category accordion
+                function toggleCategory(header) {
                     const fileList = header.nextElementSibling;
                     const icon = header.querySelector('.expand-icon');
-                    header.classList.toggle('expanded');
-                    fileList.classList.toggle('show');
+                    const isCurrentlyExpanded = fileList.style.display !== 'none';
 
-                    // Rotate icon
-                    if (header.classList.contains('expanded')) {
-                        icon.style.transform = 'rotate(90deg)';
-                    } else {
-                        icon.style.transform = 'rotate(0deg)';
-                    }
+                    fileList.style.display = isCurrentlyExpanded ? 'none' : 'block';
+                    icon.style.transform = isCurrentlyExpanded ? 'rotate(0deg)' : 'rotate(90deg)';
                 }
 
                 // Toggle all groups (expand/collapse all)
@@ -759,6 +1024,7 @@
                     const searchTerm = document.getElementById('searchInput').value.toLowerCase();
                     const majorFilter = document.getElementById('majorFilter').value;
                     const classFilter = document.getElementById('classFilter').value;
+                    const categoryFilter = document.getElementById('categoryFilter').value;
                     const professorFilter = document.getElementById('professorFilter').value.toLowerCase();
                     const sortBy = document.getElementById('sortFilter').value;
                     const myFilesOnly = document.getElementById('myFilesToggle').checked;
@@ -777,12 +1043,13 @@
                         // "My Files" filter - show only files uploaded by current user
                         const matchesMyFiles = !myFilesOnly || file.uploadedBy === currentUserid;
 
-                        // Search filter - searches by filename, uploader, class, description, and professor
+                        // Search filter - searches by filename, uploader, class, description, category, and professor
                         const matchesSearch = !searchTerm ||
                             file.originalName.toLowerCase().includes(searchTerm) ||
                             file.uploadedBy.toLowerCase().includes(searchTerm) ||
                             (file.classCode && file.classCode.toLowerCase().includes(searchTerm)) ||
                             (file.description && file.description.toLowerCase().includes(searchTerm)) ||
+                            (file.category && file.category.toLowerCase().includes(searchTerm)) ||
                             (file.professor && file.professor.toLowerCase().includes(searchTerm));
 
                         // Major filter
@@ -790,6 +1057,9 @@
 
                         // Class filter
                         const matchesClass = !classFilter || file.classCode === classFilter;
+
+                        // Category filter
+                        const matchesCategory = !categoryFilter || file.category === categoryFilter;
 
                         // Year filter (multi-select)
                         const matchesYear = selectedYears.length === 0 || selectedYears.includes(file.year);
@@ -801,7 +1071,7 @@
                         const matchesProfessor = !professorFilter ||
                             (file.professor && file.professor.toLowerCase().includes(professorFilter));
 
-                        return matchesMyFiles && matchesSearch && matchesMajor && matchesClass && matchesYear && matchesSemester && matchesProfessor;
+                        return matchesMyFiles && matchesSearch && matchesMajor && matchesClass && matchesCategory && matchesYear && matchesSemester && matchesProfessor;
                     });
 
                     // Sort files
@@ -809,8 +1079,14 @@
                         switch (sortBy) {
                             case 'oldest':
                                 return new Date(a.uploadDate) - new Date(b.uploadDate);
+                            case 'popular':
+                                return (b.downloadCount || 0) - (a.downloadCount || 0);
                             case 'name':
                                 return a.originalName.localeCompare(b.originalName);
+                            case 'size-desc':
+                                return (b.size || 0) - (a.size || 0);
+                            case 'size-asc':
+                                return (a.size || 0) - (b.size || 0);
                             case 'newest':
                             default:
                                 return new Date(b.uploadDate) - new Date(a.uploadDate);

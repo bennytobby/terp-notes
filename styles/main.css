@@ -2061,6 +2061,23 @@ button:disabled {
   letter-spacing: 0.5px;
 }
 
+/* Category Badges */
+.category-badge {
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 0.7rem;
+  font-weight: 600;
+}
+
+.category-exam { background: #FEE2E2; color: #DC2626; }
+.category-lecture { background: #DBEAFE; color: #2563EB; }
+.category-homework { background: #EDE9FE; color: #7C3AED; }
+.category-study { background: #D1FAE5; color: #059669; }
+.category-cheat { background: #FFEDD5; color: #EA580C; }
+.category-project { background: #CFFAFE; color: #0891B2; }
+.category-lab { background: #FAE8FF; color: #C026D3; }
+.category-other { background: #F3F4F6; color: #6B7280; }
+
 .scan-clean {
   background: #D1FAE5;
   color: #065F46;
