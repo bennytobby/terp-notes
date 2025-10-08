@@ -1206,8 +1206,14 @@
                                 courseInfo.style.color = '#9CA3AF';
                             });
 
+                        // Flag to prevent input/change events when selecting from dropdown
+                        let isSelectingFromDropdown = false;
+
                         // Auto-uppercase and show dropdown
                         classCodeInput.addEventListener('input', function () {
+                            // Skip if we're selecting from dropdown
+                            if (isSelectingFromDropdown) return;
+
                             this.value = this.value.toUpperCase();
                             const searchTerm = this.value.trim();
 
@@ -1340,14 +1346,28 @@
 
                             // Add click handlers
                             coursesDropdown.querySelectorAll('.custom-dropdown-item').forEach((item, index) => {
-                                item.addEventListener('click', function () {
+                                item.addEventListener('mousedown', function (e) {
+                                    e.preventDefault(); // Prevent the input from losing focus
+
                                     const courseId = this.dataset.courseId;
+
+                                    // Set flag to prevent input/change events
+                                    isSelectingFromDropdown = true;
+
+                                    // Update input value
                                     classCodeInput.value = courseId;
+                                    classCodeInput.blur(); // Commit the value
+
+                                    // Hide dropdown
                                     coursesDropdown.classList.remove('show');
 
-                                    // Trigger change event to fetch professors
-                                    const event = new Event('change', { bubbles: true });
-                                    classCodeInput.dispatchEvent(event);
+                                    // Fetch course data directly
+                                    fetchCourseData();
+
+                                    // Reset flag after a short delay
+                                    setTimeout(() => {
+                                        isSelectingFromDropdown = false;
+                                    }, 100);
                                 });
 
                                 item.addEventListener('mouseenter', function () {
@@ -1622,6 +1642,9 @@
 
                         // Trigger professor fetch when course changes
                         classCodeInput.addEventListener('change', function () {
+                            // Skip if we're selecting from dropdown
+                            if (isSelectingFromDropdown) return;
+
                             console.log(`🔍 [FRONTEND] Course changed to: ${this.value}`);
                             fetchCourseData();
                         });
