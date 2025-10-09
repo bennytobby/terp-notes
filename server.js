@@ -1691,7 +1691,7 @@ app.post('/resend-verification', async (req, res) => {
             `
         };
 
-        // Send email using modern method (Resend primary, Gmail fallback)
+        // Send email using modern method (Resend primary, Gmail fallback) - ASYNC, don't wait
         sendEmailModern(mailOptions)
             .then((result) => {
                 console.log("✅ Resend verification email sent successfully via", result.method);
@@ -1703,7 +1703,10 @@ app.post('/resend-verification', async (req, res) => {
                 console.error("📧 Resend API Key:", process.env.RESEND_API_KEY ? "Set" : "Missing");
                 console.error("📧 Gmail User:", process.env.EMAIL_USER ? "Set" : "Missing");
                 console.error("📧 Gmail Pass:", process.env.EMAIL_PASS ? "Set" : "Missing");
-        });
+            });
+        
+        // Don't await the email sending - return response immediately
+        console.log("📧 Email sending initiated in background...");
 
         res.render('success', {
             title: "Verification Email Sent",
@@ -2463,7 +2466,7 @@ app.post('/registerSubmit', registerLimiter, async function (req, res) {
             `
         };
 
-        // Send email using modern method (Resend primary, Gmail fallback)
+        // Send email using modern method (Resend primary, Gmail fallback) - ASYNC, don't wait
         sendEmailModern(mailOptions)
             .then((result) => {
                 console.log("✅ Verification email sent successfully via", result.method);
@@ -2475,7 +2478,10 @@ app.post('/registerSubmit', registerLimiter, async function (req, res) {
                 console.error("📧 Resend API Key:", process.env.RESEND_API_KEY ? "Set" : "Missing");
                 console.error("📧 Gmail User:", process.env.EMAIL_USER ? "Set" : "Missing");
                 console.error("📧 Gmail Pass:", process.env.EMAIL_PASS ? "Set" : "Missing");
-        });
+            });
+        
+        // Don't await the email sending - return response immediately
+        console.log("📧 Email sending initiated in background...");
 
         return res.render('success', {
             title: "Check Your Email",
