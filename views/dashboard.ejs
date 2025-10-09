@@ -67,13 +67,17 @@
                                     <!-- View Toggle -->
                                     <div
                                         style="display: flex; gap: 0.5rem; background: #F3F4F6; padding: 4px; border-radius: 8px;">
-                                        <button id="gridViewBtn" onclick="switchView('grid')"
+                                        <button id="groupedViewBtn" onclick="switchView('grouped')"
                                             style="padding: 6px 12px; border: none; background: var(--umd-red); color: white; border-radius: 6px; cursor: pointer; font-size: 0.875rem; font-weight: 600; transition: all 0.2s;">
+                                            📁 Grouped
+                                        </button>
+                                        <button id="gridViewBtn" onclick="switchView('grid')"
+                                            style="padding: 6px 12px; border: none; background: transparent; color: #6B7280; border-radius: 6px; cursor: pointer; font-size: 0.875rem; font-weight: 600; transition: all 0.2s;">
                                             📊 Grid
                                         </button>
-                                        <button id="groupedViewBtn" onclick="switchView('grouped')"
+                                        <button id="listViewBtn" onclick="switchView('list')"
                                             style="padding: 6px 12px; border: none; background: transparent; color: #6B7280; border-radius: 6px; cursor: pointer; font-size: 0.875rem; font-weight: 600; transition: all 0.2s;">
-                                            📁 Grouped
+                                            📋 List
                                         </button>
                                     </div>
                                     <label
@@ -271,8 +275,8 @@
                                     <p>Be the first to share notes for your class!</p>
                                 </div>
                                 <% } else { %>
-                                    <!-- Grid View (Default) -->
-                                    <div id="gridView" class="file-grid">
+                                    <!-- Grid View (Hidden by default) -->
+                                    <div id="gridView" class="file-grid" style="display: none;">
                                         <% files.forEach(file=> { %>
                                             <div class="file-card animate-fade-in" data-class="<%= file.classCode %>"
                                                 data-major="<%= file.major || '' %>"
@@ -478,8 +482,13 @@
                                             <% }); %>
                                     </div>
 
-                                    <!-- Grouped View (Hidden by default) -->
-                                    <div id="groupedView" class="file-grid" style="display: none;">
+                                    <!-- Grouped View (Default) -->
+                                    <div id="groupedView" class="file-grid" style="display: block;">
+                                        <!-- This will be populated by JavaScript -->
+                                    </div>
+
+                                    <!-- List View (Hidden by default) -->
+                                    <div id="listView" class="file-list" style="display: none;">
                                         <!-- This will be populated by JavaScript -->
                                     </div>
                                     <% } %>
@@ -665,7 +674,7 @@
                 const allFilesData = JSON.parse(document.getElementById('filesData').textContent);
 
                 // Current view mode
-                let currentView = localStorage.getItem('dashboardView') || 'grid';
+                let currentView = localStorage.getItem('dashboardView') || 'grouped';
 
                 // Initialize view on page load
                 document.addEventListener('DOMContentLoaded', function () {
@@ -771,12 +780,14 @@
                     updateExpandCollapseButtonText();
                 }
 
-                // Switch between grid and grouped views
+                // Switch between grid, grouped, and list views
                 function switchView(view, savePreference = true) {
                     const gridView = document.getElementById('gridView');
                     const groupedView = document.getElementById('groupedView');
+                    const listView = document.getElementById('listView');
                     const gridBtn = document.getElementById('gridViewBtn');
                     const groupedBtn = document.getElementById('groupedViewBtn');
+                    const listBtn = document.getElementById('listViewBtn');
                     const activeFiltersContainer = document.getElementById('activeFilters');
 
                     // Debug: Log container widths before switching
@@ -801,10 +812,13 @@
                     if (view === 'grid') {
                         gridView.style.display = 'grid';
                         groupedView.style.display = 'none';
+                        listView.style.display = 'none';
                         gridBtn.style.background = 'var(--umd-red)';
                         gridBtn.style.color = 'white';
                         groupedBtn.style.background = 'transparent';
                         groupedBtn.style.color = '#6B7280';
+                        listBtn.style.background = 'transparent';
+                        listBtn.style.color = '#6B7280';
 
                         // Show all filters in grid view
                         if (categoryWrapper) categoryWrapper.style.display = 'block';
@@ -819,13 +833,16 @@
 
                         // Show active filters in grid view (if there are any)
                         updateActiveFilters();
-                    } else {
+                    } else if (view === 'grouped') {
                         gridView.style.display = 'none';
                         groupedView.style.display = 'block';
+                        listView.style.display = 'none';
                         gridBtn.style.background = 'transparent';
                         gridBtn.style.color = '#6B7280';
                         groupedBtn.style.background = 'var(--umd-red)';
                         groupedBtn.style.color = 'white';
+                        listBtn.style.background = 'transparent';
+                        listBtn.style.color = '#6B7280';
 
                         // Hide most filters in grouped view, keep only professor search
                         if (categoryWrapper) categoryWrapper.style.display = 'none';
@@ -844,6 +861,32 @@
                         setTimeout(() => {
                             smartOpenFolders();
                         }, 50);
+                    } else if (view === 'list') {
+                        gridView.style.display = 'none';
+                        groupedView.style.display = 'none';
+                        listView.style.display = 'block';
+                        gridBtn.style.background = 'transparent';
+                        gridBtn.style.color = '#6B7280';
+                        groupedBtn.style.background = 'transparent';
+                        groupedBtn.style.color = '#6B7280';
+                        listBtn.style.background = 'var(--umd-red)';
+                        listBtn.style.color = 'white';
+
+                        // Show all filters in list view
+                        if (categoryWrapper) categoryWrapper.style.display = 'block';
+                        if (semesterWrapper) semesterWrapper.style.display = 'block';
+                        if (yearWrapper) yearWrapper.style.display = 'block';
+                        if (majorWrapper) majorWrapper.style.display = 'block';
+                        if (classWrapper) classWrapper.style.display = 'block';
+                        if (professorFilter) professorFilter.style.display = 'block';
+
+                        // Show active filters in list view
+                        if (activeFiltersContainer) activeFiltersContainer.style.display = 'block';
+
+                        // Show active filters in list view (if there are any)
+                        updateActiveFilters();
+
+                        renderListView();
                     }
 
                     // Debug: Log container widths after switching
@@ -1280,6 +1323,91 @@
 
                     // Restore folder states immediately after DOM is updated
                     restoreFolderStates(persistentFolderStates);
+                }
+
+                // Render list view
+                function renderListView() {
+                    const listView = document.getElementById('listView');
+                    if (!listView) return;
+
+                    const fileCards = Array.from(document.querySelectorAll('#gridView .file-card'));
+
+                    // Check if we have any visible files (not just DOM cards)
+                    const visibleFileCards = fileCards.filter(card => card.style.display !== 'none');
+
+                    if (visibleFileCards.length === 0) {
+                        listView.innerHTML = '<div class="empty-state"><h3>No notes found</h3><p>Try different filters or search terms</p></div>';
+                        return;
+                    }
+
+                    let html = '';
+                    visibleFileCards.forEach(function(card) {
+                        const fileName = card.querySelector('h3').textContent.trim();
+                        const major = card.dataset.major;
+                        const classCode = card.dataset.class;
+                        const semester = card.dataset.semester;
+                        const year = card.dataset.year;
+                        const professor = card.dataset.professor;
+                        const uploader = card.dataset.uploader;
+                        const downloadCount = card.dataset.downloads || '0';
+
+                        // Get metadata from the original card
+                        const metaItems = card.querySelectorAll('.file-meta-item');
+                        let size = '', description = '';
+
+                        metaItems.forEach(item => {
+                            const text = item.textContent.trim();
+                            if (text.includes('Size:')) {
+                                size = text.replace('Size:', '').trim();
+                            } else if (text.includes('Description:')) {
+                                description = text.replace('Description:', '').trim();
+                            }
+                        });
+
+                        // Get file icon
+                        const fileIcon = card.querySelector('.file-icon')?.textContent?.trim() || '📄';
+
+                        // Check if file is "new" (within 7 days)
+                        const uploadDate = card.dataset.date ? new Date(parseInt(card.dataset.date)) : new Date();
+                        const now = new Date();
+                        const daysAgo = Math.floor((now - uploadDate) / (1000 * 60 * 60 * 24));
+                        const isNew = daysAgo <= 7;
+
+                        // Get download link
+                        const downloadLink = card.querySelector('.file-actions a[href^="/download"]')?.href || '#';
+                        const deleteLink = card.querySelector('.file-actions a[href^="/delete"]')?.href || '#';
+                        const reportBtn = card.querySelector('.report-btn');
+                        const filename = reportBtn?.dataset.filename || '';
+                        const originalName = reportBtn?.dataset.originalName || fileName;
+
+                        html += `
+                            <div class="file-list-item">
+                                <div class="file-list-icon">${fileIcon}</div>
+                                <div class="file-list-main">
+                                    <div class="file-list-name">${fileName}</div>
+                                    <div class="file-list-meta">
+                                        ${size ? `<span><strong>Size:</strong> ${size}</span>` : ''}
+                                        ${professor ? `<span><strong>Professor:</strong> ${professor}</span>` : ''}
+                                        ${semester && year ? `<span><strong>Term:</strong> ${semester} ${year}</span>` : ''}
+                                        <span><strong>Uploaded by:</strong> ${uploader}</span>
+                                    </div>
+                                    <div class="file-list-tags">
+                                        ${major ? `<span style="background: #E0E7FF; color: #4338CA; padding: 2px 8px; border-radius: 4px; font-size: 0.7rem; font-weight: 600;">📁 ${major}</span>` : ''}
+                                        ${classCode ? `<span style="background: #FEF2F2; color: #DC2626; padding: 2px 8px; border-radius: 4px; font-size: 0.7rem; font-weight: 600;">💼 ${classCode}</span>` : ''}
+                                        ${isNew ? `<span style="background: #D1FAE5; color: #065F46; padding: 2px 8px; border-radius: 4px; font-size: 0.7rem; font-weight: 600;">🆕 New</span>` : ''}
+                                    </div>
+                                </div>
+                                <div class="file-list-downloads" title="${downloadCount} downloads">${downloadCount}</div>
+                                <div class="file-list-actions">
+                                    <a href="${downloadLink}" class="button primary" target="_blank" style="font-size: 0.8rem; padding: 0.4rem 0.8rem;">Download</a>
+                                    ${deleteLink !== '#' ? `<a href="${deleteLink}" class="button danger" onclick="return confirm('Delete this file?')" style="font-size: 0.8rem; padding: 0.4rem 0.8rem;">Delete</a>` : ''}
+                                    <button class="button secondary small report-btn" data-filename="${filename}" data-original-name="${originalName}" style="font-size: 0.8rem; padding: 0.4rem 0.8rem;">🚩</button>
+                                </div>
+                            </div>
+                        `;
+                    });
+
+                    listView.innerHTML = html;
                 }
 
                 // Create a grouped file card from original card data
@@ -2000,6 +2128,8 @@
                     // If grouped view is active, re-render it
                     if (currentView === 'grouped') {
                         renderGroupedView();
+                    } else if (currentView === 'list') {
+                        renderListView();
                     }
 
                     // Restore dropdown states after filtering

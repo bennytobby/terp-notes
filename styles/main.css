@@ -716,6 +716,82 @@ input[type="reset"] {
   box-sizing: border-box;
 }
 
+.file-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  margin-bottom: var(--space-8);
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.file-list-item {
+  display: flex;
+  align-items: center;
+  background: white;
+  border: 1px solid #E5E7EB;
+  border-radius: 8px;
+  padding: 1rem;
+  transition: all 0.2s ease;
+  gap: 1rem;
+}
+
+.file-list-item:hover {
+  border-color: var(--umd-red);
+  box-shadow: 0 4px 12px rgba(224, 58, 60, 0.12);
+  transform: translateY(-1px);
+}
+
+.file-list-icon {
+  font-size: 1.5rem;
+  flex-shrink: 0;
+}
+
+.file-list-main {
+  flex: 1;
+  min-width: 0;
+}
+
+.file-list-name {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #1F2937;
+  margin: 0 0 0.25rem 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.file-list-meta {
+  display: flex;
+  gap: 1rem;
+  font-size: 0.8rem;
+  color: #6B7280;
+  flex-wrap: wrap;
+}
+
+.file-list-tags {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.file-list-actions {
+  display: flex;
+  gap: 0.5rem;
+  flex-shrink: 0;
+}
+
+.file-list-downloads {
+  background: #FEF3C7;
+  color: #92400E;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  margin-right: 0.5rem;
+}
+
 @media (max-width: 1200px) {
   .file-grid {
     grid-template-columns: repeat(2, 1fr);
