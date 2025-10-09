@@ -253,15 +253,23 @@ const transporter = nodemailer.createTransport({
         user: process.env.EMAIL_USER,
         pass: process.env.EMAIL_PASS
     },
-    pool: true, // Use connection pooling for better performance
-    maxConnections: 1, // Limit concurrent connections for Gmail
-    maxMessages: 3, // Limit messages per connection
-    rateDelta: 20000, // 20 seconds between batches
-    rateLimit: 5, // Max 5 emails per rateDelta
+    // Optimized settings for Vercel/serverless environment
+    pool: false, // Disable pooling for serverless (causes socket issues)
+    maxConnections: 1,
+    maxMessages: 1, // Send one message per connection
+    rateDelta: 10000, // 10 seconds between attempts
+    rateLimit: 1, // Max 1 email per rateDelta
     secure: true,
+    connectionTimeout: 60000, // 60 seconds
+    greetingTimeout: 30000, // 30 seconds
+    socketTimeout: 60000, // 60 seconds
     tls: {
-        rejectUnauthorized: false // Allow self-signed certificates
-    }
+        rejectUnauthorized: false,
+        ciphers: 'SSLv3'
+    },
+    // Additional settings for stability
+    debug: false,
+    logger: false
 });
 
 // Test email configuration on startup
@@ -275,13 +283,30 @@ console.log('   VERCEL_URL:', process.env.VERCEL_URL || 'Not set');
 transporter.verify((error, success) => {
     if (error) {
         console.error('❌ Email transporter verification failed:', error);
+        console.error('💡 Consider using a dedicated email service like SendGrid or Mailgun for better reliability');
     } else {
         console.log('✅ Email transporter ready - connection verified');
     }
 });
 
+// Alternative email configuration for better reliability (uncomment if needed)
+/*
+const alternativeTransporter = nodemailer.createTransporter({
+    host: 'smtp.gmail.com',
+    port: 587,
+    secure: false, // true for 465, false for other ports
+    auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS
+    },
+    tls: {
+        rejectUnauthorized: false
+    }
+});
+*/
+
 // Helper function to send email with retry logic
-function sendEmailWithRetry(mailOptions, maxRetries = 2) {
+function sendEmailWithRetry(mailOptions, maxRetries = 3) {
     return new Promise((resolve, reject) => {
         let attempts = 0;
 
@@ -289,15 +314,54 @@ function sendEmailWithRetry(mailOptions, maxRetries = 2) {
             attempts++;
             console.log(`📧 Attempting to send email (attempt ${attempts}/${maxRetries + 1})`);
 
-            transporter.sendMail(mailOptions, (err, info) => {
+            // Create a fresh transporter for each attempt to avoid socket issues
+            const freshTransporter = nodemailer.createTransport({
+                service: "gmail",
+                auth: {
+                    user: process.env.EMAIL_USER,
+                    pass: process.env.EMAIL_PASS
+                },
+                pool: false,
+                maxConnections: 1,
+                maxMessages: 1,
+                rateDelta: 10000,
+                rateLimit: 1,
+                secure: true,
+                connectionTimeout: 30000, // Shorter timeout for retries
+                greetingTimeout: 15000,
+                socketTimeout: 30000,
+                tls: {
+                    rejectUnauthorized: false,
+                    ciphers: 'SSLv3'
+                },
+                debug: false,
+                logger: false
+            });
+
+            freshTransporter.sendMail(mailOptions, (err, info) => {
+                // Close the fresh transporter after use
+                freshTransporter.close();
+
                 if (err) {
                     console.error(`❌ Email send attempt ${attempts} failed:`, err.message);
+                    console.error(`❌ Error type:`, err.code || 'Unknown');
 
-                    if (attempts <= maxRetries) {
-                        console.log(`🔄 Retrying email send in 2 seconds...`);
-                        setTimeout(attemptSend, 2000);
+                    // Check if it's a socket-related error
+                    const isSocketError = err.message.includes('socket') ||
+                                        err.message.includes('close') ||
+                                        err.code === 'ECONNRESET' ||
+                                        err.code === 'ETIMEDOUT';
+
+                    if (attempts <= maxRetries && isSocketError) {
+                        const delay = Math.min(2000 * attempts, 10000); // Exponential backoff, max 10s
+                        console.log(`🔄 Socket error detected, retrying in ${delay/1000} seconds...`);
+                        setTimeout(attemptSend, delay);
+                    } else if (attempts <= maxRetries) {
+                        console.log(`🔄 Retrying email send in 3 seconds...`);
+                        setTimeout(attemptSend, 3000);
                     } else {
                         console.error(`❌ All email send attempts failed after ${maxRetries + 1} tries`);
+                        console.error(`❌ Final error:`, err);
                         reject(err);
                     }
                 } else {
@@ -1517,14 +1581,18 @@ app.post('/resend-verification', async (req, res) => {
                 </p>
             `
         };
-        transporter.sendMail(mailOptions, (err, info) => {
-            if (err) {
-                console.error("❌ Error resending verification email:", err);
-                console.error("📧 Email config - User:", process.env.EMAIL_USER ? "Set" : "Missing");
-            } else {
+
+        // Send email asynchronously with retry logic (don't wait for completion)
+        sendEmailWithRetry(mailOptions)
+            .then((info) => {
                 console.log("✅ Resend verification email sent successfully:", info?.messageId);
-            }
-        });
+                console.log("📧 Email delivered to:", req.body.email);
+            })
+            .catch((err) => {
+                console.error("❌ Failed to resend verification email after retries:", err);
+                console.error("📧 Email config - User:", process.env.EMAIL_USER ? "Set" : "Missing");
+                console.error("📧 Email config - Pass:", process.env.EMAIL_PASS ? "Set" : "Missing");
+            });
 
         res.render('success', {
             title: "Verification Email Sent",
