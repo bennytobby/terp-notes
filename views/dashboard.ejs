@@ -61,7 +61,7 @@
                             <div
                                 style="display: flex; justify-content: space-between; align-items: center; margin: 0.5rem 0; flex-wrap: wrap; gap: 1rem;">
                                 <p style="color: #6B7280; font-size: 0.875rem; margin: 0;">
-                                    💡 <strong>Tip:</strong> Click Year or Semester filters to select multiple options
+                                    💡 <strong>Tip:</strong> Click Category, Semester, Year, or Class filters to select multiple options
                                 </p>
                                 <div style="display: flex; align-items: center; gap: 1rem;">
                                     <!-- View Toggle -->
@@ -86,20 +86,66 @@
                             </div>
 
                             <div class="filter-controls">
-                                <!-- Category Filter (1st) -->
-                                <select id="categoryFilter" class="filter-select" onchange="applyFilters()">
-                                    <option value="">All Categories</option>
-                                    <option value="Exam">📝 Exam</option>
-                                    <option value="Lecture Notes">📓 Lecture Notes</option>
-                                    <option value="Homework">📋 Homework</option>
-                                    <option value="Study Guide">📚 Study Guide</option>
-                                    <option value="Cheat Sheet">📄 Cheat Sheet</option>
-                                    <option value="Project">💻 Project</option>
-                                    <option value="Lab">🔬 Lab</option>
-                                    <option value="Textbook">📖 Textbook</option>
-                                    <option value="Practice Problems">✏️ Practice Problems</option>
-                                    <option value="Other">📎 Other</option>
-                                </select>
+                                <!-- Category Multi-Select Dropdown (1st) -->
+                                <div class="multi-select-wrapper">
+                                    <button type="button" class="multi-select-btn" id="categoryBtn"
+                                        onclick="toggleDropdown('category')">
+                                        <span id="categoryLabel">All Categories</span>
+                                        <span class="dropdown-arrow">▼</span>
+                                    </button>
+                                    <div class="multi-select-dropdown" id="categoryDropdown">
+                                        <label class="multi-select-option">
+                                            <input type="checkbox" value="Exam"
+                                                onchange="updateMultiSelect('category')">
+                                            <span>📝 Exam</span>
+                                        </label>
+                                        <label class="multi-select-option">
+                                            <input type="checkbox" value="Lecture Notes"
+                                                onchange="updateMultiSelect('category')">
+                                            <span>📓 Lecture Notes</span>
+                                        </label>
+                                        <label class="multi-select-option">
+                                            <input type="checkbox" value="Homework"
+                                                onchange="updateMultiSelect('category')">
+                                            <span>📋 Homework</span>
+                                        </label>
+                                        <label class="multi-select-option">
+                                            <input type="checkbox" value="Study Guide"
+                                                onchange="updateMultiSelect('category')">
+                                            <span>📚 Study Guide</span>
+                                        </label>
+                                        <label class="multi-select-option">
+                                            <input type="checkbox" value="Cheat Sheet"
+                                                onchange="updateMultiSelect('category')">
+                                            <span>📄 Cheat Sheet</span>
+                                        </label>
+                                        <label class="multi-select-option">
+                                            <input type="checkbox" value="Project"
+                                                onchange="updateMultiSelect('category')">
+                                            <span>💻 Project</span>
+                                        </label>
+                                        <label class="multi-select-option">
+                                            <input type="checkbox" value="Lab"
+                                                onchange="updateMultiSelect('category')">
+                                            <span>🔬 Lab</span>
+                                        </label>
+                                        <label class="multi-select-option">
+                                            <input type="checkbox" value="Textbook"
+                                                onchange="updateMultiSelect('category')">
+                                            <span>📖 Textbook</span>
+                                        </label>
+                                        <label class="multi-select-option">
+                                            <input type="checkbox" value="Practice Problems"
+                                                onchange="updateMultiSelect('category')">
+                                            <span>✏️ Practice Problems</span>
+                                        </label>
+                                        <label class="multi-select-option">
+                                            <input type="checkbox" value="Other"
+                                                onchange="updateMultiSelect('category')">
+                                            <span>📎 Other</span>
+                                        </label>
+                                    </div>
+                                </div>
 
                                 <!-- Semester Multi-Select Dropdown (2nd) -->
                                 <div class="multi-select-wrapper">
@@ -117,7 +163,7 @@
                                                     <%= semester %>
                                                 </span>
                                             </label>
-                                            <% }); %>
+                                        <% }); %>
                                     </div>
                                 </div>
 
@@ -141,31 +187,64 @@
                                     </div>
                                 </div>
 
-                                <!-- Major Filter (4th) -->
-                                <select id="majorFilter" class="filter-select" onchange="handleMajorChange()">
-                                    <option value="">All Majors</option>
-                                    <% majors.forEach(major=> { %>
-                                        <option value="<%= major %>">
-                                            <%= major %>
-                                        </option>
-                                        <% }); %>
-                                </select>
+                                <!-- Major Multi-Select Dropdown (4th) -->
+                                <div class="multi-select-wrapper">
+                                    <button type="button" class="multi-select-btn" id="majorBtn"
+                                        onclick="toggleDropdown('major')">
+                                        <span id="majorLabel">All Majors</span>
+                                        <span class="dropdown-arrow">▼</span>
+                                    </button>
+                                    <div class="multi-select-dropdown" id="majorDropdown">
+                                        <% majors.forEach(major=> { %>
+                                            <label class="multi-select-option">
+                                                <input type="checkbox" value="<%= major %>"
+                                                    onchange="updateMultiSelect('major')">
+                                                <span>
+                                                    📁 <%= major %>
+                                                </span>
+                                            </label>
+                                            <% }); %>
+                                    </div>
+                                </div>
 
-                                <!-- Class/Course Filter (5th) -->
-                                <select id="classFilter" class="filter-select" onchange="handleClassChange()">
-                                    <option value="">All Classes</option>
-                                    <% classCodes.forEach(code=> { %>
-                                        <option value="<%= code %>"
-                                            data-major="<%= code.replace(/[0-9]/g, '').trim() %>">
-                                            <%= code %>
-                                        </option>
-                                        <% }); %>
-                                </select>
+                                <!-- Class Multi-Select Dropdown (5th) -->
+                                <div class="multi-select-wrapper">
+                                    <button type="button" class="multi-select-btn" id="classBtn"
+                                        onclick="toggleDropdown('class')">
+                                        <span id="classLabel">All Classes</span>
+                                        <span class="dropdown-arrow">▼</span>
+                                    </button>
+                                    <div class="multi-select-dropdown" id="classDropdown">
+                                        <% classCodes.forEach(code=> { %>
+                                            <label class="multi-select-option">
+                                                <input type="checkbox" value="<%= code %>"
+                                                    data-major="<%= code.replace(/[0-9]/g, '').trim() %>"
+                                                    onchange="updateMultiSelect('class')">
+                                                <span>
+                                                    <%= code %>
+                                                </span>
+                                            </label>
+                                            <% }); %>
+                                    </div>
+                                </div>
 
                                 <!-- Professor Filter (6th) -->
                                 <input type="text" id="professorFilter" class="filter-select"
                                     placeholder="🔍 Search Professor..." onkeyup="applyFilters()"
                                     style="padding: 0.5rem 1rem;" />
+                            </div>
+
+                            <!-- Active Filters Display -->
+                            <div id="activeFilters" style="display: none; margin: 1rem 0; padding: 0.75rem; background: #F9FAFB; border-radius: 8px; border: 1px solid #E5E7EB;">
+                                <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem;">
+                                    <div style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
+                                        <span style="font-weight: 600; color: #374151; font-size: 0.875rem;">Active Filters:</span>
+                                        <div id="filterTags" style="display: flex; gap: 0.5rem; flex-wrap: wrap;"></div>
+                                    </div>
+                                    <button onclick="clearAllFilters()" style="background: var(--umd-red); color: white; border: none; padding: 4px 12px; border-radius: 6px; cursor: pointer; font-size: 0.875rem; font-weight: 600; transition: all 0.2s;">
+                                        Clear All
+                                    </button>
+                                </div>
                             </div>
                         </div>
 
@@ -579,19 +658,111 @@
                     }
                 });
 
+                // Smart folder opening based on active filters
+                function smartOpenFolders() {
+                    // Get active filter values
+                    const selectedSemesters = Array.from(document.querySelectorAll('#semesterDropdown input[type="checkbox"]:checked'))
+                        .map(cb => cb.value);
+                    const selectedYears = Array.from(document.querySelectorAll('#yearDropdown input[type="checkbox"]:checked'))
+                        .map(cb => cb.value);
+                    const selectedMajors = Array.from(document.querySelectorAll('#majorDropdown input[type="checkbox"]:checked'))
+                        .map(cb => cb.value);
+                    const selectedClasses = Array.from(document.querySelectorAll('#classDropdown input[type="checkbox"]:checked'))
+                        .map(cb => cb.value);
+
+                    // If no filters are active, don't auto-open anything
+                    if (selectedSemesters.length === 0 && selectedYears.length === 0 &&
+                        selectedMajors.length === 0 && selectedClasses.length === 0) {
+                        return;
+                    }
+
+                    // Open semester folders that match selected years or semesters
+                    const semesterHeaders = document.querySelectorAll('.semester-header');
+                    semesterHeaders.forEach(header => {
+                        const fullText = header.textContent.trim();
+                        const semesterName = fullText.replace(/^[▶▼]\s*📅\s*/, '').replace(/\s+\d+\s+files?$/, '').trim();
+
+                        // Extract year from semester name (e.g., "Fall 2021" -> "2021")
+                        const yearFromSemester = semesterName.split(' ').pop();
+                        const semesterPart = semesterName.replace(/\s+\d+$/, '').trim();
+
+                        let shouldOpen = false;
+
+                        // Check if semester matches selected filters
+                        if (selectedSemesters.length > 0 && selectedSemesters.includes(semesterPart)) {
+                            shouldOpen = true;
+                        }
+                        if (selectedYears.length > 0 && selectedYears.includes(yearFromSemester)) {
+                            shouldOpen = true;
+                        }
+
+                        if (shouldOpen) {
+                            const majorList = header.nextElementSibling;
+                            const icon = header.querySelector('.expand-icon');
+                            if (majorList && majorList.style.display === 'none') {
+                                majorList.style.display = 'block';
+                                if (icon) icon.style.transform = 'rotate(90deg)';
+                                persistentFolderStates.semesters[semesterName] = true;
+                            }
+                        }
+                    });
+
+                    // Open major folders that match selected majors
+                    if (selectedMajors.length > 0) {
+                        const majorHeaders = document.querySelectorAll('.major-header');
+                        majorHeaders.forEach(header => {
+                            const fullText = header.textContent.trim();
+                            const majorName = fullText.replace(/^[▶▼]\s*📁\s*/, '').replace(/\s+\d+\s+files?$/, '').trim();
+
+                            if (selectedMajors.includes(majorName)) {
+                                const courseList = header.nextElementSibling;
+                                const icon = header.querySelector('.expand-icon');
+                                if (courseList && courseList.style.display === 'none') {
+                                    courseList.style.display = 'block';
+                                    if (icon) icon.style.transform = 'rotate(90deg)';
+                                    persistentFolderStates.majors[majorName] = true;
+                                }
+                            }
+                        });
+                    }
+
+                    // Open course folders that match selected classes
+                    if (selectedClasses.length > 0) {
+                        const courseHeaders = document.querySelectorAll('.course-header');
+                        courseHeaders.forEach(header => {
+                            const fullText = header.textContent.trim();
+                            const courseName = fullText.replace(/^[▶▼]\s*💼\s*/, '').replace(/\s+\d+\s*$/, '').trim();
+
+                            if (selectedClasses.includes(courseName)) {
+                                const categoryList = header.nextElementSibling;
+                                const icon = header.querySelector('.expand-icon');
+                                if (categoryList && categoryList.style.display === 'none') {
+                                    categoryList.style.display = 'block';
+                                    if (icon) icon.style.transform = 'rotate(90deg)';
+                                    persistentFolderStates.courses[courseName] = true;
+                                }
+                            }
+                        });
+                    }
+
+                    // Update button text
+                    updateExpandCollapseButtonText();
+                }
+
                 // Switch between grid and grouped views
                 function switchView(view, savePreference = true) {
                     const gridView = document.getElementById('gridView');
                     const groupedView = document.getElementById('groupedView');
                     const gridBtn = document.getElementById('gridViewBtn');
                     const groupedBtn = document.getElementById('groupedViewBtn');
+                    const activeFiltersContainer = document.getElementById('activeFilters');
 
                     // Get filter elements
-                    const majorFilter = document.getElementById('majorFilter');
-                    const classFilter = document.getElementById('classFilter');
-                    const categoryFilter = document.getElementById('categoryFilter');
+                    const majorWrapper = document.querySelector('.multi-select-wrapper:nth-of-type(4)'); // Major dropdown
+                    const classWrapper = document.querySelector('.multi-select-wrapper:nth-of-type(5)'); // Class dropdown
+                    const categoryWrapper = document.querySelector('.multi-select-wrapper:nth-of-type(1)'); // Category dropdown
                     const professorFilter = document.getElementById('professorFilter');
-                    const yearWrapper = document.querySelector('.multi-select-wrapper:nth-of-type(1)'); // Year dropdown
+                    const yearWrapper = document.querySelector('.multi-select-wrapper:nth-of-type(3)'); // Year dropdown
                     const semesterWrapper = document.querySelector('.multi-select-wrapper:nth-of-type(2)'); // Semester dropdown
 
                     currentView = view;
@@ -605,12 +776,15 @@
                         groupedBtn.style.color = '#6B7280';
 
                         // Show all filters in grid view
-                        if (majorFilter) majorFilter.style.display = 'block';
-                        if (classFilter) classFilter.style.display = 'block';
-                        if (categoryFilter) categoryFilter.style.display = 'block';
-                        if (professorFilter) professorFilter.style.display = 'block';
-                        if (yearWrapper) yearWrapper.style.display = 'block';
+                        if (categoryWrapper) categoryWrapper.style.display = 'block';
                         if (semesterWrapper) semesterWrapper.style.display = 'block';
+                        if (yearWrapper) yearWrapper.style.display = 'block';
+                        if (majorWrapper) majorWrapper.style.display = 'block';
+                        if (classWrapper) classWrapper.style.display = 'block';
+                        if (professorFilter) professorFilter.style.display = 'block';
+
+                        // Show active filters in grid view (if there are any)
+                        updateActiveFilters();
                     } else {
                         gridView.style.display = 'none';
                         groupedView.style.display = 'block';
@@ -620,14 +794,22 @@
                         groupedBtn.style.color = 'white';
 
                         // Hide most filters in grouped view, keep only professor search
-                        if (majorFilter) majorFilter.style.display = 'none';
-                        if (classFilter) classFilter.style.display = 'none';
-                        if (categoryFilter) categoryFilter.style.display = 'none';
-                        if (professorFilter) professorFilter.style.display = 'block'; // Keep professor search
-                        if (yearWrapper) yearWrapper.style.display = 'none';
+                        if (categoryWrapper) categoryWrapper.style.display = 'none';
                         if (semesterWrapper) semesterWrapper.style.display = 'none';
+                        if (yearWrapper) yearWrapper.style.display = 'none';
+                        if (majorWrapper) majorWrapper.style.display = 'none';
+                        if (classWrapper) classWrapper.style.display = 'none';
+                        if (professorFilter) professorFilter.style.display = 'block'; // Keep professor search
+
+                        // Hide active filters container in grouped view
+                        if (activeFiltersContainer) activeFiltersContainer.style.display = 'none';
 
                         renderGroupedView();
+
+                        // Smart folder opening based on active filters
+                        setTimeout(() => {
+                            smartOpenFolders();
+                        }, 50);
                     }
 
                     if (savePreference) {
@@ -1116,6 +1298,96 @@
                     `;
                 }
 
+                // Clear filters when closing folders (smart vice-versa functionality)
+                function clearFiltersForClosedFolder(folderType, folderName) {
+                    if (folderType === 'semester') {
+                        // Extract year and semester from folder name (e.g., "Fall 2021" -> "Fall", "2021")
+                        const parts = folderName.split(' ');
+                        const semesterPart = parts[0]; // "Fall"
+                        const yearPart = parts[1]; // "2021"
+
+                        // Clear semester filter
+                        const semesterCheckbox = document.querySelector(`#semesterDropdown input[type="checkbox"][value="${semesterPart}"]`);
+                        if (semesterCheckbox && semesterCheckbox.checked) {
+                            semesterCheckbox.checked = false;
+                            updateMultiSelect('semester');
+                        }
+
+                        // Clear year filter
+                        const yearCheckbox = document.querySelector(`#yearDropdown input[type="checkbox"][value="${yearPart}"]`);
+                        if (yearCheckbox && yearCheckbox.checked) {
+                            yearCheckbox.checked = false;
+                            updateMultiSelect('year');
+                        }
+
+                        // Clear all child filters (major, class, category)
+                        clearAllChildFilters();
+
+                    } else if (folderType === 'major') {
+                        // Clear major filter
+                        const majorCheckbox = document.querySelector(`#majorDropdown input[type="checkbox"][value="${folderName}"]`);
+                        if (majorCheckbox && majorCheckbox.checked) {
+                            majorCheckbox.checked = false;
+                            updateMultiSelect('major');
+                        }
+
+                        // Clear child filters (class, category)
+                        clearAllChildFilters();
+
+                    } else if (folderType === 'course') {
+                        // Smart logic: Only clear course filter if it makes sense
+                        // Don't clear semester/major filters since course can exist across multiple semesters
+
+                        // Check if this course filter is the only one that would be affected
+                        const hasOtherCourseFilters = document.querySelectorAll('#classDropdown input[type="checkbox"]:checked').length > 1;
+                        const hasSemesterFilters = document.querySelectorAll('#semesterDropdown input[type="checkbox"]:checked').length > 0;
+                        const hasMajorFilters = document.querySelectorAll('#majorDropdown input[type="checkbox"]:checked').length > 0;
+
+                        // Only clear course filter if it's the only course filter AND there are no semester/major filters
+                        // This prevents clearing when user wants to see CMSC131 across all semesters
+                        if (!hasOtherCourseFilters && !hasSemesterFilters && !hasMajorFilters) {
+                            const classCheckbox = document.querySelector(`#classDropdown input[type="checkbox"][value="${folderName}"]`);
+                            if (classCheckbox && classCheckbox.checked) {
+                                classCheckbox.checked = false;
+                                updateMultiSelect('class');
+                            }
+                        }
+
+                        // Always clear category filters when closing a course
+                        document.querySelectorAll('#categoryDropdown input[type="checkbox"]:checked').forEach(cb => {
+                            cb.checked = false;
+                        });
+                        updateMultiSelect('category');
+
+                    } else if (folderType === 'category') {
+                        // Clear category filter
+                        const categoryCheckbox = document.querySelector(`#categoryDropdown input[type="checkbox"][value="${folderName}"]`);
+                        if (categoryCheckbox && categoryCheckbox.checked) {
+                            categoryCheckbox.checked = false;
+                            updateMultiSelect('category');
+                        }
+                    }
+
+                    // Apply filters and update display
+                    applyFilters();
+                    updateActiveFilters();
+                }
+
+                // Helper function to clear all child filters
+                function clearAllChildFilters() {
+                    // Clear class filters
+                    document.querySelectorAll('#classDropdown input[type="checkbox"]:checked').forEach(cb => {
+                        cb.checked = false;
+                    });
+                    updateMultiSelect('class');
+
+                    // Clear category filters
+                    document.querySelectorAll('#categoryDropdown input[type="checkbox"]:checked').forEach(cb => {
+                        cb.checked = false;
+                    });
+                    updateMultiSelect('category');
+                }
+
                 // Toggle major accordion
                 function toggleMajor(header) {
                     // Extract just the major name, ignoring file count and icons
@@ -1131,6 +1403,11 @@
 
                     // Update persistent state
                     persistentFolderStates.majors[majorName] = !isCurrentlyExpanded;
+
+                    // If closing folder, clear related filters
+                    if (isCurrentlyExpanded) {
+                        clearFiltersForClosedFolder('major', majorName);
+                    }
 
                     // Update button text
                     updateExpandCollapseButtonText();
@@ -1152,6 +1429,11 @@
                     // Update persistent state
                     persistentFolderStates.courses[courseName] = !isCurrentlyExpanded;
 
+                    // If closing folder, clear related filters
+                    if (isCurrentlyExpanded) {
+                        clearFiltersForClosedFolder('course', courseName);
+                    }
+
                     // Update button text
                     updateExpandCollapseButtonText();
                 }
@@ -1172,6 +1454,11 @@
                     // Update persistent state
                     persistentFolderStates.semesters[semesterName] = !isCurrentlyExpanded;
 
+                    // If closing folder, clear related filters
+                    if (isCurrentlyExpanded) {
+                        clearFiltersForClosedFolder('semester', semesterName);
+                    }
+
                     // Update button text
                     updateExpandCollapseButtonText();
                 }
@@ -1189,6 +1476,9 @@
                     if (isCurrentlyExpanded) {
                         fileList.style.display = 'none';
                         icon.style.transform = 'rotate(0deg)';
+
+                        // If closing folder, clear related filters
+                        clearFiltersForClosedFolder('category', categoryName);
                     } else {
                         fileList.style.display = 'grid';
                         fileList.style.gridTemplateColumns = 'repeat(auto-fill, minmax(300px, 1fr))';
@@ -1296,69 +1586,7 @@
                     updateExpandCollapseButtonText();
                 }
 
-                // Handle major filter change - updates class code dropdown
-                function handleMajorChange() {
-                    const classFilter = document.getElementById('classFilter');
-                    const currentClass = classFilter.value;
-
-                    // Update dropdown visibility
-                    updateClassDropdownVisibility();
-
-                    // If current class selection doesn't match the new major, clear it
-                    const selectedMajor = document.getElementById('majorFilter').value;
-                    if (currentClass && selectedMajor) {
-                        const currentOption = classFilter.querySelector(`option[value="${currentClass}"]`);
-                        if (currentOption && currentOption.dataset.major !== selectedMajor) {
-                            classFilter.value = '';
-                        }
-                    }
-
-                    // Apply filters (preserves semester, professor, etc.)
-                    applyFilters();
-                }
-
-                // Handle class filter change - auto-set major to match
-                function handleClassChange() {
-                    const classFilter = document.getElementById('classFilter');
-                    const majorFilter = document.getElementById('majorFilter');
-                    const selectedClass = classFilter.value;
-
-                    if (selectedClass) {
-                        const selectedOption = classFilter.querySelector(`option[value="${selectedClass}"]`);
-                        if (selectedOption) {
-                            const classMajor = selectedOption.dataset.major;
-                            // Auto-set major to match the class (without triggering change event)
-                            if (majorFilter.value !== classMajor) {
-                                majorFilter.value = classMajor;
-                                // Update dropdown visibility without resetting filters
-                                updateClassDropdownVisibility();
-                            }
-                        }
-                    }
-
-                    // Apply filters
-                    applyFilters();
-                }
-
-                // Update class dropdown visibility based on major (helper function)
-                function updateClassDropdownVisibility() {
-                    const selectedMajor = document.getElementById('majorFilter').value;
-                    const classFilter = document.getElementById('classFilter');
-                    const allOptions = classFilter.querySelectorAll('option');
-
-                    allOptions.forEach(option => {
-                        if (option.value === '') {
-                            option.style.display = 'block';
-                        } else {
-                            const optionMajor = option.dataset.major;
-                            if (!selectedMajor || optionMajor === selectedMajor) {
-                                option.style.display = 'block';
-                            } else {
-                                option.style.display = 'none';
-                            }
-                        }
-                    });
-                }
+                // Note: Major filter is now multi-select, so no need for handleMajorChange or updateClassDropdownVisibility
 
                 // Toggle multi-select dropdown
                 function toggleDropdown(type) {
@@ -1383,7 +1611,14 @@
                     const values = Array.from(checkboxes).map(cb => cb.value);
 
                     if (values.length === 0) {
-                        label.textContent = type === 'year' ? 'All Years' : 'All Semesters';
+                        const defaults = {
+                            'year': 'All Years',
+                            'semester': 'All Semesters',
+                            'category': 'All Categories',
+                            'major': 'All Majors',
+                            'class': 'All Classes'
+                        };
+                        label.textContent = defaults[type] || 'All';
                     } else if (values.length === 1) {
                         label.textContent = values[0];
                     } else {
@@ -1411,13 +1646,139 @@
                     }
                 });
 
+                // Clear all filters
+                function clearAllFilters() {
+                    // Clear all multi-select checkboxes
+                    document.querySelectorAll('.multi-select-dropdown input[type="checkbox"]:checked').forEach(cb => {
+                        cb.checked = false;
+                    });
+
+                    // Reset all multi-select labels
+                    document.getElementById('categoryLabel').textContent = 'All Categories';
+                    document.getElementById('semesterLabel').textContent = 'All Semesters';
+                    document.getElementById('yearLabel').textContent = 'All Years';
+                    document.getElementById('majorLabel').textContent = 'All Majors';
+                    document.getElementById('classLabel').textContent = 'All Classes';
+
+                    // Major filter is now handled by multi-select checkboxes (cleared above)
+
+                    // Clear professor filter
+                    document.getElementById('professorFilter').value = '';
+
+                    // Clear search input
+                    document.getElementById('searchInput').value = '';
+
+                    // Uncheck "My Files" toggle
+                    document.getElementById('myFilesToggle').checked = false;
+
+                    // Apply filters to show all files
+                    applyFilters();
+                }
+
+                // Remove a specific filter
+                function removeFilter(type, value) {
+                    if (type === 'major') {
+                        document.getElementById('majorFilter').value = '';
+                    } else if (type === 'professor') {
+                        document.getElementById('professorFilter').value = '';
+                    } else if (type === 'search') {
+                        document.getElementById('searchInput').value = '';
+                    } else if (type === 'myFiles') {
+                        document.getElementById('myFilesToggle').checked = false;
+                    } else {
+                        // For multi-select filters (category, semester, year, class)
+                        const checkbox = document.querySelector(`#${type}Dropdown input[type="checkbox"][value="${value}"]`);
+                        if (checkbox) {
+                            checkbox.checked = false;
+                            updateMultiSelect(type);
+                        }
+                    }
+                    applyFilters();
+                }
+
+                // Update active filters display
+                function updateActiveFilters() {
+                    const activeFiltersContainer = document.getElementById('activeFilters');
+                    const filterTags = document.getElementById('filterTags');
+
+                    // Don't show active filters in grouped view
+                    if (currentView === 'grouped') {
+                        activeFiltersContainer.style.display = 'none';
+                        return;
+                    }
+
+                    const tags = [];
+
+                    // Get selected categories
+                    const selectedCategories = Array.from(document.querySelectorAll('#categoryDropdown input[type="checkbox"]:checked'))
+                        .map(cb => ({ type: 'category', value: cb.value, label: cb.nextElementSibling.textContent.trim() }));
+                    tags.push(...selectedCategories);
+
+                    // Get selected semesters
+                    const selectedSemesters = Array.from(document.querySelectorAll('#semesterDropdown input[type="checkbox"]:checked'))
+                        .map(cb => ({ type: 'semester', value: cb.value, label: cb.value }));
+                    tags.push(...selectedSemesters);
+
+                    // Get selected years
+                    const selectedYears = Array.from(document.querySelectorAll('#yearDropdown input[type="checkbox"]:checked'))
+                        .map(cb => ({ type: 'year', value: cb.value, label: cb.value }));
+                    tags.push(...selectedYears);
+
+                    // Get selected majors
+                    const selectedMajors = Array.from(document.querySelectorAll('#majorDropdown input[type="checkbox"]:checked'))
+                        .map(cb => ({ type: 'major', value: cb.value, label: `📁 ${cb.value}` }));
+                    tags.push(...selectedMajors);
+
+                    // Get selected classes
+                    const selectedClasses = Array.from(document.querySelectorAll('#classDropdown input[type="checkbox"]:checked'))
+                        .map(cb => ({ type: 'class', value: cb.value, label: cb.value }));
+                    tags.push(...selectedClasses);
+
+                    // Get professor filter
+                    const professorFilter = document.getElementById('professorFilter').value;
+                    if (professorFilter) {
+                        tags.push({ type: 'professor', value: professorFilter, label: `Professor: ${professorFilter}` });
+                    }
+
+                    // Get search filter
+                    const searchTerm = document.getElementById('searchInput').value;
+                    if (searchTerm) {
+                        tags.push({ type: 'search', value: searchTerm, label: `Search: ${searchTerm}` });
+                    }
+
+                    // Get "My Files" toggle
+                    const myFilesOnly = document.getElementById('myFilesToggle').checked;
+                    if (myFilesOnly) {
+                        tags.push({ type: 'myFiles', value: 'true', label: 'My Files Only' });
+                    }
+
+                    // Show/hide active filters container (only in grid view)
+                    if (tags.length > 0) {
+                        activeFiltersContainer.style.display = 'block';
+                        filterTags.innerHTML = tags.map(tag => `
+                            <span style="display: inline-flex; align-items: center; gap: 0.375rem; background: white; border: 1px solid var(--umd-red); color: var(--umd-red); padding: 4px 8px; border-radius: 6px; font-size: 0.813rem; font-weight: 500;">
+                                ${escapeHtml(tag.label)}
+                                <button onclick="removeFilter('${tag.type}', '${escapeHtml(tag.value)}')" style="background: none; border: none; color: var(--umd-red); cursor: pointer; padding: 0; font-size: 1rem; line-height: 1; font-weight: bold;" title="Remove filter">
+                                    ×
+                                </button>
+                            </span>
+                        `).join('');
+                    } else {
+                        activeFiltersContainer.style.display = 'none';
+                    }
+                }
+
                 // Client-side filtering - instant, no page reloads!
                 function applyFilters() {
                     // Preserve dropdown states before filtering
                     const yearDropdown = document.getElementById('yearDropdown');
                     const semesterDropdown = document.getElementById('semesterDropdown');
+                    const categoryDropdown = document.getElementById('categoryDropdown');
+                    const classDropdown = document.getElementById('classDropdown');
                     const yearDropdownOpen = yearDropdown && yearDropdown.classList.contains('show');
                     const semesterDropdownOpen = semesterDropdown && semesterDropdown.classList.contains('show');
+                    const categoryDropdownOpen = categoryDropdown && categoryDropdown.classList.contains('show');
+                    const classDropdownOpen = classDropdown && classDropdown.classList.contains('show');
 
                     // Update persistent folder states if currently in grouped view
                     if (currentView === 'grouped') {
@@ -1425,17 +1786,20 @@
                     }
 
                     const searchTerm = document.getElementById('searchInput').value.toLowerCase();
-                    const majorFilter = document.getElementById('majorFilter').value;
-                    const classFilter = document.getElementById('classFilter').value;
-                    const categoryFilter = document.getElementById('categoryFilter').value;
                     const professorFilter = document.getElementById('professorFilter').value.toLowerCase();
                     const sortBy = document.getElementById('sortFilter').value;
                     const myFilesOnly = document.getElementById('myFilesToggle').checked;
 
                     // Get multi-select values from checkboxes
-                    const selectedYears = Array.from(document.querySelectorAll('#yearDropdown input[type="checkbox"]:checked'))
+                    const selectedCategories = Array.from(document.querySelectorAll('#categoryDropdown input[type="checkbox"]:checked'))
                         .map(cb => cb.value);
                     const selectedSemesters = Array.from(document.querySelectorAll('#semesterDropdown input[type="checkbox"]:checked'))
+                        .map(cb => cb.value);
+                    const selectedYears = Array.from(document.querySelectorAll('#yearDropdown input[type="checkbox"]:checked'))
+                        .map(cb => cb.value);
+                    const selectedMajors = Array.from(document.querySelectorAll('#majorDropdown input[type="checkbox"]:checked'))
+                        .map(cb => cb.value);
+                    const selectedClasses = Array.from(document.querySelectorAll('#classDropdown input[type="checkbox"]:checked'))
                         .map(cb => cb.value);
 
                     // Current user's userid for "My Files" filter
@@ -1455,20 +1819,20 @@
                             (file.category && file.category.toLowerCase().includes(searchTerm)) ||
                             (file.professor && file.professor.toLowerCase().includes(searchTerm));
 
-                        // Major filter
-                        const matchesMajor = !majorFilter || file.major === majorFilter;
+                        // Category filter (multi-select)
+                        const matchesCategory = selectedCategories.length === 0 || selectedCategories.includes(file.category);
 
-                        // Class filter
-                        const matchesClass = !classFilter || file.classCode === classFilter;
-
-                        // Category filter
-                        const matchesCategory = !categoryFilter || file.category === categoryFilter;
+                        // Semester filter (multi-select)
+                        const matchesSemester = selectedSemesters.length === 0 || selectedSemesters.includes(file.semester);
 
                         // Year filter (multi-select)
                         const matchesYear = selectedYears.length === 0 || selectedYears.includes(file.year);
 
-                        // Semester filter (multi-select)
-                        const matchesSemester = selectedSemesters.length === 0 || selectedSemesters.includes(file.semester);
+                        // Major filter (multi-select)
+                        const matchesMajor = selectedMajors.length === 0 || selectedMajors.includes(file.major);
+
+                        // Class filter (multi-select)
+                        const matchesClass = selectedClasses.length === 0 || selectedClasses.includes(file.classCode);
 
                         // Professor filter
                         const matchesProfessor = !professorFilter ||
@@ -1506,13 +1870,22 @@
 
                     // Restore dropdown states after filtering
                     setTimeout(() => {
-                        if (yearDropdownOpen && yearDropdown) {
-                            yearDropdown.classList.add('show');
+                        if (categoryDropdownOpen && categoryDropdown) {
+                            categoryDropdown.classList.add('show');
                         }
                         if (semesterDropdownOpen && semesterDropdown) {
                             semesterDropdown.classList.add('show');
                         }
+                        if (yearDropdownOpen && yearDropdown) {
+                            yearDropdown.classList.add('show');
+                        }
+                        if (classDropdownOpen && classDropdown) {
+                            classDropdown.classList.add('show');
+                        }
                     }, 10);
+
+                    // Update active filters display
+                    updateActiveFilters();
                 }
 
                 // Helper function to get file icon based on mimetype
