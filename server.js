@@ -1206,8 +1206,13 @@ app.post('/api/confirm-upload', async (req, res) => {
         professor,
         semester,
         year,
+        category,
         description
     } = req.body;
+
+    console.log('🔍 [DEBUG] Server received data:');
+    console.log('  - category:', category);
+    console.log('  - req.body:', JSON.stringify(req.body, null, 2));
 
     if (!s3Key || !s3Url || !filename || !classCode || !fileHash) {
         return res.status(400).json({ error: 'Missing required fields' });
@@ -1250,6 +1255,7 @@ app.post('/api/confirm-upload', async (req, res) => {
             semester: semester || "",
             year: year || "",
             professor: professor || "",
+            category: category || "Other",
             virusScanStatus: 'pending',
             virusScanDate: null,
             virusScanDetails: null
@@ -3297,7 +3303,7 @@ app.delete('/delete-all-files', async (req, res) => {
             .toArray();
 
         console.log(`📁 Found ${userFiles.length} files to delete for user ${userId}`);
-        
+
         if (userFiles.length > 0) {
             console.log('📁 Sample file structure:', JSON.stringify(userFiles[0], null, 2));
         }
@@ -3382,7 +3388,8 @@ app.delete('/delete-all-files', async (req, res) => {
 
     } catch (error) {
         console.error('❌ Error deleting files:', error);
-        res.status(500).json({ error: 'Failed to delete files' });
+        console.error('❌ Error stack:', error.stack);
+        res.status(500).json({ error: 'Failed to delete files', details: error.message });
     } finally {
         await client.close();
     }

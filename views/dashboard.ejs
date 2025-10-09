@@ -2450,6 +2450,12 @@
                 function getDeleteButton(file) {
                     const userRole = '<%= user.role %>';
                     const userId = '<%= user.userid %>';
+                    
+                    console.log('🔍 [DEBUG] Delete button check:');
+                    console.log('  - userRole:', userRole);
+                    console.log('  - userId:', userId);
+                    console.log('  - file.uploadedBy:', file.uploadedBy);
+                    console.log('  - can delete:', userRole === 'admin' || file.uploadedBy === userId);
 
                     if (userRole === 'viewer') {
                         return `<button class="button danger disabled" onclick="showViewerAlert(); return false;" title="View-only mode">Delete</button>`;
@@ -2573,6 +2579,14 @@
                         const year = document.getElementById('year').value;
                         const category = document.getElementById('category').value;
                         const description = document.getElementById('description').value.trim();
+                        
+                        console.log('🔍 [DEBUG] Form data collected:');
+                        console.log('  - classCode:', classCode);
+                        console.log('  - professor:', professor);
+                        console.log('  - semester:', semester);
+                        console.log('  - year:', year);
+                        console.log('  - category:', category);
+                        console.log('  - description:', description);
 
                         if (!classCode || !professor || !description) {
                             const notification = document.createElement('div');
@@ -2675,6 +2689,7 @@
                                         filesize: file.size,
                                         fileHash: fileHash,
                                         classCode: classCode,
+                                        major: classCode.replace(/[0-9]/g, '').trim(), // Extract major from class code
                                         professor: professor,
                                         semester: semester,
                                         year: year,
