@@ -2198,7 +2198,17 @@ app.get("/delete/:filename", async (req, res) => {
             return res.status(404).send("File not found.");
         }
 
+        console.log('🔍 [DEBUG] Delete permission check:');
+        console.log('  - fileDoc.uploadedBy:', fileDoc.uploadedBy);
+        console.log('  - req.session.user.userid:', req.session.user.userid);
+        console.log('  - req.session.user.email:', req.session.user.email);
+        console.log('  - req.session.user.role:', req.session.user.role);
+        console.log('  - uploadedBy matches userid:', fileDoc.uploadedBy === req.session.user.userid);
+        console.log('  - uploadedBy matches email:', fileDoc.uploadedBy === req.session.user.email);
+        console.log('  - user is admin:', req.session.user.role === 'admin');
+
         if (fileDoc.uploadedBy !== req.session.user.userid && req.session.user.role !== 'admin') {
+            console.log('❌ Permission denied - user cannot delete this file');
             return res.status(403).send("You don't have permission to delete this file.");
         }
 

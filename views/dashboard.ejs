@@ -2450,12 +2450,18 @@
                 function getDeleteButton(file) {
                     const userRole = '<%= user.role %>';
                     const userId = '<%= user.userid %>';
+                    const userEmail = '<%= user.email %>';
                     
                     console.log('🔍 [DEBUG] Delete button check:');
                     console.log('  - userRole:', userRole);
                     console.log('  - userId:', userId);
+                    console.log('  - userEmail:', userEmail);
                     console.log('  - file.uploadedBy:', file.uploadedBy);
-                    console.log('  - can delete:', userRole === 'admin' || file.uploadedBy === userId);
+                    console.log('  - file.uploadedByName:', file.uploadedByName);
+                    console.log('  - can delete (userRole === admin):', userRole === 'admin');
+                    console.log('  - can delete (file.uploadedBy === userId):', file.uploadedBy === userId);
+                    console.log('  - can delete (file.uploadedBy === userEmail):', file.uploadedBy === userEmail);
+                    console.log('  - can delete (final):', userRole === 'admin' || file.uploadedBy === userId);
 
                     if (userRole === 'viewer') {
                         return `<button class="button danger disabled" onclick="showViewerAlert(); return false;" title="View-only mode">Delete</button>`;
@@ -2579,7 +2585,7 @@
                         const year = document.getElementById('year').value;
                         const category = document.getElementById('category').value;
                         const description = document.getElementById('description').value.trim();
-                        
+
                         console.log('🔍 [DEBUG] Form data collected:');
                         console.log('  - classCode:', classCode);
                         console.log('  - professor:', professor);
