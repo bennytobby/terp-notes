@@ -2082,8 +2082,8 @@ app.delete('/delete-account', async (req, res) => {
                 .collection(fileCollection.collection)
                 .updateMany(
                     { uploadedBy: userId },
-                    { 
-                        $set: { 
+                    {
+                        $set: {
                             uploadedBy: 'deleted_user',
                             uploadedByName: 'Deleted User',
                             isDeletedUser: true,
@@ -3297,6 +3297,10 @@ app.delete('/delete-all-files', async (req, res) => {
             .toArray();
 
         console.log(`📁 Found ${userFiles.length} files to delete for user ${userId}`);
+        
+        if (userFiles.length > 0) {
+            console.log('📁 Sample file structure:', JSON.stringify(userFiles[0], null, 2));
+        }
 
         let deletedCount = 0;
         let s3DeletedCount = 0;
@@ -3369,9 +3373,9 @@ app.delete('/delete-all-files', async (req, res) => {
             }
         });
 
-        res.status(200).json({ 
-            success: true, 
-            message: 'All files deleted successfully', 
+        res.status(200).json({
+            success: true,
+            message: 'All files deleted successfully',
             deletedCount: deletedCount,
             s3DeletedCount: s3DeletedCount
         });

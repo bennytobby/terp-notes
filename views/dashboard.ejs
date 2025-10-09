@@ -2248,7 +2248,7 @@
 
                     // Update only the active view with appropriate filtering
                     if (currentView === 'grid') {
-                        displayFiles(filteredFiles);
+                    displayFiles(filteredFiles);
                     } else if (currentView === 'grouped') {
                         renderGroupedView();
                     } else if (currentView === 'list') {
@@ -2369,21 +2369,6 @@
                     applyFilters();
                 }
 
-                // Helper function to get file icon based on mimetype
-                function getFileIcon(mimetype) {
-                    if (!mimetype) return '📄';
-
-                    if (mimetype.includes('pdf')) return '📕';
-                    else if (mimetype.includes('word') || mimetype.includes('document')) return '📘';
-                    else if (mimetype.includes('presentation') || mimetype.includes('powerpoint')) return '📙';
-                    else if (mimetype.includes('spreadsheet') || mimetype.includes('excel')) return '📗';
-                    else if (mimetype.includes('image')) return '🖼️';
-                    else if (mimetype.includes('text')) return '📃';
-                    else if (mimetype.includes('zip') || mimetype.includes('compressed')) return '📦';
-                    else if (mimetype.includes('python')) return '🐍';
-                    else if (mimetype.includes('java')) return '☕';
-                    else return '📄';
-                }
 
                 function displayFiles(files) {
                     const gridView = document.getElementById('gridView');
@@ -2423,7 +2408,7 @@
                         <div style="position: absolute; top: 0.5rem; right: 0.5rem; background: #FEF3C7; color: #92400E; padding: 2px 6px; border-radius: 4px; font-size: 0.7rem; font-weight: 600; cursor: help; z-index: 10;" title="${file.downloadCount || 0} downloads">
                             ${file.downloadCount || 0}
                         </div>
-                        <div class="file-icon">${getFileIcon(file.mimetype)}</div>
+                        <div class="file-icon">${getFileIcon(file.originalName)}</div>
                         <div class="file-info">
                             <h3>${escapeHtml(file.originalName)}</h3>
                         </div>
@@ -2586,6 +2571,7 @@
                         const professor = document.getElementById('professor').value.trim();
                         const semester = document.getElementById('semester').value;
                         const year = document.getElementById('year').value;
+                        const category = document.getElementById('category').value;
                         const description = document.getElementById('description').value.trim();
 
                         if (!classCode || !professor || !description) {
@@ -2692,6 +2678,7 @@
                                         professor: professor,
                                         semester: semester,
                                         year: year,
+                                        category: category,
                                         description: description
                                     })
                                 });
