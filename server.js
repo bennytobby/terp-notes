@@ -121,7 +121,6 @@ console.log(`🐢 Terp Notes Server starting on port ${portNumber}`);
 
 /* Express Setup */
 const express = require("express");
-const nodemailer = require('nodemailer');
 const { Resend } = require('resend');
 const cookieParser = require('cookie-parser');
 const helmet = require('helmet');
@@ -247,248 +246,56 @@ app.use((req, res, next) => {
     next();
 });
 
-/* Email Handling */
-const transporter = nodemailer.createTransport({
-    service: "gmail",
-    auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS
-    },
-    // Optimized settings for Vercel/serverless environment
-    pool: false, // Disable pooling for serverless (causes socket issues)
-    maxConnections: 1,
-    maxMessages: 1, // Send one message per connection
-    rateDelta: 10000, // 10 seconds between attempts
-    rateLimit: 1, // Max 1 email per rateDelta
-    secure: true,
-    connectionTimeout: 60000, // 60 seconds
-    greetingTimeout: 30000, // 30 seconds
-    socketTimeout: 60000, // 60 seconds
-    tls: {
-        rejectUnauthorized: false,
-        ciphers: 'SSLv3'
-    },
-    // Additional settings for stability
-    debug: false,
-    logger: false
-});
+/* Email Handling - Resend Only */
+const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
 
 // Test email configuration on startup
 console.log('📧 Email Configuration:');
-console.log('   EMAIL_USER:', process.env.EMAIL_USER ? 'Set' : 'Missing');
-console.log('   EMAIL_PASS:', process.env.EMAIL_PASS ? 'Set' : 'Missing');
 console.log('   RESEND_API_KEY:', process.env.RESEND_API_KEY ? 'Set' : 'Missing');
 console.log('   NODE_ENV:', process.env.NODE_ENV || 'development');
 console.log('   VERCEL_URL:', process.env.VERCEL_URL || 'Not set');
 
-// Initialize Resend
-const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
-
-// Verify email transporter connection on startup
-transporter.verify((error, success) => {
-    if (error) {
-        console.error('❌ Email transporter verification failed:', error);
-        console.error('💡 Consider using a dedicated email service like SendGrid or Mailgun for better reliability');
-    } else {
-        console.log('✅ Email transporter ready - connection verified');
-    }
-});
-
-// Alternative email configuration for better reliability (uncomment if needed)
-/*
-const alternativeTransporter = nodemailer.createTransporter({
-    host: 'smtp.gmail.com',
-    port: 587,
-    secure: false, // true for 465, false for other ports
-    auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS
-    },
-    tls: {
-        rejectUnauthorized: false
-    }
-});
-*/
-
-// Helper function to send email with retry logic
-function sendEmailWithRetry(mailOptions, maxRetries = 3) {
-    return new Promise((resolve, reject) => {
-        let attempts = 0;
-
-        function attemptSend() {
-            attempts++;
-            console.log(`📧 Attempting to send email (attempt ${attempts}/${maxRetries + 1})`);
-
-            // Create a fresh transporter for each attempt to avoid socket issues
-            const freshTransporter = nodemailer.createTransport({
-                service: "gmail",
-                auth: {
-                    user: process.env.EMAIL_USER,
-                    pass: process.env.EMAIL_PASS
-                },
-                pool: false,
-                maxConnections: 1,
-                maxMessages: 1,
-                rateDelta: 10000,
-                rateLimit: 1,
-                secure: true,
-                connectionTimeout: 30000, // Shorter timeout for retries
-                greetingTimeout: 15000,
-                socketTimeout: 30000,
-                tls: {
-                    rejectUnauthorized: false,
-                    ciphers: 'SSLv3'
-                },
-                debug: false,
-                logger: false
-            });
-
-            // Add timeout to prevent hanging
-            const timeout = setTimeout(() => {
-                console.error(`⏰ Email send attempt ${attempts} timed out after 30 seconds`);
-                freshTransporter.close();
-
-                if (attempts <= maxRetries) {
-                    console.log(`🔄 Timeout detected, retrying in 5 seconds...`);
-                    setTimeout(attemptSend, 5000);
-                } else {
-                    console.error(`❌ All email send attempts timed out after ${maxRetries + 1} tries`);
-                    reject(new Error('Email send timed out'));
-                }
-            }, 30000); // 30 second timeout
-
-            freshTransporter.sendMail(mailOptions, (err, info) => {
-                clearTimeout(timeout); // Clear timeout if email completes
-
-                // Close the fresh transporter after use
-                freshTransporter.close();
-
-                if (err) {
-                    console.error(`❌ Email send attempt ${attempts} failed:`, err.message);
-                    console.error(`❌ Error type:`, err.code || 'Unknown');
-                    console.error(`❌ Full error:`, err);
-
-                    // Check if it's a socket-related error
-                    const isSocketError = err.message.includes('socket') ||
-                                        err.message.includes('close') ||
-                                        err.code === 'ECONNRESET' ||
-                                        err.code === 'ETIMEDOUT';
-
-                    if (attempts <= maxRetries && isSocketError) {
-                        const delay = Math.min(2000 * attempts, 10000); // Exponential backoff, max 10s
-                        console.log(`🔄 Socket error detected, retrying in ${delay/1000} seconds...`);
-                        setTimeout(attemptSend, delay);
-                    } else if (attempts <= maxRetries) {
-                        console.log(`🔄 Retrying email send in 3 seconds...`);
-                        setTimeout(attemptSend, 3000);
-                    } else {
-                        console.error(`❌ All email send attempts failed after ${maxRetries + 1} tries`);
-                        console.error(`❌ Final error:`, err);
-                        reject(err);
-                    }
-                } else {
-                    console.log(`✅ Email sent successfully on attempt ${attempts}:`, info?.messageId);
-                    console.log(`📧 Email response:`, info?.response || 'No response details');
-                    resolve(info);
-                }
-            });
-        }
-
-        attemptSend();
-    });
+if (resend) {
+    console.log('✅ Resend email service initialized');
+} else {
+    console.error('❌ Resend API key missing - email functionality will not work');
 }
 
-// Alternative email sending function with simpler configuration
-function sendEmailSimple(mailOptions) {
-    return new Promise((resolve, reject) => {
-        console.log('📧 Attempting simple email send...');
-
-        const simpleTransporter = nodemailer.createTransport({
-            host: 'smtp.gmail.com',
-            port: 587,
-            secure: false,
-            auth: {
-                user: process.env.EMAIL_USER,
-                pass: process.env.EMAIL_PASS
-            },
-            tls: {
-                rejectUnauthorized: false
-            }
-        });
-
-        const timeout = setTimeout(() => {
-            console.error('⏰ Simple email send timed out');
-            simpleTransporter.close();
-            reject(new Error('Simple email send timed out'));
-        }, 15000); // 15 second timeout
-
-        simpleTransporter.sendMail(mailOptions, (err, info) => {
-            clearTimeout(timeout);
-            simpleTransporter.close();
-
-            if (err) {
-                console.error('❌ Simple email send failed:', err.message);
-                reject(err);
-            } else {
-                console.log('✅ Simple email send successful:', info?.messageId);
-                resolve(info);
-            }
-        });
-    });
-}
-
-// Modern email sending function using Resend (primary) with Gmail fallback
-async function sendEmailModern(mailOptions) {
-    console.log('🚀 Starting email send process...');
-    console.log('📧 Resend available:', !!resend);
-    console.log('📧 Resend API key present:', !!process.env.RESEND_API_KEY);
-
-    // Try Resend first if available
-    if (resend) {
-        try {
-            console.log('📧 Attempting to send email via Resend...');
-            console.log('📧 To:', mailOptions.to);
-            console.log('📧 Subject:', mailOptions.subject);
-
-            const resendResult = await resend.emails.send({
-                from: 'Terp Notes <noreply@terp-notes.org>',
-                to: mailOptions.to,
-                subject: mailOptions.subject,
-                html: mailOptions.html
-            });
-
-            console.log('✅ Email sent successfully via Resend!');
-            console.log('📧 Resend ID:', resendResult.data?.id);
-            console.log('📧 Full response:', JSON.stringify(resendResult, null, 2));
-            return { success: true, method: 'resend', data: resendResult.data };
-
-        } catch (error) {
-            console.error('❌ Resend email failed:');
-            console.error('❌ Error message:', error.message);
-            console.error('❌ Error details:', error);
-
-            // Check if it's the testing restriction error
-            if (error.message && error.message.includes('only send testing emails to your own email address')) {
-                console.log('🚫 Resend testing restriction detected - falling back to Gmail SMTP...');
-            } else {
-                console.log('🔄 Resend error - falling back to Gmail SMTP...');
-            }
-        }
-    } else {
-        console.log('⚠️ Resend not available, using Gmail SMTP directly...');
+/**
+ * Send email using Resend
+ * @param {string} to - Recipient email address
+ * @param {string} subject - Email subject
+ * @param {string} html - HTML email content
+ * @returns {Promise} Resend response
+ */
+async function sendEmail(to, subject, html) {
+    if (!resend) {
+        console.error('❌ Cannot send email: Resend not initialized');
+        throw new Error('Email service not configured');
     }
 
-    // Fallback to Gmail SMTP with retry logic
     try {
-        console.log('📧 Attempting to send email via Gmail SMTP...');
-        const gmailResult = await sendEmailWithRetry(mailOptions);
-        console.log('✅ Email sent successfully via Gmail:', gmailResult?.messageId);
-        return { success: true, method: 'gmail', data: gmailResult };
+        console.log(`📧 Sending email via Resend to: ${to}`);
+        console.log(`📧 Subject: ${subject}`);
+
+        const result = await resend.emails.send({
+            from: 'Terp Notes <noreply@terp-notes.org>',
+            to: to,
+            subject: subject,
+            html: html
+        });
+
+        console.log('✅ Email sent successfully via Resend');
+        console.log('📧 Email ID:', result.data?.id);
+        return result;
+
     } catch (error) {
-        console.error('❌ Both email methods failed:', error.message);
+        console.error('❌ Failed to send email via Resend:');
+        console.error('❌ Error:', error.message);
         throw error;
     }
 }
+
 
 /* Password Hashing */
 const bcrypt = require('bcrypt');
@@ -2198,15 +2005,6 @@ app.get("/delete/:filename", async (req, res) => {
             return res.status(404).send("File not found.");
         }
 
-        console.log('🔍 [DEBUG] Delete permission check:');
-        console.log('  - fileDoc.uploadedBy:', fileDoc.uploadedBy);
-        console.log('  - req.session.user.userid:', req.session.user.userid);
-        console.log('  - req.session.user.email:', req.session.user.email);
-        console.log('  - req.session.user.role:', req.session.user.role);
-        console.log('  - uploadedBy matches userid:', fileDoc.uploadedBy === req.session.user.userid);
-        console.log('  - uploadedBy matches email:', fileDoc.uploadedBy === req.session.user.email);
-        console.log('  - user is admin:', req.session.user.role === 'admin');
-
         if (fileDoc.uploadedBy !== req.session.user.userid && req.session.user.role !== 'admin') {
             console.log('❌ Permission denied - user cannot delete this file');
             return res.status(403).send("You don't have permission to delete this file.");
@@ -2219,21 +2017,13 @@ app.get("/delete/:filename", async (req, res) => {
             .collection(fileCollection.collection)
             .countDocuments({ fileHash: fileHash });
 
-        // Delete from S3 only if this is the last instance of this file
-        if (duplicateFiles === 1) {
-            await s3.deleteObject({ Bucket: AWS_BUCKET, Key: filename }).promise();
-            console.log(`🗑️ Deleted file from S3: ${filename}`);
-        } else {
-            console.log(`♻️ File is deduplicated (${duplicateFiles} instances), keeping S3 file`);
-        }
-
-        // Delete metadata
+        // Delete metadata from MongoDB FIRST
         await client
             .db(fileCollection.db)
             .collection(fileCollection.collection)
             .deleteOne({ filename });
 
-        // Delete all reports for this specific file (not affecting other instances if deduplicated)
+        // Delete all reports for this specific file
         const deletedReports = await client
             .db(fileCollection.db)
             .collection('reports')
@@ -2243,6 +2033,18 @@ app.get("/delete/:filename", async (req, res) => {
             console.log(`📋 Dismissed ${deletedReports.deletedCount} report(s) for deleted file`);
         }
 
+        // Close MongoDB connection AFTER all database operations
+        await client.close();
+
+        // NOW do S3 deletion (after MongoDB is done)
+        if (duplicateFiles === 1) {
+            await s3.deleteObject({ Bucket: AWS_BUCKET, Key: filename }).promise();
+            console.log(`🗑️ Deleted file from S3: ${filename}`);
+        } else {
+            console.log(`♻️ File is deduplicated (${duplicateFiles} instances), keeping S3 file`);
+        }
+
+        // Send email notification (async, no await needed)
         const mailOptions = {
             from: process.env.EMAIL_USER,
             to: req.session.user.email,
@@ -2263,12 +2065,12 @@ app.get("/delete/:filename", async (req, res) => {
             if (err) console.error("Error sending deletion email:", err);
         });
 
+        // Redirect back to dashboard
         res.redirect("/dashboard");
     } catch (err) {
         console.error("Delete failed:", err);
-        res.status(500).send("Error deleting file.");
-    } finally {
         await client.close();
+        res.status(500).send("Error deleting file.");
     }
 });
 
@@ -3277,133 +3079,6 @@ app.get('/api/cron/scan-pending-files', async (req, res) => {
     }
 });
 
-// Delete All Files Endpoint
-app.delete('/delete-all-files', async (req, res) => {
-    if (!req.session.user) {
-        return res.status(401).json({ error: 'Not authenticated' });
-    }
-
-    const userId = req.session.user.userid;
-    const userEmail = req.session.user.email;
-
-    try {
-        await client.connect();
-
-        // Check if user is protected (cannot delete protected accounts' files)
-        const userDoc = await client
-            .db(userCollection.db)
-            .collection(userCollection.collection)
-            .findOne({ userid: userId });
-
-        if (!userDoc) {
-            return res.status(404).json({ error: 'User not found' });
-        }
-
-        if (userDoc.isProtected) {
-            return res.status(403).json({ error: 'Cannot delete files from protected system account' });
-        }
-
-        console.log(`🗑️ Deleting all files for user: ${userId} (${userEmail})`);
-
-        // Get all files uploaded by this user
-        const userFiles = await client
-            .db(fileCollection.db)
-            .collection(fileCollection.collection)
-            .find({ uploadedBy: userId })
-            .toArray();
-
-        console.log(`📁 Found ${userFiles.length} files to delete for user ${userId}`);
-
-        if (userFiles.length > 0) {
-            console.log('📁 Sample file structure:', JSON.stringify(userFiles[0], null, 2));
-        }
-
-        let deletedCount = 0;
-        let s3DeletedCount = 0;
-
-        // Delete files from S3 and database
-        for (const file of userFiles) {
-            try {
-                // Check if this file is deduplicated (used by other uploads)
-                const fileHash = file.fileHash;
-                const duplicateFiles = await client
-                    .db(fileCollection.db)
-                    .collection(fileCollection.collection)
-                    .countDocuments({ fileHash: fileHash });
-
-                // Delete from S3 only if this is the last instance of this file
-                if (duplicateFiles === 1) {
-                    await s3.deleteObject({ Bucket: AWS_BUCKET, Key: file.filename }).promise();
-                    console.log(`🗑️ Deleted file from S3: ${file.filename}`);
-                    s3DeletedCount++;
-                } else {
-                    console.log(`♻️ File is deduplicated (${duplicateFiles} instances), keeping S3 file: ${file.filename}`);
-                }
-
-                // Delete from database
-                await client
-                    .db(fileCollection.db)
-                    .collection(fileCollection.collection)
-                    .deleteOne({ _id: file._id });
-
-                console.log(`🗑️ Deleted file record from database: ${file.filename}`);
-                deletedCount++;
-            } catch (fileError) {
-                console.error(`❌ Error deleting file ${file.filename}:`, fileError);
-                // Continue with other files even if one fails
-            }
-        }
-
-        console.log(`🗑️ Successfully deleted ${deletedCount} files (${s3DeletedCount} from S3)`);
-
-        // Send deletion confirmation email
-        const mailOptions = {
-            from: process.env.EMAIL_USER,
-            to: userEmail,
-            subject: "Files Deleted - Terp Notes",
-            html: `
-                <h2>All Files Deleted Successfully</h2>
-                <p>Hi ${userDoc.firstname},</p>
-                <p>All your uploaded files have been permanently deleted as requested.</p>
-                <p><strong>Deletion Summary:</strong></p>
-                <ul>
-                    <li>Files deleted from database: ${deletedCount}</li>
-                    <li>Files deleted from storage: ${s3DeletedCount}</li>
-                    <li>Files preserved (deduplicated): ${userFiles.length - s3DeletedCount}</li>
-                </ul>
-                <p><strong>Note:</strong> Your account remains active. If you didn't request this deletion, please contact support immediately at ${process.env.EMAIL_USER}.</p>
-                <hr style="margin: 2rem 0; border: none; border-top: 1px solid #E5E7EB;">
-                <p style="color: #6B7280; font-size: 0.875rem;">
-                    <strong>Terp Notes</strong> - Built for Terps, by Terps<br>
-                    <em>Not affiliated with, endorsed by, or officially connected to the University of Maryland.</em>
-                </p>
-            `
-        };
-
-        // Send email asynchronously
-        transporter.sendMail(mailOptions, (err, info) => {
-            if (err) {
-                console.error('❌ Error sending deletion confirmation email:', err);
-            } else {
-                console.log('✅ Deletion confirmation email sent:', info.messageId);
-            }
-        });
-
-        res.status(200).json({
-            success: true,
-            message: 'All files deleted successfully',
-            deletedCount: deletedCount,
-            s3DeletedCount: s3DeletedCount
-        });
-
-    } catch (error) {
-        console.error('❌ Error deleting files:', error);
-        console.error('❌ Error stack:', error.stack);
-        res.status(500).json({ error: 'Failed to delete files', details: error.message });
-    } finally {
-        await client.close();
-    }
-});
 
 // Export the app for testing
 module.exports = app;

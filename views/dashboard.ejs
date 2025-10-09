@@ -1351,11 +1351,18 @@
                 function getFilteredFilesForGroupedView() {
                     const searchTerm = document.getElementById('searchInput').value.toLowerCase();
                     const selectedProfessors = Array.from(document.querySelectorAll('#professorDropdown input[type="checkbox"]:checked')).map(cb => cb.value);
+                    const myFilesOnly = document.getElementById('myFilesToggle').checked;
 
                     return allFilesData.filter(function(file) {
                         // Search term filter
                         if (searchTerm && !file.originalName.toLowerCase().includes(searchTerm) &&
                             !(file.description && file.description.toLowerCase().includes(searchTerm))) {
+                            return false;
+                        }
+
+                        // My files filter
+                        const currentUserId = '<%= user.userid %>';
+                        if (myFilesOnly && file.uploadedBy !== currentUserId) {
                             return false;
                         }
 
@@ -1391,7 +1398,8 @@
                         }
 
                         // My files filter
-                        if (myFilesOnly && file.uploadedBy !== 'pmachre') {
+                        const currentUserId = '<%= user.userid %>';
+                        if (myFilesOnly && file.uploadedBy !== currentUserId) {
                             return false;
                         }
 
@@ -1477,7 +1485,6 @@
 
                         // Create download and delete links
                         const downloadLink = `/download/${file.filename}`;
-                        const deleteLink = file.uploadedBy === 'pmachre' ? `/delete/${file.filename}` : '#';
                         const filename = file.filename || '';
                         const originalName = file.originalName || fileName;
 
@@ -1501,7 +1508,7 @@
                                 <div class="file-list-downloads" title="${downloadCount} downloads">${downloadCount}</div>
                                 <div class="file-list-actions">
                                     <a href="${downloadLink}" class="button primary" target="_blank" style="font-size: 0.8rem; padding: 0.4rem 0.8rem;">Download</a>
-                                    ${deleteLink !== '#' ? `<a href="${deleteLink}" class="button danger" onclick="return confirm('Delete this file?')" style="font-size: 0.8rem; padding: 0.4rem 0.8rem;">Delete</a>` : ''}
+                                    ${getDeleteButton(file)}
                                     <button class="button secondary small report-btn" data-filename="${filename}" data-original-name="${originalName}" style="font-size: 0.8rem; padding: 0.4rem 0.8rem;">🚩</button>
                                 </div>
                             </div>
@@ -1528,7 +1535,6 @@
 
                     // Create download and delete links
                     const downloadLink = `/download/${file.filename}`;
-                    const deleteLink = file.uploadedBy === 'pmachre' ? `/delete/${file.filename}` : '#';
                     const filename = file.filename || '';
                     const originalName = file.originalName || fileName;
 
@@ -1562,7 +1568,7 @@
                             </div>
                             <div style="display: flex; gap: 0.5rem; margin-top: 0.75rem;">
                                 <a href="${downloadLink}" class="button primary" target="_blank" style="flex: 1; text-align: center; font-size: 0.85rem; padding: 0.5rem;">Download</a>
-                                ${deleteLink !== '#' ? `<a href="${deleteLink}" class="button danger" onclick="return confirm('Delete this file?')" style="font-size: 0.85rem; padding: 0.5rem;">Delete</a>` : ''}
+                                ${getDeleteButton(file)}
                                 <button class="button secondary small report-btn" data-filename="${filename}" data-original-name="${originalName}" style="font-size: 0.85rem; padding: 0.5rem;">🚩</button>
                             </div>
                         </div>
@@ -1818,8 +1824,8 @@
                         button.textContent = 'Collapse All';
 
                         } else {
-                        // Collapsing all folders - clear all filters (same as Clear All)
-                        clearAllFilters();
+                        // Collapsing all folders - clear only folder-related filters (keep My Files filter)
+                        clearFolderFilters();
 
                         // Then collapse all folders
                         const semesterHeaders = document.querySelectorAll('.semester-header');
@@ -1993,6 +1999,30 @@
                     }
                 });
 
+                // Clear only folder-related filters (keep My Files filter)
+                function clearFolderFilters() {
+                    // Clear all multi-select checkboxes (categories, semesters, years, majors, classes, professors)
+                    document.querySelectorAll('.multi-select-dropdown input[type="checkbox"]:checked').forEach(cb => {
+                        cb.checked = false;
+                    });
+
+                    // Reset all multi-select labels
+                    document.getElementById('categoryLabel').textContent = 'All Categories';
+                    document.getElementById('semesterLabel').textContent = 'All Semesters';
+                    document.getElementById('yearLabel').textContent = 'All Years';
+                    document.getElementById('majorLabel').textContent = 'All Majors';
+                    document.getElementById('classLabel').textContent = 'All Classes';
+                    document.getElementById('professorLabel').textContent = 'All Professors';
+
+                    // Clear search input
+                    document.getElementById('searchInput').value = '';
+
+                    // DO NOT clear "My Files" toggle - keep user's preference
+
+                    // Apply filters
+                    applyFilters();
+                }
+
                 // Clear all filters
                 function clearAllFilters() {
                     // Clear all multi-select checkboxes
@@ -2110,7 +2140,7 @@
                     }
                 }
 
-                // Update active filters display for grouped view (only Professor and Search)
+                // Update active filters display for grouped view (only Professor, Search, and My Files)
                 function updateActiveFiltersForGroupedView() {
                     const activeFiltersContainer = document.getElementById('activeFilters');
                     const filterTags = document.getElementById('filterTags');
@@ -2120,6 +2150,7 @@
                     // Only show filters that are shared between grouped view and other views:
                     // - Professor filter (shared globally)
                     // - Search filter (shared globally)
+                    // - My Files filter (shared globally)
 
                     // Get professor filter (from multi-select)
                     const selectedProfessors = Array.from(document.querySelectorAll('#professorDropdown input[type="checkbox"]:checked'))
@@ -2130,6 +2161,12 @@
                     const searchTerm = document.getElementById('searchInput').value.trim();
                     if (searchTerm) {
                         tags.push({ type: 'search', value: searchTerm, label: `🔍 "${searchTerm}"` });
+                    }
+
+                    // Get "My Files" toggle
+                    const myFilesOnly = document.getElementById('myFilesToggle').checked;
+                    if (myFilesOnly) {
+                        tags.push({ type: 'myFiles', value: 'true', label: `👤 My Files Only` });
                     }
 
                     // Update filter tags content
@@ -2450,18 +2487,6 @@
                 function getDeleteButton(file) {
                     const userRole = '<%= user.role %>';
                     const userId = '<%= user.userid %>';
-                    const userEmail = '<%= user.email %>';
-                    
-                    console.log('🔍 [DEBUG] Delete button check:');
-                    console.log('  - userRole:', userRole);
-                    console.log('  - userId:', userId);
-                    console.log('  - userEmail:', userEmail);
-                    console.log('  - file.uploadedBy:', file.uploadedBy);
-                    console.log('  - file.uploadedByName:', file.uploadedByName);
-                    console.log('  - can delete (userRole === admin):', userRole === 'admin');
-                    console.log('  - can delete (file.uploadedBy === userId):', file.uploadedBy === userId);
-                    console.log('  - can delete (file.uploadedBy === userEmail):', file.uploadedBy === userEmail);
-                    console.log('  - can delete (final):', userRole === 'admin' || file.uploadedBy === userId);
 
                     if (userRole === 'viewer') {
                         return `<button class="button danger disabled" onclick="showViewerAlert(); return false;" title="View-only mode">Delete</button>`;

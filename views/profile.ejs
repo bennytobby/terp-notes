@@ -139,23 +139,6 @@
                 <section class="profile-section danger-zone">
                     <h2 class="danger-zone-title">🚨 DANGER ZONE</h2>
 
-                    <!-- Delete All Files -->
-                    <div class="danger-section">
-                        <h3>Delete All Uploaded Files</h3>
-                        <div class="danger-warning">
-                            <p><strong>⚠️ Warning:</strong> This will permanently delete all files you have uploaded:</p>
-                            <ul>
-                                <li>Files will be removed from the platform</li>
-                                <li>Other users will lose access to your content</li>
-                                <li>This action cannot be undone</li>
-                                <li>Your account will remain active</li>
-                            </ul>
-                            <p>Only use this if you want to remove your content while keeping your account.</p>
-                        </div>
-                        <button type="button" id="deleteAllFilesBtn" class="button danger">
-                            Delete All My Files
-                        </button>
-                    </div>
 
                     <!-- Delete Account -->
                     <div class="danger-section">
@@ -336,64 +319,6 @@
                 });
             }
 
-            // Delete all files functionality
-            const deleteAllFilesBtn = document.getElementById('deleteAllFilesBtn');
-            if (deleteAllFilesBtn) {
-                deleteAllFilesBtn.addEventListener('click', function() {
-                    // Create confirmation dialog
-                    const confirmed = confirm(
-                        '⚠️ WARNING ⚠️\n\n' +
-                        'You are about to permanently delete ALL files you have uploaded. This action cannot be undone.\n\n' +
-                        'This will:\n' +
-                        '• Remove all your files from the platform\n' +
-                        '• Prevent other users from accessing your content\n' +
-                        '• Delete files from storage (unless deduplicated)\n\n' +
-                        'Your account will remain active.\n\n' +
-                        'Are you absolutely sure you want to delete all your files?\n\n' +
-                        'Type "DELETE FILES" in the next dialog to confirm.'
-                    );
-
-                    if (confirmed) {
-                        const userConfirmation = prompt(
-                            'Type "DELETE FILES" (in all caps) to confirm file deletion:'
-                        );
-
-                        if (userConfirmation === 'DELETE FILES') {
-                            // Show loading state
-                            deleteAllFilesBtn.disabled = true;
-                            deleteAllFilesBtn.textContent = 'Deleting Files...';
-                            deleteAllFilesBtn.style.opacity = '0.6';
-
-                            // Submit delete request
-                            fetch('/delete-all-files', {
-                                method: 'DELETE',
-                                headers: {
-                                    'Content-Type': 'application/json',
-                                }
-                            })
-                            .then(response => response.json())
-                            .then(data => {
-                                if (data.success) {
-                                    alert(`Files deleted successfully!\n\nDeleted ${data.deletedCount} files from database\nDeleted ${data.s3DeletedCount} files from storage\n\nYou will be redirected to the dashboard.`);
-                                    window.location.href = '/dashboard';
-                                } else {
-                                    throw new Error(data.error || 'Failed to delete files');
-                                }
-                            })
-                            .catch(error => {
-                                console.error('Error:', error);
-                                alert('Failed to delete files. Please try again or contact support.');
-                                // Reset button state
-                                deleteAllFilesBtn.disabled = false;
-                                deleteAllFilesBtn.textContent = 'Delete All My Files';
-                                deleteAllFilesBtn.style.opacity = '1';
-                            });
-                        } else if (userConfirmation !== null) {
-                            alert('File deletion cancelled. The confirmation text did not match.');
-                        }
-                    }
-                });
-            }
         });
     </script>
     <%- include('partials/footer') %>
