@@ -156,9 +156,17 @@ a:hover {
 
 /* ===== LAYOUT ===== */
 .container {
-  max-width: 95%;
+  max-width: 1200px;
+  width: 100%;
   margin: 0 auto;
   padding: 0 var(--space-6);
+  box-sizing: border-box;
+}
+
+@media (min-width: 1400px) {
+  .container {
+    max-width: 1400px;
+  }
 }
 
 @media (min-width: 1600px) {
@@ -704,6 +712,8 @@ input[type="reset"] {
   grid-template-columns: repeat(3, 1fr);
   gap: var(--space-8);
   margin-bottom: var(--space-8);
+  width: 100%;
+  box-sizing: border-box;
 }
 
 @media (max-width: 1200px) {
@@ -2510,4 +2520,50 @@ main > .container > p:first-of-type {
     grid-template-columns: 1fr;
   }
 }
+
+/* Search box in multi-select dropdowns */
+.search-box {
+  padding: 0.5rem;
+  border-bottom: 1px solid var(--color-border);
+  background: var(--gray-50);
+}
+
+.search-box input {
+  width: 100%;
+  padding: 0.5rem;
+  border: 1px solid var(--color-border);
+  border-radius: 4px;
+  font-size: 0.875rem;
+  background: white;
+}
+
+.search-box input:focus {
+  outline: none;
+  border-color: var(--umd-red);
+  box-shadow: 0 0 0 2px rgba(226, 24, 51, 0.1);
+}
+
+.no-options {
+  padding: 1rem;
+  text-align: center;
+  color: var(--color-text-muted);
+  font-style: italic;
+}
+
+/* Removed - now using same CSS class as grid view */
+
+/* Ensure active filters don't affect grouped view layout */
+#activeFilters {
+  box-sizing: border-box;
+}
+
+/* When active filters are hidden, ensure they don't take up space */
+#activeFilters[style*="display: none"] {
+  display: none !important;
+  height: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+/* Revert to original - no width constraints */
 
