@@ -248,8 +248,8 @@
                                             <!-- Options will be populated dynamically -->
                                         </div>
                                     </div>
-                                </div>
                             </div>
+                        </div>
 
                             <!-- Active Filters Display (Grid View Only) -->
                             <div id="activeFilters" style="display: none; margin: 1rem 0; padding: 0.75rem; background: #F9FAFB; border-radius: 8px; border: 1px solid #E5E7EB;">
@@ -259,7 +259,7 @@
                                         <div id="filterTags" style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
                                             <!-- Hidden filter to maintain consistent width -->
                                             <span style="display: none;" id="hiddenFilter">All Files</span>
-                                        </div>
+                                </div>
                                     </div>
                                     <button onclick="clearAllFilters()" style="background: var(--umd-red); color: white; border: none; padding: 4px 12px; border-radius: 6px; cursor: pointer; font-size: 0.875rem; font-weight: 600; transition: all 0.2s;">
                                         Clear All
@@ -269,12 +269,7 @@
                         </div>
 
                         <section class="file-list">
-                            <% if (files.length===0) { %>
-                                <div class="empty-state">
-                                    <h3>No notes found</h3>
-                                    <p>Be the first to share notes for your class!</p>
-                                </div>
-                                <% } else { %>
+                            <% if (files.length > 0) { %>
                                     <!-- Grid View (Hidden by default) -->
                                     <div id="gridView" class="file-grid" style="display: none;">
                                         <% files.forEach(file=> { %>
@@ -492,6 +487,8 @@
                                         <!-- This will be populated by JavaScript -->
                                     </div>
                                     <% } %>
+
+                                    <!-- Empty state will be handled by JavaScript -->
                         </section>
 
                         <section class="upload-section">
@@ -681,6 +678,8 @@
                     // Always initialize the current view to ensure proper state
                     if (currentView === 'grouped') {
                         switchView('grouped', false);
+                    } else if (currentView === 'list') {
+                        switchView('list', false);
                     } else {
                         switchView('grid', false);
                     }
@@ -833,6 +832,9 @@
 
                         // Show active filters in grid view (if there are any)
                         updateActiveFilters();
+
+                        // Apply current filters to grid view
+                        applyFilters();
                     } else if (view === 'grouped') {
                         gridView.style.display = 'none';
                         groupedView.style.display = 'block';
@@ -886,7 +888,8 @@
                         // Show active filters in list view (if there are any)
                         updateActiveFilters();
 
-                        renderListView();
+                        // Apply current filters to list view
+                        applyFilters();
                     }
 
                     // Debug: Log container widths after switching
@@ -1145,24 +1148,22 @@
                     const groupedView = document.getElementById('groupedView');
                     if (!groupedView) return;
 
-                    const fileCards = Array.from(document.querySelectorAll('#gridView .file-card'));
+                    // Get filtered files directly instead of relying on grid view
+                    const filteredFiles = getFilteredFiles();
 
-                    // Check if we have any visible files (not just DOM cards)
-                    const visibleFileCards = fileCards.filter(card => card.style.display !== 'none');
-
-                    if (visibleFileCards.length === 0) {
+                    if (filteredFiles.length === 0) {
                         groupedView.innerHTML = '<div class="empty-state"><h3>No notes found</h3><p>Try different filters or search terms</p></div>';
                         return;
                     }
 
                     // Group files: Semester/Year > Major > Course > Category > Files
                     const grouped = {};
-                    fileCards.forEach(function (card) {
-                        const semester = card.dataset.semester || 'Unknown Semester';
-                        const year = card.dataset.year || 'Unknown Year';
-                        const major = card.dataset.major || 'Other';
-                        const classCode = card.dataset.class || 'Unknown';
-                        const category = card.dataset.category || 'Other';
+                    filteredFiles.forEach(function (file) {
+                        const semester = file.semester || 'Unknown Semester';
+                        const year = file.year || 'Unknown Year';
+                        const major = file.major || 'Other';
+                        const classCode = file.classCode || 'Unknown';
+                        const category = file.category || 'Other';
 
                         const semesterKey = `${semester} ${year}`;
 
@@ -1171,7 +1172,7 @@
                         if (!grouped[semesterKey][major][classCode]) grouped[semesterKey][major][classCode] = {};
                         if (!grouped[semesterKey][major][classCode][category]) grouped[semesterKey][major][classCode][category] = [];
 
-                        grouped[semesterKey][major][classCode][category].push(card);
+                        grouped[semesterKey][major][classCode][category].push(file);
                     });
 
                     // Sort semesters chronologically (newest first)
@@ -1325,60 +1326,131 @@
                     restoreFolderStates(persistentFolderStates);
                 }
 
+                // Helper function to get file icon based on filename extension
+                function getFileIcon(filename) {
+                    const ext = filename.split('.').pop().toLowerCase();
+                    const iconMap = {
+                        pdf: '📕',
+                        doc: '📘', docx: '📘',
+                        xls: '📗', xlsx: '📗',
+                        ppt: '📙', pptx: '📙',
+                        txt: '📄',
+                        zip: '📦', rar: '📦',
+                        jpg: '🖼️', jpeg: '🖼️', png: '🖼️', gif: '🖼️',
+                        mp4: '🎥', mov: '🎥',
+                        mp3: '🎵',
+                    };
+                    return iconMap[ext] || '📄';
+                }
+
+                // Get filtered files based on current filters
+                function getFilteredFiles() {
+                    const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+                    const selectedCategories = Array.from(document.querySelectorAll('#categoryDropdown input[type="checkbox"]:checked')).map(cb => cb.value);
+                    const selectedSemesters = Array.from(document.querySelectorAll('#semesterDropdown input[type="checkbox"]:checked')).map(cb => cb.value);
+                    const selectedYears = Array.from(document.querySelectorAll('#yearDropdown input[type="checkbox"]:checked')).map(cb => cb.value);
+                    const selectedMajors = Array.from(document.querySelectorAll('#majorDropdown input[type="checkbox"]:checked')).map(cb => cb.value);
+                    const selectedClasses = Array.from(document.querySelectorAll('#classDropdown input[type="checkbox"]:checked')).map(cb => cb.value);
+                    const selectedProfessors = Array.from(document.querySelectorAll('#professorDropdown input[type="checkbox"]:checked')).map(cb => cb.value);
+                    const myFilesOnly = document.getElementById('myFilesToggle').checked;
+
+                    return allFilesData.filter(function(file) {
+                        // Search term filter
+                        if (searchTerm && !file.originalName.toLowerCase().includes(searchTerm) &&
+                            !(file.description && file.description.toLowerCase().includes(searchTerm))) {
+                            return false;
+                        }
+
+                        // My files filter
+                        if (myFilesOnly && file.uploadedBy !== 'pmachre') {
+                            return false;
+                        }
+
+                        // Category filter
+                        if (selectedCategories.length > 0) {
+                            const fileCategory = file.category || 'Other';
+                            if (!selectedCategories.includes(fileCategory)) {
+                                return false;
+                            }
+                        }
+
+                        // Semester filter
+                        if (selectedSemesters.length > 0 && !selectedSemesters.includes(file.semester)) {
+                            return false;
+                        }
+
+                        // Year filter
+                        if (selectedYears.length > 0 && !selectedYears.includes(file.year.toString())) {
+                            return false;
+                        }
+
+                        // Major filter
+                        if (selectedMajors.length > 0 && !selectedMajors.includes(file.major)) {
+                            return false;
+                        }
+
+                        // Class filter
+                        if (selectedClasses.length > 0 && !selectedClasses.includes(file.classCode)) {
+                            return false;
+                        }
+
+                        // Professor filter
+                        if (selectedProfessors.length > 0) {
+                            if (!file.professor || !selectedProfessors.some(selectedProf =>
+                                file.professor.toLowerCase() === selectedProf.toLowerCase()
+                            )) {
+                                return false;
+                            }
+                        }
+
+                        return true;
+                    });
+                }
+
                 // Render list view
                 function renderListView() {
                     const listView = document.getElementById('listView');
                     if (!listView) return;
 
-                    const fileCards = Array.from(document.querySelectorAll('#gridView .file-card'));
+                    // Get filtered files directly instead of relying on grid view
+                    const filteredFiles = getFilteredFiles();
 
-                    // Check if we have any visible files (not just DOM cards)
-                    const visibleFileCards = fileCards.filter(card => card.style.display !== 'none');
-
-                    if (visibleFileCards.length === 0) {
+                    if (filteredFiles.length === 0) {
+                        console.log('🔍 [DEBUG] List view: Setting empty state');
                         listView.innerHTML = '<div class="empty-state"><h3>No notes found</h3><p>Try different filters or search terms</p></div>';
+                        console.log('🔍 [DEBUG] List view: Empty state HTML set');
                         return;
                     }
 
                     let html = '';
-                    visibleFileCards.forEach(function(card) {
-                        const fileName = card.querySelector('h3').textContent.trim();
-                        const major = card.dataset.major;
-                        const classCode = card.dataset.class;
-                        const semester = card.dataset.semester;
-                        const year = card.dataset.year;
-                        const professor = card.dataset.professor;
-                        const uploader = card.dataset.uploader;
-                        const downloadCount = card.dataset.downloads || '0';
+                    filteredFiles.forEach(function(file) {
+                        const fileName = file.originalName;
+                        const major = file.major || '';
+                        const classCode = file.classCode || '';
+                        const semester = file.semester || '';
+                        const year = file.year || '';
+                        const professor = file.professor || '';
+                        const uploader = file.uploadedBy || '';
+                        const downloadCount = file.downloadCount || 0;
 
-                        // Get metadata from the original card
-                        const metaItems = card.querySelectorAll('.file-meta-item');
-                        let size = '', description = '';
+                        // Format file size
+                        const size = file.size ? (file.size / 1024).toFixed(1) + ' KB' : '';
+                        const description = file.description || '';
 
-                        metaItems.forEach(item => {
-                            const text = item.textContent.trim();
-                            if (text.includes('Size:')) {
-                                size = text.replace('Size:', '').trim();
-                            } else if (text.includes('Description:')) {
-                                description = text.replace('Description:', '').trim();
-                            }
-                        });
-
-                        // Get file icon
-                        const fileIcon = card.querySelector('.file-icon')?.textContent?.trim() || '📄';
+                        // Get file icon based on file type
+                        const fileIcon = getFileIcon(file.originalName);
 
                         // Check if file is "new" (within 7 days)
-                        const uploadDate = card.dataset.date ? new Date(parseInt(card.dataset.date)) : new Date();
+                        const uploadDate = new Date(file.uploadDate);
                         const now = new Date();
                         const daysAgo = Math.floor((now - uploadDate) / (1000 * 60 * 60 * 24));
                         const isNew = daysAgo <= 7;
 
-                        // Get download link
-                        const downloadLink = card.querySelector('.file-actions a[href^="/download"]')?.href || '#';
-                        const deleteLink = card.querySelector('.file-actions a[href^="/delete"]')?.href || '#';
-                        const reportBtn = card.querySelector('.report-btn');
-                        const filename = reportBtn?.dataset.filename || '';
-                        const originalName = reportBtn?.dataset.originalName || fileName;
+                        // Create download and delete links
+                        const downloadLink = `/download/${file.filename}`;
+                        const deleteLink = file.uploadedBy === 'pmachre' ? `/delete/${file.filename}` : '#';
+                        const filename = file.filename || '';
+                        const originalName = file.originalName || fileName;
 
                         html += `
                             <div class="file-list-item">
@@ -1410,47 +1482,33 @@
                     listView.innerHTML = html;
                 }
 
-                // Create a grouped file card from original card data
-                function createGroupedFileCard(originalCard) {
-                    const fileName = originalCard.querySelector('h3').textContent.trim();
-                    const major = originalCard.dataset.major;
-                    const classCode = originalCard.dataset.class;
-                    const semester = originalCard.dataset.semester;
-                    const year = originalCard.dataset.year;
-                    const professor = originalCard.dataset.professor;
-                    const uploader = originalCard.dataset.uploader;
+                // Create a grouped file card from file data
+                function createGroupedFileCard(file) {
+                    const fileName = file.originalName;
+                    const major = file.major || '';
+                    const classCode = file.classCode || '';
+                    const semester = file.semester || '';
+                    const year = file.year || '';
+                    const professor = file.professor || '';
+                    const uploader = file.uploadedBy || '';
 
-                    // Get metadata from the original card
-                    const metaItems = originalCard.querySelectorAll('.file-meta-item');
-                    let size = '', description = '', virusScanBadge = '';
+                    // Format file size
+                    const size = file.size ? (file.size / 1024).toFixed(1) + ' KB' : '';
+                    const description = file.description || '';
+                    const virusScanBadge = file.virusScanStatus === 'clean' ? '<div class="scan-badge" style="background: #D1FAE5; color: #065F46; padding: 2px 8px; border-radius: 4px; font-size: 0.7rem; font-weight: 600; display: inline-block; margin-bottom: 0.5rem;">✓ VIRUS SCANNED</div>' : '';
 
-                    metaItems.forEach(item => {
-                        const text = item.textContent.trim();
-                        if (text.includes('Size:')) {
-                            size = text.replace('Size:', '').trim();
-                        } else if (text.includes('Description:')) {
-                            description = text.replace('Description:', '').trim();
-                        }
-                    });
+                    // Create download and delete links
+                    const downloadLink = `/download/${file.filename}`;
+                    const deleteLink = file.uploadedBy === 'pmachre' ? `/delete/${file.filename}` : '#';
+                    const filename = file.filename || '';
+                    const originalName = file.originalName || fileName;
 
-                    const scanBadge = originalCard.querySelector('.scan-badge');
-                    if (scanBadge) {
-                        virusScanBadge = scanBadge.outerHTML;
-                    }
-
-                    // Get download link
-                    const downloadLink = originalCard.querySelector('.file-actions a[href^="/download"]')?.href || '#';
-                    const deleteLink = originalCard.querySelector('.file-actions a[href^="/delete"]')?.href || '#';
-                    const reportBtn = originalCard.querySelector('.report-btn');
-                    const filename = reportBtn?.dataset.filename || '';
-                    const originalName = reportBtn?.dataset.originalName || fileName;
-
-                    // Get file icon and download count from original card
-                    const fileIcon = originalCard.querySelector('.file-icon')?.textContent?.trim() || '📄';
-                    const downloadCount = originalCard.dataset.downloads || '0';
+                    // Get file icon and download count
+                    const fileIcon = getFileIcon(file.originalName);
+                    const downloadCount = file.downloadCount || 0;
 
                     // Check if file is "new" (within 7 days)
-                    const uploadDate = originalCard.dataset.date ? new Date(parseInt(originalCard.dataset.date)) : new Date();
+                    const uploadDate = new Date(file.uploadDate);
                     const now = new Date();
                     const daysAgo = Math.floor((now - uploadDate) / (1000 * 60 * 60 * 24));
                     const isNew = daysAgo <= 7;
@@ -2122,11 +2180,10 @@
                         }
                     });
 
-                    // Update the DOM
+                    // Update only the active view
+                    if (currentView === 'grid') {
                     displayFiles(filteredFiles);
-
-                    // If grouped view is active, re-render it
-                    if (currentView === 'grouped') {
+                    } else if (currentView === 'grouped') {
                         renderGroupedView();
                     } else if (currentView === 'list') {
                         renderListView();
@@ -2260,32 +2317,12 @@
 
                 function displayFiles(files) {
                     const gridView = document.getElementById('gridView');
-                    const groupedView = document.getElementById('groupedView');
-                    let emptyState = document.querySelector('.empty-state');
-                    const fileList = document.querySelector('.file-list');
 
                     if (files.length === 0) {
-
-                        // Hide both views
-                        if (gridView) gridView.style.display = 'none';
-                        if (groupedView) groupedView.style.display = 'none';
-
-                        // Show or create empty state
-                        if (!emptyState) {
-                            const emptyDiv = document.createElement('div');
-                            emptyDiv.className = 'empty-state';
-                            emptyDiv.innerHTML = '<h3>No notes found</h3><p>Try different filters or search terms</p>';
-                            fileList.insertBefore(emptyDiv, fileList.firstChild);
-                            emptyState = emptyDiv;
-                        } else {
-                            emptyState.style.display = 'block';
-                        }
+                        console.log('🔍 [DEBUG] Grid view: Setting empty state');
+                        gridView.innerHTML = '<div class="empty-state"><h3>No notes found</h3><p>Try different filters or search terms</p></div>';
+                        console.log('🔍 [DEBUG] Grid view: Empty state HTML set');
                         return;
-                    }
-
-                    // Hide empty state if it exists
-                    if (emptyState) {
-                        emptyState.style.display = 'none';
                     }
 
                     // Always update grid view with new data
@@ -2312,7 +2349,7 @@
                      data-date="${new Date(file.uploadDate).getTime()}"
                      data-downloads="${file.downloadCount || 0}"
                      data-size="${file.size || 0}">
-                    <div class="file-header" style="position: relative;">
+                    <div class="file-header" style="position: relative; display: flex; align-items: center; justify-content: center; gap: 0.75rem; margin-bottom: 1rem;">
                         <div style="position: absolute; top: 0.5rem; right: 0.5rem; background: #FEF3C7; color: #92400E; padding: 2px 6px; border-radius: 4px; font-size: 0.7rem; font-weight: 600; cursor: help; z-index: 10;" title="${file.downloadCount || 0} downloads">
                             ${file.downloadCount || 0}
                         </div>
@@ -2333,7 +2370,7 @@
                         <div class="file-meta-item"><strong>Uploaded by:</strong> ${escapeHtml(file.uploadedBy)}</div>
                         ${file.description ? `<div class="file-meta-item"><strong>Description:</strong> ${escapeHtml(file.description)}</div>` : ''}
                     </div>
-                    <div class="file-actions">
+                    <div class="file-actions" style="display: flex; gap: 0.5rem; flex-wrap: wrap; justify-content: center;">
                         <a href="/download/${encodeURIComponent(file.filename)}" class="button primary" target="_blank">Download</a>
                         ${getDeleteButton(file)}
                         <button class="button secondary small report-btn" data-filename="${file.filename}" data-original-name="${escapeHtml(file.originalName)}">🚩 Report</button>
