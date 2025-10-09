@@ -1,0 +1,8 @@
+# Ignore EJS files to prevent linting issues
+*.ejs
+
+# Ignore other directories
+node_modules/
+public/
+dist/
+build/

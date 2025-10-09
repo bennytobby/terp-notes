@@ -28,7 +28,7 @@
 
     <main class="container">
         <!-- Announcements Section -->
-        <% if (announcements && announcements.length> 0) { %>
+        <% if (announcements && announcements.length > 0) { %>
             <% announcements.forEach(announcement=> { %>
                 <div class="announcement-banner announcement-banner-<%= announcement.type %>">
                     <div style="flex: 1; font-weight: 600;">
@@ -162,12 +162,6 @@
                                 <input type="text" id="professorFilter" class="filter-select"
                                     placeholder="🔍 Search Professor..." onkeyup="applyFilters()"
                                     style="padding: 0.5rem 1rem;" />
-
-                                <select id="sortFilter" class="filter-select" onchange="applyFilters()">
-                                    <option value="newest">Newest First</option>
-                                    <option value="oldest">Oldest First</option>
-                                    <option value="name">Name A-Z</option>
-                                </select>
                             </div>
                         </div>
 
@@ -192,8 +186,11 @@
                                                 data-date="<%= new Date(file.uploadDate).getTime() %>"
                                                 data-downloads="<%= file.downloadCount || 0 %>"
                                                 data-size="<%= file.size || 0 %>">
-                                                <div class="file-header">
-                                                    <% 
+                                                <div class="file-header" style="position: relative;">
+                                                    <div style="position: absolute; top: 0.5rem; right: 0.5rem; background: #FEF3C7; color: #92400E; padding: 2px 6px; border-radius: 4px; font-size: 0.7rem; font-weight: 600; cursor: help; z-index: 10;" title="<%= file.downloadCount || 0 %> downloads">
+                                                        <%= file.downloadCount || 0 %>
+                                                    </div>
+                                                    <%
                                                         // Dynamic file icon based on mimetype
                                                         let fileIcon = '📄';
                                                         let fileTypeLabel = '';
@@ -237,12 +234,6 @@
                                                             </h3>
                                                             <div
                                                                 style="display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center;">
-                                                                <% if (fileTypeLabel) { %>
-                                                                    <span
-                                                                        style="background: #E0E7FF; color: #4338CA; padding: 2px 8px; border-radius: 4px; font-size: 0.7rem; font-weight: 600;">
-                                                                        <%= fileTypeLabel %>
-                                                                    </span>
-                                                                    <% } %>
                                                                         <% if (file.category) { let
                                                                             categoryClass='category-other' ; if
                                                                             (file.category==='Exam' ) {
@@ -264,20 +255,7 @@
                                                                                 <%= file.category %>
                                                                             </span>
                                                                             <% } %>
-                                                                                <% if (file.downloadCount &&
-                                                                                    file.downloadCount> 0) { %>
-                                                                                    <span
-                                                                                        style="background: #FEF3C7; color: #92400E; padding: 2px 8px; border-radius: 4px; font-size: 0.7rem; font-weight: 600;">
-                                                                                        <% if (file.downloadCount >= 50) { %>
-                                                                                            🔥 <%= file.downloadCount %> downloads
-                                                                                        <% } else if (file.downloadCount >= 20) { %>
-                                                                                            ⭐ <%= file.downloadCount %> downloads
-                                                                                        <% } else { %>
-                                                                                            <%= file.downloadCount %> downloads
-                                                                                        <% } %>
-                                                                                    </span>
-                                                                                    <% } %>
-                                                                                        <% 
+                                                                                        <%
                                                                                             // Calculate days ago
                                                                                             const uploadDate = new Date(file.uploadDate);
                                                                                             const now = new Date();
@@ -289,7 +267,7 @@
                                                                                                     🆕 New
                                                                                                 </span>
                                                                                                 <% } %>
-                                                                                                    <% 
+                                                                                                    <%
                                                                                                         const sizeKB = file.size / 1024;
                                                                                                         let sizeClass = 'size-normal';
                                                                                                         let sizeLabel = '';
@@ -518,7 +496,7 @@
                                                         class="required">*</span></label>
                                                 <select name="year" id="year" required class="form-input">
                                                     <option value="">Select year</option>
-                                                    <% for (let y=new Date().getFullYear(); y>= 2020; y--) { %>
+                                                    <% for (let y=new Date().getFullYear(); y >= 2020; y--) { %>
                                                         <option value="<%= y %>">
                                                             <%= y %>
                                                         </option>
@@ -604,6 +582,14 @@
                     const gridBtn = document.getElementById('gridViewBtn');
                     const groupedBtn = document.getElementById('groupedViewBtn');
 
+                    // Get filter elements
+                    const majorFilter = document.getElementById('majorFilter');
+                    const classFilter = document.getElementById('classFilter');
+                    const categoryFilter = document.getElementById('categoryFilter');
+                    const professorFilter = document.getElementById('professorFilter');
+                    const yearWrapper = document.querySelector('.multi-select-wrapper:nth-of-type(1)'); // Year dropdown
+                    const semesterWrapper = document.querySelector('.multi-select-wrapper:nth-of-type(2)'); // Semester dropdown
+
                     currentView = view;
 
                     if (view === 'grid') {
@@ -613,6 +599,14 @@
                         gridBtn.style.color = 'white';
                         groupedBtn.style.background = 'transparent';
                         groupedBtn.style.color = '#6B7280';
+
+                        // Show all filters in grid view
+                        if (majorFilter) majorFilter.style.display = 'block';
+                        if (classFilter) classFilter.style.display = 'block';
+                        if (categoryFilter) categoryFilter.style.display = 'block';
+                        if (professorFilter) professorFilter.style.display = 'block';
+                        if (yearWrapper) yearWrapper.style.display = 'block';
+                        if (semesterWrapper) semesterWrapper.style.display = 'block';
                     } else {
                         gridView.style.display = 'none';
                         groupedView.style.display = 'block';
@@ -620,6 +614,15 @@
                         gridBtn.style.color = '#6B7280';
                         groupedBtn.style.background = 'var(--umd-red)';
                         groupedBtn.style.color = 'white';
+
+                        // Hide most filters in grouped view, keep only professor search
+                        if (majorFilter) majorFilter.style.display = 'none';
+                        if (classFilter) classFilter.style.display = 'none';
+                        if (categoryFilter) categoryFilter.style.display = 'none';
+                        if (professorFilter) professorFilter.style.display = 'block'; // Keep professor search
+                        if (yearWrapper) yearWrapper.style.display = 'none';
+                        if (semesterWrapper) semesterWrapper.style.display = 'none';
+
                         renderGroupedView();
                     }
 
@@ -629,6 +632,146 @@
                 }
 
                 // Render grouped view with accordion structure
+
+                // Global state management for folder states
+                let persistentFolderStates = {
+                    majors: {},
+                    semesters: {},
+                    courses: {},
+                    categories: {}
+                };
+
+                // Function to capture current folder states and update persistent state
+                function captureFolderStates() {
+                    // Only capture states if grouped view exists and has content
+                    const groupedView = document.getElementById('groupedView');
+                    if (!groupedView || groupedView.innerHTML.includes('empty-state')) {
+                        return persistentFolderStates;
+                    }
+
+                    // Capture major states
+                    const majorHeaders = document.querySelectorAll('.major-header');
+                    majorHeaders.forEach(header => {
+                        // Extract just the major name, ignoring file count and icons
+                        const fullText = header.textContent.trim();
+                        const majorName = fullText.replace(/^[▶▼]\s*📁\s*/, '').replace(/\s+\d+\s+files?$/, '').trim();
+                        const semesterList = header.nextElementSibling;
+                        persistentFolderStates.majors[majorName] = semesterList && semesterList.style.display === 'block';
+                    });
+
+                    // Capture semester states
+                    const semesterHeaders = document.querySelectorAll('.semester-header');
+                    semesterHeaders.forEach(header => {
+                        // Extract just the semester name, ignoring file count and icons
+                        const fullText = header.textContent.trim();
+                        const semesterName = fullText.replace(/^[▶▼]\s*📅\s*/, '').replace(/\s+\d+\s+files?$/, '').trim();
+                        const courseList = header.nextElementSibling;
+                        persistentFolderStates.semesters[semesterName] = courseList && courseList.style.display === 'block';
+                    });
+
+                    // Capture course states
+                    const courseHeaders = document.querySelectorAll('.course-header');
+                    courseHeaders.forEach(header => {
+                        // Extract just the course name, ignoring file count and icons
+                        const fullText = header.textContent.trim();
+                        const courseName = fullText.replace(/^[▶▼]\s*📚\s*/, '').replace(/\s+\d+\s*$/, '').trim();
+                        const categoryList = header.nextElementSibling;
+                        persistentFolderStates.courses[courseName] = categoryList && categoryList.style.display === 'block';
+                    });
+
+                    // Capture category states
+                    const categoryHeaders = document.querySelectorAll('.category-header');
+                    categoryHeaders.forEach(header => {
+                        // Extract just the category name, ignoring file count and icons
+                        const fullText = header.textContent.trim();
+                        const categoryName = fullText.replace(/^[▶▼]\s*📂\s*/, '').replace(/\s+\d+\s*$/, '').trim();
+                        const fileList = header.nextElementSibling;
+                        persistentFolderStates.categories[categoryName] = fileList && (fileList.style.display === 'grid' || fileList.style.display === 'block');
+                    });
+
+                    return persistentFolderStates;
+                }
+
+                // Function to restore folder states
+                function restoreFolderStates(states) {
+                    if (!states) return;
+
+
+                    // Restore major states
+                    Object.keys(states.majors).forEach(majorName => {
+                        const majorHeader = Array.from(document.querySelectorAll('.major-header'))
+                            .find(header => {
+                                const fullText = header.textContent.trim();
+                                const extractedName = fullText.replace(/^[▶▼]\s*📁\s*/, '').replace(/\s+\d+\s+files?$/, '').trim();
+                                return extractedName === majorName;
+                            });
+                        if (majorHeader && states.majors[majorName]) {
+                            const semesterList = majorHeader.nextElementSibling;
+                            if (semesterList) {
+                                semesterList.style.display = 'block';
+                                const icon = majorHeader.querySelector('.expand-icon');
+                                if (icon) icon.style.transform = 'rotate(90deg)';
+                            }
+                        }
+                    });
+
+                    // Restore semester states
+                    Object.keys(states.semesters).forEach(semesterName => {
+                        const semesterHeader = Array.from(document.querySelectorAll('.semester-header'))
+                            .find(header => {
+                                const fullText = header.textContent.trim();
+                                const extractedName = fullText.replace(/^[▶▼]\s*📅\s*/, '').replace(/\s+\d+\s+files?$/, '').trim();
+                                return extractedName === semesterName;
+                            });
+                        if (semesterHeader && states.semesters[semesterName]) {
+                            const courseList = semesterHeader.nextElementSibling;
+                            if (courseList) {
+                                courseList.style.display = 'block';
+                                const icon = semesterHeader.querySelector('.expand-icon');
+                                if (icon) icon.style.transform = 'rotate(90deg)';
+                            }
+                        }
+                    });
+
+                    // Restore course states
+                    Object.keys(states.courses).forEach(courseName => {
+                        const courseHeader = Array.from(document.querySelectorAll('.course-header'))
+                            .find(header => {
+                                const fullText = header.textContent.trim();
+                                const extractedName = fullText.replace(/^[▶▼]\s*📚\s*/, '').replace(/\s+\d+\s*$/, '').trim();
+                                return extractedName === courseName;
+                            });
+                        if (courseHeader && states.courses[courseName]) {
+                            const categoryList = courseHeader.nextElementSibling;
+                            if (categoryList) {
+                                categoryList.style.display = 'block';
+                                const icon = courseHeader.querySelector('.expand-icon');
+                                if (icon) icon.style.transform = 'rotate(90deg)';
+                            }
+                        }
+                    });
+
+                    // Restore category states
+                    Object.keys(states.categories).forEach(categoryName => {
+                        const categoryHeader = Array.from(document.querySelectorAll('.category-header'))
+                            .find(header => {
+                                const fullText = header.textContent.trim();
+                                const extractedName = fullText.replace(/^[▶▼]\s*📂\s*/, '').replace(/\s+\d+\s*$/, '').trim();
+                                return extractedName === categoryName;
+                            });
+                        if (categoryHeader && states.categories[categoryName]) {
+                            const fileList = categoryHeader.nextElementSibling;
+                            if (fileList) {
+                                fileList.style.display = 'grid';
+                                fileList.style.gridTemplateColumns = 'repeat(auto-fill, minmax(300px, 1fr))';
+                                fileList.style.gap = '1rem';
+                                const icon = categoryHeader.querySelector('.expand-icon');
+                                if (icon) icon.style.transform = 'rotate(90deg)';
+                            }
+                        }
+                    });
+                }
+
                 function renderGroupedView() {
                     const groupedView = document.getElementById('groupedView');
                     if (!groupedView) return;
@@ -692,15 +835,18 @@
                     let html = '<div class="expand-collapse-all" style="margin-bottom: 1rem;"><button onclick="toggleAllGroups()" style="background: var(--umd-red); color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-weight: 600;">Expand All</button></div>';
 
                     Object.keys(grouped).sort().forEach(function (major) {
-                        const majorFileCount = Object.values(grouped[major]).reduce(function (sum, semesters) {
-                            return sum + Object.values(semesters).reduce(function (sum2, courses) {
-                                return sum2 + Object.values(courses).reduce(function (sum3, categories) {
-                                    return sum3 + Object.values(categories).reduce(function (sum4, files) {
-                                        return sum4 + files.length;
-                                    }, 0);
-                                }, 0);
-                            }, 0);
-                        }, 0);
+                        // Calculate major file count using a simple approach
+                        let majorFileCount = 0;
+                        Object.values(grouped[major]).forEach(function (semesters) {
+                            Object.values(semesters).forEach(function (courses) {
+                                Object.values(courses).forEach(function (categories) {
+                                    // categories is an array of file cards
+                                    if (Array.isArray(categories)) {
+                                        majorFileCount += categories.length;
+                                    }
+                                });
+                            });
+                        });
 
                         html += `
                             <div class="major-group" style="margin-bottom: 1rem; border: 2px solid #E5E7EB; border-radius: 12px; overflow: hidden; background: white;">
@@ -719,19 +865,22 @@
 
                         sortedSemesters.forEach(function (semesterKey) {
                             const courses = grouped[major][semesterKey];
-                            const semesterFileCount = Object.values(courses).reduce(function (sum, courses) {
-                                return sum + Object.values(courses).reduce(function (sum2, categories) {
-                                    return sum2 + Object.values(categories).reduce(function (sum3, files) {
-                                        return sum3 + files.length;
-                                    }, 0);
-                                }, 0);
-                            }, 0);
+                            // Calculate semester file count using a simple approach
+                            let semesterFileCount = 0;
+                            Object.values(courses).forEach(function (courseCategories) {
+                                Object.values(courseCategories).forEach(function (categories) {
+                                    // categories is an array of file cards
+                                    if (Array.isArray(categories)) {
+                                        semesterFileCount += categories.length;
+                                    }
+                                });
+                            });
 
                             html += `
                                 <div class="semester-group" style="margin-bottom: 0.75rem; border: 1px solid #E5E7EB; border-radius: 8px; overflow: hidden;">
                                     <div class="semester-header" onclick="toggleSemester(this)" style="background: #F9FAFB; padding: 0.875rem 1rem; cursor: pointer; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #E5E7EB;">
                                         <div style="display: flex; align-items: center; gap: 0.625rem;">
-                                            <span class="expand-icon" style="font-size: 0.75rem; transition: transform 0.2s;">▶</span>
+                                            <span class="expand-icon" style="font-size: 0.75rem; transition: transform 0.2s; color: #1F2937; font-weight: bold;">▶</span>
                                             <strong style="color: #1F2937; font-size: 1rem;">📅 ${semesterKey}</strong>
                                         </div>
                                         <span class="file-count" style="background: #E0E7FF; color: #4338CA; padding: 3px 10px; border-radius: 10px; font-size: 0.8rem; font-weight: 600;">${semesterFileCount} file${semesterFileCount !== 1 ? 's' : ''}</span>
@@ -741,11 +890,14 @@
 
                             Object.keys(courses).sort().forEach(function (course) {
                                 const categories = courses[course];
-                                const courseFileCount = Object.values(categories).reduce(function (sum, categories) {
-                                    return sum + Object.values(categories).reduce(function (sum2, files) {
-                                        return sum2 + files.length;
-                                    }, 0);
-                                }, 0);
+                                // Calculate course file count using a simple approach
+                                let courseFileCount = 0;
+                                Object.values(categories).forEach(function (categoryFiles) {
+                                    // categoryFiles is an array of file cards
+                                    if (Array.isArray(categoryFiles)) {
+                                        courseFileCount += categoryFiles.length;
+                                    }
+                                });
 
                                 html += `
                                     <div class="course-group" style="margin-bottom: 0.625rem; border: 1px solid #E5E7EB; border-radius: 6px; overflow: hidden;">
@@ -790,6 +942,9 @@
                     });
 
                     groupedView.innerHTML = html;
+
+                    // Restore folder states immediately after DOM is updated
+                    restoreFolderStates(persistentFolderStates);
                 }
 
                 // Create a grouped file card from original card data
@@ -827,18 +982,32 @@
                     const filename = reportBtn?.dataset.filename || '';
                     const originalName = reportBtn?.dataset.originalName || fileName;
 
+                    // Get file icon and download count from original card
+                    const fileIcon = originalCard.querySelector('.file-icon')?.textContent?.trim() || '📄';
+                    const downloadCount = originalCard.dataset.downloads || '0';
+
+                    // Check if file is "new" (within 7 days)
+                    const uploadDate = originalCard.dataset.date ? new Date(parseInt(originalCard.dataset.date)) : new Date();
+                    const now = new Date();
+                    const daysAgo = Math.floor((now - uploadDate) / (1000 * 60 * 60 * 24));
+                    const isNew = daysAgo <= 7;
+
                     return `
-                        <div class="grouped-file-card">
+                        <div class="grouped-file-card" style="position: relative;">
+                            <div style="position: absolute; top: 0.5rem; right: 0.5rem; background: #FEF3C7; color: #92400E; padding: 2px 6px; border-radius: 4px; font-size: 0.7rem; font-weight: 600; cursor: help;" title="${downloadCount} downloads">
+                                ${downloadCount}
+                            </div>
                             <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.75rem;">
-                                <div style="font-size: 1.5rem;">📄</div>
+                                <div style="font-size: 2rem;">${fileIcon}</div>
                                 <h4 style="margin: 0; font-size: 0.95rem; font-weight: 600; color: #1F2937;">${fileName}</h4>
                             </div>
                             ${virusScanBadge ? `<div style="margin-bottom: 0.5rem;">${virusScanBadge}</div>` : ''}
                             <div style="font-size: 0.8rem; color: #6B7280; line-height: 1.6;">
+                                ${isNew ? `<div><span style="background: #D1FAE5; color: #065F46; padding: 2px 8px; border-radius: 4px; font-size: 0.7rem; font-weight: 600;">🆕 New</span></div>` : ''}
+                                ${size ? `<div><strong>Size:</strong> ${size}</div>` : ''}
                                 ${professor ? `<div><strong>Professor:</strong> ${professor}</div>` : ''}
                                 ${semester && year ? `<div><strong>Term:</strong> ${semester} ${year}</div>` : ''}
                                 <div><strong>Uploaded by:</strong> ${uploader}</div>
-                                ${size ? `<div><strong>Size:</strong> ${size}</div>` : ''}
                                 ${description ? `<div style="margin-top: 0.5rem;"><strong>Description:</strong> ${description}</div>` : ''}
                             </div>
                             <div style="display: flex; gap: 0.5rem; margin-top: 0.75rem;">
@@ -852,61 +1021,139 @@
 
                 // Toggle major accordion
                 function toggleMajor(header) {
+                    const majorName = header.textContent.trim();
                     const semesterList = header.nextElementSibling;
                     const icon = header.querySelector('.expand-icon');
                     const isCurrentlyExpanded = semesterList.style.display !== 'none';
 
                     semesterList.style.display = isCurrentlyExpanded ? 'none' : 'block';
                     icon.style.transform = isCurrentlyExpanded ? 'rotate(0deg)' : 'rotate(90deg)';
+
+                    // Update persistent state
+                    persistentFolderStates.majors[majorName] = !isCurrentlyExpanded;
                 }
 
                 // Toggle course accordion
                 function toggleCourse(header) {
+                    const courseName = header.textContent.trim();
                     const categoryList = header.nextElementSibling;
                     const icon = header.querySelector('.expand-icon');
                     const isCurrentlyExpanded = categoryList.style.display !== 'none';
 
                     categoryList.style.display = isCurrentlyExpanded ? 'none' : 'block';
                     icon.style.transform = isCurrentlyExpanded ? 'rotate(0deg)' : 'rotate(90deg)';
+
+                    // Update persistent state
+                    persistentFolderStates.courses[courseName] = !isCurrentlyExpanded;
                 }
 
                 // Toggle semester accordion
                 function toggleSemester(header) {
+                    const semesterName = header.textContent.trim();
                     const courseList = header.nextElementSibling;
                     const icon = header.querySelector('.expand-icon');
                     const isCurrentlyExpanded = courseList.style.display !== 'none';
 
                     courseList.style.display = isCurrentlyExpanded ? 'none' : 'block';
                     icon.style.transform = isCurrentlyExpanded ? 'rotate(0deg)' : 'rotate(90deg)';
+
+                    // Update persistent state
+                    persistentFolderStates.semesters[semesterName] = !isCurrentlyExpanded;
                 }
 
                 // Toggle category accordion
                 function toggleCategory(header) {
+                    const categoryName = header.textContent.trim();
                     const fileList = header.nextElementSibling;
                     const icon = header.querySelector('.expand-icon');
                     const isCurrentlyExpanded = fileList.style.display !== 'none';
 
-                    fileList.style.display = isCurrentlyExpanded ? 'none' : 'block';
-                    icon.style.transform = isCurrentlyExpanded ? 'rotate(0deg)' : 'rotate(90deg)';
+                    if (isCurrentlyExpanded) {
+                        fileList.style.display = 'none';
+                        icon.style.transform = 'rotate(0deg)';
+                    } else {
+                        fileList.style.display = 'grid';
+                        fileList.style.gridTemplateColumns = 'repeat(auto-fill, minmax(300px, 1fr))';
+                        fileList.style.gap = '1rem';
+                        icon.style.transform = 'rotate(90deg)';
+                    }
+
+                    // Update persistent state
+                    persistentFolderStates.categories[categoryName] = !isCurrentlyExpanded;
                 }
 
                 // Toggle all groups (expand/collapse all)
                 function toggleAllGroups() {
                     const button = event.target;
-                    const majorHeaders = document.querySelectorAll('.major-header');
                     const isExpanding = button.textContent === 'Expand All';
 
+                    // Toggle all major headers
+                    const majorHeaders = document.querySelectorAll('.major-header');
                     majorHeaders.forEach(header => {
+                        const majorName = header.textContent.trim();
+                        const semesterList = header.nextElementSibling;
+                        const icon = header.querySelector('.expand-icon');
+                        if (isExpanding) {
+                            semesterList.style.display = 'block';
+                            if (icon) icon.style.transform = 'rotate(90deg)';
+                            persistentFolderStates.majors[majorName] = true;
+                        } else {
+                            semesterList.style.display = 'none';
+                            if (icon) icon.style.transform = 'rotate(0deg)';
+                            persistentFolderStates.majors[majorName] = false;
+                        }
+                    });
+
+                    // Toggle all semester headers
+                    const semesterHeaders = document.querySelectorAll('.semester-header');
+                    semesterHeaders.forEach(header => {
+                        const semesterName = header.textContent.trim();
                         const courseList = header.nextElementSibling;
                         const icon = header.querySelector('.expand-icon');
                         if (isExpanding) {
-                            header.classList.add('expanded');
-                            courseList.classList.add('show');
+                            courseList.style.display = 'block';
                             if (icon) icon.style.transform = 'rotate(90deg)';
+                            persistentFolderStates.semesters[semesterName] = true;
                         } else {
-                            header.classList.remove('expanded');
-                            courseList.classList.remove('show');
+                            courseList.style.display = 'none';
                             if (icon) icon.style.transform = 'rotate(0deg)';
+                            persistentFolderStates.semesters[semesterName] = false;
+                        }
+                    });
+
+                    // Toggle all course headers
+                    const courseHeaders = document.querySelectorAll('.course-header');
+                    courseHeaders.forEach(header => {
+                        const courseName = header.textContent.trim();
+                        const categoryList = header.nextElementSibling;
+                        const icon = header.querySelector('.expand-icon');
+                        if (isExpanding) {
+                            categoryList.style.display = 'block';
+                            if (icon) icon.style.transform = 'rotate(90deg)';
+                            persistentFolderStates.courses[courseName] = true;
+                        } else {
+                            categoryList.style.display = 'none';
+                            if (icon) icon.style.transform = 'rotate(0deg)';
+                            persistentFolderStates.courses[courseName] = false;
+                        }
+                    });
+
+                    // Toggle all category headers
+                    const categoryHeaders = document.querySelectorAll('.category-header');
+                    categoryHeaders.forEach(header => {
+                        const categoryName = header.textContent.trim();
+                        const fileList = header.nextElementSibling;
+                        const icon = header.querySelector('.expand-icon');
+                        if (isExpanding) {
+                            fileList.style.display = 'grid';
+                            fileList.style.gridTemplateColumns = 'repeat(auto-fill, minmax(300px, 1fr))';
+                            fileList.style.gap = '1rem';
+                            if (icon) icon.style.transform = 'rotate(90deg)';
+                            persistentFolderStates.categories[categoryName] = true;
+                        } else {
+                            fileList.style.display = 'none';
+                            if (icon) icon.style.transform = 'rotate(0deg)';
+                            persistentFolderStates.categories[categoryName] = false;
                         }
                     });
 
@@ -1007,7 +1254,16 @@
                         label.textContent = `${values.length} selected`;
                     }
 
+                    // Apply filters but keep the dropdown open
                     applyFilters();
+
+                    // Ensure the dropdown stays open after filtering
+                    setTimeout(() => {
+                        const dropdown = document.getElementById(`${type}Dropdown`);
+                        if (dropdown && !dropdown.classList.contains('show')) {
+                            dropdown.classList.add('show');
+                        }
+                    }, 10);
                 }
 
                 // Close dropdowns when clicking outside
@@ -1021,6 +1277,17 @@
 
                 // Client-side filtering - instant, no page reloads!
                 function applyFilters() {
+                    // Preserve dropdown states before filtering
+                    const yearDropdown = document.getElementById('yearDropdown');
+                    const semesterDropdown = document.getElementById('semesterDropdown');
+                    const yearDropdownOpen = yearDropdown && yearDropdown.classList.contains('show');
+                    const semesterDropdownOpen = semesterDropdown && semesterDropdown.classList.contains('show');
+
+                    // Update persistent folder states if currently in grouped view
+                    if (currentView === 'grouped') {
+                        captureFolderStates();
+                    }
+
                     const searchTerm = document.getElementById('searchInput').value.toLowerCase();
                     const majorFilter = document.getElementById('majorFilter').value;
                     const classFilter = document.getElementById('classFilter').value;
@@ -1100,6 +1367,32 @@
                     if (currentView === 'grouped') {
                         renderGroupedView();
                     }
+
+                    // Restore dropdown states after filtering
+                    setTimeout(() => {
+                        if (yearDropdownOpen && yearDropdown) {
+                            yearDropdown.classList.add('show');
+                        }
+                        if (semesterDropdownOpen && semesterDropdown) {
+                            semesterDropdown.classList.add('show');
+                        }
+                    }, 10);
+                }
+
+                // Helper function to get file icon based on mimetype
+                function getFileIcon(mimetype) {
+                    if (!mimetype) return '📄';
+
+                    if (mimetype.includes('pdf')) return '📕';
+                    else if (mimetype.includes('word') || mimetype.includes('document')) return '📘';
+                    else if (mimetype.includes('presentation') || mimetype.includes('powerpoint')) return '📙';
+                    else if (mimetype.includes('spreadsheet') || mimetype.includes('excel')) return '📗';
+                    else if (mimetype.includes('image')) return '🖼️';
+                    else if (mimetype.includes('text')) return '📃';
+                    else if (mimetype.includes('zip') || mimetype.includes('compressed')) return '📦';
+                    else if (mimetype.includes('python')) return '🐍';
+                    else if (mimetype.includes('java')) return '☕';
+                    else return '📄';
                 }
 
                 function displayFiles(files) {
@@ -1136,30 +1429,45 @@
                     if (gridView) {
                         // Set display based on current view
                         gridView.style.display = currentView === 'grid' ? 'grid' : 'none';
-                        gridView.innerHTML = files.map(file => `
+                        gridView.innerHTML = files.map(file => {
+                            // Calculate if file is "new" (within 7 days)
+                            const uploadDate = new Date(file.uploadDate);
+                            const now = new Date();
+                            const daysAgo = Math.floor((now - uploadDate) / (1000 * 60 * 60 * 24));
+                            const isNew = daysAgo <= 7;
+
+                            return `
                 <div class="file-card animate-fade-in"
                      data-class="${escapeHtml(file.classCode || '')}"
                      data-major="${escapeHtml(file.major || '')}"
                      data-semester="${escapeHtml(file.semester || '')}"
                      data-year="${escapeHtml(file.year || '')}"
+                     data-category="${escapeHtml((file.category || '').toLowerCase())}"
                      data-professor="${escapeHtml((file.professor || '').toLowerCase())}"
                      data-uploader="${escapeHtml(file.uploadedBy)}"
                      data-name="${escapeHtml(file.originalName.toLowerCase())}"
-                     data-date="${new Date(file.uploadDate).getTime()}">
-                    <div class="file-header">
-                        <div class="file-icon">📄</div>
+                     data-date="${new Date(file.uploadDate).getTime()}"
+                     data-downloads="${file.downloadCount || 0}"
+                     data-size="${file.size || 0}">
+                    <div class="file-header" style="position: relative;">
+                        <div style="position: absolute; top: 0.5rem; right: 0.5rem; background: #FEF3C7; color: #92400E; padding: 2px 6px; border-radius: 4px; font-size: 0.7rem; font-weight: 600; cursor: help; z-index: 10;" title="${file.downloadCount || 0} downloads">
+                            ${file.downloadCount || 0}
+                        </div>
+                        <div class="file-icon">${getFileIcon(file.mimetype)}</div>
                         <div class="file-info">
                             <h3>${escapeHtml(file.originalName)}</h3>
                         </div>
                     </div>
                     <div class="file-meta">
+                        ${isNew ? `<div class="file-meta-item"><span style="background: #D1FAE5; color: #065F46; padding: 2px 8px; border-radius: 4px; font-size: 0.7rem; font-weight: 600;">🆕 New</span></div>` : ''}
+                        <div class="file-meta-item"><strong>Size:</strong> ${(file.size / 1024).toFixed(1)} KB</div>
                         ${file.virusScanStatus ? `<div class="file-meta-item"><strong>Security:</strong> ${getScanBadge(file.virusScanStatus)}</div>` : ''}
                         ${file.major ? `<div class="file-meta-item"><strong>Major:</strong> <span class="major-badge">${escapeHtml(file.major)}</span></div>` : ''}
                         ${file.classCode ? `<div class="file-meta-item"><strong>Class:</strong> <span class="class-code-badge">${escapeHtml(file.classCode)}</span></div>` : ''}
+                        ${file.category ? `<div class="file-meta-item"><strong>Category:</strong> <span class="category-badge">${escapeHtml(file.category)}</span></div>` : ''}
                         ${file.professor ? `<div class="file-meta-item"><strong>Professor:</strong> ${escapeHtml(file.professor)}</div>` : ''}
                         ${file.semester && file.year ? `<div class="file-meta-item"><strong>Term:</strong> ${file.semester} ${file.year}</div>` : ''}
                         <div class="file-meta-item"><strong>Uploaded by:</strong> ${escapeHtml(file.uploadedBy)}</div>
-                        <div class="file-meta-item"><strong>Size:</strong> ${(file.size / 1024).toFixed(1)} KB</div>
                         ${file.description ? `<div class="file-meta-item"><strong>Description:</strong> ${escapeHtml(file.description)}</div>` : ''}
                     </div>
                     <div class="file-actions">
@@ -1168,7 +1476,8 @@
                         <button class="button secondary small report-btn" data-filename="${file.filename}" data-original-name="${escapeHtml(file.originalName)}">🚩 Report</button>
                     </div>
                 </div>
-            `).join('');
+            `;
+                        }).join('');
                     }
 
                     // Update grouped view display
@@ -1768,10 +2077,8 @@
                         // Fetch course data with comprehensive debugging
                         async function fetchCourseData() {
                             const courseCode = classCodeInput.value.trim().toUpperCase();
-                            console.log(`🔍 [FRONTEND] Fetching data for course: ${courseCode}`);
 
                             if (!courseCode) {
-                                console.log(`🔍 [FRONTEND] No course code, resetting...`);
                                 resetDropdowns();
                                 currentCourseData = null;
                                 return;
@@ -1780,7 +2087,6 @@
                             // Get current filter values
                             const selectedSemester = document.getElementById('semester').value;
                             const selectedYear = document.getElementById('year').value;
-                            console.log(`🔍 [FRONTEND] Current filters - Semester: ${selectedSemester}, Year: ${selectedYear}`);
 
                             // Build query parameters
                             let queryParams = '';
@@ -1791,15 +2097,12 @@
                                 queryParams += `&filter_year=${encodeURIComponent(selectedYear)}`;
                             }
 
-                            console.log(`🔍 [FRONTEND] API URL: /api/umd/course/${courseCode}?${queryParams}`);
 
                             try {
                                 const response = await fetch(`/api/umd/course/${courseCode}?${queryParams}`);
-                                console.log(`🔍 [FRONTEND] Response status: ${response.status}`);
 
                                 if (response.ok) {
                                     currentCourseData = await response.json();
-                                    console.log(`✅ [FRONTEND] Course data received:`, currentCourseData);
 
                                     // Update course info display
                                     if (currentCourseData.name && currentCourseData.name !== 'undefined' && currentCourseData.name !== courseCode) {
@@ -1816,18 +2119,15 @@
 
                                         if (semesterSelect) {
                                             semesterSelect.value = currentCourseData.current_semester;
-                                            console.log(`🔍 [FRONTEND] Set default semester: ${currentCourseData.current_semester}`);
                                         }
                                         if (yearSelect) {
                                             yearSelect.value = currentCourseData.current_year;
-                                            console.log(`🔍 [FRONTEND] Set default year: ${currentCourseData.current_year}`);
                                         }
                                     }
 
                                     // Update professor list
                                     updateProfessorList();
                                 } else {
-                                    console.log(`❌ [FRONTEND] Course not found: ${courseCode}`);
                                     courseInfo.textContent = 'Could not verify course - you can still upload';
                                     courseInfo.style.color = '#9CA3AF';
                                     currentCourseData = null;
@@ -1844,10 +2144,8 @@
 
                         // Update professor list based on current selections
                         function updateProfessorList() {
-                            console.log(`🔍 [FRONTEND] Updating professor list...`);
 
                             if (!currentCourseData) {
-                                console.log(`🔍 [FRONTEND] No course data, clearing professor list`);
                                 professorData = [];
                                 professorsDropdown.classList.remove('show');
                                 professorInput.placeholder = 'Enter professor name';
@@ -1857,7 +2155,6 @@
 
                             const selectedSemester = document.getElementById('semester').value;
                             const selectedYear = document.getElementById('year').value;
-                            console.log(`🔍 [FRONTEND] Filtering professors for: ${selectedSemester} ${selectedYear}`);
 
                             // Build professor data with semester information
                             const professorMap = new Map();
@@ -1892,7 +2189,6 @@
                                     })
                                 }));
 
-                            console.log(`✅ [FRONTEND] Built professor data with ${professorData.length} professors`);
 
                             // Update UI
                             if (professorData.length > 0) {
@@ -1907,11 +2203,9 @@
 
                                 professorInput.placeholder = `${professorData.length} professor${professorData.length !== 1 ? 's' : ''} taught this course${filterText}`;
                                 document.getElementById('professorHelp').textContent = `${professorData.length} professor${professorData.length !== 1 ? 's' : ''} available - click or type to search`;
-                                console.log(`✅ [FRONTEND] Updated professor dropdown with ${professorData.length} professors`);
                             } else {
                                 professorInput.placeholder = 'Enter professor name';
                                 document.getElementById('professorHelp').textContent = 'No professors found for this semester/year';
-                                console.log(`⚠️ [FRONTEND] No professors found, showing manual entry`);
                             }
                         }
 
@@ -1921,13 +2215,11 @@
                             // Skip if we're selecting from dropdown
                             if (isSelectingFromDropdown) return;
 
-                            console.log(`🔍 [FRONTEND] Course changed to: ${this.value}`);
                             fetchCourseData();
                         });
 
                         // Helper: Reset dropdowns to show all options
                         function resetDropdowns() {
-                            console.log(`🔍 [FRONTEND] Resetting dropdowns...`);
                             // Reset semester dropdown to show all options
                             const semesterSelect = document.getElementById('semester');
                             const semesterOptions = Array.from(semesterSelect.options);
@@ -2001,7 +2293,6 @@
 
                         if (semesterInput) {
                             semesterInput.addEventListener('change', function () {
-                                console.log(`🔍 [FRONTEND] Semester changed to: ${this.value}`);
                                 if (validateSemesterYear() && classCodeInput.value.trim()) {
                                     fetchCourseData(); // Refetch with new semester filter
                                 }
@@ -2010,7 +2301,6 @@
 
                         if (yearInput) {
                             yearInput.addEventListener('change', function () {
-                                console.log(`🔍 [FRONTEND] Year changed to: ${this.value}`);
                                 if (validateSemesterYear() && classCodeInput.value.trim()) {
                                     fetchCourseData(); // Refetch with new year filter
                                 }

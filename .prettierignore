@@ -1,0 +1,8 @@
+# Ignore EJS files to prevent formatting issues
+*.ejs
+
+# Ignore other files that shouldn't be formatted
+node_modules/
+public/
+*.min.js
+*.min.css

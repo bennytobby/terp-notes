@@ -255,6 +255,13 @@ const transporter = nodemailer.createTransport({
     }
 });
 
+// Test email configuration on startup
+console.log('📧 Email Configuration:');
+console.log('   EMAIL_USER:', process.env.EMAIL_USER ? 'Set' : 'Missing');
+console.log('   EMAIL_PASS:', process.env.EMAIL_PASS ? 'Set' : 'Missing');
+console.log('   NODE_ENV:', process.env.NODE_ENV || 'development');
+console.log('   VERCEL_URL:', process.env.VERCEL_URL || 'Not set');
+
 /* Password Hashing */
 const bcrypt = require('bcrypt');
 
@@ -1160,7 +1167,13 @@ app.post('/forgot-password', async (req, res) => {
             );
 
         // Send reset email
-        const resetLink = `${req.protocol}://${req.get('host')}/reset-password/${resetToken}`;
+        // Fix protocol detection for Vercel (always HTTPS in production)
+        const protocol = process.env.NODE_ENV === 'production' ? 'https' : req.protocol;
+        const host = process.env.NODE_ENV === 'production' ? process.env.VERCEL_URL : req.get('host');
+        const resetLink = `${protocol}://${host}/reset-password/${resetToken}`;
+
+        console.log(`📧 Sending password reset email to ${email}`);
+        console.log(`🔗 Reset link: ${resetLink}`);
         const mailOptions = {
             from: process.env.EMAIL_USER,
             to: req.body.email,
@@ -1431,7 +1444,14 @@ app.post('/resend-verification', async (req, res) => {
             );
 
         // Send verification email
-        const verificationLink = `${req.protocol}://${req.get('host')}/verify/${verificationToken}`;
+        // Fix protocol detection for Vercel (always HTTPS in production)
+        const protocol = process.env.NODE_ENV === 'production' ? 'https' : req.protocol;
+        const host = process.env.NODE_ENV === 'production' ? process.env.VERCEL_URL : req.get('host');
+        const verificationLink = `${protocol}://${host}/verify/${verificationToken}`;
+
+        console.log(`📧 Resending verification email to ${req.body.email}`);
+        console.log(`🔗 Verification link: ${verificationLink}`);
+
         const mailOptions = {
             from: process.env.EMAIL_USER,
             to: req.body.email,
@@ -1448,8 +1468,13 @@ app.post('/resend-verification', async (req, res) => {
                 </p>
             `
         };
-        transporter.sendMail(mailOptions, (err) => {
-            if (err) console.error("Error sending verification email:", err);
+        transporter.sendMail(mailOptions, (err, info) => {
+            if (err) {
+                console.error("❌ Error resending verification email:", err);
+                console.error("📧 Email config - User:", process.env.EMAIL_USER ? "Set" : "Missing");
+            } else {
+                console.log("✅ Resend verification email sent successfully:", info?.messageId);
+            }
         });
 
         res.render('success', {
@@ -2047,7 +2072,13 @@ app.post('/registerSubmit', registerLimiter, async function (req, res) {
             .insertOne(newUser);
 
         // Send verification email
-        const verificationLink = `${req.protocol}://${req.get('host')}/verify/${verificationToken}`;
+        // Fix protocol detection for Vercel (always HTTPS in production)
+        const protocol = process.env.NODE_ENV === 'production' ? 'https' : req.protocol;
+        const host = process.env.NODE_ENV === 'production' ? process.env.VERCEL_URL : req.get('host');
+        const verificationLink = `${protocol}://${host}/verify/${verificationToken}`;
+
+        console.log(`📧 Sending verification email to ${email}`);
+        console.log(`🔗 Verification link: ${verificationLink}`);
         const mailOptions = {
             from: process.env.EMAIL_USER,
             to: email,
@@ -2066,8 +2097,13 @@ app.post('/registerSubmit', registerLimiter, async function (req, res) {
                 </p>
             `
         };
-        transporter.sendMail(mailOptions, (err) => {
-            if (err) console.error("Error sending verification email:", err);
+        transporter.sendMail(mailOptions, (err, info) => {
+            if (err) {
+                console.error("❌ Error sending verification email:", err);
+                console.error("📧 Email config - User:", process.env.EMAIL_USER ? "Set" : "Missing");
+            } else {
+                console.log("✅ Verification email sent successfully:", info?.messageId);
+            }
         });
 
         return res.render('success', {
