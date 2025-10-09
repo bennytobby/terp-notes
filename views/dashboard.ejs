@@ -1298,7 +1298,7 @@
                     `;
                 }
 
-                // Clear filters when closing folders (smart vice-versa functionality)
+                // Clear filters when closing folders (consistent with Clear All behavior)
                 function clearFiltersForClosedFolder(folderType, folderName) {
                     if (folderType === 'semester') {
                         // Extract year and semester from folder name (e.g., "Fall 2021" -> "Fall", "2021")
@@ -1335,25 +1335,14 @@
                         clearAllChildFilters();
 
                     } else if (folderType === 'course') {
-                        // Smart logic: Only clear course filter if it makes sense
-                        // Don't clear semester/major filters since course can exist across multiple semesters
-
-                        // Check if this course filter is the only one that would be affected
-                        const hasOtherCourseFilters = document.querySelectorAll('#classDropdown input[type="checkbox"]:checked').length > 1;
-                        const hasSemesterFilters = document.querySelectorAll('#semesterDropdown input[type="checkbox"]:checked').length > 0;
-                        const hasMajorFilters = document.querySelectorAll('#majorDropdown input[type="checkbox"]:checked').length > 0;
-
-                        // Only clear course filter if it's the only course filter AND there are no semester/major filters
-                        // This prevents clearing when user wants to see CMSC131 across all semesters
-                        if (!hasOtherCourseFilters && !hasSemesterFilters && !hasMajorFilters) {
-                            const classCheckbox = document.querySelector(`#classDropdown input[type="checkbox"][value="${folderName}"]`);
-                            if (classCheckbox && classCheckbox.checked) {
-                                classCheckbox.checked = false;
-                                updateMultiSelect('class');
-                            }
+                        // Clear course filter
+                        const classCheckbox = document.querySelector(`#classDropdown input[type="checkbox"][value="${folderName}"]`);
+                        if (classCheckbox && classCheckbox.checked) {
+                            classCheckbox.checked = false;
+                            updateMultiSelect('class');
                         }
 
-                        // Always clear category filters when closing a course
+                        // Clear category filters
                         document.querySelectorAll('#categoryDropdown input[type="checkbox"]:checked').forEach(cb => {
                             cb.checked = false;
                         });
@@ -1498,91 +1487,122 @@
                     const button = event.target;
                     const isExpanding = button.textContent === 'Expand All';
 
-                    // Toggle all semester headers
-                    const semesterHeaders = document.querySelectorAll('.semester-header');
-                    semesterHeaders.forEach(header => {
-                        // Extract just the semester name, ignoring file count and icons
-                        const fullText = header.textContent.trim();
-                        const semesterName = fullText.replace(/^[▶▼]\s*📅\s*/, '').replace(/\s+\d+\s+files?$/, '').trim();
+                    if (isExpanding) {
+                        // Expanding all folders - don't clear filters
 
-                        const majorList = header.nextElementSibling;
-                        const icon = header.querySelector('.expand-icon');
-                        if (isExpanding) {
+                        // Toggle all semester headers
+                        const semesterHeaders = document.querySelectorAll('.semester-header');
+                        semesterHeaders.forEach(header => {
+                            const fullText = header.textContent.trim();
+                            const semesterName = fullText.replace(/^[▶▼]\s*📅\s*/, '').replace(/\s+\d+\s+files?$/, '').trim();
+
+                            const majorList = header.nextElementSibling;
+                            const icon = header.querySelector('.expand-icon');
                             majorList.style.display = 'block';
                             if (icon) icon.style.transform = 'rotate(90deg)';
                             persistentFolderStates.semesters[semesterName] = true;
-                        } else {
-                            majorList.style.display = 'none';
-                            if (icon) icon.style.transform = 'rotate(0deg)';
-                            persistentFolderStates.semesters[semesterName] = false;
-                        }
-                    });
+                        });
 
-                    // Toggle all major headers
-                    const majorHeaders = document.querySelectorAll('.major-header');
+                        // Toggle all major headers
+                        const majorHeaders = document.querySelectorAll('.major-header');
                     majorHeaders.forEach(header => {
-                        // Extract just the major name, ignoring file count and icons
-                        const fullText = header.textContent.trim();
-                        const majorName = fullText.replace(/^[▶▼]\s*📁\s*/, '').replace(/\s+\d+\s+files?$/, '').trim();
+                            const fullText = header.textContent.trim();
+                            const majorName = fullText.replace(/^[▶▼]\s*📁\s*/, '').replace(/\s+\d+\s+files?$/, '').trim();
 
                         const courseList = header.nextElementSibling;
                         const icon = header.querySelector('.expand-icon');
-                        if (isExpanding) {
                             courseList.style.display = 'block';
                             if (icon) icon.style.transform = 'rotate(90deg)';
                             persistentFolderStates.majors[majorName] = true;
-                        } else {
-                            courseList.style.display = 'none';
-                            if (icon) icon.style.transform = 'rotate(0deg)';
-                            persistentFolderStates.majors[majorName] = false;
-                        }
-                    });
+                        });
 
-                    // Toggle all course headers
-                    const courseHeaders = document.querySelectorAll('.course-header');
-                    courseHeaders.forEach(header => {
-                        // Extract just the course name, ignoring file count and icons
-                        const fullText = header.textContent.trim();
-                        const courseName = fullText.replace(/^[▶▼]\s*💼\s*/, '').replace(/\s+\d+\s*$/, '').trim();
+                        // Toggle all course headers
+                        const courseHeaders = document.querySelectorAll('.course-header');
+                        courseHeaders.forEach(header => {
+                            const fullText = header.textContent.trim();
+                            const courseName = fullText.replace(/^[▶▼]\s*💼\s*/, '').replace(/\s+\d+\s*$/, '').trim();
 
-                        const categoryList = header.nextElementSibling;
-                        const icon = header.querySelector('.expand-icon');
-                        if (isExpanding) {
+                            const categoryList = header.nextElementSibling;
+                            const icon = header.querySelector('.expand-icon');
                             categoryList.style.display = 'block';
                             if (icon) icon.style.transform = 'rotate(90deg)';
                             persistentFolderStates.courses[courseName] = true;
-                        } else {
-                            categoryList.style.display = 'none';
-                            if (icon) icon.style.transform = 'rotate(0deg)';
-                            persistentFolderStates.courses[courseName] = false;
-                        }
-                    });
+                        });
 
-                    // Toggle all category headers
-                    const categoryHeaders = document.querySelectorAll('.category-header');
-                    categoryHeaders.forEach(header => {
-                        // Extract just the category name, ignoring file count and icons
-                        const fullText = header.textContent.trim();
-                        const categoryName = fullText.replace(/^[▶▼]\s*[📝📓📋📚📄💻🔬📖✏️📎]\s*/, '').replace(/\s+\d+\s*$/, '').trim();
+                        // Toggle all category headers
+                        const categoryHeaders = document.querySelectorAll('.category-header');
+                        categoryHeaders.forEach(header => {
+                            const fullText = header.textContent.trim();
+                            const categoryName = fullText.replace(/^[▶▼]\s*[📝📓📋📚📄💻🔬📖✏️📎]\s*/, '').replace(/\s+\d+\s*$/, '').trim();
 
-                        const fileList = header.nextElementSibling;
-                        const icon = header.querySelector('.expand-icon');
-                        if (isExpanding) {
+                            const fileList = header.nextElementSibling;
+                            const icon = header.querySelector('.expand-icon');
                             fileList.style.display = 'grid';
                             fileList.style.gridTemplateColumns = 'repeat(auto-fill, minmax(300px, 1fr))';
                             fileList.style.gap = '1rem';
                             if (icon) icon.style.transform = 'rotate(90deg)';
                             persistentFolderStates.categories[categoryName] = true;
+                        });
+
+                        button.textContent = 'Collapse All';
+
                         } else {
+                        // Collapsing all folders - clear all filters (same as Clear All)
+                        clearAllFilters();
+
+                        // Then collapse all folders
+                        const semesterHeaders = document.querySelectorAll('.semester-header');
+                        semesterHeaders.forEach(header => {
+                            const fullText = header.textContent.trim();
+                            const semesterName = fullText.replace(/^[▶▼]\s*📅\s*/, '').replace(/\s+\d+\s+files?$/, '').trim();
+
+                            const majorList = header.nextElementSibling;
+                            const icon = header.querySelector('.expand-icon');
+                            majorList.style.display = 'none';
+                            if (icon) icon.style.transform = 'rotate(0deg)';
+                            persistentFolderStates.semesters[semesterName] = false;
+                        });
+
+                        const majorHeaders = document.querySelectorAll('.major-header');
+                        majorHeaders.forEach(header => {
+                            const fullText = header.textContent.trim();
+                            const majorName = fullText.replace(/^[▶▼]\s*📁\s*/, '').replace(/\s+\d+\s+files?$/, '').trim();
+
+                            const courseList = header.nextElementSibling;
+                            const icon = header.querySelector('.expand-icon');
+                            courseList.style.display = 'none';
+                            if (icon) icon.style.transform = 'rotate(0deg)';
+                            persistentFolderStates.majors[majorName] = false;
+                        });
+
+                        const courseHeaders = document.querySelectorAll('.course-header');
+                        courseHeaders.forEach(header => {
+                            const fullText = header.textContent.trim();
+                            const courseName = fullText.replace(/^[▶▼]\s*💼\s*/, '').replace(/\s+\d+\s*$/, '').trim();
+
+                            const categoryList = header.nextElementSibling;
+                            const icon = header.querySelector('.expand-icon');
+                            categoryList.style.display = 'none';
+                            if (icon) icon.style.transform = 'rotate(0deg)';
+                            persistentFolderStates.courses[courseName] = false;
+                        });
+
+                        const categoryHeaders = document.querySelectorAll('.category-header');
+                        categoryHeaders.forEach(header => {
+                            const fullText = header.textContent.trim();
+                            const categoryName = fullText.replace(/^[▶▼]\s*[📝📓📋📚📄💻🔬📖✏️📎]\s*/, '').replace(/\s+\d+\s*$/, '').trim();
+
+                            const fileList = header.nextElementSibling;
+                            const icon = header.querySelector('.expand-icon');
                             fileList.style.display = 'none';
                             if (icon) icon.style.transform = 'rotate(0deg)';
                             persistentFolderStates.categories[categoryName] = false;
-                        }
-                    });
+                        });
 
-                    button.textContent = isExpanding ? 'Collapse All' : 'Expand All';
+                        button.textContent = 'Expand All';
+                    }
 
-                    // Update button text based on new state (this will be redundant but ensures consistency)
+                    // Update button text based on new state
                     updateExpandCollapseButtonText();
                 }
 
