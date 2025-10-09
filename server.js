@@ -252,6 +252,15 @@ const transporter = nodemailer.createTransport({
     auth: {
         user: process.env.EMAIL_USER,
         pass: process.env.EMAIL_PASS
+    },
+    pool: true, // Use connection pooling for better performance
+    maxConnections: 1, // Limit concurrent connections for Gmail
+    maxMessages: 3, // Limit messages per connection
+    rateDelta: 20000, // 20 seconds between batches
+    rateLimit: 5, // Max 5 emails per rateDelta
+    secure: true,
+    tls: {
+        rejectUnauthorized: false // Allow self-signed certificates
     }
 });
 
@@ -261,6 +270,46 @@ console.log('   EMAIL_USER:', process.env.EMAIL_USER ? 'Set' : 'Missing');
 console.log('   EMAIL_PASS:', process.env.EMAIL_PASS ? 'Set' : 'Missing');
 console.log('   NODE_ENV:', process.env.NODE_ENV || 'development');
 console.log('   VERCEL_URL:', process.env.VERCEL_URL || 'Not set');
+
+// Verify email transporter connection on startup
+transporter.verify((error, success) => {
+    if (error) {
+        console.error('❌ Email transporter verification failed:', error);
+    } else {
+        console.log('✅ Email transporter ready - connection verified');
+    }
+});
+
+// Helper function to send email with retry logic
+function sendEmailWithRetry(mailOptions, maxRetries = 2) {
+    return new Promise((resolve, reject) => {
+        let attempts = 0;
+
+        function attemptSend() {
+            attempts++;
+            console.log(`📧 Attempting to send email (attempt ${attempts}/${maxRetries + 1})`);
+
+            transporter.sendMail(mailOptions, (err, info) => {
+                if (err) {
+                    console.error(`❌ Email send attempt ${attempts} failed:`, err.message);
+
+                    if (attempts <= maxRetries) {
+                        console.log(`🔄 Retrying email send in 2 seconds...`);
+                        setTimeout(attemptSend, 2000);
+                    } else {
+                        console.error(`❌ All email send attempts failed after ${maxRetries + 1} tries`);
+                        reject(err);
+                    }
+                } else {
+                    console.log(`✅ Email sent successfully on attempt ${attempts}:`, info?.messageId);
+                    resolve(info);
+                }
+            });
+        }
+
+        attemptSend();
+    });
+}
 
 /* Password Hashing */
 const bcrypt = require('bcrypt');
@@ -1801,6 +1850,142 @@ app.post('/change-password', async (req, res) => {
     }
 });
 
+// Delete Account Endpoint
+app.delete('/delete-account', async (req, res) => {
+    if (!req.session.user) {
+        return res.status(401).json({ error: 'Not authenticated' });
+    }
+
+    const userId = req.session.user.userid;
+    const userEmail = req.session.user.email;
+
+    try {
+        await client.connect();
+
+        // Check if user is protected (cannot delete protected accounts)
+        const userDoc = await client
+            .db(userCollection.db)
+            .collection(userCollection.collection)
+            .findOne({ userid: userId });
+
+        if (!userDoc) {
+            return res.status(404).json({ error: 'User not found' });
+        }
+
+        if (userDoc.isProtected) {
+            return res.status(403).json({ error: 'Cannot delete protected system account' });
+        }
+
+        console.log(`🗑️ Deleting account for user: ${userId} (${userEmail})`);
+
+        // Get all files uploaded by this user
+        const userFiles = await client
+            .db(fileCollection.db)
+            .collection(fileCollection.collection)
+            .find({ uploadedBy: userId })
+            .toArray();
+
+        console.log(`📁 Found ${userFiles.length} files to delete for user ${userId}`);
+
+        // Delete files from S3 and database
+        for (const file of userFiles) {
+            try {
+                // Check if this file is deduplicated (used by other uploads)
+                const fileHash = file.fileHash;
+                const duplicateFiles = await client
+                    .db(fileCollection.db)
+                    .collection(fileCollection.collection)
+                    .countDocuments({ fileHash: fileHash });
+
+                // Delete from S3 only if this is the last instance of this file
+                if (duplicateFiles === 1) {
+                    await s3.deleteObject({ Bucket: AWS_BUCKET, Key: file.filename }).promise();
+                    console.log(`🗑️ Deleted file from S3: ${file.filename}`);
+                } else {
+                    console.log(`♻️ File is deduplicated (${duplicateFiles} instances), keeping S3 file: ${file.filename}`);
+                }
+
+                // Delete from database
+                await client
+                    .db(fileCollection.db)
+                    .collection(fileCollection.collection)
+                    .deleteOne({ _id: file._id });
+
+                console.log(`🗑️ Deleted file record from database: ${file.filename}`);
+            } catch (fileError) {
+                console.error(`❌ Error deleting file ${file.filename}:`, fileError);
+                // Continue with other files even if one fails
+            }
+        }
+
+        // Delete user from database
+        await client
+            .db(userCollection.db)
+            .collection(userCollection.collection)
+            .deleteOne({ userid: userId });
+
+        console.log(`🗑️ Deleted user account: ${userId}`);
+
+        // Send deletion confirmation email
+        const mailOptions = {
+            from: process.env.EMAIL_USER,
+            to: userEmail,
+            subject: "Account Deleted - Terp Notes",
+            html: `
+                <h2>Account Deleted Successfully</h2>
+                <p>Hi ${userDoc.firstname},</p>
+                <p>Your Terp Notes account has been permanently deleted as requested.</p>
+                <p><strong>The following data has been removed:</strong></p>
+                <ul>
+                    <li>Your profile and account information</li>
+                    <li>All files you uploaded (${userFiles.length} files)</li>
+                    <li>Your download history and statistics</li>
+                </ul>
+                <p>If you didn't request this deletion, please contact support immediately at ${process.env.EMAIL_USER}.</p>
+                <hr style="margin: 2rem 0; border: none; border-top: 1px solid #E5E7EB;">
+                <p style="color: #6B7280; font-size: 0.875rem;">
+                    <strong>Terp Notes</strong> - Built for Terps, by Terps<br>
+                    <em>Not affiliated with, endorsed by, or officially connected to the University of Maryland.</em>
+                </p>
+            `
+        };
+
+        // Send email asynchronously (don't wait for completion)
+        transporter.sendMail(mailOptions, (err, info) => {
+            if (err) {
+                console.error("❌ Error sending deletion confirmation email:", err);
+            } else {
+                console.log("✅ Deletion confirmation email sent:", info?.messageId);
+            }
+        });
+
+        // Clear session and cookies
+        req.session.destroy((err) => {
+            if (err) {
+                console.error('Session destruction error:', err);
+            }
+        });
+
+        res.clearCookie('authToken');
+
+        console.log(`✅ Account deletion completed for user: ${userId}`);
+        res.status(200).json({
+            success: true,
+            message: 'Account deleted successfully',
+            filesDeleted: userFiles.length
+        });
+
+    } catch (error) {
+        console.error('Error deleting account:', error);
+        res.status(500).json({
+            error: 'Failed to delete account',
+            message: 'An error occurred while deleting your account. Please try again or contact support.'
+        });
+    } finally {
+        await client.close();
+    }
+});
+
 app.get('/logout', (req, res) => {
     res.clearCookie('authToken');
     req.session.destroy(err => {
@@ -2079,6 +2264,7 @@ app.post('/registerSubmit', registerLimiter, async function (req, res) {
 
         console.log(`📧 Sending verification email to ${email}`);
         console.log(`🔗 Verification link: ${verificationLink}`);
+
         const mailOptions = {
             from: process.env.EMAIL_USER,
             to: email,
@@ -2097,14 +2283,18 @@ app.post('/registerSubmit', registerLimiter, async function (req, res) {
                 </p>
             `
         };
-        transporter.sendMail(mailOptions, (err, info) => {
-            if (err) {
-                console.error("❌ Error sending verification email:", err);
-                console.error("📧 Email config - User:", process.env.EMAIL_USER ? "Set" : "Missing");
-            } else {
+
+        // Send email asynchronously with retry logic (don't wait for completion)
+        sendEmailWithRetry(mailOptions)
+            .then((info) => {
                 console.log("✅ Verification email sent successfully:", info?.messageId);
-            }
-        });
+                console.log("📧 Email delivered to:", email);
+            })
+            .catch((err) => {
+                console.error("❌ Failed to send verification email after retries:", err);
+                console.error("📧 Email config - User:", process.env.EMAIL_USER ? "Set" : "Missing");
+                console.error("📧 Email config - Pass:", process.env.EMAIL_PASS ? "Set" : "Missing");
+            });
 
         return res.render('success', {
             title: "Check Your Email",
