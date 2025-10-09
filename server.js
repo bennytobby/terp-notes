@@ -439,25 +439,37 @@ function sendEmailSimple(mailOptions) {
 
 // Modern email sending function using Resend (primary) with Gmail fallback
 async function sendEmailModern(mailOptions) {
+    console.log('🚀 Starting email send process...');
+    console.log('📧 Resend available:', !!resend);
+    console.log('📧 Resend API key present:', !!process.env.RESEND_API_KEY);
+    
     // Try Resend first if available
     if (resend) {
         try {
             console.log('📧 Attempting to send email via Resend...');
-
+            console.log('📧 To:', mailOptions.to);
+            console.log('📧 Subject:', mailOptions.subject);
+            
             const resendResult = await resend.emails.send({
                 from: 'Terp Notes <onboarding@resend.dev>',
                 to: mailOptions.to,
                 subject: mailOptions.subject,
                 html: mailOptions.html
             });
-
-            console.log('✅ Email sent successfully via Resend:', resendResult.data?.id);
+            
+            console.log('✅ Email sent successfully via Resend!');
+            console.log('📧 Resend ID:', resendResult.data?.id);
+            console.log('📧 Full response:', JSON.stringify(resendResult, null, 2));
             return { success: true, method: 'resend', data: resendResult.data };
-
+            
         } catch (error) {
-            console.error('❌ Resend email failed:', error.message);
+            console.error('❌ Resend email failed:');
+            console.error('❌ Error message:', error.message);
+            console.error('❌ Error details:', error);
             console.log('🔄 Falling back to Gmail SMTP...');
         }
+    } else {
+        console.log('⚠️ Resend not available, using Gmail SMTP directly...');
     }
 
     // Fallback to Gmail SMTP with retry logic
@@ -1691,7 +1703,7 @@ app.post('/resend-verification', async (req, res) => {
                 console.error("📧 Resend API Key:", process.env.RESEND_API_KEY ? "Set" : "Missing");
                 console.error("📧 Gmail User:", process.env.EMAIL_USER ? "Set" : "Missing");
                 console.error("📧 Gmail Pass:", process.env.EMAIL_PASS ? "Set" : "Missing");
-            });
+        });
 
         res.render('success', {
             title: "Verification Email Sent",
@@ -2463,7 +2475,7 @@ app.post('/registerSubmit', registerLimiter, async function (req, res) {
                 console.error("📧 Resend API Key:", process.env.RESEND_API_KEY ? "Set" : "Missing");
                 console.error("📧 Gmail User:", process.env.EMAIL_USER ? "Set" : "Missing");
                 console.error("📧 Gmail Pass:", process.env.EMAIL_PASS ? "Set" : "Missing");
-            });
+        });
 
         return res.render('success', {
             title: "Check Your Email",
