@@ -1493,39 +1493,23 @@ app.post('/resend-verification', async (req, res) => {
         console.log(`📧 Resending verification email to ${req.body.email}`);
         console.log(`🔗 Verification link: ${verificationLink}`);
 
-        const mailOptions = {
-            from: process.env.EMAIL_USER,
-            to: req.body.email,
-            subject: "Verify Your Terp Notes Account",
-            html: `
-                <h2>Verify Your Email, ${user.firstname}! 🐢</h2>
-                <p>Click the button below to verify your email address:</p>
+        const emailHtml = `
+            <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+                <h2 style="color: #E03A3C;">Verify Your Email, ${user.firstname}! 🐢</h2>
+                <p style="color: #374151; line-height: 1.6;">Click the button below to verify your email address:</p>
                 <p><a href="${verificationLink}" style="background: #E03A3C; color: white; padding: 12px 24px; text-decoration: none; border-radius: 8px; display: inline-block;">Verify Email Address</a></p>
-                <p>Or copy this link: ${verificationLink}</p>
+                <p style="color: #6B7280; font-size: 0.875rem;">Or copy this link: ${verificationLink}</p>
                 <hr style="margin: 2rem 0; border: none; border-top: 1px solid #E5E7EB;">
                 <p style="color: #6B7280; font-size: 0.875rem;">
                     <strong>Terp Notes</strong> - Built for Terps, by Terps<br>
                     <em>Not affiliated with, endorsed by, or officially connected to the University of Maryland.</em>
                 </p>
-            `
-        };
+            </div>
+        `;
 
-        // Send email using modern method (Resend primary, Gmail fallback) - ASYNC, don't wait
-        sendEmailModern(mailOptions)
-            .then((result) => {
-                console.log("✅ Resend verification email sent successfully via", result.method);
-                console.log("📧 Email delivered to:", req.body.email);
-                console.log("📧 Email ID:", result.data?.id || result.data?.messageId);
-            })
-            .catch((err) => {
-                console.error("❌ Failed to resend verification email:", err.message);
-                console.error("📧 Resend API Key:", process.env.RESEND_API_KEY ? "Set" : "Missing");
-                console.error("📧 Gmail User:", process.env.EMAIL_USER ? "Set" : "Missing");
-                console.error("📧 Gmail Pass:", process.env.EMAIL_PASS ? "Set" : "Missing");
-            });
-
-        // Don't await the email sending - return response immediately
-        console.log("📧 Email sending initiated in background...");
+        // Send email asynchronously (don't wait for response)
+        sendEmail(req.body.email, "Verify Your Terp Notes Account", emailHtml)
+            .catch((err) => console.error("❌ Failed to send verification email:", err.message));
 
         res.render('success', {
             title: "Verification Email Sent",
@@ -2260,41 +2244,25 @@ app.post('/registerSubmit', registerLimiter, async function (req, res) {
         console.log(`📧 Sending verification email to ${email}`);
         console.log(`🔗 Verification link: ${verificationLink}`);
 
-        const mailOptions = {
-            from: process.env.EMAIL_USER,
-            to: email,
-            subject: "Verify Your Terp Notes Account",
-            html: `
-                <h2>Welcome to Terp Notes, ${firstname}! 🐢</h2>
-                <p>Thank you for registering. Please verify your email address to activate your account.</p>
+        const emailHtml = `
+            <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+                <h2 style="color: #E03A3C;">Welcome to Terp Notes, ${firstname}! 🐢</h2>
+                <p style="color: #374151; line-height: 1.6;">Thank you for registering. Please verify your email address to activate your account.</p>
                 <p><a href="${verificationLink}" style="background: #E03A3C; color: white; padding: 12px 24px; text-decoration: none; border-radius: 8px; display: inline-block;">Verify Email Address</a></p>
-                <p>Or copy this link: ${verificationLink}</p>
-                <p>This link will expire in 24 hours.</p>
-                <p><small>If you didn't create this account, please ignore this email.</small></p>
+                <p style="color: #6B7280; font-size: 0.875rem;">Or copy this link: ${verificationLink}</p>
+                <p style="color: #6B7280; font-size: 0.875rem;">This link will expire in 24 hours.</p>
+                <p style="color: #6B7280; font-size: 0.875rem;"><em>If you didn't create this account, please ignore this email.</em></p>
                 <hr style="margin: 2rem 0; border: none; border-top: 1px solid #E5E7EB;">
                 <p style="color: #6B7280; font-size: 0.875rem;">
                     <strong>Terp Notes</strong> - Built for Terps, by Terps<br>
                     <em>Not affiliated with, endorsed by, or officially connected to the University of Maryland.</em>
                 </p>
-            `
-        };
+            </div>
+        `;
 
-        // Send email using modern method (Resend primary, Gmail fallback) - ASYNC, don't wait
-        sendEmailModern(mailOptions)
-            .then((result) => {
-                console.log("✅ Verification email sent successfully via", result.method);
-                console.log("📧 Email delivered to:", email);
-                console.log("📧 Email ID:", result.data?.id || result.data?.messageId);
-            })
-            .catch((err) => {
-                console.error("❌ Failed to send verification email:", err.message);
-                console.error("📧 Resend API Key:", process.env.RESEND_API_KEY ? "Set" : "Missing");
-                console.error("📧 Gmail User:", process.env.EMAIL_USER ? "Set" : "Missing");
-                console.error("📧 Gmail Pass:", process.env.EMAIL_PASS ? "Set" : "Missing");
-            });
-
-        // Don't await the email sending - return response immediately
-        console.log("📧 Email sending initiated in background...");
+        // Send email asynchronously (don't wait for response)
+        sendEmail(email, "Verify Your Terp Notes Account", emailHtml)
+            .catch((err) => console.error("❌ Failed to send verification email:", err.message));
 
         return res.render('success', {
             title: "Check Your Email",
