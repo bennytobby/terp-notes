@@ -833,7 +833,7 @@
                         // Show active filters in grid view (if there are any)
                         updateActiveFilters();
 
-                        // Apply current filters to grid view
+                        // Apply all filters to grid view
                         applyFilters();
                     } else if (view === 'grouped') {
                         gridView.style.display = 'none';
@@ -854,9 +854,13 @@
                         if (classWrapper) classWrapper.style.display = 'none';
                         if (professorFilter) professorFilter.style.display = 'block'; // Keep professor search
 
-                        // Hide active filters in grouped view
-                        if (activeFiltersContainer) activeFiltersContainer.style.display = 'none';
+                        // Show active filters in grouped view (but only relevant ones)
+                        if (activeFiltersContainer) activeFiltersContainer.style.display = 'block';
 
+                        // Update active filters to show only relevant ones for grouped view
+                        updateActiveFiltersForGroupedView();
+
+                        // Render grouped view with only Professor and Search filters
                         renderGroupedView();
 
                         // Smart folder opening based on active filters
@@ -888,7 +892,7 @@
                         // Show active filters in list view (if there are any)
                         updateActiveFilters();
 
-                        // Apply current filters to list view
+                        // Apply all filters to list view
                         applyFilters();
                     }
 
@@ -1148,8 +1152,8 @@
                     const groupedView = document.getElementById('groupedView');
                     if (!groupedView) return;
 
-                    // Get filtered files directly instead of relying on grid view
-                    const filteredFiles = getFilteredFiles();
+                    // Get filtered files using only Professor and Search filters
+                    const filteredFiles = getFilteredFilesForGroupedView();
 
                     if (filteredFiles.length === 0) {
                         groupedView.innerHTML = '<div class="empty-state"><h3>No notes found</h3><p>Try different filters or search terms</p></div>';
@@ -1343,7 +1347,32 @@
                     return iconMap[ext] || '📄';
                 }
 
-                // Get filtered files based on current filters
+                // Get filtered files for grouped view (only Professor and Search filters)
+                function getFilteredFilesForGroupedView() {
+                    const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+                    const selectedProfessors = Array.from(document.querySelectorAll('#professorDropdown input[type="checkbox"]:checked')).map(cb => cb.value);
+
+                    return allFilesData.filter(function(file) {
+                        // Search term filter
+                        if (searchTerm && !file.originalName.toLowerCase().includes(searchTerm) &&
+                            !(file.description && file.description.toLowerCase().includes(searchTerm))) {
+                            return false;
+                        }
+
+                        // Professor filter
+                        if (selectedProfessors.length > 0) {
+                            if (!file.professor || !selectedProfessors.some(selectedProf =>
+                                file.professor.toLowerCase() === selectedProf.toLowerCase()
+                            )) {
+                                return false;
+                            }
+                        }
+
+                        return true;
+                    });
+                }
+
+                // Get filtered files based on current filters (for Grid and List views)
                 function getFilteredFiles() {
                     const searchTerm = document.getElementById('searchInput').value.toLowerCase();
                     const selectedCategories = Array.from(document.querySelectorAll('#categoryDropdown input[type="checkbox"]:checked')).map(cb => cb.value);
@@ -1412,7 +1441,7 @@
                     const listView = document.getElementById('listView');
                     if (!listView) return;
 
-                    // Get filtered files directly instead of relying on grid view
+                    // Get filtered files using all filters (same as grid view)
                     const filteredFiles = getFilteredFiles();
 
                     if (filteredFiles.length === 0) {
@@ -2081,6 +2110,43 @@
                     }
                 }
 
+                // Update active filters display for grouped view (only Professor and Search)
+                function updateActiveFiltersForGroupedView() {
+                    const activeFiltersContainer = document.getElementById('activeFilters');
+                    const filterTags = document.getElementById('filterTags');
+
+                    const tags = [];
+
+                    // Only show filters that are shared between grouped view and other views:
+                    // - Professor filter (shared globally)
+                    // - Search filter (shared globally)
+
+                    // Get professor filter (from multi-select)
+                    const selectedProfessors = Array.from(document.querySelectorAll('#professorDropdown input[type="checkbox"]:checked'))
+                        .map(cb => ({ type: 'professor', value: cb.value, label: `Professor: ${cb.value}` }));
+                    tags.push(...selectedProfessors);
+
+                    // Get search filter
+                    const searchTerm = document.getElementById('searchInput').value;
+                    if (searchTerm) {
+                        tags.push({ type: 'search', value: searchTerm, label: `Search: ${searchTerm}` });
+                    }
+
+                    // Update filter tags content
+                    if (tags.length > 0) {
+                        filterTags.innerHTML = tags.map(tag => `
+                            <span style="display: inline-flex; align-items: center; gap: 0.375rem; background: white; border: 1px solid var(--umd-red); color: var(--umd-red); padding: 4px 8px; border-radius: 6px; font-size: 0.813rem; font-weight: 500;">
+                                ${escapeHtml(tag.label)}
+                                <button onclick="removeFilter('${tag.type}', '${escapeHtml(tag.value)}')" style="background: none; border: none; color: var(--umd-red); cursor: pointer; padding: 0; font-size: 1rem; line-height: 1; font-weight: bold;" title="Remove filter">
+                                    ×
+                                </button>
+                            </span>
+                        `).join('');
+                    } else {
+                        filterTags.innerHTML = '<span style="color: #6B7280; font-style: italic;">No filters applied</span>';
+                    }
+                }
+
                 // Client-side filtering - instant, no page reloads!
                 function applyFilters() {
                     // Preserve dropdown states before filtering
@@ -2180,9 +2246,9 @@
                         }
                     });
 
-                    // Update only the active view
+                    // Update only the active view with appropriate filtering
                     if (currentView === 'grid') {
-                    displayFiles(filteredFiles);
+                        displayFiles(filteredFiles);
                     } else if (currentView === 'grouped') {
                         renderGroupedView();
                     } else if (currentView === 'list') {
@@ -2208,8 +2274,12 @@
                         }
                     }, 10);
 
-                    // Update active filters display
-                    updateActiveFilters();
+                    // Update active filters display based on current view
+                    if (currentView === 'grouped') {
+                        updateActiveFiltersForGroupedView();
+                    } else {
+                        updateActiveFilters();
+                    }
                 }
 
                 // Update active filters display (Grid view only)
