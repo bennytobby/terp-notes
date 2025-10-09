@@ -452,9 +452,15 @@ async function sendEmailModern(mailOptions) {
 
             const resendResult = await resend.emails.send({
                 from: 'Terp Notes <onboarding@resend.dev>',
-                to: mailOptions.to,
-                subject: mailOptions.subject,
-                html: mailOptions.html
+                to: 'paramraj15@gmail.com', // Resend testing restriction - only send to your Gmail
+                subject: `[TESTING] ${mailOptions.subject} - Original: ${mailOptions.to}`,
+                html: `
+                    <div style="background: #fef3c7; padding: 1rem; border-radius: 8px; margin-bottom: 1rem;">
+                        <strong>⚠️ TESTING MODE:</strong> This email was sent to you instead of the original recipient due to Resend testing restrictions.
+                        <br><strong>Original recipient:</strong> ${mailOptions.to}
+                    </div>
+                    ${mailOptions.html}
+                `
             });
 
             console.log('✅ Email sent successfully via Resend!');
