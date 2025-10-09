@@ -451,7 +451,7 @@ async function sendEmailModern(mailOptions) {
             console.log('📧 Subject:', mailOptions.subject);
 
             const resendResult = await resend.emails.send({
-                from: 'Terp Notes <onboarding@resend.dev>',
+                from: 'Terp Notes <noreply@terp-notes.org>',
                 to: mailOptions.to,
                 subject: mailOptions.subject,
                 html: mailOptions.html
@@ -466,7 +466,7 @@ async function sendEmailModern(mailOptions) {
             console.error('❌ Resend email failed:');
             console.error('❌ Error message:', error.message);
             console.error('❌ Error details:', error);
-            
+
             // Check if it's the testing restriction error
             if (error.message && error.message.includes('only send testing emails to your own email address')) {
                 console.log('🚫 Resend testing restriction detected - falling back to Gmail SMTP...');
