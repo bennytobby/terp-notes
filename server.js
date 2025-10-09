@@ -2073,37 +2073,26 @@ app.delete('/delete-account', async (req, res) => {
             .find({ uploadedBy: userId })
             .toArray();
 
-        console.log(`📁 Found ${userFiles.length} files to delete for user ${userId}`);
+        console.log(`📁 Found ${userFiles.length} files to anonymize for user ${userId}`);
 
-        // Delete files from S3 and database
-        for (const file of userFiles) {
-            try {
-                // Check if this file is deduplicated (used by other uploads)
-                const fileHash = file.fileHash;
-                const duplicateFiles = await client
-                    .db(fileCollection.db)
-                    .collection(fileCollection.collection)
-                    .countDocuments({ fileHash: fileHash });
-
-                // Delete from S3 only if this is the last instance of this file
-                if (duplicateFiles === 1) {
-                    await s3.deleteObject({ Bucket: AWS_BUCKET, Key: file.filename }).promise();
-                    console.log(`🗑️ Deleted file from S3: ${file.filename}`);
-                } else {
-                    console.log(`♻️ File is deduplicated (${duplicateFiles} instances), keeping S3 file: ${file.filename}`);
-                }
-
-                // Delete from database
-                await client
-                    .db(fileCollection.db)
-                    .collection(fileCollection.collection)
-                    .deleteOne({ _id: file._id });
-
-                console.log(`🗑️ Deleted file record from database: ${file.filename}`);
-            } catch (fileError) {
-                console.error(`❌ Error deleting file ${file.filename}:`, fileError);
-                // Continue with other files even if one fails
-            }
+        // Anonymize files (keep content, remove personal attribution)
+        if (userFiles.length > 0) {
+            const updateResult = await client
+                .db(fileCollection.db)
+                .collection(fileCollection.collection)
+                .updateMany(
+                    { uploadedBy: userId },
+                    { 
+                        $set: { 
+                            uploadedBy: 'deleted_user',
+                            uploadedByName: 'Deleted User',
+                            isDeletedUser: true,
+                            originalUploaderId: userId, // Keep reference for admin purposes
+                            userDeletedAt: new Date()
+                        }
+                    }
+                );
+            console.log(`👤 Anonymized ${updateResult.modifiedCount} files`);
         }
 
         // Delete user from database
@@ -2126,9 +2115,9 @@ app.delete('/delete-account', async (req, res) => {
                 <p><strong>The following data has been removed:</strong></p>
                 <ul>
                     <li>Your profile and account information</li>
-                    <li>All files you uploaded (${userFiles.length} files)</li>
                     <li>Your download history and statistics</li>
                 </ul>
+                <p><strong>Note:</strong> Your uploaded files (${userFiles.length} files) have been preserved for the community but are now attributed to "Deleted User" to protect your privacy.</p>
                 <p>If you didn't request this deletion, please contact support immediately at ${process.env.EMAIL_USER}.</p>
                 <hr style="margin: 2rem 0; border: none; border-top: 1px solid #E5E7EB;">
                 <p style="color: #6B7280; font-size: 0.875rem;">
@@ -3267,6 +3256,129 @@ app.get('/api/cron/scan-pending-files', async (req, res) => {
     } catch (error) {
         console.error('Cron error:', error);
         res.status(500).json({ error: 'Cron job failed' });
+    } finally {
+        await client.close();
+    }
+});
+
+// Delete All Files Endpoint
+app.delete('/delete-all-files', async (req, res) => {
+    if (!req.session.user) {
+        return res.status(401).json({ error: 'Not authenticated' });
+    }
+
+    const userId = req.session.user.userid;
+    const userEmail = req.session.user.email;
+
+    try {
+        await client.connect();
+
+        // Check if user is protected (cannot delete protected accounts' files)
+        const userDoc = await client
+            .db(userCollection.db)
+            .collection(userCollection.collection)
+            .findOne({ userid: userId });
+
+        if (!userDoc) {
+            return res.status(404).json({ error: 'User not found' });
+        }
+
+        if (userDoc.isProtected) {
+            return res.status(403).json({ error: 'Cannot delete files from protected system account' });
+        }
+
+        console.log(`🗑️ Deleting all files for user: ${userId} (${userEmail})`);
+
+        // Get all files uploaded by this user
+        const userFiles = await client
+            .db(fileCollection.db)
+            .collection(fileCollection.collection)
+            .find({ uploadedBy: userId })
+            .toArray();
+
+        console.log(`📁 Found ${userFiles.length} files to delete for user ${userId}`);
+
+        let deletedCount = 0;
+        let s3DeletedCount = 0;
+
+        // Delete files from S3 and database
+        for (const file of userFiles) {
+            try {
+                // Check if this file is deduplicated (used by other uploads)
+                const fileHash = file.fileHash;
+                const duplicateFiles = await client
+                    .db(fileCollection.db)
+                    .collection(fileCollection.collection)
+                    .countDocuments({ fileHash: fileHash });
+
+                // Delete from S3 only if this is the last instance of this file
+                if (duplicateFiles === 1) {
+                    await s3.deleteObject({ Bucket: AWS_BUCKET, Key: file.filename }).promise();
+                    console.log(`🗑️ Deleted file from S3: ${file.filename}`);
+                    s3DeletedCount++;
+                } else {
+                    console.log(`♻️ File is deduplicated (${duplicateFiles} instances), keeping S3 file: ${file.filename}`);
+                }
+
+                // Delete from database
+                await client
+                    .db(fileCollection.db)
+                    .collection(fileCollection.collection)
+                    .deleteOne({ _id: file._id });
+
+                console.log(`🗑️ Deleted file record from database: ${file.filename}`);
+                deletedCount++;
+            } catch (fileError) {
+                console.error(`❌ Error deleting file ${file.filename}:`, fileError);
+                // Continue with other files even if one fails
+            }
+        }
+
+        console.log(`🗑️ Successfully deleted ${deletedCount} files (${s3DeletedCount} from S3)`);
+
+        // Send deletion confirmation email
+        const mailOptions = {
+            from: process.env.EMAIL_USER,
+            to: userEmail,
+            subject: "Files Deleted - Terp Notes",
+            html: `
+                <h2>All Files Deleted Successfully</h2>
+                <p>Hi ${userDoc.firstname},</p>
+                <p>All your uploaded files have been permanently deleted as requested.</p>
+                <p><strong>Deletion Summary:</strong></p>
+                <ul>
+                    <li>Files deleted from database: ${deletedCount}</li>
+                    <li>Files deleted from storage: ${s3DeletedCount}</li>
+                    <li>Files preserved (deduplicated): ${userFiles.length - s3DeletedCount}</li>
+                </ul>
+                <p><strong>Note:</strong> Your account remains active. If you didn't request this deletion, please contact support immediately at ${process.env.EMAIL_USER}.</p>
+                <hr style="margin: 2rem 0; border: none; border-top: 1px solid #E5E7EB;">
+                <p style="color: #6B7280; font-size: 0.875rem;">
+                    <strong>Terp Notes</strong> - Built for Terps, by Terps<br>
+                    <em>Not affiliated with, endorsed by, or officially connected to the University of Maryland.</em>
+                </p>
+            `
+        };
+
+        // Send email asynchronously
+        transporter.sendMail(mailOptions, (err, info) => {
+            if (err) {
+                console.error('❌ Error sending deletion confirmation email:', err);
+            } else {
+                console.log('✅ Deletion confirmation email sent:', info.messageId);
+            }
+        });
+
+        res.status(200).json({ 
+            success: true, 
+            message: 'All files deleted successfully', 
+            deletedCount: deletedCount,
+            s3DeletedCount: s3DeletedCount
+        });
+
+    } catch (error) {
+        console.error('❌ Error deleting files:', error);
+        res.status(500).json({ error: 'Failed to delete files' });
     } finally {
         await client.close();
     }

@@ -2710,5 +2710,71 @@ main > .container > p:first-of-type {
   box-shadow: none !important;
 }
 
+/* DANGER ZONE Styling */
+.danger-zone {
+  border: 3px solid var(--red-300);
+  background: linear-gradient(135deg, rgba(239, 68, 68, 0.08), rgba(220, 38, 38, 0.08));
+  border-radius: var(--border-radius-xl);
+  margin-top: var(--space-8);
+  padding: var(--space-6);
+}
+
+.danger-zone-title {
+  color: var(--red-700);
+  margin-bottom: var(--space-6);
+  text-align: center;
+  font-size: 1.5rem;
+  font-weight: 700;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.danger-zone .danger-section {
+  margin-bottom: var(--space-6);
+  padding: var(--space-4);
+  border: 2px solid var(--red-200);
+  background: rgba(255, 255, 255, 0.5);
+  border-radius: var(--border-radius-lg);
+}
+
+.danger-zone .danger-section:last-child {
+  margin-bottom: 0;
+}
+
+.danger-zone .danger-section h3 {
+  color: var(--red-600);
+  margin-bottom: var(--space-3);
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.danger-zone .danger-warning {
+  background: linear-gradient(135deg, rgba(239, 68, 68, 0.05), rgba(220, 38, 38, 0.05));
+  border: 1px solid var(--red-200);
+  border-radius: var(--border-radius-md);
+  padding: var(--space-4);
+  margin-bottom: var(--space-4);
+}
+
+.danger-zone .danger-warning p {
+  margin-bottom: var(--space-3);
+  color: var(--gray-700);
+  line-height: 1.6;
+}
+
+.danger-zone .danger-warning p:last-child {
+  margin-bottom: 0;
+}
+
+.danger-zone .danger-warning ul {
+  margin: var(--space-2) 0;
+  padding-left: var(--space-6);
+}
+
+.danger-zone .danger-warning li {
+  margin-bottom: var(--space-1);
+  color: var(--gray-700);
+  line-height: 1.5;
+}
+
 /* Revert to original - no width constraints */
 
