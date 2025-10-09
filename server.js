@@ -1704,7 +1704,7 @@ app.post('/resend-verification', async (req, res) => {
                 console.error("📧 Gmail User:", process.env.EMAIL_USER ? "Set" : "Missing");
                 console.error("📧 Gmail Pass:", process.env.EMAIL_PASS ? "Set" : "Missing");
             });
-        
+
         // Don't await the email sending - return response immediately
         console.log("📧 Email sending initiated in background...");
 
@@ -2479,7 +2479,7 @@ app.post('/registerSubmit', registerLimiter, async function (req, res) {
                 console.error("📧 Gmail User:", process.env.EMAIL_USER ? "Set" : "Missing");
                 console.error("📧 Gmail Pass:", process.env.EMAIL_PASS ? "Set" : "Missing");
             });
-        
+
         // Don't await the email sending - return response immediately
         console.log("📧 Email sending initiated in background...");
 
