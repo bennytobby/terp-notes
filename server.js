@@ -338,20 +338,37 @@ function sendEmailWithRetry(mailOptions, maxRetries = 3) {
                 logger: false
             });
 
+            // Add timeout to prevent hanging
+            const timeout = setTimeout(() => {
+                console.error(`⏰ Email send attempt ${attempts} timed out after 30 seconds`);
+                freshTransporter.close();
+                
+                if (attempts <= maxRetries) {
+                    console.log(`🔄 Timeout detected, retrying in 5 seconds...`);
+                    setTimeout(attemptSend, 5000);
+                } else {
+                    console.error(`❌ All email send attempts timed out after ${maxRetries + 1} tries`);
+                    reject(new Error('Email send timed out'));
+                }
+            }, 30000); // 30 second timeout
+            
             freshTransporter.sendMail(mailOptions, (err, info) => {
+                clearTimeout(timeout); // Clear timeout if email completes
+                
                 // Close the fresh transporter after use
                 freshTransporter.close();
-
+                
                 if (err) {
                     console.error(`❌ Email send attempt ${attempts} failed:`, err.message);
                     console.error(`❌ Error type:`, err.code || 'Unknown');
-
+                    console.error(`❌ Full error:`, err);
+                    
                     // Check if it's a socket-related error
-                    const isSocketError = err.message.includes('socket') ||
-                                        err.message.includes('close') ||
+                    const isSocketError = err.message.includes('socket') || 
+                                        err.message.includes('close') || 
                                         err.code === 'ECONNRESET' ||
                                         err.code === 'ETIMEDOUT';
-
+                    
                     if (attempts <= maxRetries && isSocketError) {
                         const delay = Math.min(2000 * attempts, 10000); // Exponential backoff, max 10s
                         console.log(`🔄 Socket error detected, retrying in ${delay/1000} seconds...`);
@@ -366,12 +383,52 @@ function sendEmailWithRetry(mailOptions, maxRetries = 3) {
                     }
                 } else {
                     console.log(`✅ Email sent successfully on attempt ${attempts}:`, info?.messageId);
+                    console.log(`📧 Email response:`, info?.response || 'No response details');
                     resolve(info);
                 }
             });
         }
 
         attemptSend();
+    });
+}
+
+// Alternative email sending function with simpler configuration
+function sendEmailSimple(mailOptions) {
+    return new Promise((resolve, reject) => {
+        console.log('📧 Attempting simple email send...');
+        
+        const simpleTransporter = nodemailer.createTransport({
+            host: 'smtp.gmail.com',
+            port: 587,
+            secure: false,
+            auth: {
+                user: process.env.EMAIL_USER,
+                pass: process.env.EMAIL_PASS
+            },
+            tls: {
+                rejectUnauthorized: false
+            }
+        });
+        
+        const timeout = setTimeout(() => {
+            console.error('⏰ Simple email send timed out');
+            simpleTransporter.close();
+            reject(new Error('Simple email send timed out'));
+        }, 15000); // 15 second timeout
+        
+        simpleTransporter.sendMail(mailOptions, (err, info) => {
+            clearTimeout(timeout);
+            simpleTransporter.close();
+            
+            if (err) {
+                console.error('❌ Simple email send failed:', err.message);
+                reject(err);
+            } else {
+                console.log('✅ Simple email send successful:', info?.messageId);
+                resolve(info);
+            }
+        });
     });
 }
 
@@ -1590,8 +1647,21 @@ app.post('/resend-verification', async (req, res) => {
             })
             .catch((err) => {
                 console.error("❌ Failed to resend verification email after retries:", err);
-                console.error("📧 Email config - User:", process.env.EMAIL_USER ? "Set" : "Missing");
-                console.error("📧 Email config - Pass:", process.env.EMAIL_PASS ? "Set" : "Missing");
+                console.log("🔄 Trying simple email method as fallback...");
+                
+                // Try simple method as fallback
+                sendEmailSimple(mailOptions)
+                    .then((info) => {
+                        console.log("✅ Fallback email sent successfully:", info?.messageId);
+                        console.log("📧 Email delivered to:", req.body.email);
+                    })
+                    .catch((fallbackErr) => {
+                        console.error("❌ Both email methods failed:");
+                        console.error("📧 Primary error:", err.message);
+                        console.error("📧 Fallback error:", fallbackErr.message);
+                        console.error("📧 Email config - User:", process.env.EMAIL_USER ? "Set" : "Missing");
+                        console.error("📧 Email config - Pass:", process.env.EMAIL_PASS ? "Set" : "Missing");
+                    });
             });
 
         res.render('success', {
