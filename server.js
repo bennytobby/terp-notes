@@ -452,15 +452,9 @@ async function sendEmailModern(mailOptions) {
 
             const resendResult = await resend.emails.send({
                 from: 'Terp Notes <onboarding@resend.dev>',
-                to: 'paramraj15@gmail.com', // Resend testing restriction - only send to your Gmail
-                subject: `[TESTING] ${mailOptions.subject} - Original: ${mailOptions.to}`,
-                html: `
-                    <div style="background: #fef3c7; padding: 1rem; border-radius: 8px; margin-bottom: 1rem;">
-                        <strong>⚠️ TESTING MODE:</strong> This email was sent to you instead of the original recipient due to Resend testing restrictions.
-                        <br><strong>Original recipient:</strong> ${mailOptions.to}
-                    </div>
-                    ${mailOptions.html}
-                `
+                to: mailOptions.to,
+                subject: mailOptions.subject,
+                html: mailOptions.html
             });
 
             console.log('✅ Email sent successfully via Resend!');
@@ -472,7 +466,13 @@ async function sendEmailModern(mailOptions) {
             console.error('❌ Resend email failed:');
             console.error('❌ Error message:', error.message);
             console.error('❌ Error details:', error);
-            console.log('🔄 Falling back to Gmail SMTP...');
+            
+            // Check if it's the testing restriction error
+            if (error.message && error.message.includes('only send testing emails to your own email address')) {
+                console.log('🚫 Resend testing restriction detected - falling back to Gmail SMTP...');
+            } else {
+                console.log('🔄 Resend error - falling back to Gmail SMTP...');
+            }
         }
     } else {
         console.log('⚠️ Resend not available, using Gmail SMTP directly...');
