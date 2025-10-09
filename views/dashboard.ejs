@@ -641,6 +641,89 @@
                     categories: {}
                 };
 
+                // Function to check if an element is visually visible (considering parent visibility)
+                function isElementVisuallyVisible(element) {
+                    if (!element) return false;
+
+                    // Check if element itself is hidden
+                    if (element.style.display === 'none') return false;
+
+                    // Check if any parent containers are hidden
+                    let parent = element.parentElement;
+                    while (parent && parent !== document.body) {
+                        if (parent.style.display === 'none') return false;
+                        parent = parent.parentElement;
+                    }
+
+                    return true;
+                }
+
+                // Function to update the expand/collapse all button text
+                function updateExpandCollapseButtonText() {
+                    const button = document.getElementById('expandAllBtn');
+                    if (!button) return;
+
+
+                    // Check actual visual state of folders, not just persistent state
+                    let hasVisuallyOpenFolders = false;
+                    let openFolders = [];
+
+                    // Check major folders
+                    const majorHeaders = document.querySelectorAll('.major-header');
+                    majorHeaders.forEach(header => {
+                        const semesterList = header.nextElementSibling;
+                        const display = semesterList ? semesterList.style.display : 'none';
+                        const isVisible = isElementVisuallyVisible(semesterList);
+                        if (semesterList && semesterList.style.display === 'block' && isVisible) {
+                            hasVisuallyOpenFolders = true;
+                            openFolders.push(`Major: ${header.textContent.trim()}`);
+                        }
+                    });
+
+                    // Check semester folders
+                    const semesterHeaders = document.querySelectorAll('.semester-header');
+                    semesterHeaders.forEach(header => {
+                        const courseList = header.nextElementSibling;
+                        const display = courseList ? courseList.style.display : 'none';
+                        const isVisible = isElementVisuallyVisible(courseList);
+                        if (courseList && courseList.style.display === 'block' && isVisible) {
+                            hasVisuallyOpenFolders = true;
+                            openFolders.push(`Semester: ${header.textContent.trim()}`);
+                        }
+                    });
+
+                    // Check course folders
+                    const courseHeaders = document.querySelectorAll('.course-header');
+                    courseHeaders.forEach(header => {
+                        const categoryList = header.nextElementSibling;
+                        const display = categoryList ? categoryList.style.display : 'none';
+                        const isVisible = isElementVisuallyVisible(categoryList);
+                        if (categoryList && categoryList.style.display === 'block' && isVisible) {
+                            hasVisuallyOpenFolders = true;
+                            openFolders.push(`Course: ${header.textContent.trim()}`);
+                        }
+                    });
+
+                    // Check category folders
+                    const categoryHeaders = document.querySelectorAll('.category-header');
+                    categoryHeaders.forEach(header => {
+                        const fileList = header.nextElementSibling;
+                        const display = fileList ? fileList.style.display : 'none';
+                        const isVisible = isElementVisuallyVisible(fileList);
+                        if (fileList && (fileList.style.display === 'grid' || fileList.style.display === 'block') && isVisible) {
+                            hasVisuallyOpenFolders = true;
+                            openFolders.push(`Category: ${header.textContent.trim()}`);
+                        }
+                    });
+
+
+                    if (hasVisuallyOpenFolders) {
+                        button.textContent = 'Collapse All';
+                    } else {
+                        button.textContent = 'Expand All';
+                    }
+                }
+
                 // Function to capture current folder states and update persistent state
                 function captureFolderStates() {
                     // Only capture states if grouped view exists and has content
@@ -688,6 +771,9 @@
                         const fileList = header.nextElementSibling;
                         persistentFolderStates.categories[categoryName] = fileList && (fileList.style.display === 'grid' || fileList.style.display === 'block');
                     });
+
+                    // Update button text based on current state
+                    updateExpandCollapseButtonText();
 
                     return persistentFolderStates;
                 }
@@ -770,6 +856,9 @@
                             }
                         }
                     });
+
+                    // Update button text after restoration
+                    updateExpandCollapseButtonText();
                 }
 
                 function renderGroupedView() {
@@ -832,7 +921,7 @@
                     };
 
                     // Generate HTML
-                    let html = '<div class="expand-collapse-all" style="margin-bottom: 1rem;"><button onclick="toggleAllGroups()" style="background: var(--umd-red); color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-weight: 600;">Expand All</button></div>';
+                    let html = '<div class="expand-collapse-all" style="margin-bottom: 1rem;"><button id="expandAllBtn" onclick="toggleAllGroups()" style="background: var(--umd-red); color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-weight: 600;">Expand All</button></div>';
 
                     Object.keys(grouped).sort().forEach(function (major) {
                         // Calculate major file count using a simple approach
@@ -1021,7 +1110,10 @@
 
                 // Toggle major accordion
                 function toggleMajor(header) {
-                    const majorName = header.textContent.trim();
+                    // Extract just the major name, ignoring file count and icons
+                    const fullText = header.textContent.trim();
+                    const majorName = fullText.replace(/^[▶▼]\s*📁\s*/, '').replace(/\s+\d+\s+files?$/, '').trim();
+
                     const semesterList = header.nextElementSibling;
                     const icon = header.querySelector('.expand-icon');
                     const isCurrentlyExpanded = semesterList.style.display !== 'none';
@@ -1031,11 +1123,17 @@
 
                     // Update persistent state
                     persistentFolderStates.majors[majorName] = !isCurrentlyExpanded;
+
+                    // Update button text
+                    updateExpandCollapseButtonText();
                 }
 
                 // Toggle course accordion
                 function toggleCourse(header) {
-                    const courseName = header.textContent.trim();
+                    // Extract just the course name, ignoring file count and icons
+                    const fullText = header.textContent.trim();
+                    const courseName = fullText.replace(/^[▶▼]\s*📚\s*/, '').replace(/\s+\d+\s*$/, '').trim();
+
                     const categoryList = header.nextElementSibling;
                     const icon = header.querySelector('.expand-icon');
                     const isCurrentlyExpanded = categoryList.style.display !== 'none';
@@ -1045,11 +1143,17 @@
 
                     // Update persistent state
                     persistentFolderStates.courses[courseName] = !isCurrentlyExpanded;
+
+                    // Update button text
+                    updateExpandCollapseButtonText();
                 }
 
                 // Toggle semester accordion
                 function toggleSemester(header) {
-                    const semesterName = header.textContent.trim();
+                    // Extract just the semester name, ignoring file count and icons
+                    const fullText = header.textContent.trim();
+                    const semesterName = fullText.replace(/^[▶▼]\s*📅\s*/, '').replace(/\s+\d+\s+files?$/, '').trim();
+
                     const courseList = header.nextElementSibling;
                     const icon = header.querySelector('.expand-icon');
                     const isCurrentlyExpanded = courseList.style.display !== 'none';
@@ -1059,11 +1163,17 @@
 
                     // Update persistent state
                     persistentFolderStates.semesters[semesterName] = !isCurrentlyExpanded;
+
+                    // Update button text
+                    updateExpandCollapseButtonText();
                 }
 
                 // Toggle category accordion
                 function toggleCategory(header) {
-                    const categoryName = header.textContent.trim();
+                    // Extract just the category name, ignoring file count and icons
+                    const fullText = header.textContent.trim();
+                    const categoryName = fullText.replace(/^[▶▼]\s*📂\s*/, '').replace(/\s+\d+\s*$/, '').trim();
+
                     const fileList = header.nextElementSibling;
                     const icon = header.querySelector('.expand-icon');
                     const isCurrentlyExpanded = fileList.style.display !== 'none';
@@ -1080,6 +1190,9 @@
 
                     // Update persistent state
                     persistentFolderStates.categories[categoryName] = !isCurrentlyExpanded;
+
+                    // Update button text
+                    updateExpandCollapseButtonText();
                 }
 
                 // Toggle all groups (expand/collapse all)
@@ -1090,7 +1203,10 @@
                     // Toggle all major headers
                     const majorHeaders = document.querySelectorAll('.major-header');
                     majorHeaders.forEach(header => {
-                        const majorName = header.textContent.trim();
+                        // Extract just the major name, ignoring file count and icons
+                        const fullText = header.textContent.trim();
+                        const majorName = fullText.replace(/^[▶▼]\s*📁\s*/, '').replace(/\s+\d+\s+files?$/, '').trim();
+
                         const semesterList = header.nextElementSibling;
                         const icon = header.querySelector('.expand-icon');
                         if (isExpanding) {
@@ -1107,7 +1223,10 @@
                     // Toggle all semester headers
                     const semesterHeaders = document.querySelectorAll('.semester-header');
                     semesterHeaders.forEach(header => {
-                        const semesterName = header.textContent.trim();
+                        // Extract just the semester name, ignoring file count and icons
+                        const fullText = header.textContent.trim();
+                        const semesterName = fullText.replace(/^[▶▼]\s*📅\s*/, '').replace(/\s+\d+\s+files?$/, '').trim();
+
                         const courseList = header.nextElementSibling;
                         const icon = header.querySelector('.expand-icon');
                         if (isExpanding) {
@@ -1124,7 +1243,10 @@
                     // Toggle all course headers
                     const courseHeaders = document.querySelectorAll('.course-header');
                     courseHeaders.forEach(header => {
-                        const courseName = header.textContent.trim();
+                        // Extract just the course name, ignoring file count and icons
+                        const fullText = header.textContent.trim();
+                        const courseName = fullText.replace(/^[▶▼]\s*📚\s*/, '').replace(/\s+\d+\s*$/, '').trim();
+
                         const categoryList = header.nextElementSibling;
                         const icon = header.querySelector('.expand-icon');
                         if (isExpanding) {
@@ -1141,7 +1263,10 @@
                     // Toggle all category headers
                     const categoryHeaders = document.querySelectorAll('.category-header');
                     categoryHeaders.forEach(header => {
-                        const categoryName = header.textContent.trim();
+                        // Extract just the category name, ignoring file count and icons
+                        const fullText = header.textContent.trim();
+                        const categoryName = fullText.replace(/^[▶▼]\s*📂\s*/, '').replace(/\s+\d+\s*$/, '').trim();
+
                         const fileList = header.nextElementSibling;
                         const icon = header.querySelector('.expand-icon');
                         if (isExpanding) {
@@ -1158,6 +1283,9 @@
                     });
 
                     button.textContent = isExpanding ? 'Collapse All' : 'Expand All';
+
+                    // Update button text based on new state (this will be redundant but ensures consistency)
+                    updateExpandCollapseButtonText();
                 }
 
                 // Handle major filter change - updates class code dropdown
@@ -2451,6 +2579,12 @@
 
                     observer.observe(uploadSection);
                 }
+
+                // Initialize button text on page load
+                document.addEventListener('DOMContentLoaded', function() {
+                    // Set initial button text based on current state
+                    updateExpandCollapseButtonText();
+                });
             </script>
 
             <%- include('partials/footer') %>
