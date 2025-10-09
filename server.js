@@ -442,26 +442,26 @@ async function sendEmailModern(mailOptions) {
     console.log('🚀 Starting email send process...');
     console.log('📧 Resend available:', !!resend);
     console.log('📧 Resend API key present:', !!process.env.RESEND_API_KEY);
-    
+
     // Try Resend first if available
     if (resend) {
         try {
             console.log('📧 Attempting to send email via Resend...');
             console.log('📧 To:', mailOptions.to);
             console.log('📧 Subject:', mailOptions.subject);
-            
+
             const resendResult = await resend.emails.send({
                 from: 'Terp Notes <onboarding@resend.dev>',
                 to: mailOptions.to,
                 subject: mailOptions.subject,
                 html: mailOptions.html
             });
-            
+
             console.log('✅ Email sent successfully via Resend!');
             console.log('📧 Resend ID:', resendResult.data?.id);
             console.log('📧 Full response:', JSON.stringify(resendResult, null, 2));
             return { success: true, method: 'resend', data: resendResult.data };
-            
+
         } catch (error) {
             console.error('❌ Resend email failed:');
             console.error('❌ Error message:', error.message);
