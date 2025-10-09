@@ -1308,26 +1308,12 @@ app.post('/reset-password/:token', async (req, res) => {
                 }
             );
 
-        // Send confirmation email
-        const mailOptions = {
-            from: process.env.EMAIL_USER,
-            to: user.email,
-            subject: "Password Reset Successful - Terp Notes",
-            html: `
-                <h2>Password Reset Successful</h2>
-                <p>Hello ${user.firstname},</p>
-                <p>Your Terp Notes password has been successfully reset. You can now login with your new password.</p>
-                <p><strong style="color: #DC2626;">If you didn't make this change, please contact support immediately at ${process.env.EMAIL_USER}.</strong></p>
-                <hr style="margin: 2rem 0; border: none; border-top: 1px solid #E5E7EB;">
-                <p style="color: #6B7280; font-size: 0.875rem;">
-                    <strong>Terp Notes</strong> - Built for Terps, by Terps<br>
-                    <em>Not affiliated with, endorsed by, or officially connected to the University of Maryland.</em>
-                </p>
-            `
-        };
-        transporter.sendMail(mailOptions, (err) => {
-            if (err) console.error("Error sending email:", err);
-        });
+        // Send confirmation email using template
+        sendEmail(
+            user.email,
+            "Password Reset Successful - Terp Notes",
+            emailTemplates.passwordResetSuccessEmail(user.firstname)
+        ).catch((err) => console.error("❌ Failed to send password reset confirmation:", err.message));
 
         res.render('success', {
             title: "Password Reset Successful",
@@ -1646,26 +1632,12 @@ app.post('/update-profile', async (req, res) => {
         req.session.user.lastname = lastname;
         req.session.user.email = email;
 
-        // Send confirmation email
-        const mailOptions = {
-            from: process.env.EMAIL_USER,
-            to: email,
-            subject: "Profile Updated - Terp Notes",
-            html: `
-                <h2>Profile Updated Successfully</h2>
-                <p>Hi ${firstname},</p>
-                <p>Your Terp Notes profile has been successfully updated.</p>
-                <p>If you didn't make this change, please contact support immediately.</p>
-                <hr style="margin: 2rem 0; border: none; border-top: 1px solid #E5E7EB;">
-                <p style="color: #6B7280; font-size: 0.875rem;">
-                    <strong>Terp Notes</strong> - Built for Terps, by Terps<br>
-                    <em>Not affiliated with, endorsed by, or officially connected to the University of Maryland.</em>
-                </p>
-            `
-        };
-        transporter.sendMail(mailOptions, (err) => {
-            if (err) console.error("Error sending email:", err);
-        });
+        // Send confirmation email using template
+        sendEmail(
+            email,
+            "Profile Updated - Terp Notes",
+            emailTemplates.profileUpdateEmail(firstname)
+        ).catch((err) => console.error("❌ Failed to send profile update confirmation:", err.message));
 
         res.render('success', {
             title: "Profile Updated",
@@ -1748,26 +1720,12 @@ app.post('/change-password', async (req, res) => {
                 }
             );
 
-        // Send confirmation email
-        const mailOptions = {
-            from: process.env.EMAIL_USER,
-            to: user.email,
-            subject: "Password Changed - Terp Notes",
-            html: `
-                <h2>Password Changed Successfully</h2>
-                <p>Hi ${user.firstname},</p>
-                <p>Your Terp Notes password has been successfully changed.</p>
-                <p><strong style="color: #DC2626;">If you didn't make this change, please contact support immediately at ${process.env.EMAIL_USER}.</strong></p>
-                <hr style="margin: 2rem 0; border: none; border-top: 1px solid #E5E7EB;">
-                <p style="color: #6B7280; font-size: 0.875rem;">
-                    <strong>Terp Notes</strong> - Built for Terps, by Terps<br>
-                    <em>Not affiliated with, endorsed by, or officially connected to the University of Maryland.</em>
-                </p>
-            `
-        };
-        transporter.sendMail(mailOptions, (err) => {
-            if (err) console.error("Error sending email:", err);
-        });
+        // Send confirmation email using template
+        sendEmail(
+            user.email,
+            "Password Changed - Terp Notes",
+            emailTemplates.passwordChangeEmail(user.firstname)
+        ).catch((err) => console.error("❌ Failed to send password change confirmation:", err.message));
 
         res.render('success', {
             title: "Password Changed",
@@ -1853,38 +1811,12 @@ app.delete('/delete-account', async (req, res) => {
 
         console.log(`🗑️ Deleted user account: ${userId}`);
 
-        // Send deletion confirmation email
-        const mailOptions = {
-            from: process.env.EMAIL_USER,
-            to: userEmail,
-            subject: "Account Deleted - Terp Notes",
-            html: `
-                <h2>Account Deleted Successfully</h2>
-                <p>Hi ${userDoc.firstname},</p>
-                <p>Your Terp Notes account has been permanently deleted as requested.</p>
-                <p><strong>The following data has been removed:</strong></p>
-                <ul>
-                    <li>Your profile and account information</li>
-                    <li>Your download history and statistics</li>
-                </ul>
-                <p><strong>Note:</strong> Your uploaded files (${userFiles.length} files) have been preserved for the community but are now attributed to "Deleted User" to protect your privacy.</p>
-                <p>If you didn't request this deletion, please contact support immediately at ${process.env.EMAIL_USER}.</p>
-                <hr style="margin: 2rem 0; border: none; border-top: 1px solid #E5E7EB;">
-                <p style="color: #6B7280; font-size: 0.875rem;">
-                    <strong>Terp Notes</strong> - Built for Terps, by Terps<br>
-                    <em>Not affiliated with, endorsed by, or officially connected to the University of Maryland.</em>
-                </p>
-            `
-        };
-
-        // Send email asynchronously (don't wait for completion)
-        transporter.sendMail(mailOptions, (err, info) => {
-            if (err) {
-                console.error("❌ Error sending deletion confirmation email:", err);
-            } else {
-                console.log("✅ Deletion confirmation email sent:", info?.messageId);
-            }
-        });
+        // Send deletion confirmation email using template
+        sendEmail(
+            userEmail,
+            "Account Deleted - Terp Notes",
+            emailTemplates.accountDeletionEmail(userDoc.firstname)
+        ).catch((err) => console.error("❌ Failed to send account deletion confirmation:", err.message));
 
         // Clear session and cookies
         req.session.destroy((err) => {
@@ -1981,26 +1913,13 @@ app.get("/delete/:filename", async (req, res) => {
             console.log(`♻️ File is deduplicated (${duplicateFiles} instances), keeping S3 file`);
         }
 
-        // Send email notification (async, no await needed)
-        const mailOptions = {
-            from: process.env.EMAIL_USER,
-            to: req.session.user.email,
-            subject: "File Deleted - Terp Notes",
-            html: `
-                <h2>File Deleted</h2>
-                <p>Hi ${req.session.user.firstname},</p>
-                <p>The file <strong>'${sanitizeForHeader(filename)}'</strong> has been deleted from your account.</p>
-                <p>If you didn't perform this action, please contact support immediately.</p>
-                <hr style="margin: 2rem 0; border: none; border-top: 1px solid #E5E7EB;">
-                <p style="color: #6B7280; font-size: 0.875rem;">
-                    <strong>Terp Notes</strong> - Built for Terps, by Terps<br>
-                    <em>Not affiliated with, endorsed by, or officially connected to the University of Maryland.</em>
-                </p>
-            `
-        };
-        transporter.sendMail(mailOptions, (err, info) => {
-            if (err) console.error("Error sending deletion email:", err);
-        });
+        // Send email notification using template (async, no await needed)
+        const originalFilename = filename.split('_').slice(2).join('_'); // Extract original filename from S3 key
+        sendEmail(
+            req.session.user.email,
+            "File Deleted - Terp Notes",
+            emailTemplates.fileDeletionEmail(req.session.user.firstname, originalFilename)
+        ).catch((err) => console.error("❌ Failed to send file deletion confirmation:", err.message));
 
         // Redirect back to dashboard
         res.redirect("/dashboard");
@@ -2392,26 +2311,12 @@ app.post("/upload", uploadLimiter, upload.array("documents", 50), async (req, re
             }
         }
 
-        // Send confirmation email
-        const mailOptions = {
-            from: process.env.EMAIL_USER,
-            to: req.session.user.email,
-            subject: "Upload Successful - Terp Notes",
-            html: `
-                <h2>Upload Successful! 🎉</h2>
-                <p>Hello ${req.session.user.firstname},</p>
-                <p>You successfully uploaded <strong>${uploadedFiles.length} file(s)</strong> to <strong>${classCode}</strong>.</p>
-                <p>Thanks for contributing to the Terp Notes community!</p>
-                <hr style="margin: 2rem 0; border: none; border-top: 1px solid #E5E7EB;">
-                <p style="color: #6B7280; font-size: 0.875rem;">
-                    <strong>Terp Notes</strong> - Built for Terps, by Terps<br>
-                    <em>Not affiliated with, endorsed by, or officially connected to the University of Maryland.</em>
-                </p>
-            `
-        };
-        transporter.sendMail(mailOptions, (err) => {
-            if (err) console.error("Error sending email:", err);
-        });
+        // Send confirmation email using template
+        sendEmail(
+            req.session.user.email,
+            "Upload Successful - Terp Notes",
+            emailTemplates.uploadSuccessEmail(req.session.user.firstname, uploadedFiles.length, classCode)
+        ).catch((err) => console.error("❌ Failed to send upload confirmation:", err.message));
 
         let message = `Successfully uploaded ${uploadedFiles.length} file(s) to ${classCode}!`;
         if (failedFiles.length > 0) {

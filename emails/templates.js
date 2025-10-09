@@ -29,7 +29,7 @@ function emailWrapper(content) {
 
 // Button component
 function button(url, text) {
-    return `<a href="${url}" style="display: inline-block; background: #E03A3C; color: white; padding: 12px 32px; text-decoration: none; border-radius: 8px; font-weight: 600; margin: 16px 0;">$ {text}</a>`;
+    return `<a href="${url}" style="display: inline-block; background: #E03A3C; color: white; padding: 12px 32px; text-decoration: none; border-radius: 8px; font-weight: 600; margin: 16px 0;">${text}</a>`;
 }
 
 // Divider
