@@ -127,6 +127,7 @@ const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 const fetch = require('node-fetch');
 const FormData = require('form-data');
+const emailTemplates = require('./emails/templates');
 const app = express();
 
 // Trust proxy - required for Vercel/behind reverse proxy
@@ -1111,36 +1112,14 @@ app.post('/contact/submit', async function (req, res) {
             });
         }
 
-        // Send email to admin
-        const adminEmail = process.env.ADMIN_EMAIL || process.env.EMAIL_USER;
+        // Send email to admin using template
+        const adminEmail = process.env.ADMIN_EMAIL || 'paramraj15@gmail.com'; // fallback to your email
 
-        const mailOptions = {
-            from: process.env.EMAIL_USER,
-            to: adminEmail,
-            replyTo: email,
-            subject: `[Terp Notes Support] ${subject}`,
-            text: `
-Support Request from Terp Notes
-
-Name: ${name}
-Email: ${email}
-Subject: ${subject}
-
-Message:
-${message}
-
----
-Sent via Terp Notes Contact Form
-            `
-        };
-
-        transporter.sendMail(mailOptions, (err, info) => {
-            if (err) {
-                console.error("Error sending contact email:", err);
-            } else {
-                console.log('Contact form submitted:', email);
-            }
-        });
+        sendEmail(
+            adminEmail,
+            `[Terp Notes Support] ${subject}`,
+            emailTemplates.contactFormEmail(name, email, subject, message)
+        ).catch((err) => console.error("❌ Failed to send contact form email:", err.message));
 
         res.render('success', {
             title: "Message Sent",
@@ -1215,28 +1194,13 @@ app.post('/forgot-password', async (req, res) => {
 
         console.log(`📧 Sending password reset email to ${email}`);
         console.log(`🔗 Reset link: ${resetLink}`);
-        const mailOptions = {
-            from: process.env.EMAIL_USER,
-            to: req.body.email,
-            subject: "Reset Your Terp Notes Password",
-            html: `
-                <h2>Password Reset Request</h2>
-                <p>Hello ${user.firstname},</p>
-                <p>We received a request to reset your Terp Notes password. Click the button below to create a new password:</p>
-                <p><a href="${resetLink}" style="background: #E03A3C; color: white; padding: 12px 24px; text-decoration: none; border-radius: 8px; display: inline-block;">Reset Password</a></p>
-                <p>Or copy this link: ${resetLink}</p>
-                <p><strong>This link will expire in 1 hour.</strong></p>
-                <p><small>If you didn't request this, please ignore this email. Your password will not be changed.</small></p>
-                <hr style="margin: 2rem 0; border: none; border-top: 1px solid #E5E7EB;">
-                <p style="color: #6B7280; font-size: 0.875rem;">
-                    <strong>Terp Notes</strong> - Built for Terps, by Terps<br>
-                    <em>Not affiliated with, endorsed by, or officially connected to the University of Maryland.</em>
-                </p>
-            `
-        };
-        transporter.sendMail(mailOptions, (err) => {
-            if (err) console.error("Error sending reset email:", err);
-        });
+
+        // Send email asynchronously using template
+        sendEmail(
+            req.body.email,
+            "Reset Your Terp Notes Password",
+            emailTemplates.passwordResetEmail(user.firstname, resetLink)
+        ).catch((err) => console.error("❌ Failed to send reset email:", err.message));
 
         res.render('success', {
             title: "Check Your Email",
@@ -1493,23 +1457,12 @@ app.post('/resend-verification', async (req, res) => {
         console.log(`📧 Resending verification email to ${req.body.email}`);
         console.log(`🔗 Verification link: ${verificationLink}`);
 
-        const emailHtml = `
-            <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
-                <h2 style="color: #E03A3C;">Verify Your Email, ${user.firstname}! 🐢</h2>
-                <p style="color: #374151; line-height: 1.6;">Click the button below to verify your email address:</p>
-                <p><a href="${verificationLink}" style="background: #E03A3C; color: white; padding: 12px 24px; text-decoration: none; border-radius: 8px; display: inline-block;">Verify Email Address</a></p>
-                <p style="color: #6B7280; font-size: 0.875rem;">Or copy this link: ${verificationLink}</p>
-                <hr style="margin: 2rem 0; border: none; border-top: 1px solid #E5E7EB;">
-                <p style="color: #6B7280; font-size: 0.875rem;">
-                    <strong>Terp Notes</strong> - Built for Terps, by Terps<br>
-                    <em>Not affiliated with, endorsed by, or officially connected to the University of Maryland.</em>
-                </p>
-            </div>
-        `;
-
-        // Send email asynchronously (don't wait for response)
-        sendEmail(req.body.email, "Verify Your Terp Notes Account", emailHtml)
-            .catch((err) => console.error("❌ Failed to send verification email:", err.message));
+        // Send email asynchronously using template
+        sendEmail(
+            req.body.email,
+            "Verify Your Terp Notes Account",
+            emailTemplates.resendVerificationEmail(user.firstname, verificationLink)
+        ).catch((err) => console.error("❌ Failed to send verification email:", err.message));
 
         res.render('success', {
             title: "Verification Email Sent",
@@ -2244,25 +2197,12 @@ app.post('/registerSubmit', registerLimiter, async function (req, res) {
         console.log(`📧 Sending verification email to ${email}`);
         console.log(`🔗 Verification link: ${verificationLink}`);
 
-        const emailHtml = `
-            <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
-                <h2 style="color: #E03A3C;">Welcome to Terp Notes, ${firstname}! 🐢</h2>
-                <p style="color: #374151; line-height: 1.6;">Thank you for registering. Please verify your email address to activate your account.</p>
-                <p><a href="${verificationLink}" style="background: #E03A3C; color: white; padding: 12px 24px; text-decoration: none; border-radius: 8px; display: inline-block;">Verify Email Address</a></p>
-                <p style="color: #6B7280; font-size: 0.875rem;">Or copy this link: ${verificationLink}</p>
-                <p style="color: #6B7280; font-size: 0.875rem;">This link will expire in 24 hours.</p>
-                <p style="color: #6B7280; font-size: 0.875rem;"><em>If you didn't create this account, please ignore this email.</em></p>
-                <hr style="margin: 2rem 0; border: none; border-top: 1px solid #E5E7EB;">
-                <p style="color: #6B7280; font-size: 0.875rem;">
-                    <strong>Terp Notes</strong> - Built for Terps, by Terps<br>
-                    <em>Not affiliated with, endorsed by, or officially connected to the University of Maryland.</em>
-                </p>
-            </div>
-        `;
-
-        // Send email asynchronously (don't wait for response)
-        sendEmail(email, "Verify Your Terp Notes Account", emailHtml)
-            .catch((err) => console.error("❌ Failed to send verification email:", err.message));
+        // Send email asynchronously using template
+        sendEmail(
+            email,
+            "Verify Your Terp Notes Account",
+            emailTemplates.verificationEmail(firstname, verificationLink)
+        ).catch((err) => console.error("❌ Failed to send verification email:", err.message));
 
         return res.render('success', {
             title: "Check Your Email",
