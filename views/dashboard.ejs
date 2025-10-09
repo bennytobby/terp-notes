@@ -2123,13 +2123,13 @@
 
                     // Get professor filter (from multi-select)
                     const selectedProfessors = Array.from(document.querySelectorAll('#professorDropdown input[type="checkbox"]:checked'))
-                        .map(cb => ({ type: 'professor', value: cb.value, label: `Professor: ${cb.value}` }));
+                        .map(cb => ({ type: 'professor', value: cb.value, label: `👨‍🏫 ${cb.value}` }));
                     tags.push(...selectedProfessors);
 
                     // Get search filter
-                    const searchTerm = document.getElementById('searchInput').value;
+                    const searchTerm = document.getElementById('searchInput').value.trim();
                     if (searchTerm) {
-                        tags.push({ type: 'search', value: searchTerm, label: `Search: ${searchTerm}` });
+                        tags.push({ type: 'search', value: searchTerm, label: `🔍 "${searchTerm}"` });
                     }
 
                     // Update filter tags content

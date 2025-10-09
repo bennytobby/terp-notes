@@ -790,6 +790,7 @@ input[type="reset"] {
   font-size: 0.7rem;
   font-weight: 600;
   margin-right: 0.5rem;
+  cursor: help;
 }
 
 @media (max-width: 1200px) {
