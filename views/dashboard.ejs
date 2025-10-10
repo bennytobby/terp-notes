@@ -2864,10 +2864,12 @@
                                 // If no search term, show course-specific professors if available
                                 if (searchTerm.length === 0) {
                                     if (professorData.length > 0) {
-                                    renderProfessorsDropdown(professorData, searchTerm);
+                                        renderProfessorsDropdown(professorData, searchTerm);
                                     } else {
                                         professorsDropdown.classList.remove('show');
                                     }
+                                    // Reset course filtering when professor field is cleared
+                                    resetCourseDropdown();
                                     return;
                                 }
 
@@ -2875,27 +2877,33 @@
                                 // UMD.io name search is too restrictive for real-time search
                                 if (searchTerm.length >= 1) {
                                     console.log(`🔍 Searching for "${searchTerm}" in professorData:`, professorData.length, 'professors available');
-
+                                    
                                     // First try to filter from existing professorData (course-specific)
                                     let searchResults = professorData.filter(prof => {
                                         return prof.name.toUpperCase().includes(searchTerm.toUpperCase());
                                     });
-
+                                    
                                     console.log(`🔍 Search results for "${searchTerm}":`, searchResults.length, 'matches');
-
-                                    // If no results from course data, try to filter from any existing data
+                                    
+                                    // If no results from course data, try reverse filtering (professor -> courses)
                                     if (searchResults.length === 0) {
-                                        // Could implement a broader search here, but for now just show message
-                                        professorsDropdown.innerHTML = `<div class="custom-dropdown-empty">No professors found for "${searchTerm}" - try typing manually or select a course first</div>`;
+                                        // Try reverse filtering - find courses taught by this professor
+                                        await updateCourseListForProfessor(searchTerm);
+                                        
+                                        // Show message for professor search
+                                        professorsDropdown.innerHTML = `<div class="custom-dropdown-empty">No professors found for "${searchTerm}" - showing courses they teach instead</div>`;
                                         professorsDropdown.classList.add('show');
                                         return;
                                     }
-
+                                    
                                     console.log(`🔍 Found ${searchResults.length} professors matching "${searchTerm}"`);
-
+                                    
+                                    // Reset course filtering when professor is found
+                                    resetCourseDropdown();
+                                    
                                     // Reset selection
                                     selectedProfessorIndex = -1;
-
+                                    
                                     // Render dropdown with search results
                                     renderProfessorsDropdown(searchResults, searchTerm);
                                 } else {
@@ -2903,7 +2911,7 @@
                                     const filteredProfessors = professorData.filter(prof => {
                                         return prof.name.toUpperCase().includes(searchTerm.toUpperCase());
                                     });
-                                renderProfessorsDropdown(filteredProfessors, searchTerm);
+                                    renderProfessorsDropdown(filteredProfessors, searchTerm);
                                 }
                             });
 
@@ -3189,7 +3197,7 @@
                             // Get current filter values
                             const selectedSemester = document.getElementById('semester').value;
                             const selectedYear = document.getElementById('year').value;
-                            
+
                             // Build query parameters
                             let queryParams = `course_id=${encodeURIComponent(selectedCourse)}`;
                             if (selectedSemester) {
@@ -3218,10 +3226,10 @@
                                     // Update UI
                                     professorInput.placeholder = `${professorData.length} professor${professorData.length !== 1 ? 's' : ''} taught ${selectedCourse}`;
                                     document.getElementById('professorHelp').textContent = `${professorData.length} professor${professorData.length !== 1 ? 's' : ''} available - click or type to search`;
-                                    
+
                                     // Update semester info banner
                                     updateProfessorSemesterInfo(professorData);
-                                    
+
                                     console.log(`✅ Loaded ${professorData.length} professors for ${selectedCourse}:`, professorData.map(p => p.name).slice(0, 3).join(', ') + (professorData.length > 3 ? '...' : ''));
                                 } else {
                                     // No professors found for this course
@@ -3272,16 +3280,16 @@
                                 }
                             }
                         }
-                        
+
                         // Update professor semester info banner
                         function updateProfessorSemesterInfo(professors) {
                             const semesterInfoEl = document.getElementById('professorSemesterInfo');
-                            
+
                             if (!professors || professors.length === 0) {
                                 semesterInfoEl.textContent = '';
                                 return;
                             }
-                            
+
                             // Collect all unique semesters/years
                             const allSemesters = new Set();
                             professors.forEach(prof => {
@@ -3291,7 +3299,7 @@
                                     });
                                 }
                             });
-                            
+
                             if (allSemesters.size > 0) {
                                 const semesterList = Array.from(allSemesters).sort().join(', ');
                                 semesterInfoEl.textContent = `📅 Available semesters: ${semesterList}`;
@@ -3303,6 +3311,86 @@
                             }
                         }
 
+                        // Update course list based on professor selection (reverse filtering)
+                        async function updateCourseListForProfessor(professorName) {
+                            if (!professorName || professorName.trim().length < 2) {
+                                // Reset to normal course fetching
+                                if (classCodeInput.value.trim()) {
+                                    await fetchCourseData();
+                                }
+                                return;
+                            }
+                            
+                            // Get current filter values
+                            const selectedSemester = document.getElementById('semester').value;
+                            const selectedYear = document.getElementById('year').value;
+                            
+                            // Build query parameters
+                            let queryParams = `professor_name=${encodeURIComponent(professorName.trim())}`;
+                            if (selectedSemester) {
+                                queryParams += `&filter_semester=${encodeURIComponent(selectedSemester)}`;
+                            }
+                            if (selectedYear) {
+                                queryParams += `&filter_year=${encodeURIComponent(selectedYear)}`;
+                            }
+                            
+                            try {
+                                console.log(`🔍 [REVERSE] Fetching courses for professor: ${professorName} with filters: ${queryParams}`);
+                                
+                                const response = await fetch(`/api/umd/professor-courses?${queryParams}`);
+                                
+                                if (!response.ok) {
+                                    throw new Error(`API returned ${response.status}`);
+                                }
+                                
+                                const courses = await response.json();
+                                
+                                if (Array.isArray(courses) && courses.length > 0) {
+                                    // Update course dropdown with professor's courses
+                                    updateCourseDropdownForProfessor(courses, professorName);
+                                    console.log(`✅ [REVERSE] Found ${courses.length} courses for ${professorName}`);
+                                } else {
+                                    // No courses found for this professor
+                                    resetCourseDropdown();
+                                    console.log(`⚠️ [REVERSE] No courses found for ${professorName}`);
+                                }
+                                
+                            } catch (error) {
+                                console.error('❌ [REVERSE] Error fetching professor courses:', error);
+                                resetCourseDropdown();
+                            }
+                        }
+                        
+                        // Update course dropdown to show only professor's courses
+                        function updateCourseDropdownForProfessor(courses, professorName) {
+                            const courseInfo = document.getElementById('courseInfo');
+                            
+                            if (courses.length > 0) {
+                                const courseList = courses.map(course => course.course_id).join(', ');
+                                courseInfo.innerHTML = `✓ <strong>Courses taught by ${professorName}:</strong> ${courseList}`;
+                                courseInfo.style.color = '#3B82F6'; // Blue color for professor filtering
+                                
+                                // Update course data for dropdown filtering
+                                currentCourseData = {
+                                    name: `Courses taught by ${professorName}`,
+                                    professor_courses: courses
+                                };
+                            }
+                        }
+                        
+                        // Reset course dropdown to normal state
+                        function resetCourseDropdown() {
+                            const courseInfo = document.getElementById('courseInfo');
+                            const selectedCourse = classCodeInput.value.trim();
+                            
+                            if (selectedCourse) {
+                                // Try to fetch normal course data
+                                fetchCourseData();
+                            } else {
+                                courseInfo.textContent = '';
+                                currentCourseData = null;
+                            }
+                        }
 
                         // Trigger professor fetch when course changes
                         classCodeInput.addEventListener('change', async function () {
