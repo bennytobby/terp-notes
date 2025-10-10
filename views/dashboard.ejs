@@ -578,7 +578,7 @@
                                                 </div>
                                                 <small class="form-help" id="professorHelp"
                                                     style="color: #9CA3AF; font-size: 0.75rem;">
-                                                    Type 2+ characters to search all UMD professors, or select a course first
+                                                    Select a course first to see professors, then type to filter
                                                 </small>
                                             </div>
                                         </div>
@@ -2870,39 +2870,29 @@
                                     return;
                                 }
 
-                                // If search term is 2+ characters, search UMD.io API
-                                if (searchTerm.length >= 2) {
-                                    try {
-                                        console.log(`🔍 Searching professors: "${searchTerm}"`);
-                                        const response = await fetch(`/api/umd/professors?name=${encodeURIComponent(searchTerm)}`);
-
-                                        if (!response.ok) {
-                                            throw new Error(`API returned ${response.status}`);
-                                        }
-
-                                        const professors = await response.json();
-
-                                        if (Array.isArray(professors) && professors.length > 0) {
-                                            const searchResults = professors.map(name => ({ name: name.trim() })).filter(prof => prof.name);
-                                            console.log(`✅ Found ${searchResults.length} professors matching "${searchTerm}"`);
-
-                                // Reset selection
-                                selectedProfessorIndex = -1;
-
-                                            // Render dropdown with search results
-                                            renderProfessorsDropdown(searchResults, searchTerm);
-                                        } else {
-                                            // No results from API - show message
-                                            console.log(`⚠️ No professors found for "${searchTerm}"`);
-                                            professorsDropdown.innerHTML = `<div class="custom-dropdown-empty">No professors found for "${searchTerm}" - try typing manually</div>`;
-                                            professorsDropdown.classList.add('show');
-                                        }
-                                    } catch (error) {
-                                        console.error('Error searching professors:', error);
-                                        // Show error message but allow manual entry
-                                        professorsDropdown.innerHTML = `<div class="custom-dropdown-empty">Search unavailable - please type professor name manually</div>`;
+                                // For name search, use local filtering from course data or existing professorData
+                                // UMD.io name search is too restrictive for real-time search
+                                if (searchTerm.length >= 1) {
+                                    // First try to filter from existing professorData (course-specific)
+                                    let searchResults = professorData.filter(prof => {
+                                        return prof.name.toUpperCase().includes(searchTerm.toUpperCase());
+                                    });
+                                    
+                                    // If no results from course data, try to filter from any existing data
+                                    if (searchResults.length === 0) {
+                                        // Could implement a broader search here, but for now just show message
+                                        professorsDropdown.innerHTML = `<div class="custom-dropdown-empty">No professors found for "${searchTerm}" - try typing manually or select a course first</div>`;
                                         professorsDropdown.classList.add('show');
+                                        return;
                                     }
+                                    
+                                    console.log(`🔍 Found ${searchResults.length} professors matching "${searchTerm}"`);
+                                    
+                                    // Reset selection
+                                    selectedProfessorIndex = -1;
+                                    
+                                    // Render dropdown with search results
+                                    renderProfessorsDropdown(searchResults, searchTerm);
                                 } else {
                                     // For 1 character, just filter locally
                                     const filteredProfessors = professorData.filter(prof => {
