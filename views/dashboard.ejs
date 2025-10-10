@@ -3157,19 +3157,6 @@
                                         courseInfo.textContent = '';
                                     }
 
-                                    // Set default semester and year to current semester (only on first load)
-                                    if (!selectedSemester && !selectedYear && currentCourseData.current_semester && currentCourseData.current_year) {
-                                        const semesterSelect = document.getElementById('semester');
-                                        const yearSelect = document.getElementById('year');
-
-                                        if (semesterSelect) {
-                                            semesterSelect.value = currentCourseData.current_semester;
-                                        }
-                                        if (yearSelect) {
-                                            yearSelect.value = currentCourseData.current_year;
-                                        }
-                                    }
-
                                     // Note: Professor list will be updated by course change event
                                 } else {
                                     courseInfo.textContent = 'Could not verify course - you can still upload';
@@ -3196,7 +3183,7 @@
                                 professorData = [];
                                 professorsDropdown.classList.remove('show');
                                 professorInput.placeholder = 'Enter professor name';
-                                document.getElementById('professorHelp').textContent = 'Select course first to see professors';
+                                document.getElementById('professorHelp').textContent = 'Enter course first to see professors';
                                 document.getElementById('professorSemesterInfo').textContent = '';
                                 return;
                             }
@@ -3429,7 +3416,6 @@
                         setTimeout(async function() {
                             const selectedCourse = classCodeInput.value.trim();
                             if (selectedCourse) {
-                                console.log(`🚀 [INIT] Page loaded with course: ${selectedCourse} - loading professors`);
                                 await updateProfessorList();
                             }
                         }, 100);
