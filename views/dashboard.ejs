@@ -2894,9 +2894,6 @@
 
                                     console.log(`🔍 Found ${searchResults.length} professors matching "${searchTerm}"`);
 
-                                    // Reset course filtering when professor is found
-                                    resetCourseDropdown();
-
                                     // Reset selection
                                     selectedProfessorIndex = -1;
 
@@ -2932,12 +2929,19 @@
                             });
 
                             // Show dropdown when focused if there's data
-                            professorInput.addEventListener('focus', function () {
+                            professorInput.addEventListener('focus', async function () {
                                 console.log(`🔍 [FOCUS] Professor field focused, professorData length: ${professorData.length}`);
                                 if (professorData.length > 0) {
                                     renderProfessorsDropdown(professorData, '');
                                 } else {
-                                    console.log(`🔍 [FOCUS] No professor data available yet - still loading`);
+                                    // Try to load professor data if course is entered
+                                    const selectedCourse = classCodeInput.value.trim();
+                                    if (selectedCourse) {
+                                        console.log(`🔍 [FOCUS] No professor data but course "${selectedCourse}" entered - loading professors`);
+                                        await updateProfessorList();
+                                    } else {
+                                        console.log(`🔍 [FOCUS] No course entered - cannot load professors`);
+                                    }
                                 }
                             });
                         }
@@ -3395,83 +3399,38 @@
                             }
                         }
 
-                        // Filter professors locally when course/semester/year changes (no API calls)
-                        classCodeInput.addEventListener('change', function () {
+                        // Fetch professors based on course/semester/year (simple approach)
+                        classCodeInput.addEventListener('change', async function () {
                             // Skip if we're selecting from dropdown
                             if (isSelectingFromDropdown) return;
                             
-                            // Just update the UI display, no API calls needed
-                            updateProfessorDisplay();
+                            await updateProfessorList();
                         });
 
-                        // Filter professors locally when semester changes
-                        document.getElementById('semester').addEventListener('change', function () {
-                            updateProfessorDisplay();
-                        });
-
-                        // Filter professors locally when year changes
-                        document.getElementById('year').addEventListener('change', function () {
-                            updateProfessorDisplay();
-                        });
-
-                        // Load all professors on page load for local filtering (like courses)
-                        setTimeout(async function() {
-                            console.log(`🚀 [INIT] Loading all professors for local filtering...`);
-                            await loadAllProfessors();
-                        }, 100);
-
-                        // Update professor display based on current filters (local filtering only)
-                        function updateProfessorDisplay() {
+                        // Fetch professors when semester changes
+                        document.getElementById('semester').addEventListener('change', async function () {
                             const selectedCourse = classCodeInput.value.trim();
-                            const selectedSemester = document.getElementById('semester').value;
-                            const selectedYear = document.getElementById('year').value;
-                            
-                            console.log(`🔍 [updateProfessorDisplay] Course: "${selectedCourse}", Semester: "${selectedSemester}", Year: "${selectedYear}"`);
-                            
-                            // For now, just show all professors and let user type to filter
-                            // The semester/year filtering can be done in the dropdown display
-                            professorInput.placeholder = `${professorData.length} professors available - type to search`;
-                            document.getElementById('professorHelp').textContent = `${professorData.length} professors available - type to search`;
-                            document.getElementById('professorSemesterInfo').textContent = '';
-                            
-                            console.log(`🔍 [updateProfessorDisplay] Showing all ${professorData.length} professors for typing/searching`);
-                        }
-
-                        // Load all professors for local filtering (like courses work)
-                        async function loadAllProfessors() {
-                            try {
-                                console.log(`🔍 [loadAllProfessors] Fetching all professors...`);
-
-                                // Fetch all professors from UMD.io (no filters)
-                                const response = await fetch(`/api/umd/professors`);
-                                console.log(`🔍 [loadAllProfessors] API response status: ${response.status}`);
-
-                                if (!response.ok) {
-                                    throw new Error(`API returned ${response.status}`);
-                                }
-
-                                const professors = await response.json();
-                                console.log(`🔍 [loadAllProfessors] API returned ${professors.length} professors`);
-
-                                if (Array.isArray(professors) && professors.length > 0) {
-                                    // Store all professors for local filtering
-                                    professorData = professors.filter(prof => prof.name && prof.name.trim());
-
-                                    // Update UI
-                                    professorInput.placeholder = `${professorData.length} professors available - type to search`;
-                                    document.getElementById('professorHelp').textContent = `${professorData.length} professors available - type to search`;
-
-                                    console.log(`✅ [loadAllProfessors] Loaded ${professorData.length} professors for local filtering`);
-                                } else {
-                                    console.log(`⚠️ [loadAllProfessors] No professors found`);
-                                    professorData = [];
-                                }
-
-                            } catch (error) {
-                                console.error('❌ [loadAllProfessors] Error:', error);
-                                professorData = [];
+                            if (selectedCourse) {
+                                await updateProfessorList();
                             }
-                        }
+                        });
+
+                        // Fetch professors when year changes
+                        document.getElementById('year').addEventListener('change', async function () {
+                            const selectedCourse = classCodeInput.value.trim();
+                            if (selectedCourse) {
+                                await updateProfessorList();
+                            }
+                        });
+
+                        // Initialize professor list on page load if course is already entered
+                        setTimeout(async function() {
+                            const selectedCourse = classCodeInput.value.trim();
+                            if (selectedCourse) {
+                                console.log(`🚀 [INIT] Page loaded with course: ${selectedCourse} - loading professors`);
+                                await updateProfessorList();
+                            }
+                        }, 100);
 
                         // Helper: Reset dropdowns to show all options
                         function resetDropdowns() {
