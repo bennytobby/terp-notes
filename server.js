@@ -342,16 +342,16 @@ app.get('/api/umd/professor-courses', async (req, res) => {
     try {
         const { professor_name, filter_semester, filter_year } = req.query;
         console.log(`🔍 [PROF-COURSES API] Request - professor: ${professor_name}, semester: ${filter_semester}, year: ${filter_year}`);
-        
+
         if (!professor_name || !professor_name.trim()) {
             return res.json([]);
         }
-        
+
         const professorName = professor_name.trim();
-        
+
         // Determine which semesters to fetch based on filters (same logic as other APIs)
         let semestersToCheck = [];
-        
+
         if (filter_semester && filter_year) {
             // Specific semester and year
             const semesterMap = { 'Spring': '01', 'Summer': '05', 'Fall': '08', 'Winter': '12' };
@@ -375,23 +375,23 @@ app.get('/api/umd/professor-courses', async (req, res) => {
             const now = new Date();
             const currentYear = now.getFullYear();
             const currentMonth = now.getMonth() + 1;
-            
+
             let currentSemester;
             if (currentMonth >= 1 && currentMonth <= 5) currentSemester = 'Spring';
             else if (currentMonth >= 6 && currentMonth <= 7) currentSemester = 'Summer';
             else if (currentMonth >= 8 && currentMonth <= 12) currentSemester = 'Fall';
-            
+
             const semesterMap = { 'Spring': '01', 'Summer': '05', 'Fall': '08', 'Winter': '12' };
             const currentSemesterId = `${currentYear}${semesterMap[currentSemester] || '01'}`;
             semestersToCheck = [currentSemesterId];
             console.log(`🔍 [PROF-COURSES API] Fetching current semester only: ${currentSemester} ${currentYear} (${currentSemesterId})`);
         }
-        
+
         // Fetch course data for all required semesters
         const courseData = new Map(); // course_id -> {course_id, name, semesters: [{semester, year, semesterId}]}
-        
+
         console.log(`🔍 [PROF-COURSES API] Fetching course data for ${semestersToCheck.length} semester(s)...`);
-        
+
         for (const semesterId of semestersToCheck) {
             try {
                 console.log(`🔍 [PROF-COURSES API] Fetching sections for semester: ${semesterId}`);
@@ -400,15 +400,15 @@ app.get('/api/umd/professor-courses', async (req, res) => {
                     `sections_${semesterId}`,
                     7 * 24 * 60 * 60 * 1000
                 );
-                
+
                 if (sectionsData && sectionsData.length > 0) {
                     // Filter sections taught by this professor
                     const professorSections = sectionsData.filter(section => {
-                        return section.instructors && section.instructors.some(instructor => 
+                        return section.instructors && section.instructors.some(instructor =>
                             instructor && instructor.toLowerCase().includes(professorName.toLowerCase())
                         );
                     });
-                    
+
                     if (professorSections.length > 0) {
                         // Convert semester ID to readable format
                         const year = semesterId.substring(0, 4);
@@ -416,7 +416,7 @@ app.get('/api/umd/professor-courses', async (req, res) => {
                         const semesterName = {
                             '01': 'Spring', '05': 'Summer', '08': 'Fall', '12': 'Winter'
                         }[semesterNum];
-                        
+
                         // Add courses to our data structure
                         professorSections.forEach(section => {
                             const courseId = section.course_id;
@@ -427,14 +427,14 @@ app.get('/api/umd/professor-courses', async (req, res) => {
                                     semesters: []
                                 });
                             }
-                            
+
                             courseData.get(courseId).semesters.push({
                                 semester: semesterName,
                                 year: parseInt(year),
                                 semesterId: semesterId
                             });
                         });
-                        
+
                         console.log(`✅ [PROF-COURSES API] Found ${professorSections.length} sections for ${professorName} in ${semesterName} ${year}`);
                     }
                 }
@@ -442,13 +442,13 @@ app.get('/api/umd/professor-courses', async (req, res) => {
                 console.log(`⚠️ [PROF-COURSES API] Error fetching semester ${semesterId}: ${error.message}`);
             }
         }
-        
+
         // Convert Map to array and sort by course_id
         const result = Array.from(courseData.values()).sort((a, b) => a.course_id.localeCompare(b.course_id));
-        
+
         console.log(`✅ [PROF-COURSES API] Found ${result.length} courses for ${professorName}`);
         return res.json(result);
-        
+
     } catch (error) {
         console.error('❌ [PROF-COURSES API] Error:', error);
         res.status(500).json({ error: 'Failed to fetch professor courses' });

@@ -2877,33 +2877,33 @@
                                 // UMD.io name search is too restrictive for real-time search
                                 if (searchTerm.length >= 1) {
                                     console.log(`🔍 Searching for "${searchTerm}" in professorData:`, professorData.length, 'professors available');
-                                    
+
                                     // First try to filter from existing professorData (course-specific)
                                     let searchResults = professorData.filter(prof => {
                                         return prof.name.toUpperCase().includes(searchTerm.toUpperCase());
                                     });
-                                    
+
                                     console.log(`🔍 Search results for "${searchTerm}":`, searchResults.length, 'matches');
-                                    
+
                                     // If no results from course data, try reverse filtering (professor -> courses)
                                     if (searchResults.length === 0) {
                                         // Try reverse filtering - find courses taught by this professor
                                         await updateCourseListForProfessor(searchTerm);
-                                        
+
                                         // Show message for professor search
                                         professorsDropdown.innerHTML = `<div class="custom-dropdown-empty">No professors found for "${searchTerm}" - showing courses they teach instead</div>`;
                                         professorsDropdown.classList.add('show');
                                         return;
                                     }
-                                    
+
                                     console.log(`🔍 Found ${searchResults.length} professors matching "${searchTerm}"`);
-                                    
+
                                     // Reset course filtering when professor is found
                                     resetCourseDropdown();
-                                    
+
                                     // Reset selection
                                     selectedProfessorIndex = -1;
-                                    
+
                                     // Render dropdown with search results
                                     renderProfessorsDropdown(searchResults, searchTerm);
                                 } else {
@@ -3184,8 +3184,10 @@
                         // Update professor list based on current selections
                         async function updateProfessorList() {
                             const selectedCourse = classCodeInput.value.trim();
+                            console.log(`🔍 [updateProfessorList] Called with course: "${selectedCourse}"`);
 
                             if (!selectedCourse) {
+                                console.log(`🔍 [updateProfessorList] No course selected - clearing professor data`);
                                 professorData = [];
                                 professorsDropdown.classList.remove('show');
                                 professorInput.placeholder = 'Enter professor name';
@@ -3208,16 +3210,18 @@
                             }
 
                             try {
-                                console.log(`🔍 Fetching professors for course: ${selectedCourse} with filters: ${queryParams}`);
+                                console.log(`🔍 [updateProfessorList] Fetching professors for course: ${selectedCourse} with filters: ${queryParams}`);
 
                                 // Fetch professors from enhanced UMD.io API
                                 const response = await fetch(`/api/umd/professors?${queryParams}`);
+                                console.log(`🔍 [updateProfessorList] API response status: ${response.status}`);
 
                                 if (!response.ok) {
                                     throw new Error(`API returned ${response.status}`);
                                 }
 
                                 const professors = await response.json();
+                                console.log(`🔍 [updateProfessorList] API returned ${professors.length} professors:`, professors);
 
                                 if (Array.isArray(professors) && professors.length > 0) {
                                     // New API returns objects with name and semesters array
@@ -3320,11 +3324,11 @@
                                 }
                                 return;
                             }
-                            
+
                             // Get current filter values
                             const selectedSemester = document.getElementById('semester').value;
                             const selectedYear = document.getElementById('year').value;
-                            
+
                             // Build query parameters
                             let queryParams = `professor_name=${encodeURIComponent(professorName.trim())}`;
                             if (selectedSemester) {
@@ -3333,18 +3337,18 @@
                             if (selectedYear) {
                                 queryParams += `&filter_year=${encodeURIComponent(selectedYear)}`;
                             }
-                            
+
                             try {
                                 console.log(`🔍 [REVERSE] Fetching courses for professor: ${professorName} with filters: ${queryParams}`);
-                                
+
                                 const response = await fetch(`/api/umd/professor-courses?${queryParams}`);
-                                
+
                                 if (!response.ok) {
                                     throw new Error(`API returned ${response.status}`);
                                 }
-                                
+
                                 const courses = await response.json();
-                                
+
                                 if (Array.isArray(courses) && courses.length > 0) {
                                     // Update course dropdown with professor's courses
                                     updateCourseDropdownForProfessor(courses, professorName);
@@ -3354,22 +3358,22 @@
                                     resetCourseDropdown();
                                     console.log(`⚠️ [REVERSE] No courses found for ${professorName}`);
                                 }
-                                
+
                             } catch (error) {
                                 console.error('❌ [REVERSE] Error fetching professor courses:', error);
                                 resetCourseDropdown();
                             }
                         }
-                        
+
                         // Update course dropdown to show only professor's courses
                         function updateCourseDropdownForProfessor(courses, professorName) {
                             const courseInfo = document.getElementById('courseInfo');
-                            
+
                             if (courses.length > 0) {
                                 const courseList = courses.map(course => course.course_id).join(', ');
                                 courseInfo.innerHTML = `✓ <strong>Courses taught by ${professorName}:</strong> ${courseList}`;
                                 courseInfo.style.color = '#3B82F6'; // Blue color for professor filtering
-                                
+
                                 // Update course data for dropdown filtering
                                 currentCourseData = {
                                     name: `Courses taught by ${professorName}`,
@@ -3377,12 +3381,12 @@
                                 };
                             }
                         }
-                        
+
                         // Reset course dropdown to normal state
                         function resetCourseDropdown() {
                             const courseInfo = document.getElementById('courseInfo');
                             const selectedCourse = classCodeInput.value.trim();
-                            
+
                             if (selectedCourse) {
                                 // Try to fetch normal course data
                                 fetchCourseData();
@@ -3413,6 +3417,15 @@
                         document.getElementById('year').addEventListener('change', async function () {
                             const selectedCourse = classCodeInput.value.trim();
                             if (selectedCourse) {
+                                await updateProfessorList();
+                            }
+                        });
+
+                        // Initialize professor list on page load if course is already entered
+                        document.addEventListener('DOMContentLoaded', async function() {
+                            const selectedCourse = classCodeInput.value.trim();
+                            if (selectedCourse) {
+                                console.log(`🚀 [INIT] Page loaded with course: ${selectedCourse} - loading professors`);
                                 await updateProfessorList();
                             }
                         });
