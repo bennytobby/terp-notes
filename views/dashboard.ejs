@@ -2885,13 +2885,9 @@
 
                                     console.log(`🔍 Search results for "${searchTerm}":`, searchResults.length, 'matches');
 
-                                    // If no results from course data, try reverse filtering (professor -> courses)
+                                    // If no results from professor data, show message
                                     if (searchResults.length === 0) {
-                                        // Try reverse filtering - find courses taught by this professor
-                                        await updateCourseListForProfessor(searchTerm);
-
-                                        // Show message for professor search
-                                        professorsDropdown.innerHTML = `<div class="custom-dropdown-empty">No professors found for "${searchTerm}" - showing courses they teach instead</div>`;
+                                        professorsDropdown.innerHTML = `<div class="custom-dropdown-empty">No professors found for "${searchTerm}" - try typing manually</div>`;
                                         professorsDropdown.classList.add('show');
                                         return;
                                     }
@@ -2936,19 +2932,12 @@
                             });
 
                             // Show dropdown when focused if there's data
-                            professorInput.addEventListener('focus', async function () {
+                            professorInput.addEventListener('focus', function () {
                                 console.log(`🔍 [FOCUS] Professor field focused, professorData length: ${professorData.length}`);
                                 if (professorData.length > 0) {
                                     renderProfessorsDropdown(professorData, '');
                                 } else {
-                                    // Try to load professor data if course is entered
-                                    const selectedCourse = classCodeInput.value.trim();
-                                    if (selectedCourse) {
-                                        console.log(`🔍 [FOCUS] No professor data but course "${selectedCourse}" entered - loading professors`);
-                                        await updateProfessorList();
-                                    } else {
-                                        console.log(`🔍 [FOCUS] No course entered - cannot load professors`);
-                                    }
+                                    console.log(`🔍 [FOCUS] No professor data available yet - still loading`);
                                 }
                             });
                         }
@@ -3431,18 +3420,47 @@
                             }
                         });
 
-                        // Initialize professor list on page load if course is already entered
-                        // Use setTimeout to ensure DOM is fully loaded
+                        // Load all professors on page load for local filtering (like courses)
                         setTimeout(async function() {
-                            const selectedCourse = classCodeInput.value.trim();
-                            console.log(`🚀 [INIT] Checking for existing course: "${selectedCourse}"`);
-                            if (selectedCourse) {
-                                console.log(`🚀 [INIT] Page loaded with course: ${selectedCourse} - loading professors`);
-                                await updateProfessorList();
-                            } else {
-                                console.log(`🚀 [INIT] No course entered - professor list will load when course is entered`);
-                            }
+                            console.log(`🚀 [INIT] Loading all professors for local filtering...`);
+                            await loadAllProfessors();
                         }, 100);
+
+                        // Load all professors for local filtering (like courses work)
+                        async function loadAllProfessors() {
+                            try {
+                                console.log(`🔍 [loadAllProfessors] Fetching all professors...`);
+                                
+                                // Fetch all professors from UMD.io (no filters)
+                                const response = await fetch(`/api/umd/professors`);
+                                console.log(`🔍 [loadAllProfessors] API response status: ${response.status}`);
+                                
+                                if (!response.ok) {
+                                    throw new Error(`API returned ${response.status}`);
+                                }
+                                
+                                const professors = await response.json();
+                                console.log(`🔍 [loadAllProfessors] API returned ${professors.length} professors`);
+                                
+                                if (Array.isArray(professors) && professors.length > 0) {
+                                    // Store all professors for local filtering
+                                    professorData = professors.filter(prof => prof.name && prof.name.trim());
+                                    
+                                    // Update UI
+                                    professorInput.placeholder = `${professorData.length} professors available - type to search`;
+                                    document.getElementById('professorHelp').textContent = `${professorData.length} professors available - type to search`;
+                                    
+                                    console.log(`✅ [loadAllProfessors] Loaded ${professorData.length} professors for local filtering`);
+                                } else {
+                                    console.log(`⚠️ [loadAllProfessors] No professors found`);
+                                    professorData = [];
+                                }
+                                
+                            } catch (error) {
+                                console.error('❌ [loadAllProfessors] Error:', error);
+                                professorData = [];
+                            }
+                        }
 
                         // Helper: Reset dropdowns to show all options
                         function resetDropdowns() {
