@@ -663,32 +663,35 @@ async function scanFileWithVirusTotal(fileId, fileBuffer, filename) {
 app.get('/api/umd/professors', async (req, res) => {
     try {
         const { name, course_id } = req.query;
-
+        
         // Build query parameters
         const queryParams = new URLSearchParams();
         if (name) queryParams.append('name', name);
         if (course_id) queryParams.append('course_id', course_id);
-
+        
         const url = `https://api.umd.io/v1/professors?${queryParams.toString()}`;
-
+        
         console.log(`🔍 Fetching professors from UMD.io: ${url}`);
-
+        
         const response = await fetch(url);
         if (!response.ok) {
-            throw new Error(`UMD.io API error: ${response.status}`);
+            console.warn(`⚠️ UMD.io API returned ${response.status} - falling back to empty result`);
+            // Return empty array instead of error for graceful degradation
+            return res.json([]);
         }
-
+        
         const professors = await response.json();
-
+        
         // Extract just the names and return them
         const professorNames = professors.map(prof => prof.name).filter(name => name && name.trim());
-
+        
         console.log(`✅ Found ${professorNames.length} professors from UMD.io`);
         res.json(professorNames);
-
+        
     } catch (error) {
         console.error('Error fetching professors from UMD.io:', error);
-        res.status(500).json({ error: 'Failed to fetch professors' });
+        // Return empty array instead of error for graceful degradation
+        res.json([]);
     }
 });
 
