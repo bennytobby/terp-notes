@@ -2936,9 +2936,19 @@
                             });
 
                             // Show dropdown when focused if there's data
-                            professorInput.addEventListener('focus', function () {
+                            professorInput.addEventListener('focus', async function () {
+                                console.log(`🔍 [FOCUS] Professor field focused, professorData length: ${professorData.length}`);
                                 if (professorData.length > 0) {
                                     renderProfessorsDropdown(professorData, '');
+                                } else {
+                                    // Try to load professor data if course is entered
+                                    const selectedCourse = classCodeInput.value.trim();
+                                    if (selectedCourse) {
+                                        console.log(`🔍 [FOCUS] No professor data but course "${selectedCourse}" entered - loading professors`);
+                                        await updateProfessorList();
+                                    } else {
+                                        console.log(`🔍 [FOCUS] No course entered - cannot load professors`);
+                                    }
                                 }
                             });
                         }
@@ -3422,13 +3432,17 @@
                         });
 
                         // Initialize professor list on page load if course is already entered
-                        document.addEventListener('DOMContentLoaded', async function() {
+                        // Use setTimeout to ensure DOM is fully loaded
+                        setTimeout(async function() {
                             const selectedCourse = classCodeInput.value.trim();
+                            console.log(`🚀 [INIT] Checking for existing course: "${selectedCourse}"`);
                             if (selectedCourse) {
                                 console.log(`🚀 [INIT] Page loaded with course: ${selectedCourse} - loading professors`);
                                 await updateProfessorList();
+                            } else {
+                                console.log(`🚀 [INIT] No course entered - professor list will load when course is entered`);
                             }
-                        });
+                        }, 100);
 
                         // Helper: Reset dropdowns to show all options
                         function resetDropdowns() {
