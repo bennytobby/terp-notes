@@ -2878,13 +2878,13 @@
                                 if (searchTerm.length >= 1) {
                                     console.log(`🔍 Searching for "${searchTerm}" in professorData:`, professorData.length, 'professors available');
                                     console.log(`🔍 Professor data structure:`, professorData.slice(0, 2)); // Debug: show first 2 professors
-                                    
+
                                     // First try to filter from existing professorData (course-specific)
                                     let searchResults = professorData.filter(prof => {
                                         console.log(`🔍 Checking professor: "${prof.name}" against "${searchTerm}"`);
                                         return prof.name.toUpperCase().includes(searchTerm.toUpperCase());
                                     });
-                                    
+
                                     console.log(`🔍 Search results for "${searchTerm}":`, searchResults.length, 'matches');
 
                                     // If no results from professor data, show message
