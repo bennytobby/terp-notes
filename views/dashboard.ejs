@@ -2875,13 +2875,13 @@
                                     try {
                                         console.log(`🔍 Searching professors: "${searchTerm}"`);
                                         const response = await fetch(`/api/umd/professors?name=${encodeURIComponent(searchTerm)}`);
-                                        
+
                                         if (!response.ok) {
                                             throw new Error(`API returned ${response.status}`);
                                         }
-                                        
+
                                         const professors = await response.json();
-                                        
+
                                         if (Array.isArray(professors) && professors.length > 0) {
                                             const searchResults = professors.map(name => ({ name: name.trim() })).filter(prof => prof.name);
                                             console.log(`✅ Found ${searchResults.length} professors matching "${searchTerm}"`);
@@ -3193,19 +3193,19 @@
 
                             try {
                                 console.log(`🔍 Fetching professors for course: ${selectedCourse}`);
-                                
+
                                 // Fetch professors from UMD.io API
                                 const response = await fetch(`/api/umd/professors?course_id=${encodeURIComponent(selectedCourse)}`);
-                                
+
                                 if (!response.ok) {
                                     throw new Error(`API returned ${response.status}`);
                                 }
-                                
+
                                 const professors = await response.json();
-                                
+
                                 if (Array.isArray(professors) && professors.length > 0) {
                                     professorData = professors.map(name => ({ name: name.trim() })).filter(prof => prof.name);
-                                    
+
                                     // Update UI
                                     professorInput.placeholder = `${professorData.length} professor${professorData.length !== 1 ? 's' : ''} taught ${selectedCourse}`;
                                     document.getElementById('professorHelp').textContent = `${professorData.length} professor${professorData.length !== 1 ? 's' : ''} available - click or type to search`;
@@ -3217,15 +3217,15 @@
                                     document.getElementById('professorHelp').textContent = 'No professors found in UMD database - you can type any name';
                                     console.log(`⚠️ No professors found for ${selectedCourse}`);
                                 }
-                                
+
                             } catch (error) {
                                 console.error('Error fetching professors from UMD.io, trying fallback:', error);
-                                
+
                                 // Fallback: Try to use existing course data if available
                                 if (currentCourseData && currentCourseData.sections) {
                                     console.log('🔄 Using fallback course data for professors');
                                     const professorSet = new Set();
-                                    
+
                                     currentCourseData.sections.forEach(section => {
                                         if (section.instructors && section.instructors.length > 0) {
                                             section.instructors.forEach(instructor => {
@@ -3235,9 +3235,9 @@
                                             });
                                         }
                                     });
-                                    
+
                                     professorData = Array.from(professorSet).map(name => ({ name }));
-                                    
+
                             if (professorData.length > 0) {
                                         professorInput.placeholder = `${professorData.length} professor${professorData.length !== 1 ? 's' : ''} taught ${selectedCourse} (fallback data)`;
                                         document.getElementById('professorHelp').textContent = `${professorData.length} professor${professorData.length !== 1 ? 's' : ''} available from course data`;
@@ -3264,7 +3264,7 @@
 
                             // First try to get course data (this will also call updateProfessorList)
                             await fetchCourseData();
-                            
+
                             // Then try UMD.io professors API as enhancement
                             await updateProfessorList();
                         });

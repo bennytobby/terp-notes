@@ -201,6 +201,42 @@ app.use(session({
 // Session timeout middleware - MUST come after session initialization
 app.use(sessionTimeout);
 
+/* UMD.io Professors API - Must be before session validation middleware */
+app.get('/api/umd/professors', async (req, res) => {
+    try {
+        const { name, course_id } = req.query;
+        
+        // Build query parameters
+        const queryParams = new URLSearchParams();
+        if (name) queryParams.append('name', name);
+        if (course_id) queryParams.append('course_id', course_id);
+        
+        const url = `https://api.umd.io/v1/professors?${queryParams.toString()}`;
+        
+        console.log(`🔍 Fetching professors from UMD.io: ${url}`);
+        
+        const response = await fetch(url);
+        if (!response.ok) {
+            console.warn(`⚠️ UMD.io API returned ${response.status} - falling back to empty result`);
+            // Return empty array instead of error for graceful degradation
+            return res.json([]);
+        }
+        
+        const professors = await response.json();
+        
+        // Extract just the names and return them
+        const professorNames = professors.map(prof => prof.name).filter(name => name && name.trim());
+        
+        console.log(`✅ Found ${professorNames.length} professors from UMD.io:`, professorNames.slice(0, 3).join(', ') + (professorNames.length > 3 ? '...' : ''));
+        res.json(professorNames);
+        
+    } catch (error) {
+        console.error('Error fetching professors from UMD.io:', error);
+        // Return empty array instead of error for graceful degradation
+        res.json([]);
+    }
+});
+
 // JWT helper functions
 function createToken(user) {
     return jwt.sign(user, process.env.SECRET_KEY, { expiresIn: '24h' });
@@ -225,7 +261,7 @@ function sanitizeForHeader(filename) {
 
 // Session validation middleware
 app.use((req, res, next) => {
-    const publicRoutes = ['/', '/login', '/register', '/loginSubmit', '/registerSubmit', '/forgot-password', '/resend-verification', '/privacy', '/terms', '/contact', '/contact/submit'];
+    const publicRoutes = ['/', '/login', '/register', '/loginSubmit', '/registerSubmit', '/forgot-password', '/resend-verification', '/privacy', '/terms', '/contact', '/contact/submit', '/api/umd/professors', '/api/umd/courses'];
     const publicRoutesRegex = /^\/(verify|reset-password)\/.+/; // Match /verify/:token and /reset-password/:token
 
     const isPublicRoute = publicRoutes.includes(req.path) || publicRoutesRegex.test(req.path);
@@ -658,42 +694,6 @@ async function scanFileWithVirusTotal(fileId, fileBuffer, filename) {
         }
     }
 }
-
-/* UMD.io Professors API */
-app.get('/api/umd/professors', async (req, res) => {
-    try {
-        const { name, course_id } = req.query;
-        
-        // Build query parameters
-        const queryParams = new URLSearchParams();
-        if (name) queryParams.append('name', name);
-        if (course_id) queryParams.append('course_id', course_id);
-        
-        const url = `https://api.umd.io/v1/professors?${queryParams.toString()}`;
-        
-        console.log(`🔍 Fetching professors from UMD.io: ${url}`);
-        
-        const response = await fetch(url);
-        if (!response.ok) {
-            console.warn(`⚠️ UMD.io API returned ${response.status} - falling back to empty result`);
-            // Return empty array instead of error for graceful degradation
-            return res.json([]);
-        }
-        
-        const professors = await response.json();
-        
-        // Extract just the names and return them
-        const professorNames = professors.map(prof => prof.name).filter(name => name && name.trim());
-        
-        console.log(`✅ Found ${professorNames.length} professors from UMD.io`);
-        res.json(professorNames);
-        
-    } catch (error) {
-        console.error('Error fetching professors from UMD.io:', error);
-        // Return empty array instead of error for graceful degradation
-        res.json([]);
-    }
-});
 
 /* Upload */
 const multer = require("multer");
