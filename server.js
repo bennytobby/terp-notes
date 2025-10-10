@@ -128,6 +128,8 @@ const rateLimit = require('express-rate-limit');
 const fetch = require('node-fetch');
 const FormData = require('form-data');
 const emailTemplates = require('./emails/templates');
+const { validatePassword, getPasswordRequirements } = require('./utils/passwordValidator');
+const { sessionTimeout } = require('./middleware/sessionTimeout');
 const app = express();
 
 // Trust proxy - required for Vercel/behind reverse proxy
@@ -195,6 +197,9 @@ app.use(session({
         path: '/'
     }
 }));
+
+// Session timeout middleware - MUST come after session initialization
+app.use(sessionTimeout);
 
 // JWT helper functions
 function createToken(user) {
@@ -1293,6 +1298,17 @@ app.post('/reset-password/:token', async (req, res) => {
             });
         }
 
+        // Password strength validation
+        const passwordValidation = validatePassword(req.body.password);
+        if (!passwordValidation.isValid) {
+            return res.render('error', {
+                title: "Weak Password",
+                message: "Your password does not meet security requirements:\n\n" + passwordValidation.errors.join('\n'),
+                link: `/reset-password/${token}`,
+                linkText: "Try Again"
+            });
+        }
+
         // Hash new password
         const hashedPassword = await bcrypt.hash(req.body.password, 10);
 
@@ -1694,6 +1710,17 @@ app.post('/change-password', async (req, res) => {
             });
         }
 
+        // Password strength validation
+        const passwordValidation = validatePassword(newPassword);
+        if (!passwordValidation.isValid) {
+            return res.render('error', {
+                title: "Weak Password",
+                message: "Your new password does not meet security requirements:\n\n" + passwordValidation.errors.join('\n'),
+                link: "/profile",
+                linkText: "Back to Profile"
+            });
+        }
+
         // Verify new password is different from current password
         const samePassword = await bcrypt.compare(newPassword, user.pass);
         if (samePassword) {
@@ -2039,6 +2066,17 @@ app.post('/registerSubmit', registerLimiter, async function (req, res) {
             });
         }
 
+        // Password strength validation
+        const passwordValidation = validatePassword(req.body.password);
+        if (!passwordValidation.isValid) {
+            return res.render('error', {
+                title: "Weak Password",
+                message: "Your password does not meet security requirements:\n\n" + passwordValidation.errors.join('\n'),
+                link: "/register",
+                linkText: "Try Again"
+            });
+        }
+
         // Normalize email to prevent duplicates (@umd.edu and @terpmail.umd.edu are the same)
         // Extract username part and always use @terpmail.umd.edu for storage
         const emailUsername = email.split('@')[0];
@@ -2185,7 +2223,13 @@ app.post('/loginSubmit', loginLimiter, async function (req, res) {
 
         const token = createToken(userData);
 
+        // Initialize session with timestamps for timeout tracking
+        const now = Date.now();
         req.session.user = userData;
+        req.session.createdAt = now;
+        req.session.lastActivity = now;
+        req.session.rememberMe = false; // Can be set to true if "Remember Me" checkbox is added
+        
         res.cookie('authToken', token, {
             httpOnly: true,
             secure: process.env.NODE_ENV === 'production',

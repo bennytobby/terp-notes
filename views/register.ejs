@@ -46,6 +46,22 @@
                     <label for="password">Password<span class="req">*</span></label>
                     <input type="password" name="password" id="password" required
                         placeholder="Enter a secure password" />
+                    <div class="password-requirements" style="margin-top: 0.5rem; padding: 0.75rem; background: #F3F4F6; border-radius: 6px; font-size: 0.813rem;">
+                        <strong style="color: #374151;">Password must include:</strong>
+                        <ul style="margin: 0.5rem 0 0 1.25rem; padding: 0; color: #6B7280;">
+                            <li id="req-length">At least 8 characters</li>
+                            <li id="req-uppercase">At least one uppercase letter (A-Z)</li>
+                            <li id="req-lowercase">At least one lowercase letter (a-z)</li>
+                            <li id="req-number">At least one number (0-9)</li>
+                            <li id="req-special">At least one special character (!@#$%^&*...)</li>
+                        </ul>
+                    </div>
+                    <div id="password-strength" style="margin-top: 0.5rem; display: none;">
+                        <div style="height: 4px; background: #E5E7EB; border-radius: 4px; overflow: hidden;">
+                            <div id="strength-bar" style="height: 100%; width: 0%; transition: all 0.3s;"></div>
+                        </div>
+                        <p id="strength-text" style="margin: 0.25rem 0 0 0; font-size: 0.75rem;"></p>
+                    </div>
                 </div>
                 <div class="form-group">
                     <label for="confirm_pass">Confirm Password<span class="req">*</span></label>
@@ -111,17 +127,82 @@
             const privacyCheckbox = document.getElementById('agreePrivacy');
             const submitBtn = document.getElementById('submitBtn');
 
+            // Password strength checking
+            function checkPasswordStrength(password) {
+                const requirements = {
+                    length: password.length >= 8,
+                    uppercase: /[A-Z]/.test(password),
+                    lowercase: /[a-z]/.test(password),
+                    number: /[0-9]/.test(password),
+                    special: /[!@#$%^&*()_+\-=\[\]{}|;:,.<>?]/.test(password)
+                };
+
+                // Update requirement checkmarks
+                document.getElementById('req-length').style.color = requirements.length ? '#10B981' : '#6B7280';
+                document.getElementById('req-uppercase').style.color = requirements.uppercase ? '#10B981' : '#6B7280';
+                document.getElementById('req-lowercase').style.color = requirements.lowercase ? '#10B981' : '#6B7280';
+                document.getElementById('req-number').style.color = requirements.number ? '#10B981' : '#6B7280';
+                document.getElementById('req-special').style.color = requirements.special ? '#10B981' : '#6B7280';
+
+                document.getElementById('req-length').innerHTML = requirements.length ? '✓ At least 8 characters' : 'At least 8 characters';
+                document.getElementById('req-uppercase').innerHTML = requirements.uppercase ? '✓ At least one uppercase letter (A-Z)' : 'At least one uppercase letter (A-Z)';
+                document.getElementById('req-lowercase').innerHTML = requirements.lowercase ? '✓ At least one lowercase letter (a-z)' : 'At least one lowercase letter (a-z)';
+                document.getElementById('req-number').innerHTML = requirements.number ? '✓ At least one number (0-9)' : 'At least one number (0-9)';
+                document.getElementById('req-special').innerHTML = requirements.special ? '✓ At least one special character (!@#$%^&*...)' : 'At least one special character (!@#$%^&*...)';
+
+                // Calculate strength score
+                let score = 0;
+                if (password.length >= 8) score += 20;
+                if (password.length >= 12) score += 10;
+                if (requirements.uppercase) score += 20;
+                if (requirements.lowercase) score += 20;
+                if (requirements.number) score += 15;
+                if (requirements.special) score += 15;
+
+                // Show strength indicator
+                const strengthBar = document.getElementById('strength-bar');
+                const strengthText = document.getElementById('strength-text');
+                const strengthContainer = document.getElementById('password-strength');
+
+                if (password.length > 0) {
+                    strengthContainer.style.display = 'block';
+                    strengthBar.style.width = score + '%';
+
+                    if (score >= 80) {
+                        strengthBar.style.background = '#10B981'; // Green
+                        strengthText.textContent = '💪 Strong password';
+                        strengthText.style.color = '#10B981';
+                    } else if (score >= 50) {
+                        strengthBar.style.background = '#F59E0B'; // Yellow
+                        strengthText.textContent = '👍 Medium password';
+                        strengthText.style.color = '#F59E0B';
+                    } else {
+                        strengthBar.style.background = '#EF4444'; // Red
+                        strengthText.textContent = '⚠️ Weak password';
+                        strengthText.style.color = '#EF4444';
+                    }
+                } else {
+                    strengthContainer.style.display = 'none';
+                }
+
+                // Return if all requirements met
+                return Object.values(requirements).every(req => req);
+            }
+
             function checkFormValidity() {
                 const password = passwordInput.value;
                 const confirmPassword = confirmPasswordInput.value;
                 const termsAgreed = termsCheckbox.checked;
                 const privacyAgreed = privacyCheckbox.checked;
 
+                // Check password strength
+                const passwordStrong = checkPasswordStrength(password);
+
                 // Remove existing error message
                 const existingError = confirmPasswordInput.parentElement.querySelector('.password-match-error');
                 if (existingError) existingError.remove();
 
-                let passwordsValid = true;
+                let passwordsValid = passwordStrong;
 
                 // Only show error if confirm password field has content
                 if (confirmPassword && password !== confirmPassword) {
