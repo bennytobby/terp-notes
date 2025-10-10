@@ -61,11 +61,11 @@ function validatePassword(password) {
 
     // Common password check (basic)
     const commonPasswords = [
-        'password', 'password123', '12345678', 'qwerty', 'abc123', 
+        'password', 'password123', '12345678', 'qwerty', 'abc123',
         'Password1', 'Password123', 'welcome', 'monkey', 'dragon',
         'master', 'sunshine', 'princess', 'letmein', 'admin'
     ];
-    
+
     if (commonPasswords.includes(password.toLowerCase())) {
         errors.push('This password is too common. Please choose a more unique password');
     }
@@ -82,25 +82,25 @@ function validatePassword(password) {
  */
 function getPasswordRequirements() {
     const requirements = [];
-    
+
     requirements.push(`At least ${PASSWORD_REQUIREMENTS.minLength} characters long`);
-    
+
     if (PASSWORD_REQUIREMENTS.requireUppercase) {
         requirements.push('At least one uppercase letter (A-Z)');
     }
-    
+
     if (PASSWORD_REQUIREMENTS.requireLowercase) {
         requirements.push('At least one lowercase letter (a-z)');
     }
-    
+
     if (PASSWORD_REQUIREMENTS.requireNumber) {
         requirements.push('At least one number (0-9)');
     }
-    
+
     if (PASSWORD_REQUIREMENTS.requireSpecial) {
         requirements.push(`At least one special character (${PASSWORD_REQUIREMENTS.specialChars})`);
     }
-    
+
     return requirements;
 }
 
@@ -131,7 +131,7 @@ function checkPasswordStrength(password) {
     const hasMultipleNumbers = (password.match(/[0-9]/g) || []).length >= 2;
     const hasMultipleSpecial = (password.match(/[^a-zA-Z0-9]/g) || []).length >= 2;
     const hasNoSequential = !/(.)\1{2,}/.test(password); // No 3+ repeated chars
-    
+
     if (hasMultipleNumbers) score += 10;
     if (hasMultipleSpecial) score += 10;
     if (hasNoSequential) score += 10;

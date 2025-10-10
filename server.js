@@ -2229,7 +2229,7 @@ app.post('/loginSubmit', loginLimiter, async function (req, res) {
         req.session.createdAt = now;
         req.session.lastActivity = now;
         req.session.rememberMe = false; // Can be set to true if "Remember Me" checkbox is added
-        
+
         res.cookie('authToken', token, {
             httpOnly: true,
             secure: process.env.NODE_ENV === 'production',

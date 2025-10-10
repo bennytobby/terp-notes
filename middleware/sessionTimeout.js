@@ -18,7 +18,7 @@ function sessionTimeout(req, res, next) {
     // Skip for public routes
     const publicRoutes = ['/', '/login', '/register', '/forgot-password', '/reset-password', '/verify', '/contact', '/terms', '/privacy'];
     const isPublicRoute = publicRoutes.some(route => req.path === route || req.path.startsWith('/reset-password/') || req.path.startsWith('/verify/'));
-    
+
     if (isPublicRoute) {
         return next();
     }
@@ -42,7 +42,7 @@ function sessionTimeout(req, res, next) {
     // Check for absolute timeout (24 hours since session creation)
     const sessionAge = now - session.createdAt;
     const maxAge = session.rememberMe ? TIMEOUT_CONFIG.REMEMBER_ME_DURATION : TIMEOUT_CONFIG.ABSOLUTE_TIMEOUT;
-    
+
     if (sessionAge > maxAge) {
         console.log(`🕐 Session expired (absolute timeout) for user: ${req.session.user?.userid}`);
         return handleSessionExpiry(req, res, 'Your session has expired. Please login again.');
@@ -50,7 +50,7 @@ function sessionTimeout(req, res, next) {
 
     // Check for inactivity timeout
     const inactivityDuration = now - session.lastActivity;
-    
+
     if (inactivityDuration > TIMEOUT_CONFIG.INACTIVITY_TIMEOUT) {
         console.log(`🕐 Session expired (inactivity timeout) for user: ${req.session.user?.userid}`);
         return handleSessionExpiry(req, res, 'Your session expired due to inactivity. Please login again.');
@@ -58,7 +58,7 @@ function sessionTimeout(req, res, next) {
 
     // Session is still valid - update last activity timestamp
     session.lastActivity = now;
-    
+
     // Log remaining time for debugging (only in development)
     if (process.env.NODE_ENV === 'development') {
         const remainingMinutes = Math.floor((TIMEOUT_CONFIG.INACTIVITY_TIMEOUT - inactivityDuration) / 60000);
@@ -74,7 +74,7 @@ function sessionTimeout(req, res, next) {
 function handleSessionExpiry(req, res, message) {
     // Store the message before destroying session
     const expiredMessage = message;
-    
+
     // Destroy the session
     req.session.destroy((err) => {
         if (err) {
