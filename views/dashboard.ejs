@@ -2873,10 +2873,14 @@
                                 // For name search, use local filtering from course data or existing professorData
                                 // UMD.io name search is too restrictive for real-time search
                                 if (searchTerm.length >= 1) {
+                                    console.log(`🔍 Searching for "${searchTerm}" in professorData:`, professorData.length, 'professors available');
+                                    
                                     // First try to filter from existing professorData (course-specific)
                                     let searchResults = professorData.filter(prof => {
                                         return prof.name.toUpperCase().includes(searchTerm.toUpperCase());
                                     });
+                                    
+                                    console.log(`🔍 Search results for "${searchTerm}":`, searchResults.length, 'matches');
                                     
                                     // If no results from course data, try to filter from any existing data
                                     if (searchResults.length === 0) {
@@ -3152,8 +3156,7 @@
                                         }
                                     }
 
-                                    // Update professor list
-                                    updateProfessorList();
+                                    // Note: Professor list will be updated by course change event
                                 } else {
                                     courseInfo.textContent = 'Could not verify course - you can still upload';
                                     courseInfo.style.color = '#9CA3AF';
@@ -3195,11 +3198,11 @@
 
                                 if (Array.isArray(professors) && professors.length > 0) {
                                     professorData = professors.map(name => ({ name: name.trim() })).filter(prof => prof.name);
-
+                                    
                                     // Update UI
                                     professorInput.placeholder = `${professorData.length} professor${professorData.length !== 1 ? 's' : ''} taught ${selectedCourse}`;
                                     document.getElementById('professorHelp').textContent = `${professorData.length} professor${professorData.length !== 1 ? 's' : ''} available - click or type to search`;
-                                    console.log(`✅ Loaded ${professorData.length} professors for ${selectedCourse}`);
+                                    console.log(`✅ Loaded ${professorData.length} professors for ${selectedCourse}:`, professorData.map(p => p.name).slice(0, 3).join(', ') + (professorData.length > 3 ? '...' : ''));
                                 } else {
                                     // No professors found for this course
                                     professorData = [];
@@ -3252,10 +3255,7 @@
                             // Skip if we're selecting from dropdown
                             if (isSelectingFromDropdown) return;
 
-                            // First try to get course data (this will also call updateProfessorList)
-                            await fetchCourseData();
-
-                            // Then try UMD.io professors API as enhancement
+                            // Only call updateProfessorList - it will fetch from UMD.io professors API
                             await updateProfessorList();
                         });
 
