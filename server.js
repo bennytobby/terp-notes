@@ -204,36 +204,136 @@ app.use(sessionTimeout);
 /* UMD.io Professors API - Must be before session validation middleware */
 app.get('/api/umd/professors', async (req, res) => {
     try {
-        const { name, course_id } = req.query;
-
-        // Build query parameters
-        const queryParams = new URLSearchParams();
-        if (name) queryParams.append('name', name);
-        if (course_id) queryParams.append('course_id', course_id);
-
-        const url = `https://api.umd.io/v1/professors?${queryParams.toString()}`;
-
-        console.log(`🔍 Fetching professors from UMD.io: ${url}`);
-
-        const response = await fetch(url);
-        if (!response.ok) {
-            console.warn(`⚠️ UMD.io API returned ${response.status} - falling back to empty result`);
-            // Return empty array instead of error for graceful degradation
+        const { name, course_id, filter_semester, filter_year } = req.query;
+        console.log(`🔍 [PROF API] Request - name: ${name}, course_id: ${course_id}, semester: ${filter_semester}, year: ${filter_year}`);
+        
+        if (course_id) {
+            // Fetch professors for a specific course with filtering
+            const courseId = course_id.toUpperCase();
+            
+            // Determine which semesters to fetch based on filters (same logic as course API)
+            let semestersToCheck = [];
+            
+            if (filter_semester && filter_year) {
+                // Specific semester and year
+                const semesterMap = { 'Spring': '01', 'Summer': '05', 'Fall': '08', 'Winter': '12' };
+                const semesterId = `${filter_year}${semesterMap[filter_semester] || '01'}`;
+                semestersToCheck = [semesterId];
+                console.log(`🔍 [PROF API] Fetching specific: ${filter_semester} ${filter_year} (${semesterId})`);
+            } else if (filter_semester) {
+                // All years for this semester
+                const semesterMap = { 'Spring': '01', 'Summer': '05', 'Fall': '08', 'Winter': '12' };
+                const semesterNum = semesterMap[filter_semester] || '01';
+                for (let year = 2020; year <= 2025; year++) {
+                    semestersToCheck.push(`${year}${semesterNum}`);
+                }
+                console.log(`🔍 [PROF API] Fetching all years for ${filter_semester}: ${semestersToCheck.length} semesters`);
+            } else if (filter_year) {
+                // All semesters for this year
+                semestersToCheck = [`${filter_year}01`, `${filter_year}05`, `${filter_year}08`, `${filter_year}12`];
+                console.log(`🔍 [PROF API] Fetching all semesters for ${filter_year}: ${semestersToCheck.length} semesters`);
+            } else {
+                // Default: current semester only
+                const now = new Date();
+                const currentYear = now.getFullYear();
+                const currentMonth = now.getMonth() + 1;
+                
+                let currentSemester;
+                if (currentMonth >= 1 && currentMonth <= 5) currentSemester = 'Spring';
+                else if (currentMonth >= 6 && currentMonth <= 7) currentSemester = 'Summer';
+                else if (currentMonth >= 8 && currentMonth <= 12) currentSemester = 'Fall';
+                
+                const semesterMap = { 'Spring': '01', 'Summer': '05', 'Fall': '08', 'Winter': '12' };
+                const currentSemesterId = `${currentYear}${semesterMap[currentSemester] || '01'}`;
+                semestersToCheck = [currentSemesterId];
+                console.log(`🔍 [PROF API] Fetching current semester only: ${currentSemester} ${currentYear} (${currentSemesterId})`);
+            }
+            
+            // Fetch professor data for all required semesters
+            const professorData = new Map(); // name -> {name, semesters: [{semester, year, semesterId}]}
+            
+            console.log(`🔍 [PROF API] Fetching professor data for ${semestersToCheck.length} semester(s)...`);
+            
+            for (const semesterId of semestersToCheck) {
+                try {
+                    console.log(`🔍 [PROF API] Fetching sections for semester: ${semesterId}`);
+                    const sectionsData = await fetchUMDData(
+                        `/courses/sections?course_id=${courseId}&semester=${semesterId}&per_page=100`,
+                        `sections_${courseId}_${semesterId}`,
+                        7 * 24 * 60 * 60 * 1000
+                    );
+                    
+                    if (sectionsData && sectionsData.length > 0) {
+                        const professors = [...new Set(
+                            sectionsData
+                                .map(section => section.instructors)
+                                .flat()
+                                .filter(prof => prof && prof !== 'Instructor: TBA')
+                        )];
+                        
+                        if (professors.length > 0) {
+                            // Convert semester ID to readable format
+                            const year = semesterId.substring(0, 4);
+                            const semesterNum = semesterId.substring(4, 6);
+                            const semesterName = {
+                                '01': 'Spring', '05': 'Summer', '08': 'Fall', '12': 'Winter'
+                            }[semesterNum];
+                            
+                            // Add professors to our data structure
+                            professors.forEach(profName => {
+                                if (!professorData.has(profName)) {
+                                    professorData.set(profName, {
+                                        name: profName,
+                                        semesters: []
+                                    });
+                                }
+                                
+                                professorData.get(profName).semesters.push({
+                                    semester: semesterName,
+                                    year: parseInt(year),
+                                    semesterId: semesterId
+                                });
+                            });
+                            
+                            console.log(`✅ [PROF API] Found ${professors.length} professors for ${semesterName} ${year}: ${professors.slice(0, 2).join(', ')}...`);
+                        }
+                    }
+                } catch (error) {
+                    console.log(`⚠️ [PROF API] Error fetching semester ${semesterId}: ${error.message}`);
+                }
+            }
+            
+            // Convert Map to array and sort by name
+            const result = Array.from(professorData.values()).sort((a, b) => a.name.localeCompare(b.name));
+            
+            console.log(`✅ [PROF API] Found ${result.length} professors for ${courseId}`);
+            return res.json(result);
+            
+        } else if (name) {
+            // Search professors by name - use the existing UMD.io API
+            console.log(`🔍 [PROF API] Name search for: ${name}`);
+            try {
+                const professors = await fetchUMDData(`/professors?name=${name}`, `professors_name_${name}`);
+                
+                if (professors && professors.length > 0) {
+                    const result = professors.map(p => ({ name: p.name, semesters: [] })).filter(p => p.name && p.name.trim());
+                    console.log(`✅ [PROF API] Found ${result.length} professors matching "${name}"`);
+                    return res.json(result);
+                } else {
+                    console.log(`⚠️ [PROF API] No professors found for "${name}"`);
+                    return res.json([]);
+                }
+            } catch (error) {
+                console.log(`⚠️ [PROF API] Name search failed: ${error.message}`);
+                return res.json([]);
+            }
+        } else {
+            // No specific search - return empty array
             return res.json([]);
         }
-
-        const professors = await response.json();
-
-        // Extract just the names and return them
-        const professorNames = professors.map(prof => prof.name).filter(name => name && name.trim());
-
-        console.log(`✅ Found ${professorNames.length} professors from UMD.io:`, professorNames.slice(0, 3).join(', ') + (professorNames.length > 3 ? '...' : ''));
-        res.json(professorNames);
-
     } catch (error) {
-        console.error('Error fetching professors from UMD.io:', error);
-        // Return empty array instead of error for graceful degradation
-        res.json([]);
+        console.error('❌ [PROF API] Error:', error);
+        res.status(500).json({ error: 'Failed to fetch professors' });
     }
 });
 

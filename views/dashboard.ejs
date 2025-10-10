@@ -580,6 +580,7 @@
                                                     style="color: #9CA3AF; font-size: 0.75rem;">
                                                     Select a course first to see professors, then type to filter
                                                 </small>
+                                                <div id="professorSemesterInfo" style="margin-top: 4px;"></div>
                                             </div>
                                         </div>
 
@@ -2874,14 +2875,14 @@
                                 // UMD.io name search is too restrictive for real-time search
                                 if (searchTerm.length >= 1) {
                                     console.log(`🔍 Searching for "${searchTerm}" in professorData:`, professorData.length, 'professors available');
-                                    
+
                                     // First try to filter from existing professorData (course-specific)
                                     let searchResults = professorData.filter(prof => {
                                         return prof.name.toUpperCase().includes(searchTerm.toUpperCase());
                                     });
-                                    
+
                                     console.log(`🔍 Search results for "${searchTerm}":`, searchResults.length, 'matches');
-                                    
+
                                     // If no results from course data, try to filter from any existing data
                                     if (searchResults.length === 0) {
                                         // Could implement a broader search here, but for now just show message
@@ -2889,12 +2890,12 @@
                                         professorsDropdown.classList.add('show');
                                         return;
                                     }
-                                    
+
                                     console.log(`🔍 Found ${searchResults.length} professors matching "${searchTerm}"`);
-                                    
+
                                     // Reset selection
                                     selectedProfessorIndex = -1;
-                                    
+
                                     // Render dropdown with search results
                                     renderProfessorsDropdown(searchResults, searchTerm);
                                 } else {
@@ -3181,14 +3182,28 @@
                                 professorsDropdown.classList.remove('show');
                                 professorInput.placeholder = 'Enter professor name';
                                 document.getElementById('professorHelp').textContent = 'Select course first to see professors';
+                                document.getElementById('professorSemesterInfo').textContent = '';
                                 return;
                             }
 
-                            try {
-                                console.log(`🔍 Fetching professors for course: ${selectedCourse}`);
+                            // Get current filter values
+                            const selectedSemester = document.getElementById('semester').value;
+                            const selectedYear = document.getElementById('year').value;
+                            
+                            // Build query parameters
+                            let queryParams = `course_id=${encodeURIComponent(selectedCourse)}`;
+                            if (selectedSemester) {
+                                queryParams += `&filter_semester=${encodeURIComponent(selectedSemester)}`;
+                            }
+                            if (selectedYear) {
+                                queryParams += `&filter_year=${encodeURIComponent(selectedYear)}`;
+                            }
 
-                                // Fetch professors from UMD.io API
-                                const response = await fetch(`/api/umd/professors?course_id=${encodeURIComponent(selectedCourse)}`);
+                            try {
+                                console.log(`🔍 Fetching professors for course: ${selectedCourse} with filters: ${queryParams}`);
+
+                                // Fetch professors from enhanced UMD.io API
+                                const response = await fetch(`/api/umd/professors?${queryParams}`);
 
                                 if (!response.ok) {
                                     throw new Error(`API returned ${response.status}`);
@@ -3197,17 +3212,23 @@
                                 const professors = await response.json();
 
                                 if (Array.isArray(professors) && professors.length > 0) {
-                                    professorData = professors.map(name => ({ name: name.trim() })).filter(prof => prof.name);
-                                    
+                                    // New API returns objects with name and semesters array
+                                    professorData = professors.filter(prof => prof.name && prof.name.trim());
+
                                     // Update UI
                                     professorInput.placeholder = `${professorData.length} professor${professorData.length !== 1 ? 's' : ''} taught ${selectedCourse}`;
                                     document.getElementById('professorHelp').textContent = `${professorData.length} professor${professorData.length !== 1 ? 's' : ''} available - click or type to search`;
+                                    
+                                    // Update semester info banner
+                                    updateProfessorSemesterInfo(professorData);
+                                    
                                     console.log(`✅ Loaded ${professorData.length} professors for ${selectedCourse}:`, professorData.map(p => p.name).slice(0, 3).join(', ') + (professorData.length > 3 ? '...' : ''));
                                 } else {
                                     // No professors found for this course
                                     professorData = [];
                                     professorInput.placeholder = 'No professors found - enter manually';
                                     document.getElementById('professorHelp').textContent = 'No professors found in UMD database - you can type any name';
+                                    document.getElementById('professorSemesterInfo').textContent = '';
                                     console.log(`⚠️ No professors found for ${selectedCourse}`);
                                 }
 
@@ -3229,23 +3250,56 @@
                                         }
                                     });
 
-                                    professorData = Array.from(professorSet).map(name => ({ name }));
+                                    professorData = Array.from(professorSet).map(name => ({ name: name, semesters: [] }));
 
-                            if (professorData.length > 0) {
+                                    if (professorData.length > 0) {
                                         professorInput.placeholder = `${professorData.length} professor${professorData.length !== 1 ? 's' : ''} taught ${selectedCourse} (fallback data)`;
                                         document.getElementById('professorHelp').textContent = `${professorData.length} professor${professorData.length !== 1 ? 's' : ''} available from course data`;
+                                        document.getElementById('professorSemesterInfo').textContent = '';
                                         console.log(`✅ Fallback: Found ${professorData.length} professors for ${selectedCourse}`);
                                     } else {
                                         professorData = [];
                                         professorInput.placeholder = 'No professors found - enter manually';
                                         document.getElementById('professorHelp').textContent = 'No professors found - you can type any name';
+                                        document.getElementById('professorSemesterInfo').textContent = '';
                                     }
-                            } else {
+                                } else {
                                     // No fallback data available
                                     professorData = [];
-                                professorInput.placeholder = 'Enter professor name';
+                                    professorInput.placeholder = 'Enter professor name';
                                     document.getElementById('professorHelp').textContent = 'Search unavailable - please enter professor name manually';
+                                    document.getElementById('professorSemesterInfo').textContent = '';
                                 }
+                            }
+                        }
+                        
+                        // Update professor semester info banner
+                        function updateProfessorSemesterInfo(professors) {
+                            const semesterInfoEl = document.getElementById('professorSemesterInfo');
+                            
+                            if (!professors || professors.length === 0) {
+                                semesterInfoEl.textContent = '';
+                                return;
+                            }
+                            
+                            // Collect all unique semesters/years
+                            const allSemesters = new Set();
+                            professors.forEach(prof => {
+                                if (prof.semesters && prof.semesters.length > 0) {
+                                    prof.semesters.forEach(sem => {
+                                        allSemesters.add(`${sem.semester} ${sem.year}`);
+                                    });
+                                }
+                            });
+                            
+                            if (allSemesters.size > 0) {
+                                const semesterList = Array.from(allSemesters).sort().join(', ');
+                                semesterInfoEl.textContent = `📅 Available semesters: ${semesterList}`;
+                                semesterInfoEl.style.color = '#6B7280';
+                                semesterInfoEl.style.fontSize = '0.875rem';
+                                semesterInfoEl.style.marginTop = '4px';
+                            } else {
+                                semesterInfoEl.textContent = '';
                             }
                         }
 
@@ -3257,6 +3311,22 @@
 
                             // Only call updateProfessorList - it will fetch from UMD.io professors API
                             await updateProfessorList();
+                        });
+
+                        // Trigger professor fetch when semester changes
+                        document.getElementById('semester').addEventListener('change', async function () {
+                            const selectedCourse = classCodeInput.value.trim();
+                            if (selectedCourse) {
+                                await updateProfessorList();
+                            }
+                        });
+
+                        // Trigger professor fetch when year changes
+                        document.getElementById('year').addEventListener('change', async function () {
+                            const selectedCourse = classCodeInput.value.trim();
+                            if (selectedCourse) {
+                                await updateProfessorList();
+                            }
                         });
 
                         // Helper: Reset dropdowns to show all options
