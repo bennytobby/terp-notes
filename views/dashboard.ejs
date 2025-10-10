@@ -3395,29 +3395,23 @@
                             }
                         }
 
-                        // Trigger professor fetch when course changes
-                        classCodeInput.addEventListener('change', async function () {
+                        // Filter professors locally when course/semester/year changes (no API calls)
+                        classCodeInput.addEventListener('change', function () {
                             // Skip if we're selecting from dropdown
                             if (isSelectingFromDropdown) return;
-
-                            // Only call updateProfessorList - it will fetch from UMD.io professors API
-                            await updateProfessorList();
+                            
+                            // Just update the UI display, no API calls needed
+                            updateProfessorDisplay();
                         });
 
-                        // Trigger professor fetch when semester changes
-                        document.getElementById('semester').addEventListener('change', async function () {
-                            const selectedCourse = classCodeInput.value.trim();
-                            if (selectedCourse) {
-                                await updateProfessorList();
-                            }
+                        // Filter professors locally when semester changes
+                        document.getElementById('semester').addEventListener('change', function () {
+                            updateProfessorDisplay();
                         });
 
-                        // Trigger professor fetch when year changes
-                        document.getElementById('year').addEventListener('change', async function () {
-                            const selectedCourse = classCodeInput.value.trim();
-                            if (selectedCourse) {
-                                await updateProfessorList();
-                            }
+                        // Filter professors locally when year changes
+                        document.getElementById('year').addEventListener('change', function () {
+                            updateProfessorDisplay();
                         });
 
                         // Load all professors on page load for local filtering (like courses)
@@ -3426,36 +3420,53 @@
                             await loadAllProfessors();
                         }, 100);
 
+                        // Update professor display based on current filters (local filtering only)
+                        function updateProfessorDisplay() {
+                            const selectedCourse = classCodeInput.value.trim();
+                            const selectedSemester = document.getElementById('semester').value;
+                            const selectedYear = document.getElementById('year').value;
+                            
+                            console.log(`🔍 [updateProfessorDisplay] Course: "${selectedCourse}", Semester: "${selectedSemester}", Year: "${selectedYear}"`);
+                            
+                            // For now, just show all professors and let user type to filter
+                            // The semester/year filtering can be done in the dropdown display
+                            professorInput.placeholder = `${professorData.length} professors available - type to search`;
+                            document.getElementById('professorHelp').textContent = `${professorData.length} professors available - type to search`;
+                            document.getElementById('professorSemesterInfo').textContent = '';
+                            
+                            console.log(`🔍 [updateProfessorDisplay] Showing all ${professorData.length} professors for typing/searching`);
+                        }
+
                         // Load all professors for local filtering (like courses work)
                         async function loadAllProfessors() {
                             try {
                                 console.log(`🔍 [loadAllProfessors] Fetching all professors...`);
-                                
+
                                 // Fetch all professors from UMD.io (no filters)
                                 const response = await fetch(`/api/umd/professors`);
                                 console.log(`🔍 [loadAllProfessors] API response status: ${response.status}`);
-                                
+
                                 if (!response.ok) {
                                     throw new Error(`API returned ${response.status}`);
                                 }
-                                
+
                                 const professors = await response.json();
                                 console.log(`🔍 [loadAllProfessors] API returned ${professors.length} professors`);
-                                
+
                                 if (Array.isArray(professors) && professors.length > 0) {
                                     // Store all professors for local filtering
                                     professorData = professors.filter(prof => prof.name && prof.name.trim());
-                                    
+
                                     // Update UI
                                     professorInput.placeholder = `${professorData.length} professors available - type to search`;
                                     document.getElementById('professorHelp').textContent = `${professorData.length} professors available - type to search`;
-                                    
+
                                     console.log(`✅ [loadAllProfessors] Loaded ${professorData.length} professors for local filtering`);
                                 } else {
                                     console.log(`⚠️ [loadAllProfessors] No professors found`);
                                     professorData = [];
                                 }
-                                
+
                             } catch (error) {
                                 console.error('❌ [loadAllProfessors] Error:', error);
                                 professorData = [];
