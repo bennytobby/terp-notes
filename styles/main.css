@@ -357,6 +357,19 @@ main {
   font-weight: var(--font-weight-bold);
 }
 
+.button.download {
+  background: linear-gradient(135deg, #10B981, #059669);
+  color: white;
+}
+
+.button.download:hover {
+  background: linear-gradient(135deg, #059669, #047857);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-lg);
+  text-decoration: none;
+  color: white;
+}
+
 .button.gold:hover {
   background: linear-gradient(135deg, var(--gold-600), var(--gold-500));
   transform: translateY(-1px);

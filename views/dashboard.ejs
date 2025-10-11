@@ -455,18 +455,18 @@
 
                                                 <div class="file-actions">
                                                     <a href="/download/<%= encodeURIComponent(file.filename) %>"
-                                                        class="button primary" target="_blank">Download</a>
+                                                        class="button download" target="_blank">Download</a>
                                                     <% if (user.role==='viewer' ) { %>
-                                                            <button class="button primary disabled"
+                                                            <button class="button danger disabled"
                                                             onclick="showViewerAlert(); return false;"
                                                             title="View-only mode">Delete</button>
                                                         <% } else if (user.role==='admin' ||
                                                             file.uploadedBy===user.userid) { %>
                                                             <a href="/delete/<%= encodeURIComponent(file.filename) %>"
-                                                                class="button primary"
+                                                                class="button danger"
                                                                 onclick="return confirm('Are you sure you want to delete this file?')">Delete</a>
                                                             <% } else { %>
-                                                                <button class="button primary disabled" disabled
+                                                                <button class="button danger disabled" disabled
                                                                     title="You can only delete your own files">Delete</button>
                                                                 <% } %>
                                                                     <button class="button secondary small report-btn"
@@ -1532,7 +1532,7 @@
                                 </div>
                                 <div class="file-list-downloads" title="${downloadCount} downloads">${downloadCount}</div>
                                 <div class="file-list-actions">
-                                    <a href="${downloadLink}" class="button primary" target="_blank" style="font-size: 0.8rem; padding: 0.4rem 0.8rem;">Download</a>
+                                    <a href="${downloadLink}" class="button download" target="_blank" style="font-size: 0.8rem; padding: 0.4rem 0.8rem;">Download</a>
                                     ${getDeleteButton(file)}
                                     <button class="button secondary small report-btn" data-filename="${filename}" data-original-name="${originalName}" style="font-size: 0.8rem; padding: 0.4rem 0.8rem;">🚩</button>
                                 </div>
@@ -1588,7 +1588,7 @@
                         <div class="file-meta-item"><strong>Size:</strong> ${(file.size / 1024).toFixed(1)} KB</div>
                     </div>
                     <div class="file-actions" style="display: flex; gap: 0.5rem; flex-wrap: wrap; justify-content: center;">
-                        <a href="/download/${encodeURIComponent(file.filename)}" class="button primary" target="_blank">Download</a>
+                        <a href="/download/${encodeURIComponent(file.filename)}" class="button download" target="_blank">Download</a>
                         ${getDeleteButton(file)}
                         <button class="button secondary small report-btn" data-filename="${file.filename}" data-original-name="${escapeHtml(file.originalName)}">🚩 Report</button>
                     </div>
@@ -2486,7 +2486,7 @@
                         <div class="file-meta-item"><strong>Size:</strong> ${(file.size / 1024).toFixed(1)} KB</div>
                     </div>
                     <div class="file-actions" style="display: flex; gap: 0.5rem; flex-wrap: wrap; justify-content: center;">
-                        <a href="/download/${encodeURIComponent(file.filename)}" class="button primary" target="_blank">Download</a>
+                        <a href="/download/${encodeURIComponent(file.filename)}" class="button download" target="_blank">Download</a>
                         ${getDeleteButton(file)}
                         <button class="button secondary small report-btn" data-filename="${file.filename}" data-original-name="${escapeHtml(file.originalName)}">🚩 Report</button>
                     </div>
@@ -2528,11 +2528,11 @@
                     const userId = '<%= user.userid %>';
 
                     if (userRole === 'viewer') {
-                        return `<button class="button primary disabled" onclick="showViewerAlert(); return false;" title="View-only mode" style="font-size: 0.8rem; padding: 0.4rem 0.8rem;">Delete</button>`;
+                        return `<button class="button danger disabled" onclick="showViewerAlert(); return false;" title="View-only mode" style="font-size: 0.8rem; padding: 0.4rem 0.8rem;">Delete</button>`;
                     } else if (userRole === 'admin' || file.uploadedBy === userId) {
-                        return `<a href="/delete/${encodeURIComponent(file.filename)}" class="button primary" onclick="return confirm('Are you sure you want to delete this file?')" style="font-size: 0.8rem; padding: 0.4rem 0.8rem;">Delete</a>`;
+                        return `<a href="/delete/${encodeURIComponent(file.filename)}" class="button danger" onclick="return confirm('Are you sure you want to delete this file?')" style="font-size: 0.8rem; padding: 0.4rem 0.8rem;">Delete</a>`;
                     } else {
-                        return `<button class="button primary disabled" disabled title="You can only delete your own files" style="font-size: 0.8rem; padding: 0.4rem 0.8rem;">Delete</button>`;
+                        return `<button class="button danger disabled" disabled title="You can only delete your own files" style="font-size: 0.8rem; padding: 0.4rem 0.8rem;">Delete</button>`;
                     }
                 }
 
