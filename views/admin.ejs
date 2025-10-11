@@ -171,7 +171,7 @@
                                 </div>
                                 <input type="hidden" id="announcementType" value="info" required>
                             </div>
-                            <button type="submit" class="button primary" style="margin-top: 1rem;">
+                            <button type="submit" id="createAnnouncementBtn" class="button info" style="margin-top: 1rem;">
                                 Create Announcement
                             </button>
                         </form>
@@ -559,6 +559,15 @@
                     const radio = this.previousElementSibling;
                     if (radio && radio.type === 'radio') {
                         radio.checked = true;
+                    }
+
+                    // Update button color based on announcement type
+                    const createBtn = document.getElementById('createAnnouncementBtn');
+                    if (createBtn) {
+                        // Remove all type classes
+                        createBtn.classList.remove('info', 'warning', 'success');
+                        // Add the appropriate class based on type
+                        createBtn.classList.add(type);
                     }
                 });
             });

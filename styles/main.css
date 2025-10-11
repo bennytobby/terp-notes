@@ -316,12 +316,12 @@ main {
 }
 
 .button.primary {
-  background: linear-gradient(135deg, var(--umd-red), var(--red-700));
+  background: linear-gradient(135deg, #3B82F6, #2563EB);
   color: white;
 }
 
 .button.primary:hover {
-  background: linear-gradient(135deg, var(--red-700), var(--red-800));
+  background: linear-gradient(135deg, #2563EB, #1D4ED8);
   transform: translateY(-1px);
   box-shadow: var(--shadow-lg);
   text-decoration: none;
@@ -354,6 +354,45 @@ main {
 }
 
 .button.download:hover {
+  background: linear-gradient(135deg, #059669, #047857);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-lg);
+  text-decoration: none;
+  color: white;
+}
+
+.button.info {
+  background: linear-gradient(135deg, #3B82F6, #2563EB);
+  color: white;
+}
+
+.button.info:hover {
+  background: linear-gradient(135deg, #2563EB, #1D4ED8);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-lg);
+  text-decoration: none;
+  color: white;
+}
+
+.button.warning {
+  background: linear-gradient(135deg, #F59E0B, #D97706);
+  color: white;
+}
+
+.button.warning:hover {
+  background: linear-gradient(135deg, #D97706, #B45309);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-lg);
+  text-decoration: none;
+  color: white;
+}
+
+.button.success {
+  background: linear-gradient(135deg, #10B981, #059669);
+  color: white;
+}
+
+.button.success:hover {
   background: linear-gradient(135deg, #059669, #047857);
   transform: translateY(-1px);
   box-shadow: var(--shadow-lg);
