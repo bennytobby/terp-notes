@@ -341,15 +341,6 @@ main {
   text-decoration: none;
 }
 
-.button.danger {
-  background: linear-gradient(135deg, var(--red-600), var(--red-700));
-  color: white;
-}
-
-.button.danger:hover {
-  background: linear-gradient(135deg, var(--red-700), var(--red-800));
-  transform: translateY(-1px);
-}
 
 .button.gold {
   background: linear-gradient(135deg, var(--umd-gold), var(--gold-600));
@@ -1447,6 +1438,10 @@ input[type="reset"] {
   grid-template-columns: repeat(4, 1fr);
   gap: var(--space-6);
   margin-bottom: var(--space-8);
+  background: var(--color-background);
+  border-radius: var(--radius-2xl);
+  padding: var(--space-6);
+  border: 2px solid var(--umd-gold);
 }
 
 @media (max-width: 1024px) {
@@ -2115,19 +2110,6 @@ button:disabled {
 }
 
 /* Report action buttons - color coded */
-.report-delete-btn {
-  background: #DC2626 !important;
-  color: white !important;
-  border: none;
-  padding: 0.5rem 1rem;
-  font-size: 0.875rem;
-  font-weight: 600;
-  transition: background 0.2s;
-}
-
-.report-delete-btn:hover {
-  background: #B91C1C !important;
-}
 
 .report-dismiss-btn {
   background: #10B981 !important;
