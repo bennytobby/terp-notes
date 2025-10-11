@@ -102,52 +102,52 @@
                                         <label class="multi-select-option">
                                             <input type="checkbox" value="Exam"
                                                 onchange="updateMultiSelect('category')">
-                                            <span>Exam</span>
+                                            <span>📝 Exam</span>
                                         </label>
                                         <label class="multi-select-option">
                                             <input type="checkbox" value="Lecture Notes"
                                                 onchange="updateMultiSelect('category')">
-                                            <span>Lecture Notes</span>
+                                            <span>📚 Lecture Notes</span>
                                         </label>
                                         <label class="multi-select-option">
                                             <input type="checkbox" value="Homework"
                                                 onchange="updateMultiSelect('category')">
-                                            <span>Homework</span>
+                                            <span>✏️ Homework</span>
                                         </label>
                                         <label class="multi-select-option">
                                             <input type="checkbox" value="Study Guide"
                                                 onchange="updateMultiSelect('category')">
-                                            <span>Study Guide</span>
+                                            <span>📖 Study Guide</span>
                                         </label>
                                         <label class="multi-select-option">
                                             <input type="checkbox" value="Cheat Sheet"
                                                 onchange="updateMultiSelect('category')">
-                                            <span>Cheat Sheet</span>
+                                            <span>🗒️ Cheat Sheet</span>
                                         </label>
                                         <label class="multi-select-option">
                                             <input type="checkbox" value="Project"
                                                 onchange="updateMultiSelect('category')">
-                                            <span>Project</span>
+                                            <span>💻 Project</span>
                                         </label>
                                         <label class="multi-select-option">
                                             <input type="checkbox" value="Lab"
                                                 onchange="updateMultiSelect('category')">
-                                            <span>Lab</span>
+                                            <span>🧪 Lab</span>
                                         </label>
                                         <label class="multi-select-option">
                                             <input type="checkbox" value="Textbook"
                                                 onchange="updateMultiSelect('category')">
-                                            <span>Textbook</span>
+                                            <span>📕 Textbook</span>
                                         </label>
                                         <label class="multi-select-option">
                                             <input type="checkbox" value="Practice Problems"
                                                 onchange="updateMultiSelect('category')">
-                                            <span>Practice Problems</span>
+                                            <span>🔢 Practice Problems</span>
                                         </label>
                                         <label class="multi-select-option">
                                             <input type="checkbox" value="Other"
                                                 onchange="updateMultiSelect('category')">
-                                            <span>Other</span>
+                                            <span>📎 Other</span>
                                         </label>
                                     </div>
                                 </div>
@@ -205,7 +205,7 @@
                                                 <input type="checkbox" value="<%= major %>"
                                                     onchange="updateMultiSelect('major')">
                                                 <span>
-                                                    <img src="/images/icons/folder.png" alt="Folder" style="width: 40px; height: 40px; vertical-align: middle; margin-right: 10px;" /><%= major %>
+                                                    <%= major %>
                                                 </span>
                                             </label>
                                             <% }); %>
@@ -328,7 +328,7 @@
                                                             <%= fileIcon %>
                                                         </div>
                                                         <div class="file-info">
-                                                            <h3 style="margin: 0 0 0.5rem 0; font-size: 1rem;">
+                                                            <h3 style="margin: 0 0 0.1rem 0; font-size: 1rem;">
                                                                 <%= file.originalName %>
                                                             </h3>
                                                             <div
@@ -620,16 +620,16 @@
                                                     class="required">*</span></label>
                                             <select name="category" id="category" required class="form-input">
                                                 <option value="">Select category</option>
-                                                <option value="Exam">Exam</option>
-                                                <option value="Lecture Notes">Lecture Notes</option>
-                                                <option value="Homework">Homework</option>
-                                                <option value="Study Guide">Study Guide</option>
-                                                <option value="Cheat Sheet">Cheat Sheet</option>
-                                                <option value="Project">Project</option>
-                                                <option value="Lab">Lab</option>
-                                                <option value="Textbook">Textbook</option>
-                                                <option value="Practice Problems">Practice Problems</option>
-                                                <option value="Other">Other</option>
+                                                <option value="Exam">📝 Exam</option>
+                                                <option value="Lecture Notes">📚 Lecture Notes</option>
+                                                <option value="Homework">✏️ Homework</option>
+                                                <option value="Study Guide">📖 Study Guide</option>
+                                                <option value="Cheat Sheet">🗒️ Cheat Sheet</option>
+                                                <option value="Project">💻 Project</option>
+                                                <option value="Lab">🧪 Lab</option>
+                                                <option value="Textbook">📕 Textbook</option>
+                                                <option value="Practice Problems">🔢 Practice Problems</option>
+                                                <option value="Other">📎 Other</option>
                                             </select>
                                             <small class="form-help">
                                                 Help others find your notes by categorizing them
@@ -1198,16 +1198,16 @@
 
                     // Category icon mapping
                     const categoryIcons = {
-                        'exam': '',
-                        'lecture notes': '',
-                        'homework': '',
-                        'study guide': '',
-                        'cheat sheet': '',
-                        'project': '',
-                        'lab': '',
-                        'textbook': '',
-                        'practice problems': '',
-                        'other': ''
+                        'exam': '📝',
+                        'lecture notes': '📚',
+                        'homework': '✏️',
+                        'study guide': '📖',
+                        'cheat sheet': '🗒️',
+                        'project': '💻',
+                        'lab': '🧪',
+                        'textbook': '📕',
+                        'practice problems': '🔢',
+                        'other': '📎'
                     };
 
                     // Generate HTML
@@ -1309,7 +1309,7 @@
 
                                 Object.keys(categories).sort().forEach(function (category) {
                                     const files = categories[category];
-                                    const categoryIcon = categoryIcons[category] || '';
+                                    const categoryIcon = categoryIcons[category.toLowerCase()] || categoryIcons[category] || '';
                                     const categoryLabel = category.split(' ').map(function (word) { return word.charAt(0).toUpperCase() + word.slice(1); }).join(' ');
 
                                     html += `
@@ -1522,10 +1522,12 @@
                                         ${semester && year ? `<span><strong>Term:</strong> ${semester} ${year}</span>` : ''}
                                         <span><strong>Uploaded by:</strong> ${uploader}</span>
                                     </div>
-                                    <div class="file-list-tags">
-                                        ${major ? `<span style="background: #E0E7FF; color: #4338CA; padding: 2px 8px; border-radius: 4px; font-size: 0.7rem; font-weight: 600;"><img src="/images/icons/folder.png" alt="Folder" style="width: 16px; height: 16px; vertical-align: middle; margin-right: 6px;" /> ${major}</span>` : ''}
-                                        ${classCode ? `<span style="background: #FEF2F2; color: #DC2626; padding: 2px 8px; border-radius: 4px; font-size: 0.7rem; font-weight: 600;"><img src="/images/icons/briefcase.png" alt="Course" style="width: 16px; height: 16px; vertical-align: middle; margin-right: 6px;" /> ${classCode}</span>` : ''}
-                                        ${isNew ? `<span style="background: #D1FAE5; color: #065F46; padding: 2px 8px; border-radius: 4px; font-size: 0.7rem; font-weight: 600;"><img src="/images/icons/new-badge.png" alt="New" style="width: 16px; height: 16px; vertical-align: middle; margin-right: 6px;" /> New</span>` : ''}
+                                    <div class="file-list-tags" style="display: flex; flex-wrap: wrap; gap: 0.3rem; margin-top: 0.3rem;">
+                                        ${isNew ? `<span style="background: #D1FAE5; color: #065F46; padding: 2px 6px; border-radius: 4px; font-size: 0.7rem; font-weight: 600;"><img src="/images/icons/new-badge.png" alt="New" style="width: 16px; height: 16px; vertical-align: middle; margin-right: 4px;" /> New</span>` : ''}
+                                        ${file.virusScanStatus ? `<span style="background: #DCFCE7; color: #166534; padding: 2px 6px; border-radius: 4px; font-size: 0.7rem; font-weight: 600;"><img src="/images/icons/security-shield-check.png" alt="Security" style="width: 16px; height: 16px; vertical-align: middle; margin-right: 4px;" /> Scanned</span>` : ''}
+                                        ${file.category ? `<span style="background: #E0E7FF; color: #4338CA; padding: 2px 6px; border-radius: 4px; font-size: 0.7rem; font-weight: 600;">${getCategoryEmoji(file.category)} ${escapeHtml(file.category)}</span>` : ''}
+                                        ${major ? `<span style="background: #E0E7FF; color: #4338CA; padding: 2px 6px; border-radius: 4px; font-size: 0.7rem; font-weight: 600;"><img src="/images/icons/folder.png" alt="Folder" style="width: 16px; height: 16px; vertical-align: middle; margin-right: 4px;" /> ${major}</span>` : ''}
+                                        ${classCode ? `<span style="background: #FEF2F2; color: #DC2626; padding: 2px 6px; border-radius: 4px; font-size: 0.7rem; font-weight: 600;"><img src="/images/icons/briefcase.png" alt="Course" style="width: 16px; height: 16px; vertical-align: middle; margin-right: 4px;" /> ${classCode}</span>` : ''}
                                     </div>
                                 </div>
                                 <div class="file-list-downloads" title="${downloadCount} downloads">${downloadCount}</div>
@@ -1541,60 +1543,56 @@
                     listView.innerHTML = html;
                 }
 
-                // Create a grouped file card from file data
+                // Create a grouped file card from file data (using grid view structure)
                 function createGroupedFileCard(file) {
-                    const fileName = file.originalName;
-                    const major = file.major || '';
-                    const classCode = file.classCode || '';
-                    const semester = file.semester || '';
-                    const year = file.year || '';
-                    const professor = file.professor || '';
-                    const uploader = file.uploadedBy || '';
-
-                    // Format file size
-                    const size = file.size ? (file.size / 1024).toFixed(1) + ' KB' : '';
-                    const description = file.description || '';
-                    const virusScanBadge = file.virusScanStatus === 'clean' ? '<div class="scan-badge" style="background: #D1FAE5; color: #065F46; padding: 2px 8px; border-radius: 4px; font-size: 0.7rem; font-weight: 600; display: inline-block; margin-bottom: 0.5rem;"><img src="/images/icons/security-shield-check.png" alt="Security" style="width: 24px; height: 24px; vertical-align: middle; margin-right: 6px;" />VIRUS SCANNED</div>' : '';
-
-                    // Create download and delete links
-                    const downloadLink = `/download/${file.filename}`;
-                    const filename = file.filename || '';
-                    const originalName = file.originalName || fileName;
-
-                    // Get file icon and download count
-                    const fileIcon = getFileIcon(file.originalName);
-                    const downloadCount = file.downloadCount || 0;
-
-                    // Check if file is "new" (within 7 days)
+                    // Calculate if file is "new" (within 7 days)
                     const uploadDate = new Date(file.uploadDate);
                     const now = new Date();
                     const daysAgo = Math.floor((now - uploadDate) / (1000 * 60 * 60 * 24));
                     const isNew = daysAgo <= 7;
 
                     return `
-                        <div class="grouped-file-card" style="position: relative;">
-                            <div style="position: absolute; top: 0.5rem; right: 0.5rem; background: #FEF3C7; color: #92400E; padding: 2px 6px; border-radius: 4px; font-size: 0.7rem; font-weight: 600; cursor: help;" title="${downloadCount} downloads">
-                                ${downloadCount}
-                            </div>
-                            <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.75rem;">
-                                <div style="font-size: 2rem;">${fileIcon}</div>
-                                <h4 style="margin: 0; font-size: 0.95rem; font-weight: 600; color: #1F2937;">${fileName}</h4>
-                            </div>
-                            ${virusScanBadge ? `<div style="margin-bottom: 0.5rem;">${virusScanBadge}</div>` : ''}
-                            <div style="font-size: 0.8rem; color: #6B7280; line-height: 1.6;">
-                                ${isNew ? `<div><span style="background: #D1FAE5; color: #065F46; padding: 2px 8px; border-radius: 4px; font-size: 0.7rem; font-weight: 600;"><img src="/images/icons/new-badge.png" alt="New" style="width: 24px; height: 24px; vertical-align: middle; margin-right: 6px;" /> New</span></div>` : ''}
-                                ${size ? `<div><strong>Size:</strong> ${size}</div>` : ''}
-                                ${professor ? `<div><strong>Professor:</strong> ${professor}</div>` : ''}
-                                ${semester && year ? `<div><strong>Term:</strong> ${semester} ${year}</div>` : ''}
-                                <div><strong>Uploaded by:</strong> ${uploader}</div>
-                                ${description ? `<div style="margin-top: 0.5rem;"><strong>Description:</strong> ${description}</div>` : ''}
-                            </div>
-                            <div style="display: flex; gap: 0.5rem; margin-top: 0.75rem;">
-                                <a href="${downloadLink}" class="button primary" target="_blank" style="flex: 1; text-align: center; font-size: 0.85rem; padding: 0.5rem;">Download</a>
-                                ${getDeleteButton(file)}
-                                <button class="button secondary small report-btn" data-filename="${filename}" data-original-name="${originalName}" style="font-size: 0.85rem; padding: 0.5rem;">🚩</button>
-                            </div>
+                <div class="file-card animate-fade-in"
+                     data-class="${escapeHtml(file.classCode || '')}"
+                     data-major="${escapeHtml(file.major || '')}"
+                     data-semester="${escapeHtml(file.semester || '')}"
+                     data-year="${escapeHtml(file.year || '')}"
+                     data-category="${escapeHtml((file.category || '').toLowerCase())}"
+                     data-professor="${escapeHtml((file.professor || '').toLowerCase())}"
+                     data-uploader="${escapeHtml(file.uploadedBy)}"
+                     data-name="${escapeHtml(file.originalName.toLowerCase())}"
+                     data-date="${new Date(file.uploadDate).getTime()}"
+                     data-downloads="${file.downloadCount || 0}"
+                     data-size="${file.size || 0}">
+                    <div class="file-header" style="position: relative; display: flex; align-items: center; justify-content: center; gap: 0.75rem; margin-bottom: 1rem;">
+                        <div style="position: absolute; top: 0.5rem; right: 0.5rem; background: #FEF3C7; color: #92400E; padding: 2px 6px; border-radius: 4px; font-size: 0.7rem; font-weight: 600; cursor: help; z-index: 10;" title="${file.downloadCount || 0} downloads">
+                            ${file.downloadCount || 0}
                         </div>
+                        <div class="file-icon">${getFileIcon(file.originalName)}</div>
+                        <div class="file-info">
+                            <h3 style="margin: 0 0 0.1rem 0; font-size: 1rem;">${escapeHtml(file.originalName)}</h3>
+                        </div>
+                    </div>
+                    <div class="file-meta" style="margin-top: 0.1rem;">
+                        <div class="tags-section" style="display: flex; flex-wrap: wrap; gap: 0.3rem; margin-bottom: 0.5rem;">
+                            ${isNew ? `<span style="background: #D1FAE5; color: #065F46; padding: 2px 6px; border-radius: 4px; font-size: 0.7rem; font-weight: 600;"><img src="/images/icons/new-badge.png" alt="New" style="width: 16px; height: 16px; vertical-align: middle; margin-right: 4px;" /> New</span>` : ''}
+                            ${file.virusScanStatus ? `<span style="background: #DCFCE7; color: #166534; padding: 2px 6px; border-radius: 4px; font-size: 0.7rem; font-weight: 600;"><img src="/images/icons/security-shield-check.png" alt="Security" style="width: 16px; height: 16px; vertical-align: middle; margin-right: 4px;" /> Scanned</span>` : ''}
+                            ${file.category ? `<span style="background: #E0E7FF; color: #4338CA; padding: 2px 6px; border-radius: 4px; font-size: 0.7rem; font-weight: 600;">${getCategoryEmoji(file.category)} ${escapeHtml(file.category)}</span>` : ''}
+                        </div>
+                        ${file.major ? `<div class="file-meta-item"><strong>Major:</strong> <span class="major-badge">${escapeHtml(file.major)}</span></div>` : ''}
+                        ${file.classCode ? `<div class="file-meta-item"><strong>Class:</strong> <span class="class-code-badge">${escapeHtml(file.classCode)}</span></div>` : ''}
+                        ${file.professor ? `<div class="file-meta-item"><strong>Professor:</strong> ${escapeHtml(file.professor)}</div>` : ''}
+                        ${file.semester && file.year ? `<div class="file-meta-item"><strong>Term:</strong> ${file.semester} ${file.year}</div>` : ''}
+                        <div class="file-meta-item"><strong>Uploaded by:</strong> ${escapeHtml(file.uploadedBy)}</div>
+                        ${file.description ? `<div class="file-meta-item"><strong>Description:</strong> ${escapeHtml(file.description)}</div>` : ''}
+                        <div class="file-meta-item"><strong>Size:</strong> ${(file.size / 1024).toFixed(1)} KB</div>
+                    </div>
+                    <div class="file-actions" style="display: flex; gap: 0.5rem; flex-wrap: wrap; justify-content: center;">
+                        <a href="/download/${encodeURIComponent(file.filename)}" class="button primary" target="_blank">Download</a>
+                        ${getDeleteButton(file)}
+                        <button class="button secondary small report-btn" data-filename="${file.filename}" data-original-name="${escapeHtml(file.originalName)}">🚩 Report</button>
+                    </div>
+                </div>
                     `;
                 }
 
@@ -2122,7 +2120,7 @@
 
                     // Get selected majors
                     const selectedMajors = Array.from(document.querySelectorAll('#majorDropdown input[type="checkbox"]:checked'))
-                        .map(cb => ({ type: 'major', value: cb.value, label: `<img src="/images/icons/folder.png" alt="Folder" style="width: 40px; height: 40px; vertical-align: middle; margin-right: 10px;" /> ${cb.value}` }));
+                        .map(cb => ({ type: 'major', value: cb.value, label: cb.value }));
                     tags.push(...selectedMajors);
 
                     // Get selected classes
@@ -2369,7 +2367,7 @@
 
                     // Get selected majors
                     const selectedMajors = Array.from(document.querySelectorAll('#majorDropdown input[type="checkbox"]:checked'))
-                        .map(cb => ({ type: 'major', value: cb.value, label: `<img src="/images/icons/folder.png" alt="Folder" style="width: 40px; height: 40px; vertical-align: middle; margin-right: 10px;" /> ${cb.value}` }));
+                        .map(cb => ({ type: 'major', value: cb.value, label: cb.value }));
                     tags.push(...selectedMajors);
 
                     // Get selected classes
@@ -2470,15 +2468,17 @@
                         </div>
                         <div class="file-icon">${getFileIcon(file.originalName)}</div>
                         <div class="file-info">
-                            <h3>${escapeHtml(file.originalName)}</h3>
+                            <h3 style="margin: 0 0 0.1rem 0; font-size: 1rem;">${escapeHtml(file.originalName)}</h3>
                         </div>
                     </div>
-                    <div class="file-meta" style="margin-top: 0.25rem;">
-                        ${isNew ? `<div class="file-meta-item"><span style="background: #D1FAE5; color: #065F46; padding: 2px 8px; border-radius: 4px; font-size: 0.7rem; font-weight: 600;"><img src="/images/icons/new-badge.png" alt="New" style="width: 24px; height: 24px; vertical-align: middle; margin-right: 6px;" /> New</span></div>` : ''}
-                        ${file.virusScanStatus ? `<div class="file-meta-item"><strong>Security:</strong> ${getScanBadge(file.virusScanStatus)}</div>` : ''}
+                    <div class="file-meta" style="margin-top: 0.1rem;">
+                        <div class="tags-section" style="display: flex; flex-wrap: wrap; gap: 0.3rem; margin-bottom: 0.5rem;">
+                            ${isNew ? `<span style="background: #D1FAE5; color: #065F46; padding: 2px 6px; border-radius: 4px; font-size: 0.7rem; font-weight: 600;"><img src="/images/icons/new-badge.png" alt="New" style="width: 16px; height: 16px; vertical-align: middle; margin-right: 4px;" /> New</span>` : ''}
+                            ${file.virusScanStatus ? `<span style="background: #DCFCE7; color: #166534; padding: 2px 6px; border-radius: 4px; font-size: 0.7rem; font-weight: 600;"><img src="/images/icons/security-shield-check.png" alt="Security" style="width: 16px; height: 16px; vertical-align: middle; margin-right: 4px;" /> Scanned</span>` : ''}
+                            ${file.category ? `<span style="background: #E0E7FF; color: #4338CA; padding: 2px 6px; border-radius: 4px; font-size: 0.7rem; font-weight: 600;">${getCategoryEmoji(file.category)} ${escapeHtml(file.category)}</span>` : ''}
+                        </div>
                         ${file.major ? `<div class="file-meta-item"><strong>Major:</strong> <span class="major-badge">${escapeHtml(file.major)}</span></div>` : ''}
                         ${file.classCode ? `<div class="file-meta-item"><strong>Class:</strong> <span class="class-code-badge">${escapeHtml(file.classCode)}</span></div>` : ''}
-                        ${file.category ? `<div class="file-meta-item"><strong>Category:</strong> <span class="category-badge">${escapeHtml(file.category)}</span></div>` : ''}
                         ${file.professor ? `<div class="file-meta-item"><strong>Professor:</strong> ${escapeHtml(file.professor)}</div>` : ''}
                         ${file.semester && file.year ? `<div class="file-meta-item"><strong>Term:</strong> ${file.semester} ${file.year}</div>` : ''}
                         <div class="file-meta-item"><strong>Uploaded by:</strong> ${escapeHtml(file.uploadedBy)}</div>
@@ -2505,6 +2505,22 @@
                     const userRole = '<%= user.role %>';
                     const userId = '<%= user.userid %>';
                     return userRole === 'admin' || file.uploadedBy === userId;
+                }
+
+                function getCategoryEmoji(category) {
+                    const categoryEmojis = {
+                        'exam': '📝',
+                        'lecture notes': '📚',
+                        'homework': '✏️',
+                        'study guide': '📖',
+                        'cheat sheet': '🗒️',
+                        'project': '💻',
+                        'lab': '🧪',
+                        'textbook': '📕',
+                        'practice problems': '🔢',
+                        'other': '📎'
+                    };
+                    return categoryEmojis[category.toLowerCase()] || categoryEmojis[category] || '📎';
                 }
 
                 function getDeleteButton(file) {
