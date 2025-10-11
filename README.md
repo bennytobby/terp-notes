@@ -1,4 +1,4 @@
-# 🐢 Terp Notes
+# Terp Notes
 
 > **A free, student-driven platform for sharing class notes, study guides, and academic resources at the University of Maryland.**
 
@@ -12,7 +12,7 @@ I graduated from UMD and remember the struggle: hunting for study materials befo
 
 I built **Terp Notes** to solve this problem—a centralized, searchable repository where Terps help Terps succeed. Whether you need CMSC330 lecture notes, MATH141 practice problems, or HIST156 study guides, it's all here. **Free. Always.**
 
-This platform is **built for students, by a student** (now alum), with zero profit motive. Just Terps helping Terps. 🐢
+This platform is **built for students, by a student** (now alum), with zero profit motive. Just Terps helping Terps.
 
 **Note:** Terp Notes is an independent platform—not affiliated with, endorsed by, or officially connected to the University of Maryland.
 
@@ -197,7 +197,7 @@ Works perfectly on phones, tablets, and desktops
 - Professor-approved materials
 - Past exam study guides (with permission)
 
-### **❌ Prohibited:**
+### **Prohibited:**
 - Current exams or quizzes
 - Graded homework/projects
 - Copyrighted materials without permission

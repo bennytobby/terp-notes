@@ -200,8 +200,16 @@ a:hover {
 }
 
 .topbar h2::before {
-  content: "🐢";
-  font-size: 1.5rem;
+  content: "";
+  display: inline-block;
+  width: 32px;
+  height: 32px;
+  background-image: url('/logo.png');
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+  margin-right: 8px;
+  vertical-align: middle;
 }
 
 .topbar .user-info {
@@ -1564,8 +1572,8 @@ input[type="reset"] {
   font-size: var(--font-size-xs);
   font-weight: var(--font-weight-bold);
   text-align: center;
-  background: var(--umd-gold);
-  color: var(--umd-black);
+  background: var(--umd-red);
+  color: white;
 }
 
 .current-user-badge {

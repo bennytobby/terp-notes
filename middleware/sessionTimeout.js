@@ -62,7 +62,7 @@ function sessionTimeout(req, res, next) {
     // Log remaining time for debugging (only in development)
     if (process.env.NODE_ENV === 'development') {
         const remainingMinutes = Math.floor((TIMEOUT_CONFIG.INACTIVITY_TIMEOUT - inactivityDuration) / 60000);
-        console.log(`⏱️  Session active for ${req.session.user?.userid} - ${remainingMinutes} minutes until timeout`);
+        console.log(`  Session active for ${req.session.user?.userid} - ${remainingMinutes} minutes until timeout`);
     }
 
     next();

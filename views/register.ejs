@@ -7,6 +7,7 @@
     <title>
         <%= title %>
     </title>
+    <link rel="icon" type="image/png" href="/favicon.png" />
     <link rel="stylesheet" href="/styles/main.css" />
 </head>
 
@@ -34,7 +35,7 @@
                     <label for="userid">Username<span class="req">*</span></label>
                     <input type="text" name="userid" id="userid" required placeholder="johndoe" />
                     <div class="username-warning">
-                        <strong>⚠️ Important:</strong> Your username is <strong>permanent</strong> and cannot be changed
+                        <strong><img src="/images/icons/warning-triangle.png" alt="Warning" style="width: 40px; height: 40px; vertical-align: middle; margin-right: 10px;" /> Important:</strong> Your username is <strong>permanent</strong> and cannot be changed
                         later. Choose carefully!
                     </div>
                 </div>
@@ -70,7 +71,7 @@
                 </div>
                 <div class="form-group terms-agreement">
                     <div class="terms-box">
-                        <h4>📋 Legal Agreement</h4>
+                        <h4><img src="/images/icons/document.png" alt="Document" style="width: 36px; height: 36px; vertical-align: middle; margin-right: 10px;" /> Legal Agreement</h4>
                         <p class="terms-text">
                             By creating an account, you must read and accept:
                         </p>
@@ -97,7 +98,7 @@
 
                         <div
                             style="background: #FEF3C7; padding: 1rem; border-radius: 8px; margin-top: 1rem; font-size: 0.875rem; line-height: 1.6; border: 1px solid #F59E0B;">
-                            <strong>⚠️ Quick Summary:</strong>
+                            <strong><img src="/images/icons/info-circle.png" alt="Info" style="width: 40px; height: 40px; vertical-align: middle; margin-right: 10px;" /> Quick Summary:</strong>
                             <ul style="margin: 0.5rem 0 0 1.25rem; padding: 0;">
                                 <li>Educational purposes only</li>
                                 <li>No unauthorized exam/project sharing</li>
@@ -170,15 +171,15 @@
 
                     if (score >= 80) {
                         strengthBar.style.background = '#10B981'; // Green
-                        strengthText.textContent = '💪 Strong password';
+                        strengthText.textContent = 'Strong password';
                         strengthText.style.color = '#10B981';
                     } else if (score >= 50) {
                         strengthBar.style.background = '#F59E0B'; // Yellow
-                        strengthText.textContent = '👍 Medium password';
+                        strengthText.textContent = 'Medium password';
                         strengthText.style.color = '#F59E0B';
                     } else {
                         strengthBar.style.background = '#EF4444'; // Red
-                        strengthText.textContent = '⚠️ Weak password';
+                        strengthText.textContent = 'Weak password';
                         strengthText.style.color = '#EF4444';
                     }
                 } else {
@@ -211,7 +212,7 @@
                     errorDiv.style.color = '#EF4444';
                     errorDiv.style.display = 'block';
                     errorDiv.style.marginTop = '0.5rem';
-                    errorDiv.textContent = '⚠️ Passwords do not match';
+                    errorDiv.textContent = 'Passwords do not match';
                     confirmPasswordInput.parentElement.appendChild(errorDiv);
                     passwordsValid = false;
                 } else if (confirmPassword && password === confirmPassword) {

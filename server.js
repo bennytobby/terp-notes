@@ -45,9 +45,9 @@ const AWS_BUCKET = process.env.AWS_S3_BUCKET;
 const VIRUSTOTAL_API_KEY = process.env.VIRUSTOTAL_API_KEY;
 const VIRUSTOTAL_ENABLED = !!VIRUSTOTAL_API_KEY;
 if (VIRUSTOTAL_ENABLED) {
-    console.log('🛡️ VirusTotal integration enabled');
+    console.log('VirusTotal integration enabled');
 } else {
-    console.log('⚠️ VirusTotal integration disabled (no API key found)');
+    console.log('VirusTotal integration disabled (no API key found)');
 }
 
 /* UMD.io API Configuration */
@@ -117,7 +117,7 @@ async function fetchUMDData(endpoint, cacheKey, cacheDuration = 24 * 60 * 60 * 1
 
 /* Port Configuration */
 const portNumber = process.env.PORT || 3000;
-console.log(`🐢 Terp Notes Server starting on port ${portNumber}`);
+console.log(`Terp Notes Server starting on port ${portNumber}`);
 
 /* Express Setup */
 const express = require("express");
@@ -178,6 +178,7 @@ app.set("view engine", "ejs");
 app.use(express.static(__dirname));
 app.use("/styles", express.static(path.join(__dirname, "styles")));
 app.use("/js", express.static(path.join(__dirname, "public/js")));
+app.use(express.static(path.join(__dirname, "public"))); // Serve logo, favicon, etc.
 
 /* Session Handling - JWT-based */
 const session = require("express-session");
@@ -300,25 +301,25 @@ app.get('/api/umd/professors', async (req, res) => {
 
         } else if (name) {
             // Search professors by name - use the existing UMD.io API
-            console.log(`🔍 [PROF API] Name search for: ${name}`);
+            console.log(`[PROF API] Name search for: ${name}`);
             try {
                 const professors = await fetchUMDData(`/professors?name=${name}`, `professors_name_${name}`);
 
                 if (professors && professors.length > 0) {
                     const result = professors.map(p => ({ name: p.name, semesters: [] })).filter(p => p.name && p.name.trim());
-                    console.log(`✅ [PROF API] Found ${result.length} professors matching "${name}"`);
+                    console.log(`[PROF API] Found ${result.length} professors matching "${name}"`);
                     return res.json(result);
                 } else {
-                    console.log(`⚠️ [PROF API] No professors found for "${name}"`);
+                    console.log(`[PROF API] No professors found for "${name}"`);
                     return res.json([]);
                 }
             } catch (error) {
-                console.log(`⚠️ [PROF API] Name search failed: ${error.message}`);
+                console.log(`[PROF API] Name search failed: ${error.message}`);
                 return res.json([]);
             }
         } else {
             // No specific search - return all professors from recent semesters
-            console.log(`🔍 [PROF API] No specific search - fetching all professors from recent semesters`);
+            console.log(`[PROF API] No specific search - fetching all professors from recent semesters`);
 
             // Fetch professors from last 2 years (current and previous year)
             const currentYear = new Date().getFullYear();
@@ -329,7 +330,7 @@ app.get('/api/umd/professors', async (req, res) => {
                 semestersToCheck.push(`${year}01`, `${year}05`, `${year}08`, `${year}12`);
             }
 
-            console.log(`🔍 [PROF API] Fetching professors from ${semestersToCheck.length} recent semesters`);
+            console.log(`[PROF API] Fetching professors from ${semestersToCheck.length} recent semesters`);
 
             // Fetch professor data for recent semesters
             const professorData = new Map(); // name -> {name, semesters: [{semester, year, semesterId}]}
@@ -376,18 +377,18 @@ app.get('/api/umd/professors', async (req, res) => {
                         }
                     }
                 } catch (error) {
-                    console.log(`⚠️ [PROF API] Error fetching semester ${semesterId}: ${error.message}`);
+                    console.log(`[PROF API] Error fetching semester ${semesterId}: ${error.message}`);
                 }
             }
 
             // Convert Map to array and sort by name
             const result = Array.from(professorData.values()).sort((a, b) => a.name.localeCompare(b.name));
 
-            console.log(`✅ [PROF API] Found ${result.length} professors from recent semesters`);
+            console.log(`[PROF API] Found ${result.length} professors from recent semesters`);
             return res.json(result);
         }
     } catch (error) {
-        console.error('❌ [PROF API] Error:', error);
+        console.error('[PROF API] Error:', error);
         res.status(500).json({ error: 'Failed to fetch professors' });
     }
 });
@@ -396,7 +397,7 @@ app.get('/api/umd/professors', async (req, res) => {
 app.get('/api/umd/professor-courses', async (req, res) => {
     try {
         const { professor_name, filter_semester, filter_year } = req.query;
-        console.log(`🔍 [PROF-COURSES API] Request - professor: ${professor_name}, semester: ${filter_semester}, year: ${filter_year}`);
+        console.log(`[PROF-COURSES API] Request - professor: ${professor_name}, semester: ${filter_semester}, year: ${filter_year}`);
 
         if (!professor_name || !professor_name.trim()) {
             return res.json([]);
@@ -412,7 +413,7 @@ app.get('/api/umd/professor-courses', async (req, res) => {
             const semesterMap = { 'Spring': '01', 'Summer': '05', 'Fall': '08', 'Winter': '12' };
             const semesterId = `${filter_year}${semesterMap[filter_semester] || '01'}`;
             semestersToCheck = [semesterId];
-            console.log(`🔍 [PROF-COURSES API] Fetching specific: ${filter_semester} ${filter_year} (${semesterId})`);
+            console.log(`[PROF-COURSES API] Fetching specific: ${filter_semester} ${filter_year} (${semesterId})`);
         } else if (filter_semester) {
             // All years for this semester
             const semesterMap = { 'Spring': '01', 'Summer': '05', 'Fall': '08', 'Winter': '12' };
@@ -420,11 +421,11 @@ app.get('/api/umd/professor-courses', async (req, res) => {
             for (let year = 2020; year <= 2025; year++) {
                 semestersToCheck.push(`${year}${semesterNum}`);
             }
-            console.log(`🔍 [PROF-COURSES API] Fetching all years for ${filter_semester}: ${semestersToCheck.length} semesters`);
+            console.log(`[PROF-COURSES API] Fetching all years for ${filter_semester}: ${semestersToCheck.length} semesters`);
         } else if (filter_year) {
             // All semesters for this year
             semestersToCheck = [`${filter_year}01`, `${filter_year}05`, `${filter_year}08`, `${filter_year}12`];
-            console.log(`🔍 [PROF-COURSES API] Fetching all semesters for ${filter_year}: ${semestersToCheck.length} semesters`);
+            console.log(`[PROF-COURSES API] Fetching all semesters for ${filter_year}: ${semestersToCheck.length} semesters`);
         } else {
             // Default: current semester only
             const now = new Date();
@@ -439,17 +440,17 @@ app.get('/api/umd/professor-courses', async (req, res) => {
             const semesterMap = { 'Spring': '01', 'Summer': '05', 'Fall': '08', 'Winter': '12' };
             const currentSemesterId = `${currentYear}${semesterMap[currentSemester] || '01'}`;
             semestersToCheck = [currentSemesterId];
-            console.log(`🔍 [PROF-COURSES API] Fetching current semester only: ${currentSemester} ${currentYear} (${currentSemesterId})`);
+            console.log(`[PROF-COURSES API] Fetching current semester only: ${currentSemester} ${currentYear} (${currentSemesterId})`);
         }
 
         // Fetch course data for all required semesters
         const courseData = new Map(); // course_id -> {course_id, name, semesters: [{semester, year, semesterId}]}
 
-        console.log(`🔍 [PROF-COURSES API] Fetching course data for ${semestersToCheck.length} semester(s)...`);
+        console.log(`[PROF-COURSES API] Fetching course data for ${semestersToCheck.length} semester(s)...`);
 
         for (const semesterId of semestersToCheck) {
             try {
-                console.log(`🔍 [PROF-COURSES API] Fetching sections for semester: ${semesterId}`);
+                console.log(`[PROF-COURSES API] Fetching sections for semester: ${semesterId}`);
                 const sectionsData = await fetchUMDData(
                     `/courses/sections?semester=${semesterId}&per_page=100`,
                     `sections_${semesterId}`,
@@ -490,22 +491,22 @@ app.get('/api/umd/professor-courses', async (req, res) => {
                             });
                         });
 
-                        console.log(`✅ [PROF-COURSES API] Found ${professorSections.length} sections for ${professorName} in ${semesterName} ${year}`);
+                        console.log(`[PROF-COURSES API] Found ${professorSections.length} sections for ${professorName} in ${semesterName} ${year}`);
                     }
                 }
             } catch (error) {
-                console.log(`⚠️ [PROF-COURSES API] Error fetching semester ${semesterId}: ${error.message}`);
+                console.log(`[PROF-COURSES API] Error fetching semester ${semesterId}: ${error.message}`);
             }
         }
 
         // Convert Map to array and sort by course_id
         const result = Array.from(courseData.values()).sort((a, b) => a.course_id.localeCompare(b.course_id));
 
-        console.log(`✅ [PROF-COURSES API] Found ${result.length} courses for ${professorName}`);
+        console.log(`[PROF-COURSES API] Found ${result.length} courses for ${professorName}`);
         return res.json(result);
 
     } catch (error) {
-        console.error('❌ [PROF-COURSES API] Error:', error);
+        console.error('[PROF-COURSES API] Error:', error);
         res.status(500).json({ error: 'Failed to fetch professor courses' });
     }
 });
@@ -565,15 +566,15 @@ app.use((req, res, next) => {
 const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
 
 // Test email configuration on startup
-console.log('📧 Email Configuration:');
+console.log('Email Configuration:');
 console.log('   RESEND_API_KEY:', process.env.RESEND_API_KEY ? 'Set' : 'Missing');
 console.log('   NODE_ENV:', process.env.NODE_ENV || 'development');
 console.log('   VERCEL_URL:', process.env.VERCEL_URL || 'Not set');
 
 if (resend) {
-    console.log('✅ Resend email service initialized');
+    console.log('Resend email service initialized');
 } else {
-    console.error('❌ Resend API key missing - email functionality will not work');
+    console.error('Resend API key missing - email functionality will not work');
 }
 
 /**
@@ -585,13 +586,13 @@ if (resend) {
  */
 async function sendEmail(to, subject, html) {
     if (!resend) {
-        console.error('❌ Cannot send email: Resend not initialized');
+        console.error('Cannot send email: Resend not initialized');
         throw new Error('Email service not configured');
     }
 
     try {
-        console.log(`📧 Sending email via Resend to: ${to}`);
-        console.log(`📧 Subject: ${subject}`);
+        console.log(`Sending email via Resend to: ${to}`);
+        console.log(`Subject: ${subject}`);
 
         const result = await resend.emails.send({
             from: 'Terp Notes <noreply@terp-notes.org>',
@@ -600,13 +601,13 @@ async function sendEmail(to, subject, html) {
             html: html
         });
 
-        console.log('✅ Email sent successfully via Resend');
-        console.log('📧 Email ID:', result.data?.id);
+        console.log('Email sent successfully via Resend');
+        console.log('Email ID:', result.data?.id);
         return result;
 
     } catch (error) {
-        console.error('❌ Failed to send email via Resend:');
-        console.error('❌ Error:', error.message);
+        console.error('Failed to send email via Resend:');
+        console.error('Error:', error.message);
         throw error;
     }
 }
@@ -620,7 +621,7 @@ const crypto = require('crypto');
 
 // No default accounts created
 // All users register as contributors
-console.log('📝 No default accounts - manually set admin via MongoDB');
+console.log('No default accounts - manually set admin via MongoDB');
 
 // Create database indexes for performance
 async function createDatabaseIndexes() {
@@ -697,7 +698,7 @@ async function createDatabaseIndexes() {
             .collection('announcements')
             .createIndex({ isActive: 1, createdAt: -1 }); // For dashboard queries
 
-        console.log('📊 Database indexes created successfully');
+        console.log('Database indexes created successfully');
     } catch (error) {
         // Indexes may already exist, that's fine
         if (error.code !== 85 && error.code !== 86) {
@@ -806,7 +807,7 @@ async function scanFileWithVirusTotal(fileId, fileBuffer, filename) {
     }
 
     try {
-        console.log(`🔍 Starting virus scan for: ${filename}`);
+        console.log(`Starting virus scan for: ${filename}`);
 
         // Step 1: Upload file to VirusTotal
         const formData = new FormData();
@@ -827,7 +828,7 @@ async function scanFileWithVirusTotal(fileId, fileBuffer, filename) {
         const uploadData = await uploadResponse.json();
         const analysisId = uploadData.data.id;
 
-        console.log(`⏳ File uploaded to VirusTotal. Analysis ID: ${analysisId}`);
+        console.log(` File uploaded to VirusTotal. Analysis ID: ${analysisId}`);
 
         // Step 2: Wait and check scan results (with retries)
         let scanComplete = false;
@@ -858,7 +859,7 @@ async function scanFileWithVirusTotal(fileId, fileBuffer, filename) {
                 const suspicious = stats.suspicious || 0;
                 const totalEngines = Object.values(stats).reduce((a, b) => a + b, 0);
 
-                console.log(`✅ Scan complete for ${filename}: ${malicious} malicious, ${suspicious} suspicious out of ${totalEngines} engines`);
+                console.log(`Scan complete for ${filename}: ${malicious} malicious, ${suspicious} suspicious out of ${totalEngines} engines`);
 
                 // Update file metadata
                 await client.connect();
@@ -894,7 +895,7 @@ async function scanFileWithVirusTotal(fileId, fileBuffer, filename) {
                         // Delete from S3
                         try {
                             await s3.deleteObject({ Bucket: AWS_BUCKET, Key: fileDoc.filename }).promise();
-                            console.log(`🗑️ Deleted infected file from S3: ${filename}`);
+                            console.log(`Deleted infected file from S3: ${filename}`);
                         } catch (s3Error) {
                             console.error('Error deleting infected file from S3:', s3Error);
                         }
@@ -905,7 +906,7 @@ async function scanFileWithVirusTotal(fileId, fileBuffer, filename) {
                             .collection(fileCollection.collection)
                             .deleteOne({ _id: fileId });
 
-                        console.log(`⚠️ INFECTED FILE REMOVED: ${filename} (${malicious} detections)`);
+                        console.log(`INFECTED FILE REMOVED: ${filename} (${malicious} detections)`);
                     }
                 } else {
                     // File is clean
@@ -928,22 +929,22 @@ async function scanFileWithVirusTotal(fileId, fileBuffer, filename) {
                             }
                         );
 
-                    console.log(`✅ File marked as clean: ${filename}`);
+                    console.log(`File marked as clean: ${filename}`);
                 }
 
                 await client.close();
             } else {
                 retries++;
-                console.log(`⏳ Scan in progress (${retries}/${maxRetries})...`);
+                console.log(` Scan in progress (${retries}/${maxRetries})...`);
             }
         }
 
         if (!scanComplete) {
-            console.log(`⚠️ Scan timeout for ${filename}, will remain as pending`);
+            console.log(`Scan timeout for ${filename}, will remain as pending`);
         }
 
     } catch (error) {
-        console.error(`❌ VirusTotal scan error for ${filename}:`, error.message);
+        console.error(`VirusTotal scan error for ${filename}:`, error.message);
 
         // On error, leave file as 'pending' - don't delete
         try {
@@ -1044,6 +1045,11 @@ app.get('/', function (req, res) {
     res.render('index', { title: "Terp Notes - UMD Resource Sharing" });
 });
 
+// Icon Test Page (for development/verification)
+app.get('/icon-test', function (req, res) {
+    res.render('icon-test', { title: "Icon Test - Terp Notes" });
+});
+
 // Legal Pages (accessible both logged in and logged out)
 app.get('/privacy', function (req, res) {
     res.render('privacy', {
@@ -1096,12 +1102,12 @@ app.get('/api/umd/courses', async (req, res) => {
 app.get('/api/umd/course/:courseId', async (req, res) => {
     try {
         const courseId = req.params.courseId.toUpperCase();
-        console.log(`🔍 [API] Fetching course data for: ${courseId}`);
+        console.log(`[API] Fetching course data for: ${courseId}`);
 
         // Get query parameters for filtering
         const querySemester = req.query.filter_semester;
         const queryYear = req.query.filter_year;
-        console.log(`🔍 [API] Filters - Semester: ${querySemester}, Year: ${queryYear}`);
+        console.log(`[API] Filters - Semester: ${querySemester}, Year: ${queryYear}`);
 
         // Determine which semesters to fetch based on filters
         let semestersToCheck = [];
@@ -1111,7 +1117,7 @@ app.get('/api/umd/course/:courseId', async (req, res) => {
             const semesterMap = { 'Spring': '01', 'Summer': '05', 'Fall': '08', 'Winter': '12' };
             const semesterId = `${queryYear}${semesterMap[querySemester] || '01'}`;
             semestersToCheck = [semesterId];
-            console.log(`🔍 [API] Fetching specific: ${querySemester} ${queryYear} (${semesterId})`);
+            console.log(`[API] Fetching specific: ${querySemester} ${queryYear} (${semesterId})`);
         } else if (querySemester) {
             // All years for this semester
             const semesterMap = { 'Spring': '01', 'Summer': '05', 'Fall': '08', 'Winter': '12' };
@@ -1119,11 +1125,11 @@ app.get('/api/umd/course/:courseId', async (req, res) => {
             for (let year = 2020; year <= 2025; year++) {
                 semestersToCheck.push(`${year}${semesterNum}`);
             }
-            console.log(`🔍 [API] Fetching all years for ${querySemester}: ${semestersToCheck.length} semesters`);
+            console.log(`[API] Fetching all years for ${querySemester}: ${semestersToCheck.length} semesters`);
         } else if (queryYear) {
             // All semesters for this year
             semestersToCheck = [`${queryYear}01`, `${queryYear}05`, `${queryYear}08`, `${queryYear}12`];
-            console.log(`🔍 [API] Fetching all semesters for ${queryYear}: ${semestersToCheck.length} semesters`);
+            console.log(`[API] Fetching all semesters for ${queryYear}: ${semestersToCheck.length} semesters`);
         } else {
             // Default: current semester only (fast and efficient)
             const now = new Date();
@@ -1140,7 +1146,7 @@ app.get('/api/umd/course/:courseId', async (req, res) => {
             const currentSemesterId = `${currentYear}${semesterMap[currentSemester] || '01'}`;
 
             semestersToCheck = [currentSemesterId];
-            console.log(`🔍 [API] Fetching current semester only: ${currentSemester} ${currentYear} (${currentSemesterId})`);
+            console.log(`[API] Fetching current semester only: ${currentSemester} ${currentYear} (${currentSemesterId})`);
         }
 
         // Fetch course info from first semester to get basic course data
@@ -1152,12 +1158,12 @@ app.get('/api/umd/course/:courseId', async (req, res) => {
         );
 
         if (!courseData || courseData.length === 0) {
-            console.log(`❌ [API] Course not found: ${courseId}`);
+            console.log(`[API] Course not found: ${courseId}`);
             return res.status(404).json({ error: 'Course not found' });
         }
 
         const course = courseData[0];
-        console.log(`✅ [API] Course found: ${course.name || courseId}`);
+        console.log(`[API] Course found: ${course.name || courseId}`);
 
         // Fetch professor data for all required semesters
         const historicalData = {};
@@ -1165,11 +1171,11 @@ app.get('/api/umd/course/:courseId', async (req, res) => {
         const allSemesters = new Set();
         const allYears = new Set();
 
-        console.log(`🔍 [API] Fetching professor data for ${semestersToCheck.length} semester(s)...`);
+        console.log(`[API] Fetching professor data for ${semestersToCheck.length} semester(s)...`);
 
         for (const semester of semestersToCheck) {
             try {
-                console.log(`🔍 [API] Fetching sections for semester: ${semester}`);
+                console.log(`[API] Fetching sections for semester: ${semester}`);
                 const sectionsData = await fetchUMDData(
                     `/courses/sections?course_id=${courseId}&semester=${semester}&per_page=100`,
                     `sections_${courseId}_${semester}`,
@@ -1199,15 +1205,15 @@ app.get('/api/umd/course/:courseId', async (req, res) => {
                         allSemesters.add(semesterName);
                         allYears.add(year);
 
-                        console.log(`✅ [API] Found ${professors.length} professors for ${semesterName} ${year}: ${professors.join(', ')}`);
+                        console.log(`[API] Found ${professors.length} professors for ${semesterName} ${year}: ${professors.join(', ')}`);
                     } else {
-                        console.log(`⚠️ [API] No professors found for ${semester}`);
+                        console.log(`[API] No professors found for ${semester}`);
                     }
                 } else {
-                    console.log(`⚠️ [API] No sections found for ${semester}`);
+                    console.log(`[API] No sections found for ${semester}`);
                 }
             } catch (error) {
-                console.log(`❌ [API] Error fetching data for ${semester}:`, error.message);
+                console.log(`[API] Error fetching data for ${semester}:`, error.message);
             }
         }
 
@@ -1216,7 +1222,7 @@ app.get('/api/umd/course/:courseId', async (req, res) => {
         const semesterList = [...allSemesters].sort();
         const yearList = [...allYears].sort((a, b) => b - a);
 
-        console.log(`📊 [API] Final results:`);
+        console.log(` [API] Final results:`);
         console.log(`   - Total professors: ${professorList.length}`);
         console.log(`   - Semesters: ${semesterList.join(', ')}`);
         console.log(`   - Years: ${yearList.join(', ')}`);
@@ -1245,7 +1251,7 @@ app.get('/api/umd/course/:courseId', async (req, res) => {
             source: 'umd_api_historical'
         });
     } catch (error) {
-        console.error('❌ [API] Error fetching course details:', error);
+        console.error('[API] Error fetching course details:', error);
         res.status(500).json({ error: 'Failed to fetch course details' });
     }
 });
@@ -1332,7 +1338,7 @@ app.post('/api/confirm-upload', async (req, res) => {
         description
     } = req.body;
 
-    console.log('🔍 [DEBUG] Server received data:');
+    console.log('[DEBUG] Server received data:');
     console.log('  - category:', category);
     console.log('  - req.body:', JSON.stringify(req.body, null, 2));
 
@@ -1433,7 +1439,7 @@ app.post('/contact/submit', async function (req, res) {
             adminEmail,
             `[Terp Notes Support] ${subject}`,
             emailTemplates.contactFormEmail(name, email, subject, message)
-        ).catch((err) => console.error("❌ Failed to send contact form email:", err.message));
+        ).catch((err) => console.error("Failed to send contact form email:", err.message));
 
         res.render('success', {
             title: "Message Sent",
@@ -1506,7 +1512,7 @@ app.post('/forgot-password', async (req, res) => {
         const host = process.env.NODE_ENV === 'production' ? process.env.VERCEL_URL : req.get('host');
         const resetLink = `${protocol}://${host}/reset-password/${resetToken}`;
 
-        console.log(`📧 Sending password reset email to ${email}`);
+        console.log(`Sending password reset email to ${email}`);
         console.log(`🔗 Reset link: ${resetLink}`);
 
         // Send email asynchronously using template
@@ -1514,7 +1520,7 @@ app.post('/forgot-password', async (req, res) => {
             req.body.email,
             "Reset Your Terp Notes Password",
             emailTemplates.passwordResetEmail(user.firstname, resetLink)
-        ).catch((err) => console.error("❌ Failed to send reset email:", err.message));
+        ).catch((err) => console.error("Failed to send reset email:", err.message));
 
         res.render('success', {
             title: "Check Your Email",
@@ -1638,7 +1644,7 @@ app.post('/reset-password/:token', async (req, res) => {
             user.email,
             "Password Reset Successful - Terp Notes",
             emailTemplates.passwordResetSuccessEmail(user.firstname)
-        ).catch((err) => console.error("❌ Failed to send password reset confirmation:", err.message));
+        ).catch((err) => console.error("Failed to send password reset confirmation:", err.message));
 
         res.render('success', {
             title: "Password Reset Successful",
@@ -1765,7 +1771,7 @@ app.post('/resend-verification', async (req, res) => {
         const host = process.env.NODE_ENV === 'production' ? process.env.VERCEL_URL : req.get('host');
         const verificationLink = `${protocol}://${host}/verify/${verificationToken}`;
 
-        console.log(`📧 Resending verification email to ${req.body.email}`);
+        console.log(`Resending verification email to ${req.body.email}`);
         console.log(`🔗 Verification link: ${verificationLink}`);
 
         // Send email asynchronously using template
@@ -1773,7 +1779,7 @@ app.post('/resend-verification', async (req, res) => {
             req.body.email,
             "Verify Your Terp Notes Account",
             emailTemplates.resendVerificationEmail(user.firstname, verificationLink)
-        ).catch((err) => console.error("❌ Failed to send verification email:", err.message));
+        ).catch((err) => console.error("Failed to send verification email:", err.message));
 
         res.render('success', {
             title: "Verification Email Sent",
@@ -1962,7 +1968,7 @@ app.post('/update-profile', async (req, res) => {
             email,
             "Profile Updated - Terp Notes",
             emailTemplates.profileUpdateEmail(firstname)
-        ).catch((err) => console.error("❌ Failed to send profile update confirmation:", err.message));
+        ).catch((err) => console.error("Failed to send profile update confirmation:", err.message));
 
         res.render('success', {
             title: "Profile Updated",
@@ -2061,7 +2067,7 @@ app.post('/change-password', async (req, res) => {
             user.email,
             "Password Changed - Terp Notes",
             emailTemplates.passwordChangeEmail(user.firstname)
-        ).catch((err) => console.error("❌ Failed to send password change confirmation:", err.message));
+        ).catch((err) => console.error("Failed to send password change confirmation:", err.message));
 
         res.render('success', {
             title: "Password Changed",
@@ -2108,7 +2114,7 @@ app.delete('/delete-account', async (req, res) => {
             return res.status(403).json({ error: 'Cannot delete protected system account' });
         }
 
-        console.log(`🗑️ Deleting account for user: ${userId} (${userEmail})`);
+        console.log(`Deleting account for user: ${userId} (${userEmail})`);
 
         // Get all files uploaded by this user
         const userFiles = await client
@@ -2117,7 +2123,7 @@ app.delete('/delete-account', async (req, res) => {
             .find({ uploadedBy: userId })
             .toArray();
 
-        console.log(`📁 Found ${userFiles.length} files to anonymize for user ${userId}`);
+        console.log(` Found ${userFiles.length} files to anonymize for user ${userId}`);
 
         // Anonymize files (keep content, remove personal attribution)
         if (userFiles.length > 0) {
@@ -2145,14 +2151,14 @@ app.delete('/delete-account', async (req, res) => {
             .collection(userCollection.collection)
             .deleteOne({ userid: userId });
 
-        console.log(`🗑️ Deleted user account: ${userId}`);
+        console.log(`Deleted user account: ${userId}`);
 
         // Send deletion confirmation email using template
         sendEmail(
             userEmail,
             "Account Deleted - Terp Notes",
             emailTemplates.accountDeletionEmail(userDoc.firstname)
-        ).catch((err) => console.error("❌ Failed to send account deletion confirmation:", err.message));
+        ).catch((err) => console.error("Failed to send account deletion confirmation:", err.message));
 
         // Clear session and cookies
         req.session.destroy((err) => {
@@ -2163,7 +2169,7 @@ app.delete('/delete-account', async (req, res) => {
 
         res.clearCookie('authToken');
 
-        console.log(`✅ Account deletion completed for user: ${userId}`);
+        console.log(`Account deletion completed for user: ${userId}`);
         res.status(200).json({
             success: true,
             message: 'Account deleted successfully',
@@ -2211,7 +2217,7 @@ app.get("/delete/:filename", async (req, res) => {
         }
 
         if (fileDoc.uploadedBy !== req.session.user.userid && req.session.user.role !== 'admin') {
-            console.log('❌ Permission denied - user cannot delete this file');
+            console.log('Permission denied - user cannot delete this file');
             return res.status(403).send("You don't have permission to delete this file.");
         }
 
@@ -2235,7 +2241,7 @@ app.get("/delete/:filename", async (req, res) => {
             .deleteMany({ filename: filename });
 
         if (deletedReports.deletedCount > 0) {
-            console.log(`📋 Dismissed ${deletedReports.deletedCount} report(s) for deleted file`);
+            console.log(` Dismissed ${deletedReports.deletedCount} report(s) for deleted file`);
         }
 
         // Close MongoDB connection AFTER all database operations
@@ -2244,9 +2250,9 @@ app.get("/delete/:filename", async (req, res) => {
         // NOW do S3 deletion (after MongoDB is done)
         if (duplicateFiles === 1) {
             await s3.deleteObject({ Bucket: AWS_BUCKET, Key: filename }).promise();
-            console.log(`🗑️ Deleted file from S3: ${filename}`);
+            console.log(`Deleted file from S3: ${filename}`);
         } else {
-            console.log(`♻️ File is deduplicated (${duplicateFiles} instances), keeping S3 file`);
+            console.log(`File is deduplicated (${duplicateFiles} instances), keeping S3 file`);
         }
 
         // Send email notification using template (async, no await needed)
@@ -2255,7 +2261,7 @@ app.get("/delete/:filename", async (req, res) => {
             req.session.user.email,
             "File Deleted - Terp Notes",
             emailTemplates.fileDeletionEmail(req.session.user.firstname, originalFilename)
-        ).catch((err) => console.error("❌ Failed to send file deletion confirmation:", err.message));
+        ).catch((err) => console.error("Failed to send file deletion confirmation:", err.message));
 
         // Redirect back to dashboard
         res.redirect("/dashboard");
@@ -2460,7 +2466,7 @@ app.post('/registerSubmit', registerLimiter, async function (req, res) {
         const host = process.env.NODE_ENV === 'production' ? process.env.VERCEL_URL : req.get('host');
         const verificationLink = `${protocol}://${host}/verify/${verificationToken}`;
 
-        console.log(`📧 Sending verification email to ${email}`);
+        console.log(`Sending verification email to ${email}`);
         console.log(`🔗 Verification link: ${verificationLink}`);
 
         // Send email asynchronously using template
@@ -2468,7 +2474,7 @@ app.post('/registerSubmit', registerLimiter, async function (req, res) {
             email,
             "Verify Your Terp Notes Account",
             emailTemplates.verificationEmail(firstname, verificationLink)
-        ).catch((err) => console.error("❌ Failed to send verification email:", err.message));
+        ).catch((err) => console.error("Failed to send verification email:", err.message));
 
         return res.render('success', {
             title: "Check Your Email",
@@ -2605,7 +2611,7 @@ app.post("/upload", uploadLimiter, upload.array("documents", 50), async (req, re
                     // File already exists - reuse S3 file, just create new metadata entry
                     s3Key = existingFile.filename;
                     s3Url = existingFile.s3Url;
-                    console.log(`♻️ Deduplicated: ${file.originalname} (reusing existing file)`);
+                    console.log(`Deduplicated: ${file.originalname} (reusing existing file)`);
                 } else {
                     // New file - upload to S3
                     s3Key = `${Date.now()}_${Math.random().toString(36).substring(7)}_${file.originalname}`;
@@ -2669,7 +2675,7 @@ app.post("/upload", uploadLimiter, upload.array("documents", 50), async (req, re
             req.session.user.email,
             "Upload Successful - Terp Notes",
             emailTemplates.uploadSuccessEmail(req.session.user.firstname, uploadedFiles.length, classCode)
-        ).catch((err) => console.error("❌ Failed to send upload confirmation:", err.message));
+        ).catch((err) => console.error("Failed to send upload confirmation:", err.message));
 
         let message = `Successfully uploaded ${uploadedFiles.length} file(s) to ${classCode}!`;
         if (failedFiles.length > 0) {
@@ -2792,9 +2798,9 @@ app.post('/api/resolve-report', apiLimiter, async (req, res) => {
                 // Delete from S3 only if this is the last instance of this file
                 if (duplicateFiles === 1) {
                     await s3.deleteObject({ Bucket: AWS_BUCKET, Key: report.filename }).promise();
-                    console.log(`🗑️ Admin deleted file from S3: ${report.filename}`);
+                    console.log(`Admin deleted file from S3: ${report.filename}`);
                 } else {
-                    console.log(`♻️ File is deduplicated (${duplicateFiles} instances), keeping S3 file`);
+                    console.log(`File is deduplicated (${duplicateFiles} instances), keeping S3 file`);
                 }
 
                 // Delete file metadata from database
@@ -2810,7 +2816,7 @@ app.post('/api/resolve-report', apiLimiter, async (req, res) => {
                     .deleteMany({ filename: report.filename });
 
                 if (deletedReports.deletedCount > 1) {
-                    console.log(`📋 Dismissed ${deletedReports.deletedCount - 1} additional report(s) for deleted file`);
+                    console.log(` Dismissed ${deletedReports.deletedCount - 1} additional report(s) for deleted file`);
                 }
             }
         }
@@ -3253,8 +3259,8 @@ module.exports = app;
 if (require.main === module) {
     try {
         app.listen(portNumber, () => {
-            console.log(`🐢 Terp Notes Server running on port ${portNumber}`);
-            console.log(`📚 Ready to share notes!`);
+            console.log(`Terp Notes Server running on port ${portNumber}`);
+            console.log(`Ready to share notes!`);
         });
     } catch (error) {
         console.error('Failed to start server:', error);

@@ -9,6 +9,7 @@
         "@vercel/analytics": "^1.5.0",
         "@vercel/speed-insights": "^1.2.0",
         "aws-sdk": "^2.1692.0",
+        "axios": "^1.12.2",
         "bcrypt": "^6.0.0",
         "connect-redis": "^9.0.0",
         "cookie-parser": "^1.4.7",
@@ -24,8 +25,10 @@
         "multer": "^2.0.0-rc.4",
         "node-fetch": "^2.7.0",
         "nodemailer": "^6.10.0",
+        "openai": "^4.104.0",
         "redis": "^5.8.2",
-        "resend": "^6.1.2"
+        "resend": "^6.1.2",
+        "sharp": "^0.33.5"
     },
     "scripts": {
         "start": "node server.js",

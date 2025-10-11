@@ -7,6 +7,7 @@
     <title>
         <%= title %>
     </title>
+    <link rel="icon" type="image/png" href="/favicon.png" />
     <link rel="stylesheet" href="/styles/main.css" />
 </head>
 
@@ -58,7 +59,7 @@
                         <label for="userid">Username (Cannot be changed)</label>
                         <input type="text" id="userid" name="userid" value="<%= user.userid %>" disabled
                             class="disabled-input">
-                        <small class="form-help">⚠️ Your username is permanent and cannot be changed</small>
+                        <small class="form-help"><img src="/images/icons/info-circle.png" alt="Info" style="width: 36px; height: 36px; vertical-align: middle; margin-right: 10px;" /> Your username is permanent and cannot be changed</small>
                     </div>
 
                     <div class="form-group">
@@ -128,7 +129,7 @@
                             <% if (user.isProtected) { %>
                                 <div class="info-item">
                                     <strong>Account Type:</strong>
-                                    <span class="protected-badge">🛡️ Protected System Account</span>
+                                    <span class="protected-badge"><img src="/images/icons/shield-check.png" alt="Protected" style="width: 36px; height: 36px; vertical-align: middle; margin-right: 10px;" /> Protected System Account</span>
                                 </div>
                                 <% } %>
                 </div>
@@ -144,7 +145,7 @@
                     <div class="danger-section">
                         <h3>Delete Account</h3>
                         <div class="danger-warning">
-                            <p><strong>⚠️ Warning:</strong> This action cannot be undone. Deleting your account will permanently remove:</p>
+                            <p><strong><img src="/images/icons/warning-triangle.png" alt="Warning" style="width: 40px; height: 40px; vertical-align: middle; margin-right: 10px;" /> Warning:</strong> This action cannot be undone. Deleting your account will permanently remove:</p>
                             <ul>
                                 <li>Your profile and account information</li>
                                 <li>Your download history and statistics</li>
@@ -223,7 +224,7 @@
                         errorDiv.style.color = '#EF4444';
                         errorDiv.style.display = 'block';
                         errorDiv.style.marginTop = '0.25rem';
-                        errorDiv.textContent = '⚠️ New password must be different from current password';
+                        errorDiv.textContent = 'New password must be different from current password';
                         newPassInput.parentElement.appendChild(errorDiv);
                     }
 
@@ -240,7 +241,7 @@
                             errorDiv.style.color = '#EF4444';
                             errorDiv.style.display = 'block';
                             errorDiv.style.marginTop = '0.25rem';
-                            errorDiv.textContent = '⚠️ Passwords do not match';
+                            errorDiv.textContent = 'Passwords do not match';
                             confirmPassInput.parentElement.appendChild(errorDiv);
                         } else if (newPassword) {
                             const successDiv = document.createElement('small');
@@ -268,7 +269,7 @@
                 deleteAccountBtn.addEventListener('click', function() {
                     // Create confirmation dialog
                     const confirmed = confirm(
-                        '⚠️ FINAL WARNING ⚠️\n\n' +
+                        'FINAL WARNING\n\n' +
                         'You are about to permanently delete your account. This action cannot be undone.\n\n' +
                         'This will delete:\n' +
                         '• Your profile and account information\n' +

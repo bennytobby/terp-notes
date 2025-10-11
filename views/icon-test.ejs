@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Icon Test Page - Terp Notes</title>
+    <link rel="stylesheet" href="/styles/main.css">
+    <style>
+        .icon-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 2rem;
+            padding: 2rem;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        .icon-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 1.5rem;
+            background: white;
+            border: 2px solid #E5E7EB;
+            border-radius: 12px;
+            transition: all 0.2s;
+        }
+        .icon-item:hover {
+            border-color: #E21833;
+            box-shadow: 0 4px 12px rgba(226, 24, 51, 0.15);
+            transform: translateY(-4px);
+        }
+        .icon-display {
+            width: 64px;
+            height: 64px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 1rem;
+            background: #F9FAFB;
+            border-radius: 8px;
+            padding: 0.5rem;
+        }
+        .icon-display img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+        }
+        .icon-name {
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: #1F2937;
+            text-align: center;
+            word-break: break-word;
+        }
+        .icon-size {
+            font-size: 0.75rem;
+            color: #6B7280;
+            margin-top: 0.5rem;
+        }
+        .test-header {
+            text-align: center;
+            padding: 3rem 2rem 1rem;
+            background: linear-gradient(135deg, #E21833 0%, #B91C1C 100%);
+            color: white;
+        }
+        .test-header h1 {
+            color: white;
+            margin-bottom: 0.5rem;
+        }
+        .status {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            margin-left: 0.5rem;
+        }
+        .status.loaded {
+            background: #D1FAE5;
+            color: #065F46;
+        }
+        .status.error {
+            background: #FEE2E2;
+            color: #991B1B;
+        }
+    </style>
+</head>
+<body>
+    <header class="test-header">
+        <h1>Terp Notes Icon Test Page</h1>
+        <p>Verifying all 29 icons are loading correctly</p>
+    </header>
+
+    <main>
+        <div class="icon-grid">
+            <!-- Navigation & Branding -->
+            <div class="icon-item">
+                <div class="icon-display">
+                    <img src="/images/icons/graduation-cap.png" alt="Graduation Cap" onload="this.parentElement.parentElement.querySelector('.status').classList.add('loaded')" onerror="this.parentElement.parentElement.querySelector('.status').classList.add('error')">
+                </div>
+                <div class="icon-name">graduation-cap.png <span class="status">Loading...</span></div>
+                <div class="icon-size">48x48px</div>
+            </div>
+
+            <!-- Trust Badges -->
+            <div class="icon-item">
+                <div class="icon-display">
+                    <img src="/images/icons/security-shield.png" alt="Security Shield" onload="this.parentElement.parentElement.querySelector('.status').classList.add('loaded')" onerror="this.parentElement.parentElement.querySelector('.status').classList.add('error')">
+                </div>
+                <div class="icon-name">security-shield.png <span class="status">Loading...</span></div>
+                <div class="icon-size">40x40px</div>
+            </div>
+
+            <div class="icon-item">
+                <div class="icon-display">
+                    <img src="/images/icons/email-verified.png" alt="Email Verified" onload="this.parentElement.parentElement.querySelector('.status').classList.add('loaded')" onerror="this.parentElement.parentElement.querySelector('.status').classList.add('error')">
+                </div>
+                <div class="icon-name">email-verified.png <span class="status">Loading...</span></div>
+                <div class="icon-size">40x40px</div>
+            </div>
+
+            <div class="icon-item">
+                <div class="icon-display">
+                    <img src="/images/icons/lightning-bolt.png" alt="Lightning Bolt" onload="this.parentElement.parentElement.querySelector('.status').classList.add('loaded')" onerror="this.parentElement.parentElement.querySelector('.status').classList.add('error')">
+                </div>
+                <div class="icon-name">lightning-bolt.png <span class="status">Loading...</span></div>
+                <div class="icon-size">40x40px</div>
+            </div>
+
+            <div class="icon-item">
+                <div class="icon-display">
+                    <img src="/images/icons/free-badge.png" alt="Free Badge" onload="this.parentElement.parentElement.querySelector('.status').classList.add('loaded')" onerror="this.parentElement.parentElement.querySelector('.status').classList.add('error')">
+                </div>
+                <div class="icon-name">free-badge.png <span class="status">Loading...</span></div>
+                <div class="icon-size">40x40px</div>
+            </div>
+
+            <!-- Feature Icons -->
+            <div class="icon-item">
+                <div class="icon-display">
+                    <img src="/images/icons/books-stack.png" alt="Books Stack" onload="this.parentElement.parentElement.querySelector('.status').classList.add('loaded')" onerror="this.parentElement.parentElement.querySelector('.status').classList.add('error')">
+                </div>
+                <div class="icon-name">books-stack.png <span class="status">Loading...</span></div>
+                <div class="icon-size">48x48px</div>
+            </div>
+
+            <div class="icon-item">
+                <div class="icon-display">
+                    <img src="/images/icons/lightning-search.png" alt="Lightning Search" onload="this.parentElement.parentElement.querySelector('.status').classList.add('loaded')" onerror="this.parentElement.parentElement.querySelector('.status').classList.add('error')">
+                </div>
+                <div class="icon-name">lightning-search.png <span class="status">Loading...</span></div>
+                <div class="icon-size">48x48px</div>
+            </div>
+
+            <div class="icon-item">
+                <div class="icon-display">
+                    <img src="/images/icons/security-shield-check.png" alt="Security Shield Check" onload="this.parentElement.parentElement.querySelector('.status').classList.add('loaded')" onerror="this.parentElement.parentElement.querySelector('.status').classList.add('error')">
+                </div>
+                <div class="icon-name">security-shield-check.png <span class="status">Loading...</span></div>
+                <div class="icon-size">48x48px</div>
+            </div>
+
+            <div class="icon-item">
+                <div class="icon-display">
+                    <img src="/images/icons/upload-cloud.png" alt="Upload Cloud" onload="this.parentElement.parentElement.querySelector('.status').classList.add('loaded')" onerror="this.parentElement.parentElement.querySelector('.status').classList.add('error')">
+                </div>
+                <div class="icon-name">upload-cloud.png <span class="status">Loading...</span></div>
+                <div class="icon-size">48x48px</div>
+            </div>
+
+            <div class="icon-item">
+                <div class="icon-display">
+                    <img src="/images/icons/community-users.png" alt="Community Users" onload="this.parentElement.parentElement.querySelector('.status').classList.add('loaded')" onerror="this.parentElement.parentElement.querySelector('.status').classList.add('error')">
+                </div>
+                <div class="icon-name">community-users.png <span class="status">Loading...</span></div>
+                <div class="icon-size">48x48px</div>
+            </div>
+
+            <div class="icon-item">
+                <div class="icon-display">
+                    <img src="/images/icons/devices-responsive.png" alt="Devices Responsive" onload="this.parentElement.parentElement.querySelector('.status').classList.add('loaded')" onerror="this.parentElement.parentElement.querySelector('.status').classList.add('error')">
+                </div>
+                <div class="icon-name">devices-responsive.png <span class="status">Loading...</span></div>
+                <div class="icon-size">48x48px</div>
+            </div>
+
+            <!-- UI Icons -->
+            <div class="icon-item">
+                <div class="icon-display">
+                    <img src="/images/icons/warning-triangle.png" alt="Warning Triangle" onload="this.parentElement.parentElement.querySelector('.status').classList.add('loaded')" onerror="this.parentElement.parentElement.querySelector('.status').classList.add('error')">
+                </div>
+                <div class="icon-name">warning-triangle.png <span class="status">Loading...</span></div>
+                <div class="icon-size">16x16px</div>
+            </div>
+
+            <div class="icon-item">
+                <div class="icon-display">
+                    <img src="/images/icons/info-circle.png" alt="Info Circle" onload="this.parentElement.parentElement.querySelector('.status').classList.add('loaded')" onerror="this.parentElement.parentElement.querySelector('.status').classList.add('error')">
+                </div>
+                <div class="icon-name">info-circle.png <span class="status">Loading...</span></div>
+                <div class="icon-size">16x16px</div>
+            </div>
+
+            <div class="icon-item">
+                <div class="icon-display">
+                    <img src="/images/icons/clock-warning.png" alt="Clock Warning" onload="this.parentElement.parentElement.querySelector('.status').classList.add('loaded')" onerror="this.parentElement.parentElement.querySelector('.status').classList.add('error')">
+                </div>
+                <div class="icon-name">clock-warning.png <span class="status">Loading...</span></div>
+                <div class="icon-size">16x16px</div>
+            </div>
+
+            <div class="icon-item">
+                <div class="icon-display">
+                    <img src="/images/icons/shield-check.png" alt="Shield Check" onload="this.parentElement.parentElement.querySelector('.status').classList.add('loaded')" onerror="this.parentElement.parentElement.querySelector('.status').classList.add('error')">
+                </div>
+                <div class="icon-name">shield-check.png <span class="status">Loading...</span></div>
+                <div class="icon-size">14x14px</div>
+            </div>
+
+            <div class="icon-item">
+                <div class="icon-display">
+                    <img src="/images/icons/lock.png" alt="Lock" onload="this.parentElement.parentElement.querySelector('.status').classList.add('loaded')" onerror="this.parentElement.parentElement.querySelector('.status').classList.add('error')">
+                </div>
+                <div class="icon-name">lock.png <span class="status">Loading...</span></div>
+                <div class="icon-size">48x48px</div>
+            </div>
+
+            <div class="icon-item">
+                <div class="icon-display">
+                    <img src="/images/icons/mail-envelope.png" alt="Mail Envelope" onload="this.parentElement.parentElement.querySelector('.status').classList.add('loaded')" onerror="this.parentElement.parentElement.querySelector('.status').classList.add('error')">
+                </div>
+                <div class="icon-name">mail-envelope.png <span class="status">Loading...</span></div>
+                <div class="icon-size">64x64px</div>
+            </div>
+
+            <!-- File Type Icons -->
+            <div class="icon-item">
+                <div class="icon-display">
+                    <img src="/images/icons/document.png" alt="Document" onload="this.parentElement.parentElement.querySelector('.status').classList.add('loaded')" onerror="this.parentElement.parentElement.querySelector('.status').classList.add('error')">
+                </div>
+                <div class="icon-name">document.png <span class="status">Loading...</span></div>
+                <div class="icon-size">20x20px</div>
+            </div>
+
+            <div class="icon-item">
+                <div class="icon-display">
+                    <img src="/images/icons/pdf-file.png" alt="PDF File" onload="this.parentElement.parentElement.querySelector('.status').classList.add('loaded')" onerror="this.parentElement.parentElement.querySelector('.status').classList.add('error')">
+                </div>
+                <div class="icon-name">pdf-file.png <span class="status">Loading...</span></div>
+                <div class="icon-size">20x20px</div>
+            </div>
+
+            <div class="icon-item">
+                <div class="icon-display">
+                    <img src="/images/icons/word-file.png" alt="Word File" onload="this.parentElement.parentElement.querySelector('.status').classList.add('loaded')" onerror="this.parentElement.parentElement.querySelector('.status').classList.add('error')">
+                </div>
+                <div class="icon-name">word-file.png <span class="status">Loading...</span></div>
+                <div class="icon-size">20x20px</div>
+            </div>
+
+            <div class="icon-item">
+                <div class="icon-display">
+                    <img src="/images/icons/excel-file.png" alt="Excel File" onload="this.parentElement.parentElement.querySelector('.status').classList.add('loaded')" onerror="this.parentElement.parentElement.querySelector('.status').classList.add('error')">
+                </div>
+                <div class="icon-name">excel-file.png <span class="status">Loading...</span></div>
+                <div class="icon-size">20x20px</div>
+            </div>
+
+            <div class="icon-item">
+                <div class="icon-display">
+                    <img src="/images/icons/powerpoint-file.png" alt="PowerPoint File" onload="this.parentElement.parentElement.querySelector('.status').classList.add('loaded')" onerror="this.parentElement.parentElement.querySelector('.status').classList.add('error')">
+                </div>
+                <div class="icon-name">powerpoint-file.png <span class="status">Loading...</span></div>
+                <div class="icon-size">20x20px</div>
+            </div>
+
+            <div class="icon-item">
+                <div class="icon-display">
+                    <img src="/images/icons/text-file.png" alt="Text File" onload="this.parentElement.parentElement.querySelector('.status').classList.add('loaded')" onerror="this.parentElement.parentElement.querySelector('.status').classList.add('error')">
+                </div>
+                <div class="icon-name">text-file.png <span class="status">Loading...</span></div>
+                <div class="icon-size">20x20px</div>
+            </div>
+
+            <div class="icon-item">
+                <div class="icon-display">
+                    <img src="/images/icons/image-file.png" alt="Image File" onload="this.parentElement.parentElement.querySelector('.status').classList.add('loaded')" onerror="this.parentElement.parentElement.querySelector('.status').classList.add('error')">
+                </div>
+                <div class="icon-name">image-file.png <span class="status">Loading...</span></div>
+                <div class="icon-size">20x20px</div>
+            </div>
+
+            <div class="icon-item">
+                <div class="icon-display">
+                    <img src="/images/icons/zip-file.png" alt="ZIP File" onload="this.parentElement.parentElement.querySelector('.status').classList.add('loaded')" onerror="this.parentElement.parentElement.querySelector('.status').classList.add('error')">
+                </div>
+                <div class="icon-name">zip-file.png <span class="status">Loading...</span></div>
+                <div class="icon-size">20x20px</div>
+            </div>
+
+            <div class="icon-item">
+                <div class="icon-display">
+                    <img src="/images/icons/video-file.png" alt="Video File" onload="this.parentElement.parentElement.querySelector('.status').classList.add('loaded')" onerror="this.parentElement.parentElement.querySelector('.status').classList.add('error')">
+                </div>
+                <div class="icon-name">video-file.png <span class="status">Loading...</span></div>
+                <div class="icon-size">20x20px</div>
+            </div>
+
+            <div class="icon-item">
+                <div class="icon-display">
+                    <img src="/images/icons/audio-file.png" alt="Audio File" onload="this.parentElement.parentElement.querySelector('.status').classList.add('loaded')" onerror="this.parentElement.parentElement.querySelector('.status').classList.add('error')">
+                </div>
+                <div class="icon-name">audio-file.png <span class="status">Loading...</span></div>
+                <div class="icon-size">20x20px</div>
+            </div>
+
+            <div class="icon-item">
+                <div class="icon-display">
+                    <img src="/images/icons/python-file.png" alt="Python File" onload="this.parentElement.parentElement.querySelector('.status').classList.add('loaded')" onerror="this.parentElement.parentElement.querySelector('.status').classList.add('error')">
+                </div>
+                <div class="icon-name">python-file.png <span class="status">Loading...</span></div>
+                <div class="icon-size">20x20px</div>
+            </div>
+
+            <div class="icon-item">
+                <div class="icon-display">
+                    <img src="/images/icons/java-file.png" alt="Java File" onload="this.parentElement.parentElement.querySelector('.status').classList.add('loaded')" onerror="this.parentElement.parentElement.querySelector('.status').classList.add('error')">
+                </div>
+                <div class="icon-name">java-file.png <span class="status">Loading...</span></div>
+                <div class="icon-size">20x20px</div>
+            </div>
+        </div>
+
+        <div style="text-align: center; padding: 3rem; background: #F9FAFB; margin-top: 2rem;">
+            <h2 style="color: #1F2937; margin-bottom: 1rem;">All Icons Loaded!</h2>
+            <p style="color: #6B7280; margin-bottom: 2rem;">Icons are ready to use throughout your application</p>
+            <a href="/" class="button primary" style="display: inline-block;">Go to Homepage</a>
+            <a href="/dashboard" class="button secondary" style="display: inline-block; margin-left: 1rem;">Go to Dashboard</a>
+        </div>
+    </main>
+</body>
+</html>
+

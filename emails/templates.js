@@ -15,6 +15,9 @@ function emailWrapper(content) {
         <body style="margin: 0; padding: 0; background-color: #F3F4F6;">
             <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 40px 20px;">
                 <div style="background: white; border-radius: 12px; padding: 32px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+                    <div style="text-align: center; margin-bottom: 24px;">
+                        <img src="https://terp-notes.org/logo.png" alt="Terp Notes Logo" style="width: 80px; height: 80px; margin: 0 auto;" />
+                    </div>
                     ${content}
                 </div>
                 <div style="text-align: center; padding: 20px; color: #6B7280; font-size: 0.875rem;">
@@ -42,7 +45,7 @@ function divider() {
  */
 function verificationEmail(firstname, verificationLink) {
     const content = `
-        <h2 style="color: #E03A3C; margin-top: 0;">Welcome to Terp Notes, ${firstname}! 🐢</h2>
+        <h2 style="color: #E03A3C; margin-top: 0;">Welcome to Terp Notes, ${firstname}!</h2>
         <p style="color: #374151; line-height: 1.6;">Thank you for registering. Please verify your email address to activate your account.</p>
         ${button(verificationLink, 'Verify Email Address')}
         <p style="color: #6B7280; font-size: 0.875rem; margin-top: 20px;">Or copy this link:<br><a href="${verificationLink}" style="color: #E03A3C; word-break: break-all;">${verificationLink}</a></p>
@@ -57,7 +60,7 @@ function verificationEmail(firstname, verificationLink) {
  */
 function resendVerificationEmail(firstname, verificationLink) {
     const content = `
-        <h2 style="color: #E03A3C; margin-top: 0;">Verify Your Email, ${firstname}! 🐢</h2>
+        <h2 style="color: #E03A3C; margin-top: 0;">Verify Your Email, ${firstname}!</h2>
         <p style="color: #374151; line-height: 1.6;">Click the button below to verify your email address:</p>
         ${button(verificationLink, 'Verify Email Address')}
         <p style="color: #6B7280; font-size: 0.875rem; margin-top: 20px;">Or copy this link:<br><a href="${verificationLink}" style="color: #E03A3C; word-break: break-all;">${verificationLink}</a></p>
@@ -86,11 +89,11 @@ function passwordResetEmail(firstname, resetLink) {
  */
 function passwordResetSuccessEmail(firstname) {
     const content = `
-        <h2 style="color: #10B981; margin-top: 0;">Password Reset Successful ✓</h2>
+        <h2 style="color: #10B981; margin-top: 0;">Password Reset Successful</h2>
         <p style="color: #374151; line-height: 1.6;">Hello ${firstname},</p>
         <p style="color: #374151; line-height: 1.6;">Your Terp Notes password has been successfully reset. You can now login with your new password.</p>
         ${divider()}
-        <p style="color: #DC2626; font-size: 0.875rem; font-weight: 600;">⚠️ If you didn't make this change, please contact support immediately at <a href="mailto:noreply@terp-notes.org" style="color: #E03A3C;">noreply@terp-notes.org</a></p>
+        <p style="color: #DC2626; font-size: 0.875rem; font-weight: 600;"><strong>Important:</strong> If you didn't make this change, please contact support immediately at <a href="mailto:noreply@terp-notes.org" style="color: #E03A3C;">noreply@terp-notes.org</a></p>
     `;
     return emailWrapper(content);
 }
@@ -100,11 +103,11 @@ function passwordResetSuccessEmail(firstname) {
  */
 function passwordChangeEmail(firstname) {
     const content = `
-        <h2 style="color: #10B981; margin-top: 0;">Password Changed Successfully ✓</h2>
+        <h2 style="color: #10B981; margin-top: 0;">Password Changed Successfully</h2>
         <p style="color: #374151; line-height: 1.6;">Hi ${firstname},</p>
         <p style="color: #374151; line-height: 1.6;">Your Terp Notes password has been successfully changed.</p>
         ${divider()}
-        <p style="color: #DC2626; font-size: 0.875rem; font-weight: 600;">⚠️ If you didn't make this change, please contact support immediately at <a href="mailto:noreply@terp-notes.org" style="color: #E03A3C;">noreply@terp-notes.org</a></p>
+        <p style="color: #DC2626; font-size: 0.875rem; font-weight: 600;"><strong>Important:</strong> If you didn't make this change, please contact support immediately at <a href="mailto:noreply@terp-notes.org" style="color: #E03A3C;">noreply@terp-notes.org</a></p>
     `;
     return emailWrapper(content);
 }
@@ -114,7 +117,7 @@ function passwordChangeEmail(firstname) {
  */
 function profileUpdateEmail(firstname) {
     const content = `
-        <h2 style="color: #10B981; margin-top: 0;">Profile Updated Successfully ✓</h2>
+        <h2 style="color: #10B981; margin-top: 0;">Profile Updated Successfully</h2>
         <p style="color: #374151; line-height: 1.6;">Hi ${firstname},</p>
         <p style="color: #374151; line-height: 1.6;">Your Terp Notes profile has been successfully updated.</p>
         <p style="color: #6B7280; font-size: 0.875rem; margin-top: 16px;">If you didn't make this change, please contact support immediately.</p>
@@ -163,7 +166,7 @@ function fileDeletionEmail(firstname, filename) {
  */
 function uploadSuccessEmail(firstname, fileCount, classCode) {
     const content = `
-        <h2 style="color: #10B981; margin-top: 0;">Upload Successful! 🎉</h2>
+        <h2 style="color: #10B981; margin-top: 0;">Upload Successful!</h2>
         <p style="color: #374151; line-height: 1.6;">Hello ${firstname},</p>
         <p style="color: #374151; line-height: 1.6;">You successfully uploaded <strong>${fileCount} file(s)</strong> to <strong>${classCode}</strong>.</p>
         <p style="color: #374151; line-height: 1.6;">Thanks for contributing to the Terp Notes community! Your files are now available to help fellow Terps succeed.</p>
