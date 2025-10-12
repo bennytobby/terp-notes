@@ -999,6 +999,9 @@
                     if (savePreference) {
                         localStorage.setItem('dashboardView', view);
                     }
+
+                    // Reset all file selections when switching views
+                    resetAllSelections();
                 }
 
                 // Render grouped view with accordion structure
@@ -1606,7 +1609,7 @@
                                 </div>
                                 <div class="file-list-icon" style="margin-left: 2rem;">${fileIcon}</div>
                                 <div class="file-list-main">
-                                    <div class="file-list-name">${truncateFilename(fileName)}</div>
+                                    <div class="file-list-name">${truncateFilename(fileName, 15, false)}</div>
                                     <div class="file-list-meta">
                                         ${size ? `<span><strong>Size:</strong> ${size}</span>` : ''}
                                         ${professor ? `<span><strong>Professor:</strong> ${professor}</span>` : ''}
@@ -4025,8 +4028,8 @@
                 }
 
                 // Filename truncation helper function
-                function truncateFilename(filename, maxLength = 15) {
-                    if (filename.length <= maxLength) {
+                function truncateFilename(filename, maxLength = 15, shouldTruncate = true) {
+                    if (!shouldTruncate || filename.length <= maxLength) {
                         return `<span class="filename-truncated" title="${escapeHtml(filename)}">${escapeHtml(filename)}</span>`;
                     } else {
                         const truncated = filename.substring(0, maxLength) + '...';
@@ -4035,10 +4038,61 @@
                 }
 
                 // Bulk Delete Functions
+                function resetAllSelections() {
+                    console.log('Resetting all selections due to view switch');
+
+                    // Uncheck all checkboxes across all views
+                    const allCheckboxes = document.querySelectorAll('.file-select-checkbox');
+                    allCheckboxes.forEach(checkbox => {
+                        checkbox.checked = false;
+                    });
+
+                    // Reset the select all button text
+                    const selectAllBtn = document.getElementById('selectAllBtn');
+                    if (selectAllBtn) {
+                        selectAllBtn.textContent = 'Select All';
+                    }
+
+                    // Update the selected count to 0
+                    const selectedCountSpan = document.getElementById('selectedCount');
+                    if (selectedCountSpan) {
+                        selectedCountSpan.textContent = '0';
+                    }
+
+                    // Disable the bulk delete button
+                    const bulkDeleteBtn = document.getElementById('bulkDeleteBtn');
+                    if (bulkDeleteBtn) {
+                        bulkDeleteBtn.disabled = true;
+                        bulkDeleteBtn.style.opacity = '0.5';
+                    }
+
+                    console.log('All selections reset');
+                }
+
                 function toggleSelectAll() {
                     console.log('toggleSelectAll called');
-                    const checkboxes = document.querySelectorAll('.file-select-checkbox');
-                    console.log('Found checkboxes in toggleSelectAll:', checkboxes.length);
+
+                    // Only work with checkboxes from the currently visible view
+                    let checkboxes;
+                    const gridView = document.getElementById('gridView');
+                    const groupedView = document.getElementById('groupedView');
+                    const listView = document.getElementById('listView');
+
+                    if (gridView && gridView.style.display !== 'none') {
+                        checkboxes = gridView.querySelectorAll('.file-select-checkbox');
+                        console.log('Working with Grid view checkboxes:', checkboxes.length);
+                    } else if (groupedView && groupedView.style.display !== 'none') {
+                        checkboxes = groupedView.querySelectorAll('.file-select-checkbox');
+                        console.log('Working with Grouped view checkboxes:', checkboxes.length);
+                    } else if (listView && listView.style.display !== 'none') {
+                        checkboxes = listView.querySelectorAll('.file-select-checkbox');
+                        console.log('Working with List view checkboxes:', checkboxes.length);
+                    } else {
+                        // Fallback to all checkboxes if no view is clearly visible
+                        checkboxes = document.querySelectorAll('.file-select-checkbox');
+                        console.log('Fallback: Working with all checkboxes:', checkboxes.length);
+                    }
+
                     const selectAllBtn = document.getElementById('selectAllBtn');
                     const allChecked = Array.from(checkboxes).every(cb => cb.checked);
 
@@ -4051,8 +4105,24 @@
                 }
 
                 function updateSelectedCount() {
-                    const checkboxes = document.querySelectorAll('.file-select-checkbox');
-                    console.log('Found checkboxes:', checkboxes.length);
+                    // Only count checkboxes from the currently visible view
+                    let checkboxes;
+                    const gridView = document.getElementById('gridView');
+                    const groupedView = document.getElementById('groupedView');
+                    const listView = document.getElementById('listView');
+
+                    if (gridView && gridView.style.display !== 'none') {
+                        checkboxes = gridView.querySelectorAll('.file-select-checkbox');
+                    } else if (groupedView && groupedView.style.display !== 'none') {
+                        checkboxes = groupedView.querySelectorAll('.file-select-checkbox');
+                    } else if (listView && listView.style.display !== 'none') {
+                        checkboxes = listView.querySelectorAll('.file-select-checkbox');
+                    } else {
+                        // Fallback to all checkboxes if no view is clearly visible
+                        checkboxes = document.querySelectorAll('.file-select-checkbox');
+                    }
+
+                    console.log('Found checkboxes in active view:', checkboxes.length);
                     const selectedCount = Array.from(checkboxes).filter(cb => cb.checked).length;
                     const selectedCountSpan = document.getElementById('selectedCount');
                     const bulkDeleteBtn = document.getElementById('bulkDeleteBtn');
@@ -4087,7 +4157,23 @@
                 }
 
                 async function bulkDeleteFiles() {
-                    const checkboxes = document.querySelectorAll('.file-select-checkbox:checked');
+                    // Only work with checkboxes from the currently visible view
+                    let checkboxes;
+                    const gridView = document.getElementById('gridView');
+                    const groupedView = document.getElementById('groupedView');
+                    const listView = document.getElementById('listView');
+
+                    if (gridView && gridView.style.display !== 'none') {
+                        checkboxes = gridView.querySelectorAll('.file-select-checkbox:checked');
+                    } else if (groupedView && groupedView.style.display !== 'none') {
+                        checkboxes = groupedView.querySelectorAll('.file-select-checkbox:checked');
+                    } else if (listView && listView.style.display !== 'none') {
+                        checkboxes = listView.querySelectorAll('.file-select-checkbox:checked');
+                    } else {
+                        // Fallback to all checkboxes if no view is clearly visible
+                        checkboxes = document.querySelectorAll('.file-select-checkbox:checked');
+                    }
+
                     const selectedFiles = Array.from(checkboxes).map(cb => cb.dataset.filename);
 
                     if (selectedFiles.length === 0) {
