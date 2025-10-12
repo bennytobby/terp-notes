@@ -43,6 +43,84 @@
             border-radius: 4px;
             padding: 2px 4px;
         }
+
+        /* Files Section Styles */
+        .files-section {
+            margin-top: 2rem;
+        }
+
+        .files-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 1.5rem;
+            padding: 1rem 0;
+        }
+
+        .files-list {
+            padding: 1rem 0;
+        }
+
+        .files-grouped {
+            padding: 1rem 0;
+        }
+
+        /* Empty State Styles */
+        .empty-state {
+            text-align: center;
+            padding: 4rem 2rem;
+            color: #6B7280;
+        }
+
+        .empty-state-content {
+            max-width: 400px;
+            margin: 0 auto;
+        }
+
+        .empty-state h3 {
+            margin: 1rem 0 0.5rem 0;
+            color: #374151;
+            font-size: 1.5rem;
+        }
+
+        .empty-state p {
+            margin: 0;
+            font-size: 1rem;
+            opacity: 0.8;
+        }
+
+        /* Active Filters Styles */
+        .active-filters {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1rem;
+            padding: 1rem;
+            background: #F9FAFB;
+            border-radius: 8px;
+            border: 1px solid #E5E7EB;
+        }
+
+        .filter-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            flex: 1;
+        }
+
+        .clear-filters-btn {
+            padding: 0.5rem 1rem;
+            background: #EF4444;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.875rem;
+            font-weight: 600;
+        }
+
+        .clear-filters-btn:hover {
+            background: #DC2626;
+        }
     </style>
 </head>
 
@@ -87,12 +165,7 @@
                                 <label style="color: #374151; font-weight: 600; font-size: 0.875rem;">Sort by:</label>
                                 <select id="sortFilter" class="filter-select" onchange="applyFilters()"
                                     style="flex: 0 0 auto; min-width: 180px;">
-                                    <option value="newest">Newest First</option>
-                                    <option value="oldest">Oldest First</option>
-                                    <option value="popular">Most Downloaded</option>
-                                    <option value="name">Name (A-Z)</option>
-                                    <option value="size-desc">Size (Largest)</option>
-                                    <option value="size-asc">Size (Smallest)</option>
+                                    <!-- Sort options will be populated dynamically -->
                                 </select>
                             </div>
 
@@ -148,56 +221,7 @@
                                         <span class="dropdown-arrow">↓</span>
                                     </button>
                                     <div class="multi-select-dropdown" id="categoryDropdown">
-                                        <label class="multi-select-option">
-                                            <input type="checkbox" value="Exam"
-                                                onchange="updateMultiSelect('category')">
-                                            <span>📝 Exam</span>
-                                        </label>
-                                        <label class="multi-select-option">
-                                            <input type="checkbox" value="Lecture Notes"
-                                                onchange="updateMultiSelect('category')">
-                                            <span>📚 Lecture Notes</span>
-                                        </label>
-                                        <label class="multi-select-option">
-                                            <input type="checkbox" value="Homework"
-                                                onchange="updateMultiSelect('category')">
-                                            <span>✏️ Homework</span>
-                                        </label>
-                                        <label class="multi-select-option">
-                                            <input type="checkbox" value="Study Guide"
-                                                onchange="updateMultiSelect('category')">
-                                            <span>📖 Study Guide</span>
-                                        </label>
-                                        <label class="multi-select-option">
-                                            <input type="checkbox" value="Cheat Sheet"
-                                                onchange="updateMultiSelect('category')">
-                                            <span>🗒️ Cheat Sheet</span>
-                                        </label>
-                                        <label class="multi-select-option">
-                                            <input type="checkbox" value="Project"
-                                                onchange="updateMultiSelect('category')">
-                                            <span>💻 Project</span>
-                                        </label>
-                                        <label class="multi-select-option">
-                                            <input type="checkbox" value="Lab"
-                                                onchange="updateMultiSelect('category')">
-                                            <span>🧪 Lab</span>
-                                        </label>
-                                        <label class="multi-select-option">
-                                            <input type="checkbox" value="Textbook"
-                                                onchange="updateMultiSelect('category')">
-                                            <span>📕 Textbook</span>
-                                        </label>
-                                        <label class="multi-select-option">
-                                            <input type="checkbox" value="Practice Problems"
-                                                onchange="updateMultiSelect('category')">
-                                            <span>🔢 Practice Problems</span>
-                                        </label>
-                                        <label class="multi-select-option">
-                                            <input type="checkbox" value="Other"
-                                                onchange="updateMultiSelect('category')">
-                                            <span>📎 Other</span>
-                                        </label>
+                                        <!-- Categories will be populated dynamically -->
                                     </div>
                                 </div>
 
@@ -346,35 +370,35 @@
                                                     </div>
                                                     <%
                                                         // Dynamic file icon based on mimetype
-                                                        let fileIcon = '<img src="/images/icons/document.png" alt="Document" style="width: 234px; height: 234px;" />';
+                                                        let fileIcon = '<img src="/images/icons/document.png" alt="Document" style="width: 80px; height: 80px;" />';
                                                         let fileTypeLabel = '';
                                                         if (file.mimetype) {
                                                             if (file.mimetype.includes('pdf')) {
-                                                                fileIcon = '<img src="/images/icons/pdf-file.png" alt="PDF" style="width: 234px; height: 234px;" />';
+                                                                fileIcon = '<img src="/images/icons/pdf-file.png" alt="PDF" style="width: 80px; height: 80px;" />';
                                                                 fileTypeLabel = 'PDF';
                                                             } else if (file.mimetype.includes('word') || file.mimetype.includes('document')) {
-                                                                fileIcon = '<img src="/images/icons/word-file.png" alt="Word" style="width: 234px; height: 234px;" />';
+                                                                fileIcon = '<img src="/images/icons/word-file.png" alt="Word" style="width: 80px; height: 80px;" />';
                                                                 fileTypeLabel = 'DOC';
                                                             } else if (file.mimetype.includes('presentation') || file.mimetype.includes('powerpoint')) {
-                                                                fileIcon = '<img src="/images/icons/powerpoint-file.png" alt="PowerPoint" style="width: 234px; height: 234px;" />';
+                                                                fileIcon = '<img src="/images/icons/powerpoint-file.png" alt="PowerPoint" style="width: 80px; height: 80px;" />';
                                                                 fileTypeLabel = 'PPT';
                                                             } else if (file.mimetype.includes('spreadsheet') || file.mimetype.includes('excel')) {
-                                                                fileIcon = '<img src="/images/icons/excel-file.png" alt="Excel" style="width: 234px; height: 234px;" />';
+                                                                fileIcon = '<img src="/images/icons/excel-file.png" alt="Excel" style="width: 80px; height: 80px;" />';
                                                                 fileTypeLabel = 'XLS';
                                                             } else if (file.mimetype.includes('image')) {
-                                                                fileIcon = '<img src="/images/icons/image-file.png" alt="Image" style="width: 234px; height: 234px;" />';
+                                                                fileIcon = '<img src="/images/icons/image-file.png" alt="Image" style="width: 80px; height: 80px;" />';
                                                                 fileTypeLabel = 'IMG';
                                                             } else if (file.mimetype.includes('text')) {
-                                                                fileIcon = '<img src="/images/icons/text-file.png" alt="Text" style="width: 234px; height: 234px;" />';
+                                                                fileIcon = '<img src="/images/icons/text-file.png" alt="Text" style="width: 80px; height: 80px;" />';
                                                                 fileTypeLabel = 'TXT';
                                                             } else if (file.mimetype.includes('zip') || file.mimetype.includes('compressed')) {
-                                                                fileIcon = '<img src="/images/icons/zip-file.png" alt="Archive" style="width: 234px; height: 234px;" />';
+                                                                fileIcon = '<img src="/images/icons/zip-file.png" alt="Archive" style="width: 80px; height: 80px;" />';
                                                                 fileTypeLabel = 'ZIP';
                                                             } else if (file.mimetype.includes('python')) {
-                                                                fileIcon = '<img src="/images/icons/python-file.png" alt="Python" style="width: 234px; height: 234px;" />';
+                                                                fileIcon = '<img src="/images/icons/python-file.png" alt="Python" style="width: 80px; height: 80px;" />';
                                                                 fileTypeLabel = 'PY';
                                                             } else if (file.mimetype.includes('java')) {
-                                                                fileIcon = '<img src="/images/icons/java-file.png" alt="Java" style="width: 234px; height: 234px;" />';
+                                                                fileIcon = '<img src="/images/icons/java-file.png" alt="Java" style="width: 80px; height: 80px;" />';
                                                                 fileTypeLabel = 'JAVA';
                                                             }
                                                         }
@@ -710,6 +734,39 @@
                                     </form>
                                     <% } %>
                         </section>
+
+        <!-- Files Display Section -->
+        <section class="files-section">
+            <!-- Active Filters Display -->
+            <div id="activeFilters" class="active-filters" style="display: none;">
+                <div class="filter-tags" id="filterTags"></div>
+                <button onclick="clearAllFilters()" class="clear-filters-btn">Clear All</button>
+            </div>
+
+            <!-- Grid View -->
+            <div id="gridView" class="files-grid" style="display: none;">
+                <!-- Grid view files will be rendered here -->
+            </div>
+
+            <!-- Grouped View -->
+            <div id="groupedView" class="files-grouped">
+                <!-- Grouped view files will be rendered here -->
+            </div>
+
+            <!-- List View -->
+            <div id="listView" class="files-list" style="display: none;">
+                <!-- List view files will be rendered here -->
+            </div>
+
+            <!-- Empty State -->
+            <div id="emptyState" class="empty-state" style="display: none;">
+                <div class="empty-state-content">
+                    <img src="/images/icons/folder.png" alt="No files" style="width: 80px; height: 80px; opacity: 0.5; margin-bottom: 1rem;">
+                    <h3>No files found</h3>
+                    <p>Upload some files to get started!</p>
+                </div>
+            </div>
+                        </section>
     </main>
 
     <!-- Floating Action Button for Upload -->
@@ -727,11 +784,61 @@
                 // Store all files data in JavaScript for client-side filtering
                 const allFilesData = JSON.parse(document.getElementById('filesData').textContent);
 
+                // Dashboard configuration (loaded dynamically)
+                let dashboardConfig = null;
+
                 // Current view mode
                 let currentView = localStorage.getItem('dashboardView') || 'grouped';
 
+                // Load dashboard configuration
+                async function loadDashboardConfig() {
+                    try {
+                        const response = await fetch('/api/dashboard-config');
+                        if (response.ok) {
+                            dashboardConfig = await response.json();
+                            console.log('Dashboard configuration loaded successfully');
+                        } else {
+                            console.error('Failed to load dashboard configuration');
+                            // Use fallback configuration if loading fails
+                            dashboardConfig = getFallbackConfig();
+                        }
+                    } catch (error) {
+                        console.error('Error loading dashboard configuration:', error);
+                        dashboardConfig = getFallbackConfig();
+                    }
+                }
+
+                // Fallback configuration in case API fails
+                function getFallbackConfig() {
+                    return {
+                        categories: {
+                            'Exam': { icon: '📝', displayName: 'Exam' },
+                            'Lecture Notes': { icon: '📚', displayName: 'Lecture Notes' },
+                            'Homework': { icon: '✏️', displayName: 'Homework' },
+                            'Study Guide': { icon: '📖', displayName: 'Study Guide' },
+                            'Cheat Sheet': { icon: '🗒️', displayName: 'Cheat Sheet' },
+                            'Project': { icon: '💻', displayName: 'Project' }
+                        },
+                        statusBadges: {
+                            new: { enabled: true, thresholdDays: 7, text: 'New' },
+                            scanned: { enabled: true, text: 'Scanned' }
+                        },
+                        semesters: {
+                            colors: {
+                                'Fall': { background: 'linear-gradient(135deg, #FFD700 0%, #FFA500 100%)', textColor: '#000000' },
+                                'Spring': { background: 'linear-gradient(135deg, #DC143C 0%, #A50E2A 100%)', textColor: 'white' },
+                                'Summer': { background: 'linear-gradient(135deg, #000000 0%, #333333 100%)', textColor: 'white' },
+                                'Winter': { background: 'linear-gradient(135deg, #4A90E2 0%, #357ABD 100%)', textColor: 'white' }
+                            }
+                        }
+                    };
+                }
+
                 // Initialize view on page load
-                document.addEventListener('DOMContentLoaded', function () {
+                document.addEventListener('DOMContentLoaded', async function () {
+                    // Load configuration first
+                    await loadDashboardConfig();
+
                     // Always initialize the current view to ensure proper state
                     if (currentView === 'grouped') {
                         switchView('grouped', false);
@@ -746,6 +853,12 @@
 
                     // Initialize professor dropdown
                     initializeProfessorDropdown();
+
+                    // Initialize category dropdown
+                    initializeCategoryDropdown();
+
+                    // Initialize sort options
+                    initializeSortOptions();
                 });
 
                 // Smart folder opening based on active filters
@@ -844,19 +957,17 @@
                     const gridView = document.getElementById('gridView');
                     const groupedView = document.getElementById('groupedView');
                     const listView = document.getElementById('listView');
+                    const emptyState = document.getElementById('emptyState');
                     const gridBtn = document.getElementById('gridViewBtn');
                     const groupedBtn = document.getElementById('groupedViewBtn');
                     const listBtn = document.getElementById('listViewBtn');
                     const activeFiltersContainer = document.getElementById('activeFilters');
 
-                    // Debug: Log container widths before switching
-                    const container = document.querySelector('.container');
-                    const filterControls = document.querySelector('.filter-controls');
-                    console.log('[DEBUG] Before view switch:');
-                    console.log('  Container width:', container?.offsetWidth);
-                    console.log('  Filter controls width:', filterControls?.offsetWidth);
-                    console.log('  Grouped view width:', groupedView?.offsetWidth);
-                    console.log('  Active filters width:', activeFiltersContainer?.offsetWidth);
+                    // Check if view elements exist
+                    if (!gridView || !groupedView || !listView) {
+                        console.error('View elements not found:', { gridView, groupedView, listView });
+                        return;
+                    }
 
                     // Get filter elements
                     const majorWrapper = document.querySelector('.multi-select-wrapper:nth-of-type(4)'); // Major dropdown
@@ -868,10 +979,38 @@
 
                     currentView = view;
 
-                    if (view === 'grid') {
-                        gridView.style.display = 'grid';
+                    // Hide all views first
+                    gridView.style.display = 'none';
                         groupedView.style.display = 'none';
                         listView.style.display = 'none';
+                    if (emptyState) emptyState.style.display = 'none';
+
+                    // Check if there are any files
+                    const hasFiles = allFilesData && allFilesData.length > 0;
+
+                    if (!hasFiles) {
+                        // Show empty state when no files
+                        if (emptyState) {
+                            emptyState.style.display = 'block';
+                        }
+
+                        // Hide bulk actions when no files
+                        const bulkActions = document.getElementById('bulkActions');
+                        if (bulkActions) {
+                            bulkActions.style.display = 'none';
+                        }
+
+                        // Hide active filters when no files
+                        if (activeFiltersContainer) {
+                            activeFiltersContainer.style.display = 'none';
+                        }
+
+                        console.log('No files found, showing empty state');
+                        return;
+                    }
+
+                    if (view === 'grid') {
+                        gridView.style.display = 'grid';
                         gridBtn.style.background = 'var(--umd-red)';
                         gridBtn.style.color = 'white';
                         groupedBtn.style.background = 'transparent';
@@ -883,9 +1022,6 @@
                         const bulkActions = document.getElementById('bulkActions');
                         if (bulkActions) {
                             bulkActions.style.display = 'flex';
-                            console.log('Bulk actions shown for grid view');
-                        } else {
-                            console.error('Bulk actions element not found');
                         }
 
                         // Show all filters in grid view
@@ -899,15 +1035,10 @@
                         // Show active filters in grid view
                         if (activeFiltersContainer) activeFiltersContainer.style.display = 'block';
 
-                        // Show active filters in grid view (if there are any)
-                        updateActiveFilters();
-
                         // Apply all filters to grid view
                         applyFilters();
                     } else if (view === 'grouped') {
-                        gridView.style.display = 'none';
                         groupedView.style.display = 'block';
-                        listView.style.display = 'none';
                         gridBtn.style.background = 'transparent';
                         gridBtn.style.color = '#6B7280';
                         groupedBtn.style.background = 'var(--umd-red)';
@@ -919,7 +1050,6 @@
                         const bulkActions = document.getElementById('bulkActions');
                         if (bulkActions) {
                             bulkActions.style.display = 'flex';
-                            console.log('Bulk actions shown for grouped view');
                         }
 
                         // Hide most filters in grouped view, keep only professor search
@@ -933,10 +1063,7 @@
                         // Show active filters in grouped view (but only relevant ones)
                         if (activeFiltersContainer) activeFiltersContainer.style.display = 'block';
 
-                        // Update active filters to show only relevant ones for grouped view
-                        updateActiveFiltersForGroupedView();
-
-                        // Render grouped view with only Professor and Search filters
+                        // Render grouped view
                         renderGroupedView();
 
                         // Smart folder opening based on active filters
@@ -944,8 +1071,6 @@
                             smartOpenFolders();
                         }, 50);
                     } else if (view === 'list') {
-                        gridView.style.display = 'none';
-                        groupedView.style.display = 'none';
                         listView.style.display = 'block';
                         gridBtn.style.background = 'transparent';
                         gridBtn.style.color = '#6B7280';
@@ -958,7 +1083,6 @@
                         const bulkActions = document.getElementById('bulkActions');
                         if (bulkActions) {
                             bulkActions.style.display = 'flex';
-                            console.log('Bulk actions shown for list view');
                         }
 
                         // Show all filters in list view
@@ -972,15 +1096,14 @@
                         // Show active filters in list view
                         if (activeFiltersContainer) activeFiltersContainer.style.display = 'block';
 
-                        // Show active filters in list view (if there are any)
-                        updateActiveFilters();
-
                         // Apply all filters to list view
                         applyFilters();
                     }
 
                     // Debug: Log container widths after switching
                     setTimeout(() => {
+                        const container = document.querySelector('.container');
+                        const filterControls = document.querySelector('.filter-controls');
                         console.log('[DEBUG] After view switch to', view, ':');
                         console.log('  Container width:', container?.offsetWidth);
                         console.log('  Filter controls width:', filterControls?.offsetWidth);
@@ -1265,9 +1388,9 @@
                         grouped[semesterKey][major][classCode][category].push(file);
                     });
 
-                    // Sort semesters chronologically (newest first)
+                    // Sort semesters chronologically (newest first) using dynamic configuration
                     function sortSemesters(semesters) {
-                        const semesterOrder = { 'Spring': 1, 'Summer': 2, 'Fall': 3, 'Winter': 4 };
+                        const semesterOrder = dashboardConfig?.semesters?.order || { 'Spring': 1, 'Summer': 2, 'Fall': 3, 'Winter': 4 };
                         return semesters.sort(function (a, b) {
                             const aParts = a.split(' ');
                             const bParts = b.split(' ');
@@ -1280,19 +1403,13 @@
                         });
                     }
 
-                    // Category icon mapping
-                    const categoryIcons = {
-                        'exam': '📝',
-                        'lecture notes': '📚',
-                        'homework': '✏️',
-                        'study guide': '📖',
-                        'cheat sheet': '🗒️',
-                        'project': '💻',
-                        'lab': '🧪',
-                        'textbook': '📕',
-                        'practice problems': '🔢',
-                        'other': '📎'
-                    };
+                    // Use dynamic category configuration
+                    const categoryIcons = {};
+                    if (dashboardConfig?.categories) {
+                        Object.keys(dashboardConfig.categories).forEach(category => {
+                            categoryIcons[category.toLowerCase()] = dashboardConfig.categories[category].icon;
+                        });
+                    }
 
                     // Generate HTML
                     let html = '<div class="expand-collapse-all" style="margin-bottom: 1rem;"><button id="expandAllBtn" onclick="toggleAllGroups()" style="background: var(--umd-red); color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-weight: 600;">Expand All</button></div>';
@@ -1316,18 +1433,13 @@
                             });
                         });
 
-                        // Get UMD color for semester (cycling through UMD red, gold, black, white)
-                        const semesterColors = {
-                            'Fall': 'linear-gradient(135deg, #FFD700 0%, #FFA500 100%)', // UMD Gold (Yellow)
-                            'Spring': 'linear-gradient(135deg, #DC143C 0%, #A50E2A 100%)', // UMD Red
-                            'Summer': 'linear-gradient(135deg, #000000 0%, #333333 100%)', // Black
-                            'Winter': 'linear-gradient(135deg, #4A90E2 0%, #357ABD 100%)' // Blue
-                        };
-
-                        // Extract semester name (e.g., "Fall 2021" -> "Fall")
+                        // Get dynamic semester colors from configuration
                         const semesterName = semesterKey.split(' ')[0];
-                        const semesterColor = semesterColors[semesterName] || semesterColors['Fall'];
-                        const textColor = semesterName === 'Fall' ? '#000000' : 'white';
+                        const semesterConfig = dashboardConfig?.semesters?.colors?.[semesterName] ||
+                                             dashboardConfig?.semesters?.defaultColor ||
+                                             { background: 'linear-gradient(135deg, #FFD700 0%, #FFA500 100%)', textColor: '#000000' };
+                        const semesterColor = semesterConfig.background;
+                        const textColor = semesterConfig.textColor;
 
                         html += `
                             <div class="semester-group file-card" style="margin-bottom: 1rem; border: 2px solid #E5E7EB; border-radius: 12px; overflow: hidden; background: white;">
@@ -1433,29 +1545,152 @@
                     restoreFolderStates(persistentFolderStates);
                 }
 
-                // Helper function to get file icon based on filename extension
+                // Dynamic helper functions using configuration
+
+                // Get file icon based on filename extension
                 function getFileIcon(filename) {
                     const ext = filename.split('.').pop().toLowerCase();
-                    const iconMap = {
-                        pdf: '<img src="/images/icons/pdf-file.png" alt="PDF" style="width: 100px; height: 100px;" />',
-                        doc: '<img src="/images/icons/word-file.png" alt="Word" style="width: 100px; height: 100px;" />',
-                        docx: '<img src="/images/icons/word-file.png" alt="Word" style="width: 100px; height: 100px;" />',
-                        xls: '<img src="/images/icons/excel-file.png" alt="Excel" style="width: 100px; height: 100px;" />',
-                        xlsx: '<img src="/images/icons/excel-file.png" alt="Excel" style="width: 100px; height: 100px;" />',
-                        ppt: '<img src="/images/icons/powerpoint-file.png" alt="PowerPoint" style="width: 100px; height: 100px;" />',
-                        pptx: '<img src="/images/icons/powerpoint-file.png" alt="PowerPoint" style="width: 100px; height: 100px;" />',
-                        txt: '<img src="/images/icons/text-file.png" alt="Text" style="width: 100px; height: 100px;" />',
-                        zip: '<img src="/images/icons/zip-file.png" alt="Archive" style="width: 100px; height: 100px;" />',
-                        rar: '<img src="/images/icons/zip-file.png" alt="Archive" style="width: 100px; height: 100px;" />',
-                        jpg: '<img src="/images/icons/image-file.png" alt="Image" style="width: 100px; height: 100px;" />',
-                        jpeg: '<img src="/images/icons/image-file.png" alt="Image" style="width: 100px; height: 100px;" />',
-                        png: '<img src="/images/icons/image-file.png" alt="Image" style="width: 100px; height: 100px;" />',
-                        gif: '<img src="/images/icons/image-file.png" alt="Image" style="width: 100px; height: 100px;" />',
-                        mp4: '<img src="/images/icons/video-file.png" alt="Video" style="width: 100px; height: 100px;" />',
-                        mov: '<img src="/images/icons/video-file.png" alt="Video" style="width: 100px; height: 100px;" />',
-                        mp3: '<img src="/images/icons/audio-file.png" alt="Audio" style="width: 100px; height: 100px;" />',
+
+                    // Fallback icon mapping if config is not loaded
+                    const fallbackIcons = {
+                        pdf: '/images/icons/pdf-file.png',
+                        doc: '/images/icons/word-file.png',
+                        docx: '/images/icons/word-file.png',
+                        xls: '/images/icons/excel-file.png',
+                        xlsx: '/images/icons/excel-file.png',
+                        ppt: '/images/icons/powerpoint-file.png',
+                        pptx: '/images/icons/powerpoint-file.png',
+                        txt: '/images/icons/text-file.png',
+                        zip: '/images/icons/zip-file.png',
+                        rar: '/images/icons/zip-file.png',
+                        jpg: '/images/icons/image-file.png',
+                        jpeg: '/images/icons/image-file.png',
+                        png: '/images/icons/image-file.png',
+                        gif: '/images/icons/image-file.png',
+                        mp4: '/images/icons/video-file.png',
+                        mov: '/images/icons/video-file.png',
+                        mp3: '/images/icons/audio-file.png'
                     };
-                    return iconMap[ext] || '<img src="/images/icons/document.png" alt="Document" style="width: 100px; height: 100px;" />';
+
+                    // Use PDF size as the default for all file types
+                    const defaultSize = 80; // PDF default size
+
+                    const config = dashboardConfig?.fileTypeIcons || {};
+                    const defaultConfig = dashboardConfig?.defaultFileIcon || {
+                        icon: '/images/icons/document.png',
+                        alt: 'Document',
+                        width: defaultSize,
+                        height: defaultSize
+                    };
+
+                    const fileConfig = config[ext] || {
+                        icon: fallbackIcons[ext] || defaultConfig.icon,
+                        alt: ext.toUpperCase() || 'Document',
+                        width: defaultSize, // Use PDF size for all
+                        height: defaultSize  // Use PDF size for all
+                    };
+
+                    // Override with PDF size for consistency and add error handling
+                    return `<img src="${fileConfig.icon}" alt="${fileConfig.alt}" style="width: ${defaultSize}px; height: ${defaultSize}px;" onerror="this.style.display='none'; this.nextElementSibling.style.display='inline';" /><span style="display: none; background: #E5E7EB; color: #6B7280; padding: 0.5rem; border-radius: 4px; font-size: 0.75rem;">${fileConfig.alt}</span>`;
+                }
+
+                // Get category emoji/icon
+                function getCategoryEmoji(category) {
+                    const config = dashboardConfig?.categories || {};
+                    const categoryConfig = config[category] || config['Other'] || { icon: '📎' };
+                    return categoryConfig.icon || '📎';
+                }
+
+                // Get category display name
+                function getCategoryDisplayName(category) {
+                    const config = dashboardConfig?.categories || {};
+                    const categoryConfig = config[category] || config['Other'] || { displayName: category };
+                    return categoryConfig.displayName || category;
+                }
+
+                // Format file size dynamically
+                function formatFileSize(sizeInBytes) {
+                    const config = dashboardConfig?.fileSize || {
+                        units: ['B', 'KB', 'MB', 'GB'],
+                        decimalPlaces: 1,
+                        threshold: 1024
+                    };
+
+                    let size = sizeInBytes;
+                    let unitIndex = 0;
+
+                    while (size >= config.threshold && unitIndex < config.units.length - 1) {
+                        size /= config.threshold;
+                        unitIndex++;
+                    }
+
+                    return `${size.toFixed(config.decimalPlaces)} ${config.units[unitIndex]}`;
+                }
+
+                // Check if file is "new" based on configurable threshold
+                function isFileNew(uploadDate) {
+                    const config = dashboardConfig?.statusBadges?.new || { thresholdDays: 7 };
+                    const uploadDateObj = new Date(uploadDate);
+                    const now = new Date();
+                    const daysAgo = Math.floor((now - uploadDateObj) / (1000 * 60 * 60 * 24));
+                    return daysAgo <= config.thresholdDays;
+                }
+
+                // Get delete button based on user permissions
+                function getDeleteButton(file) {
+                    const userRole = '<%= user.role %>';
+                    const userId = '<%= user.userid %>';
+
+                    if (userRole === 'viewer') {
+                        return '';
+                    }
+
+                    if (userRole !== 'admin' && file.uploadedBy !== userId) {
+                        return '';
+                    }
+
+                    return `<button class="button danger small delete-btn" data-filename="${file.filename}" data-original-name="${escapeHtml(file.originalName)}">Delete</button>`;
+                }
+
+                // Generate status badges dynamically
+                function generateStatusBadges(file, isNew) {
+                    const badges = [];
+                    const config = dashboardConfig?.statusBadges || {};
+
+                    // New badge
+                    if (config.new?.enabled && isNew) {
+                        const newConfig = config.new;
+                        badges.push(`<span style="background: ${newConfig.background}; color: ${newConfig.color}; padding: 2px 6px; border-radius: 4px; font-size: 0.7rem; font-weight: 600;"><img src="${newConfig.icon}" alt="${newConfig.alt}" style="width: ${newConfig.width}px; height: ${newConfig.height}px; vertical-align: middle; margin-right: 4px;" onerror="this.style.display='none';" /> ${newConfig.text}</span>`);
+                    }
+
+                    // Handle virus scan status badges with proper logic
+                    if (file.virusScanStatus) {
+                        const status = file.virusScanStatus.toString().toLowerCase();
+
+                        // Error badge
+                        if (config.error?.enabled && (status.includes('error') || status.includes('failed') || status.includes('virus'))) {
+                            const errorConfig = config.error;
+                            badges.push(`<span style="background: ${errorConfig.background}; color: ${errorConfig.color}; padding: 2px 6px; border-radius: 4px; font-size: 0.7rem; font-weight: 600;"><img src="${errorConfig.icon}" alt="${errorConfig.alt}" style="width: ${errorConfig.width}px; height: ${errorConfig.height}px; vertical-align: middle; margin-right: 4px;" onerror="this.style.display='none';" /> ${errorConfig.text}</span>`);
+                        }
+                        // Pending badge
+                        else if (config.pending?.enabled && (status.includes('pending') || status.includes('scanning'))) {
+                            const pendingConfig = config.pending;
+                            badges.push(`<span style="background: ${pendingConfig.background}; color: ${pendingConfig.color}; padding: 2px 6px; border-radius: 4px; font-size: 0.7rem; font-weight: 600;"><img src="${pendingConfig.icon}" alt="${pendingConfig.alt}" style="width: ${pendingConfig.width}px; height: ${pendingConfig.height}px; vertical-align: middle; margin-right: 4px;" onerror="this.style.display='none';" /> ${pendingConfig.text}</span>`);
+                        }
+                        // Scanned badge (only for clean/successful scans)
+                        else if (config.scanned?.enabled && (status.includes('clean') || status.includes('scanned') || status === 'true')) {
+                            const scannedConfig = config.scanned;
+                            badges.push(`<span style="background: ${scannedConfig.background}; color: ${scannedConfig.color}; padding: 2px 6px; border-radius: 4px; font-size: 0.7rem; font-weight: 600;"><img src="${scannedConfig.icon}" alt="${scannedConfig.alt}" style="width: ${scannedConfig.width}px; height: ${scannedConfig.height}px; vertical-align: middle; margin-right: 4px;" onerror="this.style.display='none';" /> ${scannedConfig.text}</span>`);
+                        }
+                    }
+
+                    // Category badge
+                    if (config.category?.enabled && file.category) {
+                        const categoryConfig = config.category;
+                        badges.push(`<span style="background: ${categoryConfig.background}; color: ${categoryConfig.color}; padding: 2px 6px; border-radius: 4px; font-size: 0.7rem; font-weight: 600;">${getCategoryEmoji(file.category)} ${escapeHtml(getCategoryDisplayName(file.category))}</span>`);
+                    }
+
+                    return badges.join('');
                 }
 
                 // Get filtered files for grouped view (only Professor and Search filters)
@@ -1617,9 +1852,7 @@
                                         <span><strong>Uploaded by:</strong> ${uploader}</span>
                                     </div>
                                     <div class="file-list-tags" style="display: flex; flex-wrap: wrap; gap: 0.3rem; margin-top: 0.3rem;">
-                                        ${isNew ? `<span style="background: #D1FAE5; color: #065F46; padding: 2px 6px; border-radius: 4px; font-size: 0.7rem; font-weight: 600;"><img src="/images/icons/new-badge.png" alt="New" style="width: 16px; height: 16px; vertical-align: middle; margin-right: 4px;" /> New</span>` : ''}
-                                        ${file.virusScanStatus ? `<span style="background: #DCFCE7; color: #166534; padding: 2px 6px; border-radius: 4px; font-size: 0.7rem; font-weight: 600;"><img src="/images/icons/security-shield-check.png" alt="Security" style="width: 16px; height: 16px; vertical-align: middle; margin-right: 4px;" /> Scanned</span>` : ''}
-                                        ${file.category ? `<span style="background: #E0E7FF; color: #4338CA; padding: 2px 6px; border-radius: 4px; font-size: 0.7rem; font-weight: 600;">${getCategoryEmoji(file.category)} ${escapeHtml(file.category)}</span>` : ''}
+                                        ${generateStatusBadges(file, isNew)}
                                         ${major ? `<span style="background: #E0E7FF; color: #4338CA; padding: 2px 6px; border-radius: 4px; font-size: 0.7rem; font-weight: 600;"><img src="/images/icons/folder.png" alt="Folder" style="width: 16px; height: 16px; vertical-align: middle; margin-right: 4px;" /> ${major}</span>` : ''}
                                         ${classCode ? `<span style="background: #FEF2F2; color: #DC2626; padding: 2px 6px; border-radius: 4px; font-size: 0.7rem; font-weight: 600;"><img src="/images/icons/briefcase.png" alt="Course" style="width: 16px; height: 16px; vertical-align: middle; margin-right: 4px;" /> ${classCode}</span>` : ''}
                                     </div>
@@ -1644,11 +1877,8 @@
 
                 // Create a grouped file card from file data (using grid view structure)
                 function createGroupedFileCard(file) {
-                    // Calculate if file is "new" (within 7 days)
-                    const uploadDate = new Date(file.uploadDate);
-                    const now = new Date();
-                    const daysAgo = Math.floor((now - uploadDate) / (1000 * 60 * 60 * 24));
-                    const isNew = daysAgo <= 7;
+                    // Calculate if file is "new" using dynamic configuration
+                    const isNew = isFileNew(file.uploadDate);
 
                     return `
                 <div class="file-card animate-fade-in"
@@ -1680,9 +1910,7 @@
                     </div>
                     <div class="file-meta" style="margin-top: 0.1rem;">
                         <div class="tags-section" style="display: flex; flex-wrap: wrap; gap: 0.3rem; margin-bottom: 0.5rem;">
-                            ${isNew ? `<span style="background: #D1FAE5; color: #065F46; padding: 2px 6px; border-radius: 4px; font-size: 0.7rem; font-weight: 600;"><img src="/images/icons/new-badge.png" alt="New" style="width: 16px; height: 16px; vertical-align: middle; margin-right: 4px;" /> New</span>` : ''}
-                            ${file.virusScanStatus ? `<span style="background: #DCFCE7; color: #166534; padding: 2px 6px; border-radius: 4px; font-size: 0.7rem; font-weight: 600;"><img src="/images/icons/security-shield-check.png" alt="Security" style="width: 16px; height: 16px; vertical-align: middle; margin-right: 4px;" /> Scanned</span>` : ''}
-                            ${file.category ? `<span style="background: #E0E7FF; color: #4338CA; padding: 2px 6px; border-radius: 4px; font-size: 0.7rem; font-weight: 600;">${getCategoryEmoji(file.category)} ${escapeHtml(file.category)}</span>` : ''}
+                            ${generateStatusBadges(file, isNew)}
                         </div>
                         ${file.major ? `<div class="file-meta-item"><strong>Major:</strong> <span class="major-badge">${escapeHtml(file.major)}</span></div>` : ''}
                         ${file.classCode ? `<div class="file-meta-item"><strong>Class:</strong> <span class="class-code-badge">${escapeHtml(file.classCode)}</span></div>` : ''}
@@ -2101,6 +2329,41 @@
                     }
                 }
 
+                // Initialize category dropdown with dynamic configuration
+                function initializeCategoryDropdown() {
+                    const categoryDropdown = document.getElementById('categoryDropdown');
+                    if (!categoryDropdown || !dashboardConfig?.categories) {
+                        return;
+                    }
+
+                    const categories = Object.keys(dashboardConfig.categories);
+                    const sortedCategories = categories.sort();
+
+                    categoryDropdown.innerHTML = sortedCategories.map(category => {
+                        const categoryConfig = dashboardConfig.categories[category];
+                        return `
+                            <label class="multi-select-option">
+                                <input type="checkbox" value="${escapeHtml(category)}" onchange="updateMultiSelect('category')">
+                                <span>${categoryConfig.icon} ${escapeHtml(categoryConfig.displayName || category)}</span>
+                            </label>
+                        `;
+                    }).join('');
+                }
+
+                // Initialize sort options with dynamic configuration
+                function initializeSortOptions() {
+                    const sortFilter = document.getElementById('sortFilter');
+                    if (!sortFilter || !dashboardConfig?.sortOptions) {
+                        return;
+                    }
+
+                    const sortOptions = Object.keys(dashboardConfig.sortOptions);
+                    sortFilter.innerHTML = sortOptions.map(optionKey => {
+                        const optionConfig = dashboardConfig.sortOptions[optionKey];
+                        return `<option value="${optionConfig.value}">${optionConfig.label}</option>`;
+                    }).join('');
+                }
+
                 // Filter professor options based on search term
                 function filterProfessorOptions(searchTerm) {
                     const options = document.querySelectorAll('#professorList .multi-select-option');
@@ -2233,11 +2496,10 @@
                         .map(cb => ({ type: 'class', value: cb.value, label: `<img src="/images/icons/briefcase.png" alt="Course" style="width: 40px; height: 40px; vertical-align: middle; margin-right: 10px;" /> ${cb.value}` }));
                     tags.push(...selectedClasses);
 
-                    // Get professor filter
-                    const professorFilter = document.getElementById('professorFilter').value;
-                    if (professorFilter) {
-                        tags.push({ type: 'professor', value: professorFilter, label: `<img src="/images/icons/user.png" alt="Professor" style="width: 40px; height: 40px; vertical-align: middle; margin-right: 10px;" /> ${professorFilter}` });
-                    }
+                    // Get selected professors
+                    const selectedProfessors = Array.from(document.querySelectorAll('#professorDropdown input[type="checkbox"]:checked'))
+                        .map(cb => ({ type: 'professor', value: cb.value, label: `<img src="/images/icons/user.png" alt="Professor" style="width: 40px; height: 40px; vertical-align: middle; margin-right: 10px;" /> ${cb.value}` }));
+                    tags.push(...selectedProfessors);
 
                     // Get search filter
                     const searchTerm = document.getElementById('searchInput').value;
@@ -2251,8 +2513,9 @@
                         tags.push({ type: 'myFiles', value: 'true', label: 'My Files Only' });
                     }
 
-                    // Update filter tags content (visibility is controlled by switchView)
+                    // Show/hide active filters container based on whether there are active filters
                     if (tags.length > 0) {
+                        activeFiltersContainer.style.display = 'block';
                         filterTags.innerHTML = tags.map(tag => `
                             <span style="display: inline-flex; align-items: center; gap: 0.375rem; background: white; border: 1px solid var(--umd-red); color: var(--umd-red); padding: 4px 8px; border-radius: 6px; font-size: 0.813rem; font-weight: 500;">
                                 ${tag.label}
@@ -2262,7 +2525,8 @@
                             </span>
                         `).join('');
                     } else {
-                        filterTags.innerHTML = '<span style="color: #6B7280; font-style: italic;">No filters applied</span>';
+                        activeFiltersContainer.style.display = 'none';
+                        filterTags.innerHTML = '';
                     }
                 }
 
@@ -2295,8 +2559,9 @@
                         tags.push({ type: 'myFiles', value: 'true', label: `👤 My Files Only` });
                     }
 
-                    // Update filter tags content
+                    // Show/hide active filters container based on whether there are active filters
                     if (tags.length > 0) {
+                        activeFiltersContainer.style.display = 'block';
                         filterTags.innerHTML = tags.map(tag => `
                             <span style="display: inline-flex; align-items: center; gap: 0.375rem; background: white; border: 1px solid var(--umd-red); color: var(--umd-red); padding: 4px 8px; border-radius: 6px; font-size: 0.813rem; font-weight: 500;">
                                 ${tag.label}
@@ -2306,7 +2571,8 @@
                             </span>
                         `).join('');
                     } else {
-                        filterTags.innerHTML = '<span style="color: #6B7280; font-style: italic;">No filters applied</span>';
+                        activeFiltersContainer.style.display = 'none';
+                        filterTags.innerHTML = '';
                     }
                 }
 
@@ -2584,9 +2850,7 @@
                     </div>
                     <div class="file-meta" style="margin-top: 0.1rem;">
                         <div class="tags-section" style="display: flex; flex-wrap: wrap; gap: 0.3rem; margin-bottom: 0.5rem;">
-                            ${isNew ? `<span style="background: #D1FAE5; color: #065F46; padding: 2px 6px; border-radius: 4px; font-size: 0.7rem; font-weight: 600;"><img src="/images/icons/new-badge.png" alt="New" style="width: 16px; height: 16px; vertical-align: middle; margin-right: 4px;" /> New</span>` : ''}
-                            ${file.virusScanStatus ? `<span style="background: #DCFCE7; color: #166534; padding: 2px 6px; border-radius: 4px; font-size: 0.7rem; font-weight: 600;"><img src="/images/icons/security-shield-check.png" alt="Security" style="width: 16px; height: 16px; vertical-align: middle; margin-right: 4px;" /> Scanned</span>` : ''}
-                            ${file.category ? `<span style="background: #E0E7FF; color: #4338CA; padding: 2px 6px; border-radius: 4px; font-size: 0.7rem; font-weight: 600;">${getCategoryEmoji(file.category)} ${escapeHtml(file.category)}</span>` : ''}
+                            ${generateStatusBadges(file, isNew)}
                         </div>
                         ${file.major ? `<div class="file-meta-item"><strong>Major:</strong> <span class="major-badge">${escapeHtml(file.major)}</span></div>` : ''}
                         ${file.classCode ? `<div class="file-meta-item"><strong>Class:</strong> <span class="class-code-badge">${escapeHtml(file.classCode)}</span></div>` : ''}
@@ -4004,29 +4268,8 @@
                         selectedFilesContainer.innerHTML = html;
                     }
 
-                    function getFileIcon(filename) {
-                        const ext = filename.split('.').pop().toLowerCase();
-                        const iconMap = {
-                            pdf: '<img src="/images/icons/pdf-file.png" alt="PDF" style="width: 100px; height: 100px;" />',
-                            doc: '<img src="/images/icons/word-file.png" alt="Word" style="width: 100px; height: 100px;" />',
-                            docx: '<img src="/images/icons/word-file.png" alt="Word" style="width: 100px; height: 100px;" />',
-                            xls: '<img src="/images/icons/excel-file.png" alt="Excel" style="width: 100px; height: 100px;" />',
-                            xlsx: '<img src="/images/icons/excel-file.png" alt="Excel" style="width: 100px; height: 100px;" />',
-                        ppt: '<img src="/images/icons/powerpoint-file.png" alt="PowerPoint" style="width: 100px; height: 100px;" />',
-                        pptx: '<img src="/images/icons/powerpoint-file.png" alt="PowerPoint" style="width: 100px; height: 100px;" />',
-                        txt: '<img src="/images/icons/text-file.png" alt="Text" style="width: 100px; height: 100px;" />',
-                        zip: '<img src="/images/icons/zip-file.png" alt="Archive" style="width: 100px; height: 100px;" />',
-                        rar: '<img src="/images/icons/zip-file.png" alt="Archive" style="width: 100px; height: 100px;" />',
-                        jpg: '<img src="/images/icons/image-file.png" alt="Image" style="width: 100px; height: 100px;" />',
-                        jpeg: '<img src="/images/icons/image-file.png" alt="Image" style="width: 100px; height: 100px;" />',
-                        png: '<img src="/images/icons/image-file.png" alt="Image" style="width: 100px; height: 100px;" />',
-                        gif: '<img src="/images/icons/image-file.png" alt="Image" style="width: 100px; height: 100px;" />',
-                        mp4: '<img src="/images/icons/video-file.png" alt="Video" style="width: 100px; height: 100px;" />',
-                        mov: '<img src="/images/icons/video-file.png" alt="Video" style="width: 100px; height: 100px;" />',
-                            mp3: '<img src="/images/icons/audio-file.png" alt="Audio" style="width: 100px; height: 100px;" />',
-                        };
-                        return iconMap[ext] || '<img src="/images/icons/document.png" alt="Document" style="width: 100px; height: 100px;" />';
-                    }
+                    // Use the main dynamic getFileIcon function
+                    // (Function is defined globally above)
                 }
 
                 // Floating Action Button functionality
@@ -4215,6 +4458,43 @@
                     }
                 }
 
+                // Clear all filters
+                function clearAllFilters() {
+                    try {
+                        // Clear search input
+                        const searchInput = document.getElementById('searchInput');
+                        if (searchInput) searchInput.value = '';
+
+                        // Clear sort filter
+                        const sortFilter = document.getElementById('sortFilter');
+                        if (sortFilter) sortFilter.value = 'newest';
+
+                        // Clear my files toggle
+                        const myFilesToggle = document.getElementById('myFilesToggle');
+                        if (myFilesToggle) myFilesToggle.checked = false;
+
+                        // Clear all dropdown filters
+                        const dropdowns = ['category', 'semester', 'year', 'major', 'class'];
+                        dropdowns.forEach(dropdown => {
+                            const checkboxes = document.querySelectorAll(`#${dropdown}Dropdown input[type="checkbox"]:checked`);
+                            checkboxes.forEach(cb => cb.checked = false);
+                            updateMultiSelect(dropdown);
+                        });
+
+                        // Clear professor filters
+                        const professorCheckboxes = document.querySelectorAll('#professorDropdown input[type="checkbox"]:checked');
+                        professorCheckboxes.forEach(cb => cb.checked = false);
+                        updateMultiSelect('professor');
+
+                        // Reapply filters
+                        applyFilters();
+
+                        console.log('All filters cleared');
+                    } catch (error) {
+                        console.error('Error clearing filters:', error);
+                    }
+                }
+
                 // Apply filters to the current view
                 function applyFilters() {
                     try {
@@ -4236,7 +4516,7 @@
                             .map(cb => cb.value);
                         const selectedClasses = Array.from(document.querySelectorAll('#classDropdown input[type="checkbox"]:checked'))
                             .map(cb => cb.value);
-                        const selectedProfessors = Array.from(document.querySelectorAll('#professorList input[type="checkbox"]:checked'))
+                        const selectedProfessors = Array.from(document.querySelectorAll('#professorDropdown input[type="checkbox"]:checked'))
                             .map(cb => cb.value);
 
                         console.log('Filter values:', {
@@ -4258,6 +4538,9 @@
                             renderListView();
                         }
 
+                        // Update active filters display
+                        updateActiveFilters();
+
                         console.log('applyFilters completed successfully');
                     } catch (error) {
                         console.error('Error in applyFilters:', error);
@@ -4273,19 +4556,95 @@
                             return;
                         }
 
-                        console.log('Rendering grid view with', allFilesData.length, 'files');
+                        // Get filtered files
+                        const filteredFiles = getFilteredFiles();
 
-                        // For now, just ensure the grid view is visible
-                        // The actual filtering logic can be added here later
-                        gridView.style.display = 'grid';
-
-                        // If no files, show empty state
-                        if (!allFilesData || allFilesData.length === 0) {
+                        if (!filteredFiles || filteredFiles.length === 0) {
                             gridView.innerHTML = '<div style="text-align: center; padding: 2rem; color: #6B7280;">No files found</div>';
+                            return;
                         }
+
+                        // Sort files
+                        const sortedFiles = sortFiles(filteredFiles);
+
+                        // Generate grid view HTML
+                        const gridHTML = sortedFiles.map(file => createGridViewItem(file)).join('');
+                        gridView.innerHTML = gridHTML;
+
+                        console.log('Rendered grid view with', sortedFiles.length, 'files');
                     } catch (error) {
                         console.error('Error rendering grid view:', error);
+                        gridView.innerHTML = '<div style="text-align: center; padding: 2rem; color: #EF4444;">Error loading files</div>';
                     }
+                }
+
+                // Create a grid view item from file data
+                function createGridViewItem(file) {
+                    const isNew = isFileNew(file.uploadDate);
+
+                    return `
+                        <div class="file-card"
+                             data-class="${escapeHtml(file.classCode || '')}"
+                             data-major="${escapeHtml(file.major || '')}"
+                             data-semester="${escapeHtml(file.semester || '')}"
+                             data-year="${escapeHtml(file.year || '')}"
+                             data-category="${escapeHtml((file.category || '').toLowerCase())}"
+                             data-professor="${escapeHtml((file.professor || '').toLowerCase())}"
+                             data-uploader="${escapeHtml(file.uploadedBy)}"
+                             data-name="${escapeHtml(file.originalName.toLowerCase())}"
+                             data-date="${new Date(file.uploadDate).getTime()}"
+                             data-downloads="${file.downloadCount || 0}"
+                             data-size="${file.size || 0}"
+                             style="background: white; border-radius: 8px; padding: 1rem; box-shadow: 0 2px 4px rgba(0,0,0,0.1); transition: all 0.2s; position: relative;">
+
+                            <!-- Checkbox -->
+                            <div style="position: absolute; top: 0.5rem; left: 0.5rem;">
+                                <input type="checkbox" class="file-select-checkbox" data-filename="${file.filename}"
+                                    style="width: 18px; height: 18px; cursor: pointer; accent-color: var(--umd-red);"
+                                    onchange="updateSelectedCount()" />
+                            </div>
+
+                            <!-- Download count -->
+                            <div style="position: absolute; top: 0.5rem; right: 0.5rem; background: #FEF3C7; color: #92400E; padding: 2px 6px; border-radius: 4px; font-size: 0.7rem; font-weight: 600; cursor: help; z-index: 10;" title="${file.downloadCount || 0} downloads">
+                                ${file.downloadCount || 0}
+                            </div>
+
+                            <!-- File Icon -->
+                            <div style="text-align: center; margin: 2rem 0 1rem 0;">
+                                ${getFileIcon(file.originalName)}
+                            </div>
+
+                            <!-- File Info -->
+                            <div style="margin-bottom: 1rem;">
+                                <h3 style="margin: 0 0 0.5rem 0; font-size: 1rem; color: #374151; text-align: center;">
+                                    <span class="filename-truncated" title="${escapeHtml(file.originalName)}">${truncateFilename(file.originalName)}</span>
+                                </h3>
+
+                                <!-- Status badges -->
+                                <div style="display: flex; justify-content: center; flex-wrap: wrap; gap: 0.25rem; margin-bottom: 0.5rem;">
+                                    ${generateStatusBadges(file, isNew)}
+                                </div>
+                            </div>
+
+                            <!-- File Details -->
+                            <div style="font-size: 0.875rem; color: #6B7280; margin-bottom: 1rem;">
+                                ${file.major ? `<div class="file-meta-item"><strong>Major:</strong> <span class="major-badge">${escapeHtml(file.major)}</span></div>` : ''}
+                                ${file.classCode ? `<div class="file-meta-item"><strong>Class:</strong> <span class="class-badge">${escapeHtml(file.classCode)}</span></div>` : ''}
+                                ${file.professor ? `<div class="file-meta-item"><strong>Professor:</strong> ${escapeHtml(file.professor)}</div>` : ''}
+                                ${file.semester && file.year ? `<div class="file-meta-item"><strong>Term:</strong> ${file.semester} ${file.year}</div>` : ''}
+                                ${file.uploadedBy ? `<div class="file-meta-item"><strong>Uploaded by:</strong> ${escapeHtml(file.uploadedBy)}</div>` : ''}
+                                ${file.description ? `<div class="file-meta-item"><strong>Description:</strong> ${escapeHtml(file.description)}</div>` : ''}
+                                <div class="file-meta-item"><strong>Size:</strong> ${formatFileSize(file.size || 0)}</div>
+                            </div>
+
+                            <!-- Actions -->
+                            <div style="display: flex; gap: 0.5rem; justify-content: center;">
+                                <a href="/download/${encodeURIComponent(file.filename)}" class="button download" target="_blank" style="flex: 1; text-align: center; padding: 0.5rem 1rem; font-size: 0.875rem;">Download</a>
+                                ${getDeleteButton(file)}
+                                <button class="button secondary small report-btn" data-filename="${file.filename}" data-original-name="${escapeHtml(file.originalName)}" style="padding: 0.5rem 1rem; font-size: 0.875rem;">🚩 Report</button>
+                            </div>
+                        </div>
+                    `;
                 }
 
                 // Render list view with filtered files
@@ -4297,19 +4656,210 @@
                             return;
                         }
 
-                        console.log('Rendering list view with', allFilesData.length, 'files');
+                        // Get filtered files
+                        const filteredFiles = getFilteredFiles();
 
-                        // For now, just ensure the list view is visible
-                        // The actual filtering logic can be added here later
-                        listView.style.display = 'block';
-
-                        // If no files, show empty state
-                        if (!allFilesData || allFilesData.length === 0) {
+                        if (!filteredFiles || filteredFiles.length === 0) {
                             listView.innerHTML = '<div style="text-align: center; padding: 2rem; color: #6B7280;">No files found</div>';
+                            return;
                         }
+
+                        // Sort files
+                        const sortedFiles = sortFiles(filteredFiles);
+
+                        // Generate list view HTML
+                        const listHTML = sortedFiles.map(file => createListViewItem(file)).join('');
+                        listView.innerHTML = listHTML;
+
+                        console.log('Rendered list view with', sortedFiles.length, 'files');
                     } catch (error) {
                         console.error('Error rendering list view:', error);
+                        listView.innerHTML = '<div style="text-align: center; padding: 2rem; color: #EF4444;">Error loading files</div>';
                     }
+                }
+
+                // Create a list view item from file data
+                function createListViewItem(file) {
+                    const isNew = isFileNew(file.uploadDate);
+
+                    return `
+                        <div class="file-list-item"
+                             data-class="${escapeHtml(file.classCode || '')}"
+                             data-major="${escapeHtml(file.major || '')}"
+                             data-semester="${escapeHtml(file.semester || '')}"
+                             data-year="${escapeHtml(file.year || '')}"
+                             data-category="${escapeHtml((file.category || '').toLowerCase())}"
+                             data-professor="${escapeHtml((file.professor || '').toLowerCase())}"
+                             data-uploader="${escapeHtml(file.uploadedBy)}"
+                             data-name="${escapeHtml(file.originalName.toLowerCase())}"
+                             data-date="${new Date(file.uploadDate).getTime()}"
+                             data-downloads="${file.downloadCount || 0}"
+                             data-size="${file.size || 0}"
+                             style="display: flex; align-items: center; padding: 1rem; border: 1px solid #E5E7EB; border-radius: 8px; margin-bottom: 0.5rem; background: white; transition: all 0.2s;">
+
+                            <!-- Checkbox -->
+                            <div style="margin-right: 1rem;">
+                                <input type="checkbox" class="file-select-checkbox" data-filename="${file.filename}"
+                                    style="width: 18px; height: 18px; cursor: pointer; accent-color: var(--umd-red);"
+                                    onchange="updateSelectedCount()" />
+                            </div>
+
+                            <!-- File Icon -->
+                            <div style="margin-right: 1rem; flex-shrink: 0;">
+                                ${getFileIcon(file.originalName)}
+                            </div>
+
+                            <!-- File Info -->
+                            <div style="flex: 1; min-width: 0;">
+                                <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.25rem;">
+                                    <h3 style="margin: 0; font-size: 1rem; color: #374151; flex: 1; min-width: 0;">
+                                        <span class="filename-truncated" title="${escapeHtml(file.originalName)}">${truncateFilename(file.originalName)}</span>
+                                    </h3>
+                                    <div style="display: flex; gap: 0.25rem; flex-shrink: 0;">
+                                        ${generateStatusBadges(file, isNew)}
+                                    </div>
+                                </div>
+
+                                <div style="display: flex; flex-wrap: wrap; gap: 0.5rem; font-size: 0.875rem; color: #6B7280;">
+                                    ${file.major ? `<span style="background: #E0E7FF; color: #4338CA; padding: 2px 6px; border-radius: 4px; font-size: 0.75rem;">${escapeHtml(file.major)}</span>` : ''}
+                                    ${file.classCode ? `<span style="background: #FEE2E2; color: #DC2626; padding: 2px 6px; border-radius: 4px; font-size: 0.75rem;">${escapeHtml(file.classCode)}</span>` : ''}
+                                    ${file.professor ? `<span>Prof: ${escapeHtml(file.professor)}</span>` : ''}
+                                    ${file.semester && file.year ? `<span>${file.semester} ${file.year}</span>` : ''}
+                                    <span>${formatFileSize(file.size || 0)}</span>
+                                    <span>${file.downloadCount || 0} downloads</span>
+                                </div>
+                            </div>
+
+                            <!-- Actions -->
+                            <div style="display: flex; gap: 0.5rem; flex-shrink: 0;">
+                                <a href="/download/${encodeURIComponent(file.filename)}" class="button download" target="_blank" style="padding: 0.5rem 1rem; font-size: 0.875rem;">Download</a>
+                                ${getDeleteButton(file)}
+                                <button class="button secondary small report-btn" data-filename="${file.filename}" data-original-name="${escapeHtml(file.originalName)}" style="padding: 0.5rem 1rem; font-size: 0.875rem;">🚩 Report</button>
+                            </div>
+                        </div>
+                    `;
+                }
+
+                // Get filtered files based on current filters
+                function getFilteredFiles() {
+                    const searchTerm = document.getElementById('searchInput')?.value.toLowerCase() || '';
+                    const sortBy = document.getElementById('sortFilter')?.value || 'newest';
+                    const myFilesOnly = document.getElementById('myFilesToggle')?.checked || false;
+
+                    // Get selected filter values
+                    const selectedCategories = Array.from(document.querySelectorAll('#categoryDropdown input[type="checkbox"]:checked'))
+                        .map(cb => cb.value);
+                    const selectedSemesters = Array.from(document.querySelectorAll('#semesterDropdown input[type="checkbox"]:checked'))
+                        .map(cb => cb.value);
+                    const selectedYears = Array.from(document.querySelectorAll('#yearDropdown input[type="checkbox"]:checked'))
+                        .map(cb => cb.value);
+                    const selectedMajors = Array.from(document.querySelectorAll('#majorDropdown input[type="checkbox"]:checked'))
+                        .map(cb => cb.value);
+                    const selectedClasses = Array.from(document.querySelectorAll('#classDropdown input[type="checkbox"]:checked'))
+                        .map(cb => cb.value);
+                    const selectedProfessors = Array.from(document.querySelectorAll('#professorDropdown input[type="checkbox"]:checked'))
+                        .map(cb => cb.value);
+
+                    return allFilesData.filter(file => {
+                        // Search term filter
+                        if (searchTerm && !file.originalName.toLowerCase().includes(searchTerm) &&
+                            !(file.description && file.description.toLowerCase().includes(searchTerm))) {
+                            return false;
+                        }
+
+                        // My files filter
+                        const currentUserId = '<%= user.userid %>';
+                        if (myFilesOnly && file.uploadedBy !== currentUserId) {
+                            return false;
+                        }
+
+                        // Category filter (case insensitive)
+                        if (selectedCategories.length > 0) {
+                            if (!file.category || !selectedCategories.some(selectedCat =>
+                                file.category.toLowerCase() === selectedCat.toLowerCase()
+                            )) {
+                                return false;
+                            }
+                        }
+
+                        // Semester filter (case insensitive)
+                        if (selectedSemesters.length > 0) {
+                            if (!file.semester || !selectedSemesters.some(selectedSem =>
+                                file.semester.toLowerCase() === selectedSem.toLowerCase()
+                            )) {
+                                return false;
+                            }
+                        }
+
+                        // Year filter (case insensitive)
+                        if (selectedYears.length > 0) {
+                            if (!file.year || !selectedYears.some(selectedYear =>
+                                file.year.toLowerCase() === selectedYear.toLowerCase()
+                            )) {
+                                return false;
+                            }
+                        }
+
+                        // Major filter (case insensitive)
+                        if (selectedMajors.length > 0) {
+                            if (!file.major || !selectedMajors.some(selectedMajor =>
+                                file.major.toLowerCase() === selectedMajor.toLowerCase()
+                            )) {
+                                return false;
+                            }
+                        }
+
+                        // Class filter (case insensitive)
+                        if (selectedClasses.length > 0) {
+                            if (!file.classCode || !selectedClasses.some(selectedClass =>
+                                file.classCode.toLowerCase() === selectedClass.toLowerCase()
+                            )) {
+                                return false;
+                            }
+                        }
+
+                        // Professor filter (case insensitive)
+                        if (selectedProfessors.length > 0) {
+                            if (!file.professor || !selectedProfessors.some(selectedProf =>
+                                file.professor.toLowerCase() === selectedProf.toLowerCase()
+                            )) {
+                                return false;
+                            }
+                        }
+
+                        return true;
+                    });
+                }
+
+                // Sort files based on current sort option
+                function sortFiles(files) {
+                    const sortBy = document.getElementById('sortFilter')?.value || 'newest';
+
+                    return files.sort((a, b) => {
+                        switch (sortBy) {
+                            case 'newest':
+                                return new Date(b.uploadDate) - new Date(a.uploadDate);
+                            case 'oldest':
+                                return new Date(a.uploadDate) - new Date(b.uploadDate);
+                            case 'popular':
+                                return (b.downloadCount || 0) - (a.downloadCount || 0);
+                            case 'name':
+                                return a.originalName.localeCompare(b.originalName);
+                            case 'size-desc':
+                                return (b.size || 0) - (a.size || 0);
+                            case 'size-asc':
+                                return (a.size || 0) - (b.size || 0);
+                            default:
+                                return new Date(b.uploadDate) - new Date(a.uploadDate);
+                        }
+                    });
+                }
+
+                // Truncate filename for display
+                function truncateFilename(filename, maxLength = 30) {
+                    if (!filename) return '';
+                    if (filename.length <= maxLength) return escapeHtml(filename);
+                    return escapeHtml(filename.substring(0, maxLength)) + '...';
                 }
 
                 async function bulkDeleteFiles() {

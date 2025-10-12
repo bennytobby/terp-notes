@@ -29,6 +29,9 @@ const userCollection = { db: process.env.MONGO_DB_NAME, collection: process.env.
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const client = new MongoClient(uri, { serverApi: ServerApiVersion.v1 });
 
+// Dashboard Configuration
+const dashboardConfig = require('./config/dashboard-config');
+
 // Helper function to safely connect to MongoDB
 async function ensureConnection() {
     try {
@@ -170,6 +173,16 @@ const emailTemplates = require('./emails/templates');
 const { validatePassword, getPasswordRequirements } = require('./utils/passwordValidator');
 const { sessionTimeout } = require('./middleware/sessionTimeout');
 const app = express();
+
+// API endpoint to get dashboard configuration
+app.get('/api/dashboard-config', (req, res) => {
+    try {
+        res.json(dashboardConfig);
+    } catch (error) {
+        console.error('Error getting dashboard config:', error);
+        res.status(500).json({ error: 'Failed to get dashboard configuration' });
+    }
+});
 
 // Trust proxy - required for Vercel/behind reverse proxy
 app.set('trust proxy', 1);
@@ -970,8 +983,6 @@ async function scanFileWithVirusTotal(fileId, fileBuffer, filename) {
 
                     console.log(`File marked as clean: ${filename}`);
                 }
-
-                await client.close();
             } else {
                 retries++;
                 console.log(` Scan in progress (${retries}/${maxRetries})...`);
@@ -1001,7 +1012,6 @@ async function scanFileWithVirusTotal(fileId, fileBuffer, filename) {
                         }
                     }
                 );
-            await client.close();
         } catch (dbError) {
             console.error('Error updating scan status:', dbError);
         }
