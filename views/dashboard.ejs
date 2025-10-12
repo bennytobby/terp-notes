@@ -512,7 +512,7 @@
                                                     <a href="/download/<%= encodeURIComponent(file.filename) %>"
                                                         class="button download" target="_blank">Download</a>
                                                     <% if (user.role==='viewer' ) { %>
-                                                            <button class="button danger disabled"
+                                                        <button class="button danger disabled"
                                                             onclick="showViewerAlert(); return false;"
                                                             title="View-only mode">Delete</button>
                                                         <% } else if (user.role==='admin' ||
@@ -1669,14 +1669,14 @@
                             <input type="checkbox" class="file-select-checkbox" data-filename="${file.filename}"
                                 style="width: 18px; height: 18px; cursor: pointer; accent-color: var(--umd-red); transform: scale(1.2);"
                                 onchange="updateSelectedCount()" />
-                        </div>
+                            </div>
                         <div style="position: absolute; top: 0.5rem; right: 0.5rem; background: #FEF3C7; color: #92400E; padding: 2px 6px; border-radius: 4px; font-size: 0.7rem; font-weight: 600; cursor: help; z-index: 10;" title="${file.downloadCount || 0} downloads">
                             ${file.downloadCount || 0}
-                        </div>
+                            </div>
                         <div class="file-icon">${getFileIcon(file.originalName)}</div>
                         <div class="file-info">
                             <h3 style="margin: 0 0 0.1rem 0; font-size: 1rem;">${truncateFilename(file.originalName)}</h3>
-                        </div>
+                            </div>
                     </div>
                     <div class="file-meta" style="margin-top: 0.1rem;">
                         <div class="tags-section" style="display: flex; flex-wrap: wrap; gap: 0.3rem; margin-bottom: 0.5rem;">
@@ -1694,10 +1694,10 @@
                     </div>
                     <div class="file-actions" style="display: flex; gap: 0.5rem; flex-wrap: wrap; justify-content: center;">
                         <a href="/download/${encodeURIComponent(file.filename)}" class="button download" target="_blank">Download</a>
-                        ${getDeleteButton(file)}
+                                ${getDeleteButton(file)}
                         <button class="button secondary small report-btn" data-filename="${file.filename}" data-original-name="${escapeHtml(file.originalName)}">🚩 Report</button>
-                    </div>
-                </div>
+                            </div>
+                        </div>
                     `;
                 }
 
@@ -2820,11 +2820,12 @@
                         let successCount = 0;
                         let errorCount = 0;
 
-                        // Upload each file
-                        for (let i = 0; i < files.length; i++) {
-                            const file = files[i];
-                            statusEl.textContent = `Processing ${file.name}...`;
+                        // Upload each file with rate limiting (max 3 concurrent uploads)
+                        const MAX_CONCURRENT = 3;
+                        const uploadPromises = [];
 
+                        // Create upload function
+                        const uploadFile = async (file, index) => {
                             try {
                                 // Step 1: Calculate file hash (client-side to avoid server timeout)
                                 const arrayBuffer = await file.arrayBuffer();
@@ -2860,7 +2861,8 @@
                                 });
 
                                 if (!s3Response.ok) {
-                                    throw new Error('S3 upload failed');
+                                    const errorText = await s3Response.text();
+                                    throw new Error(`S3 upload failed (${s3Response.status}): ${errorText || 'Unknown error'}`);
                                 }
 
                                 // Step 3: Confirm upload to backend
@@ -2885,7 +2887,8 @@
                                 });
 
                                 if (!confirmResponse.ok) {
-                                    throw new Error('Failed to save file metadata');
+                                    const errorText = await confirmResponse.text();
+                                    throw new Error(`Failed to save file metadata (${confirmResponse.status}): ${errorText || 'Unknown error'}`);
                                 }
 
                                 const result = await confirmResponse.json();
@@ -2895,13 +2898,48 @@
                                     successCount++;
                                 }
 
+                                progressEl.textContent = index + 1;
+                                return { success: true, index };
                             } catch (error) {
                                 console.error('Upload error:', error);
                                 errorCount++;
-                                statusEl.textContent = `Error uploading ${file.name}`;
-                            }
+                                const statusEl = document.getElementById('uploadStatus');
+                                statusEl.textContent = `Error uploading ${file.name}: ${error.message}`;
+                                statusEl.style.color = '#EF4444';
 
-                            progressEl.textContent = i + 1;
+                                // Show detailed error notification
+                                const errorNotification = document.createElement('div');
+                                errorNotification.style.cssText = `
+                                    position: fixed; top: 20px; right: 20px; background: #EF4444; color: white;
+                                    padding: 1rem 1.5rem; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+                                    font-weight: 500; z-index: 10000; animation: slideIn 0.3s ease;
+                                    max-width: 400px;
+                                `;
+                                errorNotification.innerHTML = `
+                                    <strong>Upload Failed:</strong> ${file.name}<br>
+                                    <small>Error: ${error.message}</small>
+                                `;
+                                document.body.appendChild(errorNotification);
+                                setTimeout(() => errorNotification.remove(), 5000);
+
+                                return { success: false, index, error };
+                            }
+                        };
+
+                        // Process files in batches to avoid overwhelming the server
+                        for (let i = 0; i < files.length; i += MAX_CONCURRENT) {
+                            const batch = files.slice(i, i + MAX_CONCURRENT);
+                            const batchPromises = batch.map((file, batchIndex) =>
+                                uploadFile(file, i + batchIndex)
+                            );
+
+                            // Wait for current batch to complete before starting next
+                            await Promise.all(batchPromises);
+
+                            // Small delay between batches to be gentle on the server
+                            if (i + MAX_CONCURRENT < files.length) {
+                                await new Promise(resolve => setTimeout(resolve, 500));
+                            }
                         }
 
                         // Show completion message
