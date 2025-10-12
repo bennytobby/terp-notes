@@ -29,6 +29,31 @@ const userCollection = { db: process.env.MONGO_DB_NAME, collection: process.env.
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const client = new MongoClient(uri, { serverApi: ServerApiVersion.v1 });
 
+// Helper function to safely connect to MongoDB
+async function ensureConnection() {
+    try {
+        // Check if client is already connected
+        if (client.topology && client.topology.isConnected()) {
+            return;
+        }
+
+        // If not connected, establish connection
+        await client.connect();
+    } catch (error) {
+        // If connection fails, try to create a new client
+        if (error.message.includes('Topology is closed')) {
+            console.log('MongoDB topology closed, creating new connection...');
+            // Create a new client instance
+            const newClient = new MongoClient(uri, { serverApi: ServerApiVersion.v1 });
+            await newClient.connect();
+            // Update the global client reference
+            Object.assign(client, newClient);
+        } else {
+            throw error;
+        }
+    }
+}
+
 /* AWS Connection */
 const AWS = require('aws-sdk');
 if (process.env.NODE_ENV !== 'production') {
@@ -1347,7 +1372,7 @@ app.post('/api/confirm-upload', async (req, res) => {
     }
 
     try {
-        await client.connect();
+        await ensureConnection();
 
         // Check for duplicates
         const existingFile = await client
@@ -1806,7 +1831,7 @@ app.get('/dashboard', async (req, res) => {
     }
 
     try {
-        await client.connect();
+        await ensureConnection();
 
         // Load ALL files once - client-side JavaScript will handle filtering/sorting
         const allFiles = await client
@@ -2414,7 +2439,7 @@ app.get("/download/:filename", async (req, res) => {
     const params = { Bucket: AWS_BUCKET, Key: filename };
 
     try {
-        await client.connect();
+        await ensureConnection();
         const fileDoc = await client
             .db(fileCollection.db)
             .collection(fileCollection.collection)

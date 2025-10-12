@@ -2844,7 +2844,7 @@
                         // Upload each file
                         for (let i = 0; i < files.length; i++) {
                             const file = files[i];
-                            statusEl.textContent = `Processing ${file.name}...`;
+                            statusEl.textContent = `Processing ${file.name}... (${i + 1}/${files.length})`;
 
                             try {
                                 console.log(`Starting upload for file ${i + 1}/${files.length}: ${file.name}`);
@@ -2940,11 +2940,6 @@
                                 }
 
                                 progressEl.textContent = i + 1;
-
-                                // Small delay between uploads to be gentle on the server (especially for Vercel)
-                                if (i < files.length - 1) {
-                                    await new Promise(resolve => setTimeout(resolve, 200));
-                                }
                             } catch (error) {
                                 console.error('Upload error:', error);
                                 errorCount++;
