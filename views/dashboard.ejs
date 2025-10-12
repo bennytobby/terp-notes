@@ -2820,12 +2820,11 @@
                         let successCount = 0;
                         let errorCount = 0;
 
-                        // Upload each file with rate limiting (max 3 concurrent uploads)
-                        const MAX_CONCURRENT = 3;
-                        const uploadPromises = [];
+                        // Upload each file
+                        for (let i = 0; i < files.length; i++) {
+                            const file = files[i];
+                            statusEl.textContent = `Processing ${file.name}...`;
 
-                        // Create upload function
-                        const uploadFile = async (file, index) => {
                             try {
                                 // Step 1: Calculate file hash (client-side to avoid server timeout)
                                 const arrayBuffer = await file.arrayBuffer();
@@ -2898,12 +2897,15 @@
                                     successCount++;
                                 }
 
-                                progressEl.textContent = index + 1;
-                                return { success: true, index };
+                                progressEl.textContent = i + 1;
+
+                                // Small delay between uploads to be gentle on the server (especially for Vercel)
+                                if (i < files.length - 1) {
+                                    await new Promise(resolve => setTimeout(resolve, 200));
+                                }
                             } catch (error) {
                                 console.error('Upload error:', error);
                                 errorCount++;
-                                const statusEl = document.getElementById('uploadStatus');
                                 statusEl.textContent = `Error uploading ${file.name}: ${error.message}`;
                                 statusEl.style.color = '#EF4444';
 
@@ -2921,24 +2923,6 @@
                                 `;
                                 document.body.appendChild(errorNotification);
                                 setTimeout(() => errorNotification.remove(), 5000);
-
-                                return { success: false, index, error };
-                            }
-                        };
-
-                        // Process files in batches to avoid overwhelming the server
-                        for (let i = 0; i < files.length; i += MAX_CONCURRENT) {
-                            const batch = files.slice(i, i + MAX_CONCURRENT);
-                            const batchPromises = batch.map((file, batchIndex) =>
-                                uploadFile(file, i + batchIndex)
-                            );
-
-                            // Wait for current batch to complete before starting next
-                            await Promise.all(batchPromises);
-
-                            // Small delay between batches to be gentle on the server
-                            if (i + MAX_CONCURRENT < files.length) {
-                                await new Promise(resolve => setTimeout(resolve, 500));
                             }
                         }
 
