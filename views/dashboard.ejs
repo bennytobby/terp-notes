@@ -1905,7 +1905,7 @@
                             </div>
                         <div class="file-icon">${getFileIcon(file.originalName)}</div>
                         <div class="file-info">
-                            <h3 style="margin: 0 0 0.1rem 0; font-size: 1rem;">${truncateFilename(file.originalName)}</h3>
+                            <h3 style="margin: 0 0 0.1rem 0; font-size: 1rem;">${truncateFilename(file.originalName, 15)}</h3>
                             </div>
                     </div>
                     <div class="file-meta" style="margin-top: 0.1rem;">
@@ -2845,7 +2845,7 @@
                         </div>
                         <div class="file-icon">${getFileIcon(file.originalName)}</div>
                         <div class="file-info">
-                            <h3 style="margin: 0 0 0.1rem 0; font-size: 1rem;">${truncateFilename(file.originalName)}</h3>
+                            <h3 style="margin: 0 0 0.1rem 0; font-size: 1rem;">${truncateFilename(file.originalName, 18)}</h3>
                         </div>
                     </div>
                     <div class="file-meta" style="margin-top: 0.1rem;">
@@ -4330,7 +4330,7 @@
                 }
 
                 // Filename truncation helper function
-                function truncateFilename(filename, maxLength = 15, shouldTruncate = true) {
+                function truncateFilename(filename, maxLength = 20, shouldTruncate = true) {
                     if (!shouldTruncate || filename.length <= maxLength) {
                         return `<span class="filename-truncated" title="${escapeHtml(filename)}">${escapeHtml(filename)}</span>`;
                     } else {
@@ -4617,7 +4617,7 @@
                             <!-- File Info -->
                             <div style="margin-bottom: 1rem;">
                                 <h3 style="margin: 0 0 0.5rem 0; font-size: 1rem; color: #374151; text-align: center;">
-                                    <span class="filename-truncated" title="${escapeHtml(file.originalName)}">${truncateFilename(file.originalName)}</span>
+                                    <span class="filename-truncated" title="${escapeHtml(file.originalName)}">${truncateFilename(file.originalName, 18)}</span>
                                 </h3>
 
                                 <!-- Status badges -->
@@ -4713,7 +4713,7 @@
                             <div style="flex: 1; min-width: 0;">
                                 <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.25rem;">
                                     <h3 style="margin: 0; font-size: 1rem; color: #374151; flex: 1; min-width: 0;">
-                                        <span class="filename-truncated" title="${escapeHtml(file.originalName)}">${truncateFilename(file.originalName)}</span>
+                                        <span class="filename-truncated" title="${escapeHtml(file.originalName)}">${truncateFilename(file.originalName, 25)}</span>
                                     </h3>
                                     <div style="display: flex; gap: 0.25rem; flex-shrink: 0;">
                                         ${generateStatusBadges(file, isNew)}
@@ -4855,12 +4855,6 @@
                     });
                 }
 
-                // Truncate filename for display
-                function truncateFilename(filename, maxLength = 30) {
-                    if (!filename) return '';
-                    if (filename.length <= maxLength) return escapeHtml(filename);
-                    return escapeHtml(filename.substring(0, maxLength)) + '...';
-                }
 
                 async function bulkDeleteFiles() {
                     // Only work with checkboxes from the currently visible view
