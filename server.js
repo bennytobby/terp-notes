@@ -887,7 +887,7 @@ async function scanFileWithVirusTotal(fileId, fileBuffer, filename) {
                 console.log(`Scan complete for ${filename}: ${malicious} malicious, ${suspicious} suspicious out of ${totalEngines} engines`);
 
                 // Update file metadata
-                await client.connect();
+                await ensureConnection();
 
                 if (malicious > 0 || suspicious > 2) {
                     // File is infected - mark and delete
@@ -973,7 +973,7 @@ async function scanFileWithVirusTotal(fileId, fileBuffer, filename) {
 
         // On error, leave file as 'pending' - don't delete
         try {
-            await client.connect();
+            await ensureConnection();
             await client
                 .db(fileCollection.db)
                 .collection(fileCollection.collection)
@@ -1497,7 +1497,7 @@ app.get('/forgot-password', function (req, res) {
 
 app.post('/forgot-password', async (req, res) => {
     try {
-        await client.connect();
+        await ensureConnection();
 
         const user = await client
             .db(userCollection.db)
@@ -1570,7 +1570,7 @@ app.get('/reset-password/:token', async (req, res) => {
     const token = req.params.token;
 
     try {
-        await client.connect();
+        await ensureConnection();
 
         const user = await client
             .db(userCollection.db)
@@ -1610,7 +1610,7 @@ app.post('/reset-password/:token', async (req, res) => {
     const token = req.params.token;
 
     try {
-        await client.connect();
+        await ensureConnection();
 
         const user = await client
             .db(userCollection.db)
@@ -1695,7 +1695,7 @@ app.get('/verify/:token', async (req, res) => {
     const token = req.params.token;
 
     try {
-        await client.connect();
+        await ensureConnection();
 
         const user = await client
             .db(userCollection.db)
@@ -1754,7 +1754,7 @@ app.get('/verify/:token', async (req, res) => {
 // Resend verification email
 app.post('/resend-verification', async (req, res) => {
     try {
-        await client.connect();
+        await ensureConnection();
 
         const user = await client
             .db(userCollection.db)
@@ -1888,7 +1888,7 @@ app.get('/profile', async (req, res) => {
     }
 
     try {
-        await client.connect();
+        await ensureConnection();
         const user = await client
             .db(userCollection.db)
             .collection(userCollection.collection)
@@ -1917,7 +1917,7 @@ app.post('/update-profile', async (req, res) => {
     }
 
     try {
-        await client.connect();
+        await ensureConnection();
 
         // Trim user inputs to prevent spacing issues
         const firstname = req.body.firstname.trim();
@@ -2020,7 +2020,7 @@ app.post('/change-password', async (req, res) => {
     }
 
     try {
-        await client.connect();
+        await ensureConnection();
 
         const { currentPassword, newPassword, confirmPassword } = req.body;
 
@@ -2123,7 +2123,7 @@ app.delete('/delete-account', async (req, res) => {
     const userEmail = req.session.user.email;
 
     try {
-        await client.connect();
+        await ensureConnection();
 
         // Check if user is protected (cannot delete protected accounts)
         const userDoc = await client
@@ -2229,7 +2229,7 @@ app.get("/delete/:filename", async (req, res) => {
     const filename = decodeURIComponent(req.params.filename);
 
     try {
-        await client.connect();
+        await ensureConnection();
 
         // Check if user owns the file or is admin
         const fileDoc = await client
@@ -2320,7 +2320,7 @@ app.post("/api/bulk-delete", apiLimiter, async (req, res) => {
     };
 
     try {
-        await client.connect();
+        await ensureConnection();
 
         // Get all files that user can delete
         const filesToDelete = await client
@@ -2562,7 +2562,7 @@ app.post('/registerSubmit', registerLimiter, async function (req, res) {
         const lastname = req.body.last_name.trim();
 
         // Check for existing email/username (check both formats)
-        await client.connect();
+        await ensureConnection();
         let conflictFilter = {
             $or: [
                 { email: normalizedEmail },
@@ -2656,7 +2656,7 @@ app.post('/registerSubmit', registerLimiter, async function (req, res) {
 
 app.post('/loginSubmit', loginLimiter, async function (req, res) {
     try {
-        await client.connect();
+        await ensureConnection();
         // Trim userid to handle accidental spaces
         const loginUserid = req.body.userid.trim();
         let filter = { userid: loginUserid };
@@ -2751,7 +2751,7 @@ app.post("/upload", uploadLimiter, upload.array("documents", 50), async (req, re
     const failedFiles = [];
 
     try {
-        await client.connect();
+        await ensureConnection();
 
         for (const file of files) {
             try {
@@ -2871,7 +2871,7 @@ app.get('/admin', async (req, res) => {
     }
 
     try {
-        await client.connect();
+        await ensureConnection();
         const users = await client
             .db(userCollection.db)
             .collection(userCollection.collection)
@@ -2928,7 +2928,7 @@ app.post('/api/resolve-report', apiLimiter, async (req, res) => {
             return res.status(400).json({ error: 'Missing required fields' });
         }
 
-        await client.connect();
+        await ensureConnection();
 
         const report = await client
             .db(fileCollection.db)
@@ -3027,7 +3027,7 @@ app.post('/api/report-file', apiLimiter, async (req, res) => {
             return res.status(400).json({ error: 'Missing required fields' });
         }
 
-        await client.connect();
+        await ensureConnection();
 
         // Check if file exists
         const file = await client
@@ -3083,7 +3083,7 @@ app.post('/api/create-announcement', apiLimiter, async (req, res) => {
             return res.status(400).json({ error: 'Invalid announcement type' });
         }
 
-        await client.connect();
+        await ensureConnection();
 
         const announcement = {
             message: message.trim(),
@@ -3120,7 +3120,7 @@ app.post('/api/delete-announcement', apiLimiter, async (req, res) => {
             return res.status(400).json({ error: 'Missing announcement ID' });
         }
 
-        await client.connect();
+        await ensureConnection();
 
         await client
             .db(fileCollection.db)
@@ -3149,7 +3149,7 @@ app.post('/api/toggle-announcement', apiLimiter, async (req, res) => {
             return res.status(400).json({ error: 'Missing announcement ID' });
         }
 
-        await client.connect();
+        await ensureConnection();
 
         const announcement = await client
             .db(fileCollection.db)
@@ -3198,7 +3198,7 @@ app.post('/api/update-user-role', async (req, res) => {
             return res.status(400).json({ error: 'Invalid role' });
         }
 
-        await client.connect();
+        await ensureConnection();
 
         const user = await client
             .db(userCollection.db)
@@ -3359,7 +3359,7 @@ app.get('/api/cron/scan-pending-files', async (req, res) => {
     }
 
     try {
-        await client.connect();
+        await ensureConnection();
 
         // Find files pending scan (uploaded more than 1 minute ago to avoid race conditions)
         const oneMinuteAgo = new Date();
