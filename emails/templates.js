@@ -162,6 +162,25 @@ function fileDeletionEmail(firstname, filename) {
 }
 
 /**
+ * Bulk File Deletion Confirmation Email
+ */
+function bulkFileDeletionEmail(firstname, filenames) {
+    const fileList = filenames.map(filename => `<li><strong>"${filename}"</strong></li>`).join('');
+    const fileCount = filenames.length;
+
+    const content = `
+        <h2 style="color: #E03A3C; margin-top: 0;">Files Deleted</h2>
+        <p style="color: #374151; line-height: 1.6;">Hi ${firstname},</p>
+        <p style="color: #374151; line-height: 1.6;">${fileCount} file${fileCount > 1 ? 's have' : ' has'} been deleted from your account:</p>
+        <ul style="color: #374151; line-height: 1.6; margin: 16px 0; padding-left: 20px;">
+            ${fileList}
+        </ul>
+        <p style="color: #6B7280; font-size: 0.875rem; margin-top: 16px;">If you didn't perform this action, please contact support immediately.</p>
+    `;
+    return emailWrapper(content);
+}
+
+/**
  * File Upload Success Email
  */
 function uploadSuccessEmail(firstname, fileCount, classCode) {
@@ -201,6 +220,7 @@ module.exports = {
     profileUpdateEmail,
     accountDeletionEmail,
     fileDeletionEmail,
+    bulkFileDeletionEmail,
     uploadSuccessEmail,
     contactFormEmail
 };

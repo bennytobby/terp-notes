@@ -2272,6 +2272,140 @@ app.get("/delete/:filename", async (req, res) => {
     }
 });
 
+// Bulk delete endpoint for multiple files
+app.post("/api/bulk-delete", apiLimiter, async (req, res) => {
+    if (!req.session.user) {
+        return res.status(401).json({ error: 'Not authenticated' });
+    }
+
+    const { filenames } = req.body;
+
+    if (!filenames || !Array.isArray(filenames) || filenames.length === 0) {
+        return res.status(400).json({ error: 'No filenames provided' });
+    }
+
+    if (filenames.length > 50) {
+        return res.status(400).json({ error: 'Too many files. Maximum 50 files per bulk delete.' });
+    }
+
+    const results = {
+        success: [],
+        failed: [],
+        skipped: []
+    };
+
+    try {
+        await client.connect();
+
+        // Get all files that user can delete
+        const filesToDelete = await client
+            .db(fileCollection.db)
+            .collection(fileCollection.collection)
+            .find({
+                filename: { $in: filenames },
+                $or: [
+                    { uploadedBy: req.session.user.userid },
+                    { /* admin can delete any file */ }
+                ]
+            })
+            .toArray();
+
+        // Filter files user can actually delete
+        const deletableFiles = filesToDelete.filter(file =>
+            file.uploadedBy === req.session.user.userid || req.session.user.role === 'admin'
+        );
+
+        if (deletableFiles.length === 0) {
+            await client.close();
+            return res.status(403).json({ error: 'No files found that you can delete' });
+        }
+
+        // Process each file
+        for (const file of deletableFiles) {
+            try {
+                // Check if file is deduplicated
+                const fileHash = file.fileHash;
+                const duplicateFiles = await client
+                    .db(fileCollection.db)
+                    .collection(fileCollection.collection)
+                    .countDocuments({ fileHash: fileHash });
+
+                // Delete metadata from MongoDB
+                await client
+                    .db(fileCollection.db)
+                    .collection(fileCollection.collection)
+                    .deleteOne({ filename: file.filename });
+
+                // Delete all reports for this file
+                await client
+                    .db(fileCollection.db)
+                    .collection('reports')
+                    .deleteMany({ filename: file.filename });
+
+                // Delete from S3 if not deduplicated
+                if (duplicateFiles === 1) {
+                    await s3.deleteObject({ Bucket: AWS_BUCKET, Key: file.filename }).promise();
+                    console.log(`Deleted file from S3: ${file.filename}`);
+                } else {
+                    console.log(`File is deduplicated (${duplicateFiles} instances), keeping S3 file: ${file.filename}`);
+                }
+
+                results.success.push({
+                    filename: file.filename,
+                    originalName: file.originalName
+                });
+
+            } catch (fileError) {
+                console.error(`Failed to delete file ${file.filename}:`, fileError);
+                results.failed.push({
+                    filename: file.filename,
+                    originalName: file.originalName,
+                    error: fileError.message
+                });
+            }
+        }
+
+        // Check for files that weren't found or user can't delete
+        const processedFilenames = deletableFiles.map(f => f.filename);
+        const skippedFilenames = filenames.filter(f => !processedFilenames.includes(f));
+
+        for (const filename of skippedFilenames) {
+            results.skipped.push({
+                filename: filename,
+                reason: 'File not found or permission denied'
+            });
+        }
+
+        await client.close();
+
+        // Send email notification for successful deletions
+        if (results.success.length > 0) {
+            const originalFilenames = results.success.map(f => f.originalName);
+            sendEmail(
+                req.session.user.email,
+                "Files Deleted - Terp Notes",
+                emailTemplates.bulkFileDeletionEmail(req.session.user.firstname, originalFilenames)
+            ).catch((err) => console.error("Failed to send bulk deletion confirmation:", err.message));
+        }
+
+        res.json({
+            message: `Bulk delete completed`,
+            results: results,
+            summary: {
+                total: filenames.length,
+                success: results.success.length,
+                failed: results.failed.length,
+                skipped: results.skipped.length
+            }
+        });
+
+    } catch (error) {
+        console.error("Bulk delete failed:", error);
+        await client.close();
+        res.status(500).json({ error: 'Internal server error during bulk delete' });
+    }
+});
+
 app.get("/download/:filename", async (req, res) => {
     if (!req.session.user) return res.redirect("/login");
 

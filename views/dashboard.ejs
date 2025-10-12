@@ -7,6 +7,43 @@
     <title>Dashboard - Terp Notes</title>
     <link rel="icon" type="image/png" href="/favicon.png" />
     <link rel="stylesheet" href="/styles/main.css" />
+    <style>
+        /* Hide any extra checkboxes that might appear in file cards */
+        .file-card input[type="checkbox"]:not(.file-select-checkbox) {
+            display: none !important;
+        }
+
+        /* Hide any extra checkboxes that might appear in list view */
+        .file-list-item input[type="checkbox"]:not(.file-select-checkbox) {
+            display: none !important;
+        }
+
+        /* Ensure our bulk select checkboxes are visible */
+        .file-card .file-select-checkbox {
+            display: block !important;
+        }
+
+        .file-list-item .file-select-checkbox {
+            display: block !important;
+        }
+
+        /* Filename truncation styles */
+        .filename-truncated {
+            max-width: 100%;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            cursor: help;
+            position: relative;
+            display: inline-block;
+        }
+
+        .filename-truncated:hover {
+            background: #F3F4F6;
+            border-radius: 4px;
+            padding: 2px 4px;
+        }
+    </style>
 </head>
 
 <body>
@@ -79,6 +116,18 @@
                                         <button id="listViewBtn" onclick="switchView('list')"
                                             style="padding: 6px 12px; border: none; background: transparent; color: #6B7280; border-radius: 6px; cursor: pointer; font-size: 0.875rem; font-weight: 600; transition: all 0.2s;">
                                             List
+                                        </button>
+                                    </div>
+
+                                    <!-- Bulk Actions -->
+                                    <div id="bulkActions" style="display: none; margin-left: 1rem;">
+                                        <button id="selectAllBtn" onclick="toggleSelectAll()"
+                                            style="padding: 6px 12px; border: 1px solid #D1D5DB; background: white; color: #374151; border-radius: 6px; cursor: pointer; font-size: 0.875rem; font-weight: 600; transition: all 0.2s;">
+                                            Select All
+                                        </button>
+                                        <button id="bulkDeleteBtn" onclick="bulkDeleteFiles()"
+                                            style="padding: 6px 12px; border: none; background: var(--umd-red); color: white; border-radius: 6px; cursor: pointer; font-size: 0.875rem; font-weight: 600; transition: all 0.2s; margin-left: 0.5rem;">
+                                            Delete Selected (<span id="selectedCount">0</span>)
                                         </button>
                                     </div>
                                     <label
@@ -286,6 +335,12 @@
                                                 data-downloads="<%= file.downloadCount || 0 %>"
                                                 data-size="<%= file.size || 0 %>">
                                                 <div class="file-header" style="position: relative;">
+                                                    <!-- Bulk select checkbox -->
+                                                    <div style="position: absolute; top: 0.5rem; left: 0.5rem; z-index: 20; background: rgba(255,255,255,0.9); padding: 2px; border-radius: 4px; border: 1px solid #D1D5DB;">
+                                                        <input type="checkbox" class="file-select-checkbox" data-filename="<%= file.filename %>"
+                                                            style="width: 18px; height: 18px; cursor: pointer; accent-color: var(--umd-red); transform: scale(1.2);"
+                                                            onchange="updateSelectedCount()" />
+                                                    </div>
                                                     <div style="position: absolute; top: 0.5rem; right: 0.5rem; background: #FEF3C7; color: #92400E; padding: 2px 6px; border-radius: 4px; font-size: 0.7rem; font-weight: 600; cursor: help; z-index: 10;" title="<%= file.downloadCount || 0 %> downloads">
                                                         <%= file.downloadCount || 0 %>
                                                     </div>
@@ -686,6 +741,9 @@
                         switchView('grid', false);
                     }
 
+                    // Initialize bulk actions state
+                    initializeBulkActions();
+
                     // Initialize professor dropdown
                     initializeProfessorDropdown();
                 });
@@ -821,6 +879,15 @@
                         listBtn.style.background = 'transparent';
                         listBtn.style.color = '#6B7280';
 
+                        // Show bulk actions for grid view
+                        const bulkActions = document.getElementById('bulkActions');
+                        if (bulkActions) {
+                            bulkActions.style.display = 'flex';
+                            console.log('Bulk actions shown for grid view');
+                        } else {
+                            console.error('Bulk actions element not found');
+                        }
+
                         // Show all filters in grid view
                         if (categoryWrapper) categoryWrapper.style.display = 'block';
                         if (semesterWrapper) semesterWrapper.style.display = 'block';
@@ -847,6 +914,13 @@
                         groupedBtn.style.color = 'white';
                         listBtn.style.background = 'transparent';
                         listBtn.style.color = '#6B7280';
+
+                        // Show bulk actions for grouped view
+                        const bulkActions = document.getElementById('bulkActions');
+                        if (bulkActions) {
+                            bulkActions.style.display = 'flex';
+                            console.log('Bulk actions shown for grouped view');
+                        }
 
                         // Hide most filters in grouped view, keep only professor search
                         if (categoryWrapper) categoryWrapper.style.display = 'none';
@@ -879,6 +953,13 @@
                         groupedBtn.style.color = '#6B7280';
                         listBtn.style.background = 'var(--umd-red)';
                         listBtn.style.color = 'white';
+
+                        // Show bulk actions for list view
+                        const bulkActions = document.getElementById('bulkActions');
+                        if (bulkActions) {
+                            bulkActions.style.display = 'flex';
+                            console.log('Bulk actions shown for list view');
+                        }
 
                         // Show all filters in list view
                         if (categoryWrapper) categoryWrapper.style.display = 'block';
@@ -1340,6 +1421,10 @@
                     // No wrapper div to close
                     groupedView.innerHTML = html;
 
+                    // Update selected count after rendering grouped view
+                    setTimeout(() => {
+                        updateSelectedCount();
+                    }, 100);
 
                     // Restore folder states immediately after DOM is updated
                     restoreFolderStates(persistentFolderStates);
@@ -1512,10 +1597,16 @@
                         const originalName = file.originalName || fileName;
 
                         html += `
-                            <div class="file-list-item" style="padding: 0.75rem; margin-bottom: 0.5rem;">
-                                <div class="file-list-icon">${fileIcon}</div>
+                            <div class="file-list-item" style="padding: 0.75rem; margin-bottom: 0.5rem; position: relative;">
+                                <!-- Bulk select checkbox -->
+                                <div style="position: absolute; top: 0.75rem; left: 0.75rem; z-index: 20; background: rgba(255,255,255,0.9); padding: 2px; border-radius: 4px; border: 1px solid #D1D5DB;">
+                                    <input type="checkbox" class="file-select-checkbox" data-filename="${file.filename}"
+                                        style="width: 18px; height: 18px; cursor: pointer; accent-color: var(--umd-red); transform: scale(1.2);"
+                                        onchange="updateSelectedCount()" />
+                                </div>
+                                <div class="file-list-icon" style="margin-left: 2rem;">${fileIcon}</div>
                                 <div class="file-list-main">
-                                    <div class="file-list-name">${fileName}</div>
+                                    <div class="file-list-name">${truncateFilename(fileName)}</div>
                                     <div class="file-list-meta">
                                         ${size ? `<span><strong>Size:</strong> ${size}</span>` : ''}
                                         ${professor ? `<span><strong>Professor:</strong> ${professor}</span>` : ''}
@@ -1541,6 +1632,11 @@
                     });
 
                     listView.innerHTML = html;
+
+                    // Update selected count after rendering list view
+                    setTimeout(() => {
+                        updateSelectedCount();
+                    }, 100);
                 }
 
                 // Create a grouped file card from file data (using grid view structure)
@@ -1565,12 +1661,18 @@
                      data-downloads="${file.downloadCount || 0}"
                      data-size="${file.size || 0}">
                     <div class="file-header" style="position: relative; display: flex; align-items: center; justify-content: center; gap: 0.75rem; margin-bottom: 1rem;">
+                        <!-- Bulk select checkbox -->
+                        <div style="position: absolute; top: 0.5rem; left: 0.5rem; z-index: 20; background: rgba(255,255,255,0.9); padding: 2px; border-radius: 4px; border: 1px solid #D1D5DB;">
+                            <input type="checkbox" class="file-select-checkbox" data-filename="${file.filename}"
+                                style="width: 18px; height: 18px; cursor: pointer; accent-color: var(--umd-red); transform: scale(1.2);"
+                                onchange="updateSelectedCount()" />
+                        </div>
                         <div style="position: absolute; top: 0.5rem; right: 0.5rem; background: #FEF3C7; color: #92400E; padding: 2px 6px; border-radius: 4px; font-size: 0.7rem; font-weight: 600; cursor: help; z-index: 10;" title="${file.downloadCount || 0} downloads">
                             ${file.downloadCount || 0}
                         </div>
                         <div class="file-icon">${getFileIcon(file.originalName)}</div>
                         <div class="file-info">
-                            <h3 style="margin: 0 0 0.1rem 0; font-size: 1rem;">${escapeHtml(file.originalName)}</h3>
+                            <h3 style="margin: 0 0 0.1rem 0; font-size: 1rem;">${truncateFilename(file.originalName)}</h3>
                         </div>
                     </div>
                     <div class="file-meta" style="margin-top: 0.1rem;">
@@ -2463,12 +2565,18 @@
                      data-downloads="${file.downloadCount || 0}"
                      data-size="${file.size || 0}">
                     <div class="file-header" style="position: relative; display: flex; align-items: center; justify-content: center; gap: 0.75rem; margin-bottom: 1rem;">
+                        <!-- Bulk select checkbox -->
+                        <div style="position: absolute; top: 0.5rem; left: 0.5rem; z-index: 20; background: rgba(255,255,255,0.9); padding: 2px; border-radius: 4px; border: 1px solid #D1D5DB;">
+                            <input type="checkbox" class="file-select-checkbox" data-filename="${file.filename}"
+                                style="width: 18px; height: 18px; cursor: pointer; accent-color: var(--umd-red); transform: scale(1.2);"
+                                onchange="updateSelectedCount()" />
+                        </div>
                         <div style="position: absolute; top: 0.5rem; right: 0.5rem; background: #FEF3C7; color: #92400E; padding: 2px 6px; border-radius: 4px; font-size: 0.7rem; font-weight: 600; cursor: help; z-index: 10;" title="${file.downloadCount || 0} downloads">
                             ${file.downloadCount || 0}
                         </div>
                         <div class="file-icon">${getFileIcon(file.originalName)}</div>
                         <div class="file-info">
-                            <h3 style="margin: 0 0 0.1rem 0; font-size: 1rem;">${escapeHtml(file.originalName)}</h3>
+                            <h3 style="margin: 0 0 0.1rem 0; font-size: 1rem;">${truncateFilename(file.originalName)}</h3>
                         </div>
                     </div>
                     <div class="file-meta" style="margin-top: 0.1rem;">
@@ -2493,6 +2601,11 @@
                 </div>
             `;
                         }).join('');
+
+                        // Update selected count after populating grid
+                        setTimeout(() => {
+                            updateSelectedCount();
+                        }, 100);
                     }
 
                     // Update grouped view display
@@ -3898,6 +4011,171 @@
                     // Set initial button text based on current state
                     updateExpandCollapseButtonText();
                 });
+
+                // Initialize bulk actions
+                function initializeBulkActions() {
+                    const bulkActions = document.getElementById('bulkActions');
+                    if (bulkActions) {
+                        // Show bulk actions in all views
+                        bulkActions.style.display = 'flex';
+                    }
+
+                    // Initialize selected count
+                    updateSelectedCount();
+                }
+
+                // Filename truncation helper function
+                function truncateFilename(filename, maxLength = 15) {
+                    if (filename.length <= maxLength) {
+                        return `<span title="${escapeHtml(filename)}">${escapeHtml(filename)}</span>`;
+                    } else {
+                        const truncated = filename.substring(0, maxLength) + '...';
+                        return `<span class="filename-truncated" title="${escapeHtml(filename)}">${escapeHtml(truncated)}</span>`;
+                    }
+                }
+
+                // Bulk Delete Functions
+                function toggleSelectAll() {
+                    console.log('toggleSelectAll called');
+                    const checkboxes = document.querySelectorAll('.file-select-checkbox');
+                    console.log('Found checkboxes in toggleSelectAll:', checkboxes.length);
+                    const selectAllBtn = document.getElementById('selectAllBtn');
+                    const allChecked = Array.from(checkboxes).every(cb => cb.checked);
+
+                    checkboxes.forEach(checkbox => {
+                        checkbox.checked = !allChecked;
+                    });
+
+                    selectAllBtn.textContent = allChecked ? 'Select All' : 'Deselect All';
+                    updateSelectedCount();
+                }
+
+                function updateSelectedCount() {
+                    const checkboxes = document.querySelectorAll('.file-select-checkbox');
+                    console.log('Found checkboxes:', checkboxes.length);
+                    const selectedCount = Array.from(checkboxes).filter(cb => cb.checked).length;
+                    const selectedCountSpan = document.getElementById('selectedCount');
+                    const bulkDeleteBtn = document.getElementById('bulkDeleteBtn');
+                    const selectAllBtn = document.getElementById('selectAllBtn');
+
+                    console.log('Selected count:', selectedCount);
+
+                    selectedCountSpan.textContent = selectedCount;
+
+                    // Enable/disable bulk delete button
+                    if (selectedCount > 0) {
+                        bulkDeleteBtn.disabled = false;
+                        bulkDeleteBtn.style.opacity = '1';
+                        bulkDeleteBtn.style.cursor = 'pointer';
+                    } else {
+                        bulkDeleteBtn.disabled = true;
+                        bulkDeleteBtn.style.opacity = '0.5';
+                        bulkDeleteBtn.style.cursor = 'not-allowed';
+                    }
+
+                    // Update select all button text
+                    const allChecked = Array.from(checkboxes).every(cb => cb.checked);
+                    const someChecked = Array.from(checkboxes).some(cb => cb.checked);
+
+                    if (allChecked && checkboxes.length > 0) {
+                        selectAllBtn.textContent = 'Deselect All';
+                    } else if (someChecked) {
+                        selectAllBtn.textContent = 'Select All';
+                    } else {
+                        selectAllBtn.textContent = 'Select All';
+                    }
+                }
+
+                async function bulkDeleteFiles() {
+                    const checkboxes = document.querySelectorAll('.file-select-checkbox:checked');
+                    const selectedFiles = Array.from(checkboxes).map(cb => cb.dataset.filename);
+
+                    if (selectedFiles.length === 0) {
+                        alert('Please select files to delete.');
+                        return;
+                    }
+
+                    const userRole = '<%= user.role %>';
+                    const userId = '<%= user.userid %>';
+
+                    // Check if user can delete files
+                    if (userRole === 'viewer') {
+                        alert('You are in view-only mode and cannot delete files.');
+                        return;
+                    }
+
+                    // Get file details for confirmation
+                    const fileDetails = selectedFiles.map(filename => {
+                        const fileCard = document.querySelector(`[data-filename="${filename}"]`)?.closest('.file-card');
+                        const fileName = fileCard?.querySelector('h3')?.textContent || filename;
+                        const uploader = fileCard?.dataset.uploader;
+
+                        // Check if user can delete this specific file
+                        if (userRole !== 'admin' && uploader !== userId) {
+                            return { filename, fileName, canDelete: false };
+                        }
+                        return { filename, fileName, canDelete: true };
+                    });
+
+                    const deletableFiles = fileDetails.filter(f => f.canDelete);
+                    const nonDeletableFiles = fileDetails.filter(f => !f.canDelete);
+
+                    if (deletableFiles.length === 0) {
+                        alert('You do not have permission to delete any of the selected files.');
+                        return;
+                    }
+
+                    let confirmMessage = `Are you sure you want to delete ${deletableFiles.length} file(s)?\n\n`;
+                    confirmMessage += `Files to delete:\n${deletableFiles.map(f => `• ${f.fileName}`).join('\n')}`;
+
+                    if (nonDeletableFiles.length > 0) {
+                        confirmMessage += `\n\nNote: ${nonDeletableFiles.length} file(s) will be skipped (you don't have permission to delete them):\n${nonDeletableFiles.map(f => `• ${f.fileName}`).join('\n')}`;
+                    }
+
+                    if (!confirm(confirmMessage)) {
+                        return;
+                    }
+
+                    // Use bulk delete endpoint for better performance
+                    try {
+                        const response = await fetch('/api/bulk-delete', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify({
+                                filenames: deletableFiles.map(f => f.filename)
+                            })
+                        });
+
+                        const result = await response.json();
+
+                        if (response.ok) {
+                            let message = `Bulk delete complete!\n\n`;
+                            message += `✅ Successfully deleted: ${result.summary.success} file(s)\n`;
+
+                            if (result.summary.failed > 0) {
+                                message += `❌ Failed to delete: ${result.summary.failed} file(s)\n`;
+                                const failures = result.results.failed.map(f => `• ${f.originalName}: ${f.error}`).join('\n');
+                                message += `\nFailures:\n${failures}`;
+                            }
+
+                            if (result.summary.skipped > 0) {
+                                message += `\n⚠️ Skipped: ${result.summary.skipped} file(s) (permission denied or not found)`;
+                            }
+
+                            alert(message);
+                        } else {
+                            alert(`Bulk delete failed: ${result.error}`);
+                        }
+
+                        // Reload page to show updated file list
+                        window.location.reload();
+
+                    } catch (error) {
+                        alert(`Bulk delete failed: ${error.message}`);
+                    }
+                }
             </script>
 
             <%- include('partials/footer') %>
