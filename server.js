@@ -41,13 +41,27 @@ async function ensureConnection() {
         await client.connect();
     } catch (error) {
         // If connection fails, try to create a new client
-        if (error.message.includes('Topology is closed')) {
+        if (error.message.includes('Topology is closed') || error.message.includes('topology')) {
             console.log('MongoDB topology closed, creating new connection...');
-            // Create a new client instance
-            const newClient = new MongoClient(uri, { serverApi: ServerApiVersion.v1 });
-            await newClient.connect();
-            // Update the global client reference
-            Object.assign(client, newClient);
+            try {
+                // Close the old client first
+                if (client && typeof client.close === 'function') {
+                    await client.close().catch(() => {}); // Ignore close errors
+                }
+
+                // Create a completely new client instance
+                const newClient = new MongoClient(uri, { serverApi: ServerApiVersion.v1 });
+                await newClient.connect();
+
+                // Replace the global client reference
+                Object.setPrototypeOf(client, Object.getPrototypeOf(newClient));
+                Object.assign(client, newClient);
+
+                console.log('New MongoDB connection established');
+            } catch (newConnectionError) {
+                console.error('Failed to create new MongoDB connection:', newConnectionError);
+                throw newConnectionError;
+            }
         } else {
             throw error;
         }

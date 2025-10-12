@@ -4215,6 +4215,103 @@
                     }
                 }
 
+                // Apply filters to the current view
+                function applyFilters() {
+                    try {
+                        console.log('applyFilters called, current view:', currentView);
+
+                        // Get filter values
+                        const searchTerm = document.getElementById('searchInput')?.value.toLowerCase() || '';
+                        const sortBy = document.getElementById('sortFilter')?.value || 'newest';
+                        const myFilesOnly = document.getElementById('myFilesToggle')?.checked || false;
+
+                        // Get selected filter values
+                        const selectedCategories = Array.from(document.querySelectorAll('#categoryDropdown input[type="checkbox"]:checked'))
+                            .map(cb => cb.value);
+                        const selectedSemesters = Array.from(document.querySelectorAll('#semesterDropdown input[type="checkbox"]:checked'))
+                            .map(cb => cb.value);
+                        const selectedYears = Array.from(document.querySelectorAll('#yearDropdown input[type="checkbox"]:checked'))
+                            .map(cb => cb.value);
+                        const selectedMajors = Array.from(document.querySelectorAll('#majorDropdown input[type="checkbox"]:checked'))
+                            .map(cb => cb.value);
+                        const selectedClasses = Array.from(document.querySelectorAll('#classDropdown input[type="checkbox"]:checked'))
+                            .map(cb => cb.value);
+                        const selectedProfessors = Array.from(document.querySelectorAll('#professorList input[type="checkbox"]:checked'))
+                            .map(cb => cb.value);
+
+                        console.log('Filter values:', {
+                            searchTerm, sortBy, myFilesOnly,
+                            categories: selectedCategories.length,
+                            semesters: selectedSemesters.length,
+                            years: selectedYears.length,
+                            majors: selectedMajors.length,
+                            classes: selectedClasses.length,
+                            professors: selectedProfessors.length
+                        });
+
+                        // Filter files based on current view
+                        if (currentView === 'grouped') {
+                            renderGroupedView();
+                        } else if (currentView === 'grid') {
+                            renderGridView();
+                        } else if (currentView === 'list') {
+                            renderListView();
+                        }
+
+                        console.log('applyFilters completed successfully');
+                    } catch (error) {
+                        console.error('Error in applyFilters:', error);
+                    }
+                }
+
+                // Render grid view with filtered files
+                function renderGridView() {
+                    try {
+                        const gridView = document.getElementById('gridView');
+                        if (!gridView) {
+                            console.error('Grid view element not found');
+                            return;
+                        }
+
+                        console.log('Rendering grid view with', allFilesData.length, 'files');
+
+                        // For now, just ensure the grid view is visible
+                        // The actual filtering logic can be added here later
+                        gridView.style.display = 'grid';
+
+                        // If no files, show empty state
+                        if (!allFilesData || allFilesData.length === 0) {
+                            gridView.innerHTML = '<div style="text-align: center; padding: 2rem; color: #6B7280;">No files found</div>';
+                        }
+                    } catch (error) {
+                        console.error('Error rendering grid view:', error);
+                    }
+                }
+
+                // Render list view with filtered files
+                function renderListView() {
+                    try {
+                        const listView = document.getElementById('listView');
+                        if (!listView) {
+                            console.error('List view element not found');
+                            return;
+                        }
+
+                        console.log('Rendering list view with', allFilesData.length, 'files');
+
+                        // For now, just ensure the list view is visible
+                        // The actual filtering logic can be added here later
+                        listView.style.display = 'block';
+
+                        // If no files, show empty state
+                        if (!allFilesData || allFilesData.length === 0) {
+                            listView.innerHTML = '<div style="text-align: center; padding: 2rem; color: #6B7280;">No files found</div>';
+                        }
+                    } catch (error) {
+                        console.error('Error rendering list view:', error);
+                    }
+                }
+
                 async function bulkDeleteFiles() {
                     // Only work with checkboxes from the currently visible view
                     let checkboxes;
