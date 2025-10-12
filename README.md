@@ -1,8 +1,14 @@
 # Terp Notes
 
+<div align="center">
+  <img src="public/logo.png" alt="Terp Notes Logo" width="120" height="120" />
+</div>
+
 > **A free, student-driven platform for sharing class notes, study guides, and academic resources at the University of Maryland.**
 
-**Live at:** [terp-notes.vercel.app](https://terp-notes.vercel.app/)
+**⚠️ Disclaimer:** This project is **not affiliated with or endorsed by** the University of Maryland.
+
+**Live at:** [terp-notes.org](https://terp-notes.org/) | [terp-notes.vercel.app](https://terp-notes.vercel.app/)
 
 ---
 
@@ -22,14 +28,18 @@ This platform is **built for students, by a student** (now alum), with zero prof
 
 ### **For Students**
 - **Instant Search** - Find notes by class code, professor, or keyword (no page reloads)
-- **Smart Filtering** - Filter by major, class, semester, year, and professor
+- **Smart Filtering** - Filter by major, class, semester, year, and professor with intuitive icons
+- **Multiple View Options** - Grid view, List view, or Grouped view for different preferences
 - **My Files Toggle** - Quickly view and manage only your uploads
 - **Drag & Drop Upload** - Bulk upload up to 50 files at once (up to 5GB each!)
 - **Direct S3 Uploads** - Files upload directly to cloud storage (no size limits)
 - **File Preview** - PDFs and images open inline; download warnings for archives
 - **Virus Scanning** - Every file scanned by 70+ antivirus engines (VirusTotal)
+- **Professional UI** - Clean, modern interface with custom icons and UMD-themed colors
 - **Mobile Responsive** - Works seamlessly on phones, tablets, and desktops
 - **Email Notifications** - Confirmations for uploads, deletions, and account changes
+- **Category System** - Organize files by type (Exam, Lecture Notes, Homework, etc.)
+- **File Metadata** - Rich information including size, upload date, and contributor
 
 ### **Security & Safety**
 - **UMD Email Required** - Only verified `@umd.edu` / `@terpmail.umd.edu` emails can join
@@ -41,17 +51,20 @@ This platform is **built for students, by a student** (now alum), with zero prof
 - **Account Deduplication** - Prevents multiple accounts for the same student
 
 ### **Community Features**
-- **Platform Announcements** - Stay updated on important news and updates
-- **Uploader Attribution** - See who contributed each file
+- **Platform Announcements** - Stay updated with color-coded banners (info/warning/success)
+- **Uploader Attribution** - See who contributed each file with clear user identification
 - **File Metadata** - Class, professor, semester, year, and descriptions
 - **Duplicate Detection** - System prevents re-uploading the same file
+- **File Categories** - Organized by academic content type with emoji indicators
 
 ### **For Admins**
 - **Moderation Dashboard** - Review reported files with one-click actions
 - **User Management** - Change roles, set view-only mode, or remove accounts
-- **Usage Statistics** - Track total users, files, and storage
-- **Announcement System** - Create color-coded banners (info/warning/success)
+- **Usage Statistics** - Track total users, files, and storage with visual cards
+- **Dynamic Announcement System** - Create color-coded banners with matching button colors
 - **Role-Based Access Control** - Admin, Contributor, and Viewer roles
+- **Search & Filter Users** - Find users by name, email, or upload activity
+- **File Reporting System** - Community-driven moderation with admin oversight
 
 ### **Technical Excellence**
 - **Client-Side Filtering** - Instant results without server roundtrips
@@ -62,6 +75,8 @@ This platform is **built for students, by a student** (now alum), with zero prof
 - **Cron Jobs** - Automated background tasks (virus scanning, cleanup)
 - **Serverless Architecture** - Scales automatically with demand
 - **No File Size Limits** - Direct S3 uploads support files up to 5GB
+- **Professional Icon System** - Custom SVG icons with transparent backgrounds
+- **UMD Color Scheme** - Consistent branding with university colors
 
 ---
 
@@ -72,18 +87,21 @@ This platform is **built for students, by a student** (now alum), with zero prof
 **Filter by your specific class** - CMSC330, MATH141, HIST156, etc.
 **Safe & virus-scanned** - Every file checked by 70+ antivirus engines
 **Free forever** - No paywalls, no ads, no subscription fees
+**Beautiful interface** - Professional design with intuitive navigation
 
 ### **For Students Contributing Notes:**
 **Help fellow Terps succeed** - Your notes could help hundreds of students
 **Build your reputation** - Your username is credited on every upload
 **Easy to upload** - Drag & drop, bulk upload, auto-fill metadata
 **Secure & private** - UMD email required, virus scanning enabled
+**Organized categories** - Your files are properly categorized and searchable
 
 ### **For the UMD Community:**
 **Centralized knowledge base** - No more lost resources
 **Semester-to-semester continuity** - Help future students succeed
 **Class-specific organization** - Designed around UMD's course structure
 **Student-run** - Built by Terps, for Terps, with no corporate interests
+**Professional appearance** - Clean, modern interface that reflects UMD pride
 
 ---
 
@@ -100,6 +118,7 @@ This platform is **built for students, by a student** (now alum), with zero prof
 | **Email** | Nodemailer + Gmail | Verification & notifications |
 | **Deployment** | Vercel | Serverless functions, cron jobs, analytics |
 | **Monitoring** | Vercel Analytics & Speed Insights | Performance tracking |
+| **Icons** | Custom SVG/PNG | Professional icon system with transparency |
 
 ---
 
@@ -109,10 +128,10 @@ This platform is **built for students, by a student** (now alum), with zero prof
 Sign up with your `@umd.edu` or `@terpmail.umd.edu` email → Receive verification link → Activate account
 
 ### **2. Browse & Search**
-Filter by major (CMSC, MATH, etc.) → Select class (CMSC330) → Search by professor, semester, or keywords
+Filter by major (CMSC, MATH, etc.) → Select class (CMSC330) → Search by professor, semester, or keywords → Choose your preferred view (Grid, List, or Grouped)
 
 ### **3. Upload & Share**
-Drag & drop your notes → Add class info & description → Upload directly to S3 → Files are virus scanned automatically
+Drag & drop your notes → Add class info & description → Choose category → Upload directly to S3 → Files are virus scanned automatically
 
 ### **4. Download & Study**
 Click any file → Preview PDFs inline or download → Help others by uploading your own materials
@@ -137,6 +156,12 @@ Files upload immediately (fast UX), then scan asynchronously. No waiting for sec
 
 **File Deduplication**
 Same file uploaded by multiple users? Stored once in S3, referenced multiple times in MongoDB. Saves storage costs.
+
+**Professional Icon System**
+Custom SVG icons with transparent backgrounds create a polished, professional appearance.
+
+**UMD-Themed Design**
+Color scheme and styling that reflects University of Maryland branding and pride.
 
 **Email Normalization**
 `@umd.edu` and `@terpmail.umd.edu` route to the same inbox, preventing duplicate accounts.
@@ -176,13 +201,13 @@ Instead of banning violators, revoke upload privileges ("Viewer" mode). Encourag
 ## Screenshots
 
 **Dashboard:**
-Instant search, multi-select filters, drag & drop upload, virus scan status
+Instant search, multi-select filters, drag & drop upload, virus scan status, professional icons
 
 **Admin Panel:**
-User management, file moderation, usage statistics, announcement system
+User management, file moderation, usage statistics, dynamic announcement system
 
 **Mobile Responsive:**
-Works perfectly on phones, tablets, and desktops
+Works perfectly on phones, tablets, and desktops with UMD-themed design
 
 ---
 
