@@ -2820,12 +2820,35 @@
                         let successCount = 0;
                         let errorCount = 0;
 
+                        // Helper function for fetch with timeout
+                        const fetchWithTimeout = async (url, options = {}, timeout = 30000) => {
+                            const controller = new AbortController();
+                            const timeoutId = setTimeout(() => controller.abort(), timeout);
+
+                            try {
+                                const response = await fetch(url, {
+                                    ...options,
+                                    signal: controller.signal
+                                });
+                                clearTimeout(timeoutId);
+                                return response;
+                            } catch (error) {
+                                clearTimeout(timeoutId);
+                                if (error.name === 'AbortError') {
+                                    throw new Error(`Request timeout after ${timeout}ms`);
+                                }
+                                throw error;
+                            }
+                        };
+
                         // Upload each file
                         for (let i = 0; i < files.length; i++) {
                             const file = files[i];
                             statusEl.textContent = `Processing ${file.name}...`;
 
                             try {
+                                console.log(`Starting upload for file ${i + 1}/${files.length}: ${file.name}`);
+
                                 // Step 1: Calculate file hash (client-side to avoid server timeout)
                                 const arrayBuffer = await file.arrayBuffer();
                                 const hashBuffer = await crypto.subtle.digest('SHA-256', arrayBuffer);
@@ -2833,39 +2856,51 @@
                                 const fileHash = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
 
                                 statusEl.textContent = `Uploading ${file.name}...`;
+                                console.log(`Getting upload URL for: ${file.name}`);
 
                                 // Step 2: Get presigned URL
-                                const urlResponse = await fetch('/api/get-upload-url', {
+                                const urlResponse = await fetchWithTimeout('/api/get-upload-url', {
                                     method: 'POST',
                                     headers: { 'Content-Type': 'application/json' },
                                     body: JSON.stringify({
                                         filename: file.name,
                                         filetype: file.type
                                     })
-                                });
+                                }, 10000); // 10 second timeout for getting upload URL
 
                                 if (!urlResponse.ok) {
-                                    throw new Error('Failed to get upload URL');
+                                    const errorText = await urlResponse.text();
+                                    throw new Error(`Failed to get upload URL (${urlResponse.status}): ${errorText || 'Unknown error'}`);
                                 }
 
-                                const { uploadUrl, s3Key, s3Url } = await urlResponse.json();
+                                let uploadUrl, s3Key, s3Url;
+                                try {
+                                    const responseData = await urlResponse.json();
+                                    uploadUrl = responseData.uploadUrl;
+                                    s3Key = responseData.s3Key;
+                                    s3Url = responseData.s3Url;
+                                } catch (jsonError) {
+                                    throw new Error(`Failed to parse upload URL response: ${jsonError.message}`);
+                                }
+                                console.log(`Upload URL received for: ${file.name}, uploading to S3...`);
 
-                                // Step 2: Upload directly to S3
-                                const s3Response = await fetch(uploadUrl, {
+                                // Step 3: Upload directly to S3
+                                const s3Response = await fetchWithTimeout(uploadUrl, {
                                     method: 'PUT',
                                     body: file,
                                     headers: {
                                         'Content-Type': file.type
                                     }
-                                });
+                                }, 60000); // 60 second timeout for S3 upload
 
                                 if (!s3Response.ok) {
                                     const errorText = await s3Response.text();
                                     throw new Error(`S3 upload failed (${s3Response.status}): ${errorText || 'Unknown error'}`);
                                 }
+                                console.log(`S3 upload successful for: ${file.name}, confirming with backend...`);
 
-                                // Step 3: Confirm upload to backend
-                                const confirmResponse = await fetch('/api/confirm-upload', {
+                                // Step 4: Confirm upload to backend
+                                const confirmResponse = await fetchWithTimeout('/api/confirm-upload', {
                                     method: 'POST',
                                     headers: { 'Content-Type': 'application/json' },
                                     body: JSON.stringify({
@@ -2883,14 +2918,21 @@
                                         category: category,
                                         description: description
                                     })
-                                });
+                                }, 15000); // 15 second timeout for confirming upload
 
                                 if (!confirmResponse.ok) {
                                     const errorText = await confirmResponse.text();
                                     throw new Error(`Failed to save file metadata (${confirmResponse.status}): ${errorText || 'Unknown error'}`);
                                 }
 
-                                const result = await confirmResponse.json();
+                                let result;
+                                try {
+                                    result = await confirmResponse.json();
+                                } catch (jsonError) {
+                                    throw new Error(`Failed to parse confirm upload response: ${jsonError.message}`);
+                                }
+                                console.log(`Backend confirmation successful for: ${file.name}`);
+
                                 if (result.duplicate) {
                                     statusEl.textContent = `${file.name} already exists (skipped)`;
                                 } else {
