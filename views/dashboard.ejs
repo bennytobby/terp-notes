@@ -4027,7 +4027,7 @@
                 // Filename truncation helper function
                 function truncateFilename(filename, maxLength = 15) {
                     if (filename.length <= maxLength) {
-                        return `<span title="${escapeHtml(filename)}">${escapeHtml(filename)}</span>`;
+                        return `<span class="filename-truncated" title="${escapeHtml(filename)}">${escapeHtml(filename)}</span>`;
                     } else {
                         const truncated = filename.substring(0, maxLength) + '...';
                         return `<span class="filename-truncated" title="${escapeHtml(filename)}">${escapeHtml(truncated)}</span>`;
