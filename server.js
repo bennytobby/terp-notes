@@ -1091,7 +1091,7 @@ const upload = multer({
 /* ROUTES */
 
 app.get('/', function (req, res) {
-    res.render('index', { title: "Terp Notes - UMD Resource Sharing" });
+    res.render('index', { title: "Terp Notes - Built for Terps, by Terps" });
 });
 
 // Icon Test Page (for development/verification)

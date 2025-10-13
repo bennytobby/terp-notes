@@ -1,0 +1,20 @@
+{
+  "name": "Terp Notes - Built for Terps, by Terps",
+  "short_name": "Terp Notes",
+  "description": "A platform for University of Maryland students to share and access class notes.",
+  "icons": [
+    {
+      "src": "/android-chrome-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/android-chrome-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ],
+  "theme_color": "#E21833",
+  "background_color": "#ffffff",
+  "display": "standalone"
+}
