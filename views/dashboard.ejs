@@ -623,7 +623,7 @@
                                                 Select Files<span class="required">*</span>
                                             </label>
                                             <div class="upload-drop-zone" id="dropZone">
-                                                <input type="file" name="documents" id="documents" required
+                                                <input type="file" name="documents" id="documents"
                                                     class="file-input-hidden" multiple />
                                                 <div class="drop-zone-content">
                                                     <div class="drop-zone-icon"><img src="/images/icons/upload-cloud.png" alt="Upload" style="width: 234px; height: 234px;" /></div>
@@ -643,7 +643,7 @@
                                                 <label for="classCode" class="form-label">Class Code<span
                                                         class="required">*</span></label>
                                                 <div class="custom-dropdown-wrapper">
-                                                    <input type="text" name="classCode" id="classCode" required
+                                                    <input type="text" name="classCode" id="classCode"
                                                         class="form-input" placeholder="e.g. CMSC330, HIST000"
                                                         autocomplete="off" />
                                                     <div class="custom-dropdown" id="coursesDropdown"></div>
@@ -658,7 +658,7 @@
                                                 <label for="professor" class="form-label">Professor<span
                                                         class="required">*</span></label>
                                                 <div class="custom-dropdown-wrapper">
-                                                    <input type="text" name="professor" id="professor" required
+                                                    <input type="text" name="professor" id="professor"
                                                         class="form-input" placeholder="e.g., Dr. Nelson, Prof. Smith"
                                                         autocomplete="off" />
                                                     <div class="custom-dropdown" id="professorsDropdown"></div>
@@ -675,7 +675,7 @@
                                             <div class="form-group">
                                                 <label for="semester" class="form-label">Semester<span
                                                         class="required">*</span></label>
-                                                <select name="semester" id="semester" required class="form-input">
+                                                <select name="semester" id="semester" class="form-input">
                                                     <option value="">Select semester</option>
                                                     <option value="Fall">Fall</option>
                                                     <option value="Spring">Spring</option>
@@ -687,7 +687,7 @@
                                             <div class="form-group">
                                                 <label for="year" class="form-label">Year<span
                                                         class="required">*</span></label>
-                                                <select name="year" id="year" required class="form-input">
+                                                <select name="year" id="year" class="form-input">
                                                     <option value="">Select year</option>
                                                     <% for (let y=new Date().getFullYear(); y >= 2020; y--) { %>
                                                         <option value="<%= y %>">
@@ -704,7 +704,7 @@
                                         <div class="form-group">
                                             <label for="category" class="form-label">Category<span
                                                     class="required">*</span></label>
-                                            <select name="category" id="category" required class="form-input">
+                                            <select name="category" id="category" class="form-input">
                                                 <option value="">Select category</option>
                                                 <option value="Exam">📝 Exam</option>
                                                 <option value="Lecture Notes">📚 Lecture Notes</option>
@@ -725,7 +725,7 @@
                                         <div class="form-group">
                                             <label for="description" class="form-label">Description<span
                                                     class="required">*</span></label>
-                                            <textarea name="description" id="description" class="form-textarea" required
+                                            <textarea name="description" id="description" class="form-textarea"
                                                 placeholder="e.g., Week 1 Lectures, Midterm Study Guide, Chapter 3 Summary"
                                                 rows="2"></textarea>
                                             <small class="form-help">
@@ -735,7 +735,7 @@
 
                                         <div class="form-group">
                                             <label class="checkbox-label" style="display: flex; align-items: flex-start; gap: 0.75rem; cursor: pointer; font-size: 0.875rem; line-height: 1.5;">
-                                                <input type="checkbox" id="academicIntegrity" required
+                                                <input type="checkbox" id="academicIntegrity"
                                                        style="width: 18px; height: 18px; margin-top: 2px; accent-color: var(--umd-red); flex-shrink: 0;">
                                                 <span>
                                                     <strong>Academic Integrity Agreement</strong><span class="required" style="color: #EF4444;">*</span><br>
@@ -3018,6 +3018,30 @@
                     return '';
                 }
 
+                // Notification System
+                function showNotification(message, type = 'error', duration = 3000) {
+                    const notification = document.createElement('div');
+                    const bgColor = type === 'success' ? '#10B981' : '#EF4444';
+                    const icon = type === 'success' ? '✅' : '⚠️';
+
+                    notification.style.cssText = `
+                        position: fixed; top: 20px; right: 20px; background: ${bgColor}; color: white;
+                        padding: 1rem 1.5rem; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+                        font-weight: 500; z-index: 10000; animation: slideIn 0.3s ease;
+                        max-width: 350px; line-height: 1.4;
+                    `;
+
+                    notification.innerHTML = `
+                        <div style="display: flex; align-items: center; gap: 0.5rem;">
+                            <span style="font-size: 1.2rem;">${icon}</span>
+                            <span>${message}</span>
+                        </div>
+                    `;
+
+                    document.body.appendChild(notification);
+                    setTimeout(() => notification.remove(), duration);
+                }
+
                 // Direct S3 Upload Form Handler
                 const uploadForm = document.getElementById('uploadForm');
                 if (uploadForm) {
@@ -3029,16 +3053,7 @@
                         const files = filesInput.files;
 
                         if (files.length === 0) {
-                            // Show styled notification instead of alert
-                            const notification = document.createElement('div');
-                            notification.style.cssText = `
-                                position: fixed; top: 20px; right: 20px; background: #EF4444; color: white;
-                                padding: 1rem 1.5rem; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-                                font-weight: 500; z-index: 10000; animation: slideIn 0.3s ease;
-                            `;
-                            notification.textContent = 'Please select at least one file to upload';
-                            document.body.appendChild(notification);
-                            setTimeout(() => notification.remove(), 3000);
+                            showNotification('Please select at least one file to upload');
                             return;
                         }
 
@@ -3071,24 +3086,15 @@
                         if (!academicIntegrity) missingFields.push('Academic Integrity Agreement');
 
                         if (missingFields.length > 0) {
-                            const notification = document.createElement('div');
-                            notification.style.cssText = `
-                                position: fixed; top: 20px; right: 20px; background: #EF4444; color: white;
-                                padding: 1rem 1.5rem; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-                                font-weight: 500; z-index: 10000; animation: slideIn 0.3s ease;
-                                max-width: 350px; line-height: 1.4;
-                            `;
-                            notification.innerHTML = `
-                                <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem;">
-                                    <span style="font-size: 1.2rem;">⚠️</span>
+                            const message = `
+                                <div style="margin-bottom: 0.5rem;">
                                     <strong>Missing Required Fields:</strong>
                                 </div>
                                 <div style="font-size: 0.9rem;">
                                     ${missingFields.map(field => `• ${field}`).join('<br>')}
                                 </div>
                             `;
-                            document.body.appendChild(notification);
-                            setTimeout(() => notification.remove(), 5000);
+                            showNotification(message, 'error', 5000);
                             return;
                         }
 
@@ -3270,6 +3276,16 @@
 
                         // Show completion message
                         statusEl.textContent = `Upload complete! ${successCount} uploaded, ${errorCount} failed`;
+
+                        // Show success notification
+                        if (successCount > 0 && errorCount === 0) {
+                            showNotification(`Successfully uploaded ${successCount} file${successCount > 1 ? 's' : ''}!`, 'success', 4000);
+                        } else if (successCount > 0 && errorCount > 0) {
+                            showNotification(`Uploaded ${successCount} file${successCount > 1 ? 's' : ''}, ${errorCount} failed`, 'error', 5000);
+                        } else {
+                            showNotification('Upload failed - please try again', 'error', 4000);
+                        }
+
                         setTimeout(() => {
                             window.location.reload();
                         }, 1500);
@@ -4918,7 +4934,7 @@
                     const selectedFiles = Array.from(checkboxes).map(cb => cb.dataset.filename);
 
                     if (selectedFiles.length === 0) {
-                        alert('Please select files to delete.');
+                        showNotification('Please select files to delete.');
                         return;
                     }
 
@@ -4927,7 +4943,7 @@
 
                     // Check if user can delete files
                     if (userRole === 'viewer') {
-                        alert('You are in view-only mode and cannot delete files.');
+                        showNotification('You are in view-only mode and cannot delete files.');
                         return;
                     }
 
@@ -4948,7 +4964,7 @@
                     const nonDeletableFiles = fileDetails.filter(f => !f.canDelete);
 
                     if (deletableFiles.length === 0) {
-                        alert('You do not have permission to delete any of the selected files.');
+                        showNotification('You do not have permission to delete any of the selected files.');
                         return;
                     }
 
@@ -4978,22 +4994,20 @@
                         const result = await response.json();
 
                         if (response.ok) {
-                            let message = `Bulk delete complete!\n\n`;
-                            message += `✅ Successfully deleted: ${result.summary.success} file(s)\n`;
-
-                            if (result.summary.failed > 0) {
-                                message += `❌ Failed to delete: ${result.summary.failed} file(s)\n`;
-                                const failures = result.results.failed.map(f => `• ${f.originalName}: ${f.error}`).join('\n');
-                                message += `\nFailures:\n${failures}`;
+                            // Show success notification
+                            if (result.summary.success > 0 && result.summary.failed === 0 && result.summary.skipped === 0) {
+                                showNotification(`Successfully deleted ${result.summary.success} file${result.summary.success > 1 ? 's' : ''}!`, 'success', 4000);
+                            } else if (result.summary.success > 0) {
+                                // Mixed results - show detailed message
+                                let message = `Deleted ${result.summary.success} file${result.summary.success > 1 ? 's' : ''}`;
+                                if (result.summary.failed > 0) message += `, ${result.summary.failed} failed`;
+                                if (result.summary.skipped > 0) message += `, ${result.summary.skipped} skipped`;
+                                showNotification(message, 'error', 5000);
+                            } else {
+                                showNotification('No files were deleted', 'error', 4000);
                             }
-
-                            if (result.summary.skipped > 0) {
-                                message += `\n⚠️ Skipped: ${result.summary.skipped} file(s) (permission denied or not found)`;
-                            }
-
-                            alert(message);
                         } else {
-                            alert(`Bulk delete failed: ${result.error}`);
+                            showNotification(`Bulk delete failed: ${result.error}`, 'error', 5000);
                         }
 
                         // Reload page to show updated file list
