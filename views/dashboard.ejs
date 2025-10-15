@@ -4699,6 +4699,30 @@
                     console.log('All selections reset');
                 }
 
+                // Get only visible checkboxes in grouped view (from expanded folders)
+                function getVisibleCheckboxesInGroupedView() {
+                    const visibleCheckboxes = [];
+                    
+                    // Find all category file containers that are currently visible
+                    const categoryFileContainers = document.querySelectorAll('.category-files');
+                    
+                    categoryFileContainers.forEach(container => {
+                        // Check if this container is visible (its parent category folder is expanded)
+                        const isVisible = container.style.display !== 'none' && 
+                                        container.offsetParent !== null &&
+                                        container.offsetWidth > 0 && 
+                                        container.offsetHeight > 0;
+                        
+                        if (isVisible) {
+                            // Find all checkboxes within this visible container
+                            const checkboxes = container.querySelectorAll('.file-select-checkbox');
+                            visibleCheckboxes.push(...checkboxes);
+                        }
+                    });
+                    
+                    return visibleCheckboxes;
+                }
+
                 function toggleSelectAll() {
                     console.log('toggleSelectAll called');
 
@@ -4709,12 +4733,15 @@
                     const listView = document.getElementById('listView');
 
                     if (gridView && gridView.style.display !== 'none') {
+                        // Grid view: select all visible checkboxes
                         checkboxes = gridView.querySelectorAll('.file-select-checkbox');
                         console.log('Working with Grid view checkboxes:', checkboxes.length);
                     } else if (groupedView && groupedView.style.display !== 'none') {
-                        checkboxes = groupedView.querySelectorAll('.file-select-checkbox');
-                        console.log('Working with Grouped view checkboxes:', checkboxes.length);
+                        // Grouped view: only select checkboxes from visible (expanded) folders
+                        checkboxes = getVisibleCheckboxesInGroupedView();
+                        console.log('Working with visible Grouped view checkboxes:', checkboxes.length);
                     } else if (listView && listView.style.display !== 'none') {
+                        // List view: select all visible checkboxes
                         checkboxes = listView.querySelectorAll('.file-select-checkbox');
                         console.log('Working with List view checkboxes:', checkboxes.length);
                     } else {
@@ -4744,7 +4771,8 @@
                     if (gridView && gridView.style.display !== 'none') {
                         checkboxes = gridView.querySelectorAll('.file-select-checkbox');
                     } else if (groupedView && groupedView.style.display !== 'none') {
-                        checkboxes = groupedView.querySelectorAll('.file-select-checkbox');
+                        // For grouped view, only count visible checkboxes (from expanded folders)
+                        checkboxes = getVisibleCheckboxesInGroupedView();
                     } else if (listView && listView.style.display !== 'none') {
                         checkboxes = listView.querySelectorAll('.file-select-checkbox');
                     } else {
@@ -5183,7 +5211,9 @@
                     if (gridView && gridView.style.display !== 'none') {
                         checkboxes = gridView.querySelectorAll('.file-select-checkbox:checked');
                     } else if (groupedView && groupedView.style.display !== 'none') {
-                        checkboxes = groupedView.querySelectorAll('.file-select-checkbox:checked');
+                        // For grouped view, only work with visible checked checkboxes (from expanded folders)
+                        const visibleCheckboxes = getVisibleCheckboxesInGroupedView();
+                        checkboxes = Array.from(visibleCheckboxes).filter(cb => cb.checked);
                     } else if (listView && listView.style.display !== 'none') {
                         checkboxes = listView.querySelectorAll('.file-select-checkbox:checked');
                     } else {
