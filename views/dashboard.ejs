@@ -2030,7 +2030,6 @@
                      data-downloads="${file.downloadCount || 0}"
                      data-size="${file.size || 0}"
                      data-filename="${file.filename}"
-                     onclick="toggleFileSelection('${file.filename}')"
                      style="cursor: pointer;">
                     <div class="file-header" style="position: relative; display: flex; align-items: center; justify-content: center; gap: 0.75rem; margin-bottom: 1rem;">
                         <!-- Bulk select checkbox -->
@@ -3438,13 +3437,18 @@
 
                 // Toggle file selection when clicking on file cards
                 function toggleFileSelection(filename) {
+                    console.log('toggleFileSelection called with filename:', filename);
                     // Find the checkbox for this file
                     const checkbox = document.querySelector(`input[type="checkbox"][data-filename="${filename}"]`);
+                    console.log('Found checkbox:', checkbox);
                     if (checkbox) {
                         // Toggle the checkbox
                         checkbox.checked = !checkbox.checked;
+                        console.log('Checkbox toggled to:', checkbox.checked);
                         // Trigger the change event to update counters
                         updateSelectedCount();
+                    } else {
+                        console.log('No checkbox found for filename:', filename);
                     }
                 }
 
@@ -4747,15 +4751,30 @@
                     // Initialize selected count
                     updateSelectedCount();
 
-                    // Add event delegation to prevent buttons from triggering file selection
+                    // Add event delegation to handle file card clicks and prevent button interference
                     document.addEventListener('click', function(event) {
-                        // If the clicked element is a button, link, or checkbox, don't trigger file selection
-                        if (event.target.tagName === 'BUTTON' || 
-                            event.target.tagName === 'A' || 
-                            event.target.tagName === 'INPUT' ||
-                            event.target.closest('.file-actions') ||
-                            event.target.closest('.file-select-checkbox')) {
-                            event.stopPropagation();
+                        console.log('Click event on:', event.target);
+                        // Check if clicked element is a clickable file card
+                        const fileCard = event.target.closest('.clickable-file-card');
+                        console.log('File card found:', fileCard);
+                        
+                        if (fileCard) {
+                            // Don't trigger selection if clicking on buttons, links, or checkboxes
+                            if (event.target.tagName === 'BUTTON' || 
+                                event.target.tagName === 'A' || 
+                                event.target.tagName === 'INPUT' ||
+                                event.target.closest('.file-actions') ||
+                                event.target.closest('.file-select-checkbox')) {
+                                console.log('Click ignored - button/link/checkbox');
+                                return; // Don't do anything for these elements
+                            }
+                            
+                            // Get the filename from the data attribute
+                            const filename = fileCard.getAttribute('data-filename');
+                            console.log('Filename from card:', filename);
+                            if (filename) {
+                                toggleFileSelection(filename);
+                            }
                         }
                     });
                 }
@@ -5087,7 +5106,6 @@
                              data-downloads="${file.downloadCount || 0}"
                              data-size="${file.size || 0}"
                              data-filename="${file.filename}"
-                             onclick="toggleFileSelection('${file.filename}')"
                              style="cursor: pointer;">
                             <div class="file-header" style="position: relative; display: flex; align-items: center; justify-content: center; gap: 0.75rem; margin-bottom: 1rem;">
                                 <!-- Bulk select checkbox -->
@@ -5176,7 +5194,6 @@
                              data-downloads="${file.downloadCount || 0}"
                              data-size="${file.size || 0}"
                              data-filename="${file.filename}"
-                             onclick="toggleFileSelection('${file.filename}')"
                              style="display: flex; align-items: center; padding: 1rem; border: 1px solid #E5E7EB; border-radius: 8px; margin-bottom: 0.5rem; background: white; transition: all 0.2s; cursor: pointer;">
 
                             <!-- Checkbox -->
