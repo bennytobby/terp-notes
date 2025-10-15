@@ -1526,20 +1526,16 @@
                             });
                         });
 
-                        // Get dynamic semester colors from configuration
-                        const semesterName = semesterKey.split(' ')[0];
-                        const semesterConfig = dashboardConfig?.semesters?.colors?.[semesterName] ||
-                                             dashboardConfig?.semesters?.defaultColor ||
-                                             { background: 'linear-gradient(135deg, #FFD700 0%, #FFA500 100%)', textColor: '#000000' };
-                        const semesterColor = semesterConfig.background;
-                        const textColor = semesterConfig.textColor;
+                        // Use consistent UMD Red for all semesters (Fall and Spring)
+                        const semesterColor = 'linear-gradient(135deg, #E21833 0%, #b91c1c 100%)';
+                        const textColor = 'white';
 
                         html += `
-                            <div class="semester-group file-card" style="margin-bottom: 1rem; border: 2px solid #E5E7EB; border-radius: 12px; overflow: hidden; background: white;">
-                                <div class="semester-header" onclick="toggleSemester(this)" style="background: ${semesterColor}; color: ${textColor}; padding: 1rem 1.25rem; cursor: pointer; display: flex; justify-content: space-between; align-items: center; transition: all 0.2s;">
+                            <div class="semester-group file-card" style="margin-bottom: 1rem; border: 2px solid #E5E7EB; border-radius: 16px; overflow: hidden; background: white; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                                <div class="semester-header" onclick="toggleSemester(this)" style="background: ${semesterColor}; color: ${textColor}; padding: 1rem 1.25rem; cursor: pointer; display: flex; justify-content: space-between; align-items: center; transition: all 0.2s; border-radius: 14px 14px 0 0;">
                                     <div style="display: flex; align-items: center; gap: 0.75rem;">
                                         <span class="expand-icon" style="font-size: 0.875rem; transition: transform 0.2s;">▶</span>
-                                        <strong style="font-size: 1.125rem;"><img src="/images/icons/calendar.png" alt="Calendar" style="width: 24px; height: 24px; vertical-align: middle; margin-right: 6px;" /> ${semesterKey}</strong>
+                                        <strong style="font-size: 1.125rem;"><img src="/images/icons/calendar.png" alt="Calendar" style="width: 24px; height: 24px; vertical-align: middle; margin-right: 6px; filter: brightness(0) invert(1);" /> ${semesterKey}</strong>
                                     </div>
                                     <span class="file-count" style="background: rgba(255,255,255,0.2); padding: 4px 12px; border-radius: 12px; font-size: 0.875rem; font-weight: 600;">${semesterFileCount} file${semesterFileCount !== 1 ? 's' : ''}</span>
                                 </div>
@@ -1562,13 +1558,13 @@
                             });
 
                             html += `
-                                <div class="major-group" style="margin-bottom: 0.75rem; border: 1px solid #E5E7EB; border-radius: 8px; overflow: hidden;">
-                                    <div class="major-header" onclick="toggleMajor(this)" style="background: linear-gradient(135deg, #DC143C 0%, #A50E2A 100%); color: white; padding: 0.875rem 1rem; cursor: pointer; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #E5E7EB;">
+                                <div class="major-group" style="margin-bottom: 0.75rem; border: 1px solid #E5E7EB; border-radius: 10px; overflow: hidden;">
+                                    <div class="major-header" onclick="toggleMajor(this)" style="background: linear-gradient(135deg, #FFD520 0%, #d97706 100%); color: #000000; padding: 0.875rem 1rem; cursor: pointer; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #E5E7EB;">
                                         <div style="display: flex; align-items: center; gap: 0.625rem;">
-                                            <span class="expand-icon" style="font-size: 0.75rem; transition: transform 0.2s; color: white; font-weight: bold;">▶</span>
-                                            <strong style="color: white; font-size: 1rem;"><img src="/images/icons/folder.png" alt="Folder" style="width: 24px; height: 24px; vertical-align: middle; margin-right: 6px;" /> ${major}</strong>
+                                            <span class="expand-icon" style="font-size: 0.75rem; transition: transform 0.2s; color: #000000; font-weight: bold;">▶</span>
+                                            <strong style="color: #000000; font-size: 1rem;"><img src="/images/icons/folder.png" alt="Folder" style="width: 24px; height: 24px; vertical-align: middle; margin-right: 6px; filter: brightness(0);" /> ${major}</strong>
                                         </div>
-                                        <span class="file-count" style="background: rgba(255,255,255,0.2); color: white; padding: 3px 10px; border-radius: 10px; font-size: 0.8rem; font-weight: 600;">${majorFileCount} file${majorFileCount !== 1 ? 's' : ''}</span>
+                                        <span class="file-count" style="background: rgba(0,0,0,0.1); color: #000000; padding: 3px 10px; border-radius: 10px; font-size: 0.8rem; font-weight: 600;">${majorFileCount} file${majorFileCount !== 1 ? 's' : ''}</span>
                                     </div>
                                     <div class="course-list" style="display: none; padding: 0.75rem;">
                             `;
@@ -1585,13 +1581,13 @@
                                 });
 
                                 html += `
-                                    <div class="course-group" style="margin-bottom: 0.625rem; border: 1px solid #E5E7EB; border-radius: 6px; overflow: hidden;">
-                                        <div class="course-header" onclick="toggleCourse(this)" style="background: #18202B; color: white; padding: 0.75rem; cursor: pointer; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #F3F4F6;">
+                                    <div class="course-group" style="margin-bottom: 0.625rem; border: 1px solid #E5E7EB; border-radius: 8px; overflow: hidden;">
+                                        <div class="course-header" onclick="toggleCourse(this)" style="background: linear-gradient(135deg, #F9FAFB 0%, #E5E7EB 100%); color: #374151; padding: 0.75rem; cursor: pointer; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #F3F4F6;">
                                             <div style="display: flex; align-items: center; gap: 0.5rem;">
-                                                <span class="expand-icon" style="font-size: 0.7rem; transition: transform 0.2s; color: white;">▶</span>
-                                                <strong style="color: white; font-size: 0.9375rem;"><img src="/images/icons/briefcase.png" alt="Course" style="width: 24px; height: 24px; vertical-align: middle; margin-right: 6px;" /> ${course}</strong>
+                                                <span class="expand-icon" style="font-size: 0.7rem; transition: transform 0.2s; color: #374151;">▶</span>
+                                                <strong style="color: #374151; font-size: 0.9375rem;"><img src="/images/icons/briefcase.png" alt="Course" style="width: 24px; height: 24px; vertical-align: middle; margin-right: 6px; filter: brightness(0);" /> ${course}</strong>
                                             </div>
-                                            <span class="file-count" style="background: rgba(255,255,255,0.2); color: white; padding: 2px 8px; border-radius: 8px; font-size: 0.75rem; font-weight: 600;">${courseFileCount} files</span>
+                                            <span class="file-count" style="background: rgba(0,0,0,0.1); color: #374151; padding: 2px 8px; border-radius: 8px; font-size: 0.75rem; font-weight: 600;">${courseFileCount} files</span>
                                         </div>
                                         <div class="category-list" style="display: none; padding: 0.5rem;">
                                 `;
@@ -1605,12 +1601,12 @@
 
                                     html += `
                                         <div class="category-group" style="margin-bottom: 0.5rem;">
-                                            <div class="category-header" onclick="toggleCategory(this)" style="background: #F9FAFB; padding: 0.625rem; cursor: pointer; display: flex; justify-content: space-between; align-items: center; border-radius: 4px; border: 1px solid #F3F4F6;">
+                                            <div class="category-header" onclick="toggleCategory(this)" style="background: linear-gradient(135deg, #000000 0%, #374151 100%); color: white; padding: 0.625rem; cursor: pointer; display: flex; justify-content: space-between; align-items: center; border-radius: 6px; border: 1px solid #E5E7EB;">
                                                 <div style="display: flex; align-items: center; gap: 0.375rem;">
-                                                    <span class="expand-icon" style="font-size: 0.65rem; transition: transform 0.2s;">▶</span>
-                                                    <span style="color: #4B5563; font-size: 0.875rem; font-weight: 600;">${categoryIcon} ${categoryLabel}</span>
+                                                    <span class="expand-icon" style="font-size: 0.65rem; transition: transform 0.2s; color: white;">▶</span>
+                                                    <span style="color: white; font-size: 0.875rem; font-weight: 600;">${categoryIcon} ${categoryLabel}</span>
                                                 </div>
-                                                <span style="background: #E5E7EB; color: #374151; padding: 2px 6px; border-radius: 6px; font-size: 0.7rem; font-weight: 600;">${files.length} files</span>
+                                                <span style="background: rgba(255,255,255,0.2); color: white; padding: 2px 6px; border-radius: 6px; font-size: 0.7rem; font-weight: 600;">${files.length} files</span>
                                             </div>
                                             <div class="category-files" style="display: none; padding: 0.5rem 0 0 1.5rem;">
                                                 ${files.map(function (card) { return createGroupedFileCard(card); }).join('')}
@@ -2166,11 +2162,6 @@
 
                     // Update persistent state
                     persistentFolderStates.courses[courseName] = !isCurrentlyExpanded;
-
-                    // If closing folder, clear related filters
-                    if (isCurrentlyExpanded) {
-                        clearFiltersForClosedFolder('course', courseName);
-                    }
 
                     // Update button text
                     updateExpandCollapseButtonText();
