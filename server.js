@@ -1167,6 +1167,7 @@ async function scanFileWithVirusTotal(fileId, fileBuffer, filename) {
 /* Upload */
 const multer = require("multer");
 const storage = multer.memoryStorage();
+const archiver = require('archiver');
 
 // Whitelist of safe academic file types
 const ALLOWED_FILE_TYPES = {
@@ -2743,6 +2744,86 @@ app.get("/download/:filename", async (req, res) => {
         res.status(500).send("File could not be downloaded.");
     } finally {
         await client.close();
+    }
+});
+
+// Bulk download endpoint - creates a zip file of multiple files
+app.post("/bulk-download", async (req, res) => {
+    if (!req.session.user) return res.status(401).json({ error: 'Not authenticated' });
+
+    try {
+        const { filenames } = req.body;
+        
+        if (!filenames || !Array.isArray(filenames) || filenames.length === 0) {
+            return res.status(400).json({ error: 'No files specified' });
+        }
+
+        // Limit bulk downloads to prevent abuse
+        const maxFiles = 20;
+        if (filenames.length > maxFiles) {
+            return res.status(400).json({ error: `Too many files. Maximum ${maxFiles} files allowed.` });
+        }
+
+        await ensureConnection();
+        
+        // Get file metadata for all files
+        const fileDocs = await client
+            .db(fileCollection.db)
+            .collection(fileCollection.collection)
+            .find({ filename: { $in: filenames } })
+            .toArray();
+
+        if (fileDocs.length === 0) {
+            return res.status(404).json({ error: 'No valid files found' });
+        }
+
+        // Set up zip archive
+        res.setHeader('Content-Type', 'application/zip');
+        res.setHeader('Content-Disposition', `attachment; filename="terp-notes-bulk-${Date.now()}.zip"`);
+        
+        const archive = archiver('zip', { zlib: { level: 9 } });
+        archive.pipe(res);
+
+        // Download and add each file to the zip
+        for (const fileDoc of fileDocs) {
+            try {
+                const s3Params = { Bucket: AWS_BUCKET, Key: fileDoc.filename };
+                const s3Data = await s3.getObject(s3Params).promise();
+                
+                // Use original filename if available, otherwise use stored filename
+                const displayName = fileDoc.originalName || fileDoc.filename;
+                
+                archive.append(s3Data.Body, { name: displayName });
+                
+                // Increment download count
+                await client
+                    .db(fileCollection.db)
+                    .collection(fileCollection.collection)
+                    .updateOne(
+                        { filename: fileDoc.filename },
+                        { $inc: { downloadCount: 1 } }
+                    );
+            } catch (fileError) {
+                console.error(`Error adding ${fileDoc.filename} to zip:`, fileError);
+                // Continue with other files even if one fails
+            }
+        }
+
+        // Finalize the archive
+        archive.finalize();
+
+        archive.on('error', (err) => {
+            console.error('Archive error:', err);
+            if (!res.headersSent) {
+                res.status(500).json({ error: 'Failed to create zip file' });
+            }
+        });
+
+    } catch (error) {
+        console.error('Bulk download error:', error);
+        if (!res.headersSent) {
+            res.status(500).json({ error: 'Failed to process bulk download' });
+        }
     }
 });
 

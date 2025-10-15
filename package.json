@@ -8,6 +8,7 @@
     "dependencies": {
         "@vercel/analytics": "^1.5.0",
         "@vercel/speed-insights": "^1.2.0",
+        "archiver": "^7.0.1",
         "aws-sdk": "^2.1692.0",
         "axios": "^1.12.2",
         "bcrypt": "^6.0.0",
