@@ -203,13 +203,17 @@
                                     </div>
 
                                     <!-- Bulk Actions -->
-                                    <div id="bulkActions" style="display: none; margin-left: 1rem;">
+                                    <div id="bulkActions" style="display: none; margin-left: 1rem; align-items: center; gap: 0.5rem;">
                                         <button id="selectAllBtn" onclick="toggleSelectAll()"
                                             style="padding: 6px 12px; border: 1px solid #D1D5DB; background: white; color: #374151; border-radius: 6px; cursor: pointer; font-size: 0.875rem; font-weight: 600; transition: all 0.2s;">
                                             Select All
                                         </button>
+                                        <button id="bulkDownloadBtn" onclick="bulkDownloadFiles()"
+                                            style="padding: 6px 12px; border: none; background: #059669; color: white; border-radius: 6px; cursor: pointer; font-size: 0.875rem; font-weight: 600; transition: all 0.2s; opacity: 0.5; cursor: not-allowed;" disabled>
+                                            Download Selected (<span id="downloadCount">0</span>)
+                                        </button>
                                         <button id="bulkDeleteBtn" onclick="bulkDeleteFiles()"
-                                            style="padding: 6px 12px; border: none; background: var(--umd-red); color: white; border-radius: 6px; cursor: pointer; font-size: 0.875rem; font-weight: 600; transition: all 0.2s; margin-left: 0.5rem;">
+                                            style="padding: 6px 12px; border: none; background: var(--umd-red); color: white; border-radius: 6px; cursor: pointer; font-size: 0.875rem; font-weight: 600; transition: all 0.2s; opacity: 0.5; cursor: not-allowed;" disabled>
                                             Delete Selected (<span id="selectedCount">0</span>)
                                         </button>
                                     </div>
@@ -4685,15 +4689,26 @@
 
                     // Update the selected count to 0
                     const selectedCountSpan = document.getElementById('selectedCount');
+                    const downloadCountSpan = document.getElementById('downloadCount');
                     if (selectedCountSpan) {
                         selectedCountSpan.textContent = '0';
                     }
+                    if (downloadCountSpan) {
+                        downloadCountSpan.textContent = '0';
+                    }
 
-                    // Disable the bulk delete button
+                    // Disable the bulk buttons
                     const bulkDeleteBtn = document.getElementById('bulkDeleteBtn');
+                    const bulkDownloadBtn = document.getElementById('bulkDownloadBtn');
                     if (bulkDeleteBtn) {
                         bulkDeleteBtn.disabled = true;
                         bulkDeleteBtn.style.opacity = '0.5';
+                        bulkDeleteBtn.style.cursor = 'not-allowed';
+                    }
+                    if (bulkDownloadBtn) {
+                        bulkDownloadBtn.disabled = true;
+                        bulkDownloadBtn.style.opacity = '0.5';
+                        bulkDownloadBtn.style.cursor = 'not-allowed';
                     }
 
                     console.log('All selections reset');
@@ -4702,24 +4717,24 @@
                 // Get only visible checkboxes in grouped view (from expanded folders)
                 function getVisibleCheckboxesInGroupedView() {
                     const visibleCheckboxes = [];
-                    
+
                     // Find all category file containers that are currently visible
                     const categoryFileContainers = document.querySelectorAll('.category-files');
-                    
+
                     categoryFileContainers.forEach(container => {
                         // Check if this container is visible (its parent category folder is expanded)
-                        const isVisible = container.style.display !== 'none' && 
+                        const isVisible = container.style.display !== 'none' &&
                                         container.offsetParent !== null &&
-                                        container.offsetWidth > 0 && 
+                                        container.offsetWidth > 0 &&
                                         container.offsetHeight > 0;
-                        
+
                         if (isVisible) {
                             // Find all checkboxes within this visible container
                             const checkboxes = container.querySelectorAll('.file-select-checkbox');
                             visibleCheckboxes.push(...checkboxes);
                         }
                     });
-                    
+
                     return visibleCheckboxes;
                 }
 
@@ -4783,19 +4798,34 @@
                     console.log('Found checkboxes in active view:', checkboxes.length);
                     const selectedCount = Array.from(checkboxes).filter(cb => cb.checked).length;
                     const selectedCountSpan = document.getElementById('selectedCount');
+                    const downloadCountSpan = document.getElementById('downloadCount');
                     const bulkDeleteBtn = document.getElementById('bulkDeleteBtn');
+                    const bulkDownloadBtn = document.getElementById('bulkDownloadBtn');
                     const selectAllBtn = document.getElementById('selectAllBtn');
 
                     console.log('Selected count:', selectedCount);
 
                     selectedCountSpan.textContent = selectedCount;
+                    downloadCountSpan.textContent = selectedCount;
 
-                    // Enable/disable bulk delete button
+                    // Enable/disable bulk buttons
                     if (selectedCount > 0) {
+                        // Enable download button
+                        bulkDownloadBtn.disabled = false;
+                        bulkDownloadBtn.style.opacity = '1';
+                        bulkDownloadBtn.style.cursor = 'pointer';
+                        
+                        // Enable delete button
                         bulkDeleteBtn.disabled = false;
                         bulkDeleteBtn.style.opacity = '1';
                         bulkDeleteBtn.style.cursor = 'pointer';
                     } else {
+                        // Disable download button
+                        bulkDownloadBtn.disabled = true;
+                        bulkDownloadBtn.style.opacity = '0.5';
+                        bulkDownloadBtn.style.cursor = 'not-allowed';
+                        
+                        // Disable delete button
                         bulkDeleteBtn.disabled = true;
                         bulkDeleteBtn.style.opacity = '0.5';
                         bulkDeleteBtn.style.cursor = 'not-allowed';
@@ -5200,6 +5230,67 @@
                     });
                 }
 
+
+                // Bulk download selected files
+                function bulkDownloadFiles() {
+                    // Only work with checkboxes from the currently visible view
+                    let checkboxes;
+                    const gridView = document.getElementById('gridView');
+                    const groupedView = document.getElementById('groupedView');
+                    const listView = document.getElementById('listView');
+
+                    if (gridView && gridView.style.display !== 'none') {
+                        checkboxes = gridView.querySelectorAll('.file-select-checkbox:checked');
+                    } else if (groupedView && groupedView.style.display !== 'none') {
+                        // For grouped view, only work with visible checked checkboxes (from expanded folders)
+                        const visibleCheckboxes = getVisibleCheckboxesInGroupedView();
+                        checkboxes = Array.from(visibleCheckboxes).filter(cb => cb.checked);
+                    } else if (listView && listView.style.display !== 'none') {
+                        checkboxes = listView.querySelectorAll('.file-select-checkbox:checked');
+                    } else {
+                        // Fallback to all checkboxes if no view is clearly visible
+                        checkboxes = document.querySelectorAll('.file-select-checkbox:checked');
+                    }
+
+                    const selectedFiles = Array.from(checkboxes).map(cb => cb.dataset.filename);
+
+                    if (selectedFiles.length === 0) {
+                        showNotification('Please select files to download.');
+                        return;
+                    }
+
+                    // Limit bulk downloads to prevent overwhelming the browser
+                    const maxBulkDownloads = 10;
+                    if (selectedFiles.length > maxBulkDownloads) {
+                        const confirmDownload = confirm(`You have selected ${selectedFiles.length} files. For performance reasons, bulk download is limited to ${maxBulkDownloads} files at a time.\n\nDo you want to download the first ${maxBulkDownloads} files?`);
+                        if (!confirmDownload) return;
+                        selectedFiles.splice(maxBulkDownloads);
+                    }
+
+                    // Show notification
+                    showNotification(`Starting download of ${selectedFiles.length} file(s)...`, 'info', 3000);
+
+                    // Download each file
+                    selectedFiles.forEach((filename, index) => {
+                        // Add small delay between downloads to prevent browser blocking
+                        setTimeout(() => {
+                            const downloadLink = `/download/${encodeURIComponent(filename)}`;
+                            const link = document.createElement('a');
+                            link.href = downloadLink;
+                            link.download = filename;
+                            link.target = '_blank';
+                            document.body.appendChild(link);
+                            link.click();
+                            document.body.removeChild(link);
+                        }, index * 500); // 500ms delay between downloads
+                    });
+
+                    // Clear selections after download
+                    setTimeout(() => {
+                        resetAllSelections();
+                        showNotification(`Downloaded ${selectedFiles.length} file(s) successfully!`, 'success', 4000);
+                    }, selectedFiles.length * 500 + 1000);
+                }
 
                 async function bulkDeleteFiles() {
                     // Only work with checkboxes from the currently visible view
