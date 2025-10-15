@@ -211,12 +211,12 @@ const dashboardConfig = {
         error: {
             enabled: true,
             icon: '/images/icons/warning-triangle.png',
-            alt: 'Error',
+            alt: 'Scan Error',
             width: 16,
             height: 16,
             background: '#FEE2E2',
             color: '#DC2626',
-            text: 'Error'
+            text: 'Scan Error'
         },
         category: {
             enabled: true,
