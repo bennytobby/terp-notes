@@ -551,9 +551,8 @@
                                                             title="View-only mode">Delete</button>
                                                         <% } else if (user.role==='admin' ||
                                                             file.uploadedBy===user.userid) { %>
-                                                            <a href="/delete/<%= encodeURIComponent(file.filename) %>"
-                                                                class="button danger"
-                                                                onclick="return confirm('Are you sure you want to delete this file?')">Delete</a>
+                                                            <button class="button danger"
+                                                                onclick="confirmDelete('<%= encodeURIComponent(file.filename) %>', '<%= file.originalName %>')">Delete</button>
                                                             <% } else { %>
                                                                 <button class="button danger disabled" disabled
                                                                     title="You can only delete your own files">Delete</button>
@@ -921,7 +920,12 @@
                             'Homework': { icon: '✏️', displayName: 'Homework' },
                             'Study Guide': { icon: '📖', displayName: 'Study Guide' },
                             'Cheat Sheet': { icon: '🗒️', displayName: 'Cheat Sheet' },
-                            'Project': { icon: '💻', displayName: 'Project' }
+                            'Project': { icon: '💻', displayName: 'Project' },
+                            'Lab': { icon: '🧪', displayName: 'Lab' },
+                            'Lab Report': { icon: '🔬', displayName: 'Lab Report' },
+                            'Textbook': { icon: '📕', displayName: 'Textbook' },
+                            'Practice Problems': { icon: '🔢', displayName: 'Practice Problems' },
+                            'Other': { icon: '📎', displayName: 'Other' }
                         },
                         statusBadges: {
                             new: { enabled: true, thresholdDays: 7, text: 'New' },
@@ -1462,13 +1466,8 @@
                         const major = file.major || 'Other';
                         const classCode = file.classCode || 'Unknown';
 
-                        // Normalize category name to prevent duplicates (remove emojis and normalize)
-                        let category = file.category || 'Other';
-                        const originalCategory = category;
-                        // Remove emojis and normalize the category name
-                        category = category.replace(/[📚✏️📖📝📊📋💻🔬📄]/g, '').trim();
-                        // If empty after removing emojis, use 'Other'
-                        if (!category) category = 'Other';
+                        // Normalize category name to prevent duplicates
+                        let category = normalizeCategoryName(file.category || 'Other');
 
 
                         const semesterKey = `${semester} ${year}`;
@@ -1685,18 +1684,53 @@
                     return `<img src="${fileConfig.icon}" alt="${fileConfig.alt}" style="width: ${defaultSize}px; height: ${defaultSize}px;" onerror="this.style.display='none'; this.nextElementSibling.style.display='inline';" /><span style="display: none; background: #E5E7EB; color: #6B7280; padding: 0.5rem; border-radius: 4px; font-size: 0.75rem;">${fileConfig.alt}</span>`;
                 }
 
+                // Normalize category name by removing emojis and matching to config
+                function normalizeCategoryName(category) {
+                    if (!category) return 'Other';
+                    
+                    // Remove emojis and trim whitespace
+                    const cleanCategory = category.replace(/[📚✏️📖📝📊📋💻🔬📄🧪🗒️]/g, '').trim();
+                    
+                    // Try exact match first
+                    const config = dashboardConfig?.categories || {};
+                    if (config[category]) return category;
+                    if (config[cleanCategory]) return cleanCategory;
+                    
+                    // Try fuzzy matching for common variations
+                    const fuzzyMatches = {
+                        'Lab Report': ['Lab Report', 'Lab', '🔬 Lab Report'],
+                        'Lecture Notes': ['Lecture Notes', '📚 Lecture Notes'],
+                        'Practice Problems': ['Practice Problems', '🔢 Practice Problems'],
+                        'Study Guide': ['Study Guide', '📖 Study Guide'],
+                        'Exam': ['Exam', '📝 Exam'],
+                        'Homework': ['Homework', '✏️ Homework'],
+                        'Project': ['Project', '💻 Project'],
+                        'Textbook': ['Textbook', '📕 Textbook']
+                    };
+                    
+                    for (const [normalized, variations] of Object.entries(fuzzyMatches)) {
+                        if (variations.includes(category) || variations.includes(cleanCategory)) {
+                            return normalized;
+                        }
+                    }
+                    
+                    return 'Other';
+                }
+
                 // Get category emoji/icon
                 function getCategoryEmoji(category) {
+                    const normalizedCategory = normalizeCategoryName(category);
                     const config = dashboardConfig?.categories || {};
-                    const categoryConfig = config[category] || config['Other'] || { icon: '📎' };
+                    const categoryConfig = config[normalizedCategory] || config['Other'] || { icon: '📎' };
                     return categoryConfig.icon || '📎';
                 }
 
                 // Get category display name
                 function getCategoryDisplayName(category) {
+                    const normalizedCategory = normalizeCategoryName(category);
                     const config = dashboardConfig?.categories || {};
-                    const categoryConfig = config[category] || config['Other'] || { displayName: category };
-                    return categoryConfig.displayName || category;
+                    const categoryConfig = config[normalizedCategory] || config['Other'] || { displayName: category };
+                    return categoryConfig.displayName || normalizedCategory;
                 }
 
                 // Format file size dynamically
@@ -1740,7 +1774,7 @@
                         return '';
                     }
 
-                    return `<button class="button danger small delete-btn" data-filename="${file.filename}" data-original-name="${escapeHtml(file.originalName)}">Delete</button>`;
+                    return `<button class="button danger small delete-btn" onclick="confirmDelete('${file.filename}', '${escapeHtml(file.originalName)}')">Delete</button>`;
                 }
 
                 // Get edit button based on user permissions
@@ -1858,7 +1892,7 @@
 
                         // Category filter
                         if (selectedCategories.length > 0) {
-                            const fileCategory = file.category || 'Other';
+                            const fileCategory = normalizeCategoryName(file.category || 'Other');
                             if (!selectedCategories.includes(fileCategory)) {
                                 return false;
                             }
@@ -2741,7 +2775,7 @@
 
                         // Category filter (multi-select)
                         // Treat files without category as "Other"
-                        const fileCategory = file.category || 'Other';
+                        const fileCategory = normalizeCategoryName(file.category || 'Other');
                         const matchesCategory = selectedCategories.length === 0 || selectedCategories.includes(fileCategory);
 
                         // Semester filter (multi-select)
@@ -3004,7 +3038,7 @@
                     if (userRole === 'viewer') {
                         return `<button class="button danger disabled" onclick="showViewerAlert(); return false;" title="View-only mode" style="font-size: 0.8rem; padding: 0.4rem 0.8rem;">Delete</button>`;
                     } else if (userRole === 'admin' || file.uploadedBy === userId) {
-                        return `<a href="/delete/${encodeURIComponent(file.filename)}" class="button danger" onclick="return confirm('Are you sure you want to delete this file?')" style="font-size: 0.8rem; padding: 0.4rem 0.8rem;">Delete</a>`;
+                        return `<button class="button danger" onclick="confirmDelete('${encodeURIComponent(file.filename)}', '${escapeHtml(file.originalName)}')" style="font-size: 0.8rem; padding: 0.4rem 0.8rem;">Delete</button>`;
                     } else {
                         return `<button class="button danger disabled" disabled title="You can only delete your own files" style="font-size: 0.8rem; padding: 0.4rem 0.8rem;">Delete</button>`;
                     }
@@ -3206,8 +3240,38 @@
                     }
                 });
 
+                // Enhanced delete confirmation function
+                function confirmDelete(filename, originalName) {
+                    // First confirmation
+                    const firstConfirm = confirm(`⚠️ DELETE WARNING\n\nYou are about to permanently delete:\n"${originalName}"\n\nThis action cannot be undone!\n\nClick OK to continue or Cancel to abort.`);
+
+                    if (!firstConfirm) return false;
+
+                    // Second confirmation with different wording
+                    const secondConfirm = confirm(`🚨 FINAL CONFIRMATION\n\nAre you absolutely sure you want to DELETE "${originalName}"?\n\nThis will permanently remove the file from the server.\n\nType "DELETE" in the next dialog to proceed.`);
+
+                    if (!secondConfirm) return false;
+
+                    // Third confirmation requiring typing
+                    const typedConfirm = prompt(`Type "DELETE" (in all caps) to confirm deletion of "${originalName}":`);
+
+                    if (typedConfirm === "DELETE") {
+                        // Proceed with deletion
+                        window.location.href = `/delete/${filename}`;
+                        return true;
+                    } else {
+                        alert("Deletion cancelled. You must type 'DELETE' exactly to confirm.");
+                        return false;
+                    }
+                }
+
                 // File reporting function
                 async function reportFile(filename, originalName) {
+                    // First confirmation
+                    const firstConfirm = confirm(`🚩 REPORT FILE\n\nYou are about to report:\n"${originalName}"\n\nThis will notify administrators about potential issues with this file.\n\nContinue with report?`);
+
+                    if (!firstConfirm) return;
+
                     const reasons = [
                         'Inappropriate content',
                         'Copyright violation',
@@ -3229,6 +3293,11 @@
 
                     const selectedReason = reasons[reasonIndex];
                     const additionalDetails = prompt(`Optional: Add more details about the issue:`) || '';
+
+                    // Final confirmation
+                    const finalConfirm = confirm(`🚨 FINAL CONFIRMATION\n\nReport "${originalName}"?\nReason: ${selectedReason}\n\nThis will notify administrators. Continue?`);
+
+                    if (!finalConfirm) return;
 
                     try {
                         const response = await fetch('/api/report-file', {
@@ -5168,14 +5237,29 @@
                         return;
                     }
 
-                    let confirmMessage = `Are you sure you want to delete ${deletableFiles.length} file(s)?\n\n`;
-                    confirmMessage += `Files to delete:\n${deletableFiles.map(f => `• ${f.fileName}`).join('\n')}`;
+                    // First confirmation
+                    let confirmMessage = `⚠️ BULK DELETE WARNING\n\nYou are about to permanently delete ${deletableFiles.length} file(s):\n\n`;
+                    confirmMessage += `${deletableFiles.map(f => `• ${f.fileName}`).join('\n')}`;
 
                     if (nonDeletableFiles.length > 0) {
                         confirmMessage += `\n\nNote: ${nonDeletableFiles.length} file(s) will be skipped (you don't have permission to delete them):\n${nonDeletableFiles.map(f => `• ${f.fileName}`).join('\n')}`;
                     }
+                    confirmMessage += `\n\nThis action cannot be undone!\n\nContinue?`;
 
                     if (!confirm(confirmMessage)) {
+                        return;
+                    }
+
+                    // Second confirmation
+                    const secondConfirm = confirm(`🚨 FINAL CONFIRMATION\n\nDelete ${deletableFiles.length} file(s) permanently?\n\nType "DELETE ALL" in the next dialog to proceed.`);
+
+                    if (!secondConfirm) return;
+
+                    // Third confirmation requiring typing
+                    const typedConfirm = prompt(`Type "DELETE ALL" (in all caps) to confirm bulk deletion of ${deletableFiles.length} files:`);
+
+                    if (typedConfirm !== "DELETE ALL") {
+                        alert("Bulk deletion cancelled. You must type 'DELETE ALL' exactly to confirm.");
                         return;
                     }
 

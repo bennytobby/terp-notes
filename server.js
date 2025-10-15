@@ -305,9 +305,9 @@ app.get('/api/cron/scan-pending-files', async (req, res) => {
             }
         }
 
-        res.json({ 
-            message: `Triggered ${pendingFiles.length} virus scan(s)`, 
-            scanned: pendingFiles.length 
+        res.json({
+            message: `Triggered ${pendingFiles.length} virus scan(s)`,
+            scanned: pendingFiles.length
         });
 
     } catch (error) {

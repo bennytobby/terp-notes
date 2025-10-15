@@ -39,6 +39,11 @@ const dashboardConfig = {
             displayName: 'Lab',
             description: 'Lab reports and materials'
         },
+        'Lab Report': {
+            icon: '🔬',
+            displayName: 'Lab Report',
+            description: 'Lab reports and materials'
+        },
         'Textbook': {
             icon: '📕',
             displayName: 'Textbook',
