@@ -28,10 +28,10 @@ jobs:
       id: scan
       run: |
         echo "🔄 Triggering virus scan at $(date)"
-        response=$(curl -s -w "\n%{http_code}" -X GET \
+        response=$(curl -s -L -w "\n%{http_code}" -X GET \
           -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
           -H "User-Agent: GitHub-Actions-VirusScan/1.0" \
-          "${{ secrets.VERCEL_URL }}/api/cron/scan-pending-files")
+          "${{ secrets.VERCEL_URL }}api/cron/scan-pending-files")
 
         # Extract response body and status code
         http_code=$(echo "$response" | tail -n1)
