@@ -254,8 +254,10 @@
     <header class="landing-header">
         <nav class="landing-nav">
             <div class="landing-logo">
-                <img src="/logo.png" alt="Terp Notes Logo" style="width: 40px; height: 40px; vertical-align: middle; margin-right: 4px;" />
-                Terp Notes
+                <a href="/" style="text-decoration: none; color: inherit; display: flex; align-items: center; cursor: pointer; transition: opacity 0.2s ease;" onmouseover="this.style.opacity='0.8'" onmouseout="this.style.opacity='1'">
+                    <img src="/logo.png" alt="Terp Notes Logo" style="width: 40px; height: 40px; vertical-align: middle; margin-right: 4px; pointer-events: none;" />
+                    Terp Notes
+                </a>
             </div>
             <div class="landing-nav-links">
                 <a href="/login" class="button secondary">Login</a>

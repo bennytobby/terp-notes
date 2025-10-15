@@ -133,7 +133,10 @@
 
 <body>
     <header class="topbar">
-        <h2>Terp Notes</h2>
+        <h2><a href="/dashboard" style="text-decoration: none; color: inherit; display: flex; align-items: center; cursor: pointer; transition: opacity 0.2s ease;" onmouseover="this.style.opacity='0.8'" onmouseout="this.style.opacity='1'">
+            <img src="/logo.png" alt="Terp Notes Logo" style="width: 32px; height: 32px; vertical-align: middle; margin-right: 8px; pointer-events: none;" />
+            Terp Notes
+        </a></h2>
         <div class="user-info">
             Welcome, <strong>
                 <%= firstname %>
@@ -877,7 +880,16 @@
             <!-- App.js functionality now integrated directly in pages -->
             <script>
                 // Store all files data in JavaScript for client-side filtering
-                const allFilesData = JSON.parse(document.getElementById('filesData').textContent);
+                let allFilesData = [];
+                try {
+                    const filesDataElement = document.getElementById('filesData');
+                    if (filesDataElement && filesDataElement.textContent) {
+                        allFilesData = JSON.parse(filesDataElement.textContent);
+                    }
+                } catch (error) {
+                    console.error('Error parsing files data:', error);
+                    allFilesData = [];
+                }
 
                 // Dashboard configuration (loaded dynamically)
                 let dashboardConfig = null;
@@ -1046,6 +1058,7 @@
 
                 // Switch between grid, grouped, and list views
                 function switchView(view, savePreference = true) {
+                    console.log('switchView function called with:', view);
                     const gridView = document.getElementById('gridView');
                     const groupedView = document.getElementById('groupedView');
                     const listView = document.getElementById('listView');
@@ -2204,9 +2217,6 @@
                     if (isCurrentlyExpanded) {
                         fileList.style.display = 'none';
                         icon.style.transform = 'rotate(0deg)';
-
-                        // If closing folder, clear related filters
-                        clearFiltersForClosedFolder('category', categoryName);
                     } else {
                         fileList.style.display = 'grid';
                         fileList.style.gridTemplateColumns = 'repeat(auto-fill, minmax(300px, 1fr))';
@@ -3910,9 +3920,6 @@
                             if (currentYear && availableYears.has(parseInt(currentYear))) {
                                 yearSelect.value = currentYear;
                             }
-
-                                availableYears: Array.from(availableYears)
-                            });
                         }
 
                         // Reset semester/year dropdowns to show all options (when professor is cleared)
@@ -5219,6 +5226,10 @@
                         alert(`Bulk delete failed: ${error.message}`);
                     }
                 }
+
+                // Debug: Confirm functions are loaded
+                console.log('Dashboard JavaScript loaded successfully');
+                console.log('switchView function available:', typeof switchView);
             </script>
 
             <%- include('partials/footer') %>

@@ -199,18 +199,6 @@ a:hover {
   gap: var(--space-2);
 }
 
-.topbar h2::before {
-  content: "";
-  display: inline-block;
-  width: 32px;
-  height: 32px;
-  background-image: url('/logo.png');
-  background-size: contain;
-  background-repeat: no-repeat;
-  background-position: center;
-  margin-right: 8px;
-  vertical-align: middle;
-}
 
 .topbar .user-info {
   font-size: var(--font-size-sm);

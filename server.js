@@ -807,7 +807,11 @@ async function retryStuckScans() {
             .collection(fileCollection.collection)
             .find({
                 virusScanStatus: { $in: ['pending', 'error'] },
-                uploadDate: { $lt: tenMinutesAgo }
+                uploadDate: { $lt: tenMinutesAgo },
+                $or: [
+                    { scanAttempts: { $exists: false } }, // Legacy files without scanAttempts field
+                    { scanAttempts: { $lt: 5 } } // Files with less than 5 attempts
+                ]
             })
             .toArray();
 
@@ -1435,7 +1439,8 @@ app.post('/api/confirm-upload', async (req, res) => {
             category: category || "Other",
             virusScanStatus: 'pending',
             virusScanDate: null,
-            virusScanDetails: null
+            virusScanDetails: null,
+            scanAttempts: 0
         };
 
         const insertResult = await client
@@ -2892,7 +2897,8 @@ app.post("/upload", uploadLimiter, upload.array("documents", 50), async (req, re
                     downloadCount: 0, // New: Track downloads
                     virusScanStatus: existingFile ? existingFile.virusScanStatus : 'pending', // pending, clean, infected
                     virusScanDate: existingFile ? existingFile.virusScanDate : null,
-                    virusScanDetails: existingFile ? existingFile.virusScanDetails : null
+                    virusScanDetails: existingFile ? existingFile.virusScanDetails : null,
+                    scanAttempts: existingFile ? existingFile.scanAttempts || 0 : 0
                 };
 
                 const insertResult = await client
