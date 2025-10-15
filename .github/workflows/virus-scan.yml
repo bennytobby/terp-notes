@@ -28,10 +28,21 @@ jobs:
       id: scan
       run: |
         echo "🔄 Triggering virus scan at $(date)"
+        # Ensure URL ends with slash and construct full endpoint URL
+        base_url="${{ secrets.VERCEL_URL }}"
+        if [[ "$base_url" != */ ]]; then
+          base_url="${base_url}/"
+        fi
+        endpoint_url="${base_url}api/cron/scan-pending-files"
+        
+        echo "🔗 Calling endpoint: $endpoint_url"
+        echo "🔑 Using CRON_SECRET: ${CRON_SECRET:0:10}..." # Show first 10 chars for debugging
+        
         response=$(curl -s -L -w "\n%{http_code}" -X GET \
           -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
           -H "User-Agent: GitHub-Actions-VirusScan/1.0" \
-          "${{ secrets.VERCEL_URL }}api/cron/scan-pending-files")
+          -H "Accept: application/json" \
+          "$endpoint_url")
 
         # Extract response body and status code
         http_code=$(echo "$response" | tail -n1)
