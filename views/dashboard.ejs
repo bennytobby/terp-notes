@@ -797,6 +797,81 @@
         </button>
         <% } %>
 
+        <!-- Edit File Modal -->
+        <div id="editFileModal" class="modal" style="display: none;">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3>Edit File Details</h3>
+                    <span class="close" onclick="closeEditModal()">&times;</span>
+                </div>
+                <div class="modal-body">
+                    <form id="editFileForm">
+                        <input type="hidden" id="editFileId" name="fileId">
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="editClassCode" class="form-label">Class Code<span class="required">*</span></label>
+                                <input type="text" id="editClassCode" name="classCode" class="form-input" required autocomplete="off" list="editClassCodeSuggestions">
+                                <datalist id="editClassCodeSuggestions"></datalist>
+                            </div>
+                            <div class="form-group">
+                                <label for="editProfessor" class="form-label">Professor<span class="required">*</span></label>
+                                <input type="text" id="editProfessor" name="professor" class="form-input" required autocomplete="off" list="editProfessorSuggestions">
+                                <datalist id="editProfessorSuggestions"></datalist>
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="editSemester" class="form-label">Semester<span class="required">*</span></label>
+                                <select id="editSemester" name="semester" class="form-select" required>
+                                    <option value="">Select Semester</option>
+                                    <option value="Spring">Spring</option>
+                                    <option value="Summer">Summer</option>
+                                    <option value="Fall">Fall</option>
+                                    <option value="Winter">Winter</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="editYear" class="form-label">Year<span class="required">*</span></label>
+                                <select id="editYear" name="year" class="form-select" required>
+                                    <option value="">Select Year</option>
+                                    <% for (let y=new Date().getFullYear(); y >= 2020; y--) { %>
+                                        <option value="<%= y %>"><%= y %></option>
+                                    <% } %>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="editCategory" class="form-label">Category<span class="required">*</span></label>
+                            <select id="editCategory" name="category" class="form-select" required>
+                                <option value="">Select Category</option>
+                                <option value="📚 Lecture Notes">📚 Lecture Notes</option>
+                                <option value="✏️ Homework">✏️ Homework</option>
+                                <option value="📖 Textbook">📖 Textbook</option>
+                                <option value="📝 Practice Problems">📝 Practice Problems</option>
+                                <option value="📊 Exam">📊 Exam</option>
+                                <option value="📋 Study Guide">📋 Study Guide</option>
+                                <option value="💻 Project">💻 Project</option>
+                                <option value="🔬 Lab Report">🔬 Lab Report</option>
+                                <option value="📄 Other">📄 Other</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="editDescription" class="form-label">Description<span class="required">*</span></label>
+                            <textarea id="editDescription" name="description" class="form-textarea" rows="3" required placeholder="e.g., Week 1 Lectures, Midterm Study Guide, Chapter 3 Summary"></textarea>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="button secondary" onclick="closeEditModal()">Cancel</button>
+                    <button type="button" class="button primary" onclick="saveFileEdit()">Save Changes</button>
+                </div>
+            </div>
+        </div>
+
             <script type="application/json" id="filesData"><%- JSON.stringify(files) %></script>
 
             <!-- App.js functionality now integrated directly in pages -->
@@ -814,18 +889,15 @@
                 async function loadDashboardConfig() {
                     try {
                         const response = await fetch('/api/dashboard-config');
-                        if (response.ok) {
-                            dashboardConfig = await response.json();
-                            console.log('Dashboard configuration loaded successfully');
-                        } else {
-                            console.error('Failed to load dashboard configuration');
-                            // Use fallback configuration if loading fails
-                            dashboardConfig = getFallbackConfig();
-                        }
-                    } catch (error) {
-                        console.error('Error loading dashboard configuration:', error);
-                        dashboardConfig = getFallbackConfig();
-                    }
+                          if (response.ok) {
+                              dashboardConfig = await response.json();
+                          } else {
+                              // Use fallback configuration if loading fails
+                              dashboardConfig = getFallbackConfig();
+                          }
+                      } catch (error) {
+                          dashboardConfig = getFallbackConfig();
+                      }
                 }
 
                 // Fallback configuration in case API fails
@@ -985,7 +1057,6 @@
 
                     // Check if view elements exist
                     if (!gridView || !groupedView || !listView) {
-                        console.error('View elements not found:', { gridView, groupedView, listView });
                         return;
                     }
 
@@ -1025,7 +1096,6 @@
                             activeFiltersContainer.style.display = 'none';
                         }
 
-                        console.log('No files found, showing empty state');
                         return;
                     }
 
@@ -1120,24 +1190,6 @@
                         applyFilters();
                     }
 
-                    // Debug: Log container widths after switching
-                    setTimeout(() => {
-                        const container = document.querySelector('.container');
-                        const filterControls = document.querySelector('.filter-controls');
-                        console.log('[DEBUG] After view switch to', view, ':');
-                        console.log('  Container width:', container?.offsetWidth);
-                        console.log('  Filter controls width:', filterControls?.offsetWidth);
-                        console.log('  Grouped view width:', groupedView?.offsetWidth);
-                        console.log('  Active filters width:', activeFiltersContainer?.offsetWidth);
-
-
-                        // Log the actual content width of grouped view
-                        const semesterGroup = document.querySelector('.semester-group');
-                        if (semesterGroup) {
-                            console.log('  Semester group width:', semesterGroup.offsetWidth);
-                            console.log('  Semester group style:', semesterGroup.style.cssText);
-                        }
-                    }, 100);
 
                     if (savePreference) {
                         localStorage.setItem('dashboardView', view);
@@ -1396,7 +1448,15 @@
                         const year = file.year || 'Unknown Year';
                         const major = file.major || 'Other';
                         const classCode = file.classCode || 'Unknown';
-                        const category = file.category || 'Other';
+
+                        // Normalize category name to prevent duplicates (remove emojis and normalize)
+                        let category = file.category || 'Other';
+                        const originalCategory = category;
+                        // Remove emojis and normalize the category name
+                        category = category.replace(/[📚✏️📖📝📊📋💻🔬📄]/g, '').trim();
+                        // If empty after removing emojis, use 'Other'
+                        if (!category) category = 'Other';
+
 
                         const semesterKey = `${semester} ${year}`;
 
@@ -1525,6 +1585,8 @@
 
                                 Object.keys(categories).sort().forEach(function (category) {
                                     const files = categories[category];
+
+
                                     const categoryIcon = categoryIcons[category.toLowerCase()] || categoryIcons[category] || '';
                                     const categoryLabel = category.split(' ').map(function (word) { return word.charAt(0).toUpperCase() + word.slice(1); }).join(' ');
 
@@ -1670,6 +1732,22 @@
                     }
 
                     return `<button class="button danger small delete-btn" data-filename="${file.filename}" data-original-name="${escapeHtml(file.originalName)}">Delete</button>`;
+                }
+
+                // Get edit button based on user permissions
+                function getEditButton(file) {
+                    const userRole = '<%= user.role %>';
+                    const userId = '<%= user.userid %>';
+
+                    if (userRole === 'viewer') {
+                        return '';
+                    }
+
+                    if (userRole !== 'admin' && file.uploadedBy !== userId) {
+                        return '';
+                    }
+
+                    return `<button class="button info small edit-btn" data-filename="${file.filename}" data-file-data='${JSON.stringify(file)}'>Edit</button>`;
                 }
 
                 // Generate status badges dynamically
@@ -1819,9 +1897,7 @@
                     const filteredFiles = getFilteredFiles();
 
                     if (filteredFiles.length === 0) {
-                        console.log('[DEBUG] List view: Setting empty state');
                         listView.innerHTML = '<div class="empty-state"><h3>No notes found</h3><p>Try different filters or search terms</p></div>';
-                        console.log('[DEBUG] List view: Empty state HTML set');
                         return;
                     }
 
@@ -1837,7 +1913,7 @@
                         const downloadCount = file.downloadCount || 0;
 
                         // Format file size
-                        const size = file.size ? `<span style="font-size: 0.75rem;">${(file.size / 1024).toFixed(1)} KB</span>` : '';
+                        const size = file.size ? `<span style="font-size: 0.75rem;">${formatFileSize(file.size || 0)}</span>` : '';
                         const description = file.description || '';
 
                         // Get file icon based on file type
@@ -1880,6 +1956,7 @@
                                 <div class="file-list-downloads" title="${downloadCount} downloads">${downloadCount}</div>
                                 <div class="file-list-actions">
                                     <a href="${downloadLink}" class="button download" target="_blank" style="font-size: 0.8rem; padding: 0.4rem 0.8rem;">Download</a>
+                                    ${getEditButton(file)}
                                     ${getDeleteButton(file)}
                                     <button class="button secondary small report-btn" data-filename="${filename}" data-original-name="${originalName}" style="font-size: 0.8rem; padding: 0.4rem 0.8rem;">🚩</button>
                                 </div>
@@ -1938,10 +2015,11 @@
                         ${file.semester && file.year ? `<div class="file-meta-item"><strong>Term:</strong> ${file.semester} ${file.year}</div>` : ''}
                         <div class="file-meta-item"><strong>Uploaded by:</strong> ${escapeHtml(file.uploadedBy)}</div>
                         ${file.description ? `<div class="file-meta-item"><strong>Description:</strong> ${escapeHtml(file.description)}</div>` : ''}
-                        <div class="file-meta-item"><strong>Size:</strong> ${(file.size / 1024).toFixed(1)} KB</div>
+                        <div class="file-meta-item"><strong>Size:</strong> ${formatFileSize(file.size || 0)}</div>
                     </div>
                     <div class="file-actions" style="display: flex; gap: 0.5rem; flex-wrap: wrap; justify-content: center;">
                         <a href="/download/${encodeURIComponent(file.filename)}" class="button download" target="_blank">Download</a>
+                        ${getEditButton(file)}
                                 ${getDeleteButton(file)}
                         <button class="button secondary small report-btn" data-filename="${file.filename}" data-original-name="${escapeHtml(file.originalName)}">🚩 Report</button>
                             </div>
@@ -1957,8 +2035,9 @@
                         const semesterPart = parts[0]; // "Fall"
                         const yearPart = parts[1]; // "2021"
 
-                        // Clear semester filter
-                        const semesterCheckbox = document.querySelector(`#semesterDropdown input[type="checkbox"][value="${semesterPart}"]`);
+                        // Clear semester filter - escape special characters for CSS selector
+                        const escapedSemesterPart = semesterPart.replace(/[!"#$%&'()*+,.\/:;<=>?@[\\\]^`{|}~]/g, '\\$&');
+                        const semesterCheckbox = document.querySelector(`#semesterDropdown input[type="checkbox"][value="${escapedSemesterPart}"]`);
                         if (semesterCheckbox && semesterCheckbox.checked) {
                             semesterCheckbox.checked = false;
                             updateMultiSelect('semester');
@@ -1975,8 +2054,9 @@
                         clearAllChildFilters();
 
                     } else if (folderType === 'major') {
-                        // Clear major filter
-                        const majorCheckbox = document.querySelector(`#majorDropdown input[type="checkbox"][value="${folderName}"]`);
+                        // Clear major filter - escape special characters for CSS selector
+                        const escapedFolderName = folderName.replace(/[!"#$%&'()*+,.\/:;<=>?@[\\\]^`{|}~]/g, '\\$&');
+                        const majorCheckbox = document.querySelector(`#majorDropdown input[type="checkbox"][value="${escapedFolderName}"]`);
                         if (majorCheckbox && majorCheckbox.checked) {
                             majorCheckbox.checked = false;
                             updateMultiSelect('major');
@@ -1986,8 +2066,9 @@
                         clearAllChildFilters();
 
                     } else if (folderType === 'course') {
-                        // Clear course filter
-                        const classCheckbox = document.querySelector(`#classDropdown input[type="checkbox"][value="${folderName}"]`);
+                        // Clear course filter - escape special characters for CSS selector
+                        const escapedFolderName = folderName.replace(/[!"#$%&'()*+,.\/:;<=>?@[\\\]^`{|}~]/g, '\\$&');
+                        const classCheckbox = document.querySelector(`#classDropdown input[type="checkbox"][value="${escapedFolderName}"]`);
                         if (classCheckbox && classCheckbox.checked) {
                             classCheckbox.checked = false;
                             updateMultiSelect('class');
@@ -2000,8 +2081,10 @@
                         updateMultiSelect('category');
 
                     } else if (folderType === 'category') {
-                        // Clear category filter
-                        const categoryCheckbox = document.querySelector(`#categoryDropdown input[type="checkbox"][value="${folderName}"]`);
+
+                        // Clear category filter - escape special characters for CSS selector
+                        const escapedFolderName = folderName.replace(/[!"#$%&'()*+,.\/:;<=>?@[\\\]^`{|}~]/g, '\\$&');
+                        const categoryCheckbox = document.querySelector(`#categoryDropdown input[type="checkbox"][value="${escapedFolderName}"]`);
                         if (categoryCheckbox && categoryCheckbox.checked) {
                             categoryCheckbox.checked = false;
                             updateMultiSelect('category');
@@ -2032,7 +2115,8 @@
                 function toggleMajor(header) {
                     // Extract just the major name, ignoring file count and icons
                     const fullText = header.textContent.trim();
-                    const majorName = fullText.replace(/^[▶▼]\s*/, '').replace(/\s+\d+\s+files?$/, '').trim();
+                    // Remove expand/collapse arrows, file counts, and any extra whitespace/newlines
+                    const majorName = fullText.replace(/^[▶▼]\s*/, '').replace(/\s+\d+\s+files?.*$/i, '').replace(/\s+/g, ' ').trim();
 
                     const courseList = header.nextElementSibling;
                     const icon = header.querySelector('.expand-icon');
@@ -2057,7 +2141,8 @@
                 function toggleCourse(header) {
                     // Extract just the course name, ignoring file count and icons
                     const fullText = header.textContent.trim();
-                    const courseName = fullText.replace(/^[▶▼]\s*/, '').replace(/\s+\d+\s*$/, '').trim();
+                    // Remove expand/collapse arrows, file counts, and any extra whitespace/newlines
+                    const courseName = fullText.replace(/^[▶▼]\s*/, '').replace(/\s+\d+\s+files?.*$/i, '').replace(/\s+/g, ' ').trim();
 
                     const categoryList = header.nextElementSibling;
                     const icon = header.querySelector('.expand-icon');
@@ -2082,7 +2167,8 @@
                 function toggleSemester(header) {
                     // Extract just the semester name, ignoring file count and icons
                     const fullText = header.textContent.trim();
-                    const semesterName = fullText.replace(/^[▶▼]\s*/, '').replace(/\s+\d+\s+files?$/, '').trim();
+                    // Remove expand/collapse arrows, file counts, and any extra whitespace/newlines
+                    const semesterName = fullText.replace(/^[▶▼]\s*/, '').replace(/\s+\d+\s+files?.*$/i, '').replace(/\s+/g, ' ').trim();
 
                     const majorList = header.nextElementSibling;
                     const icon = header.querySelector('.expand-icon');
@@ -2107,7 +2193,9 @@
                 function toggleCategory(header) {
                     // Extract just the category name, ignoring file count and icons
                     const fullText = header.textContent.trim();
-                    const categoryName = fullText.replace(/^[▶▼]\s*/, '').replace(/\s+\d+\s*$/, '').trim();
+                    // Remove expand/collapse arrows, emojis, file counts, and any extra whitespace/newlines
+                    const categoryName = fullText.replace(/^[▶▼]\s*/, '').replace(/[📚✏️📖📝📊📋💻🔬📄]\s*/, '').replace(/\s+\d+\s+files?.*$/i, '').replace(/\s+/g, ' ').trim();
+
 
                     const fileList = header.nextElementSibling;
                     const icon = header.querySelector('.expand-icon');
@@ -2823,9 +2911,7 @@
                     const gridView = document.getElementById('gridView');
 
                     if (files.length === 0) {
-                        console.log('[DEBUG] Grid view: Setting empty state');
                         gridView.innerHTML = '<div class="empty-state"><h3>No notes found</h3><p>Try different filters or search terms</p></div>';
-                        console.log('[DEBUG] Grid view: Empty state HTML set');
                         return;
                     }
 
@@ -2878,10 +2964,11 @@
                         ${file.semester && file.year ? `<div class="file-meta-item"><strong>Term:</strong> ${file.semester} ${file.year}</div>` : ''}
                         <div class="file-meta-item"><strong>Uploaded by:</strong> ${escapeHtml(file.uploadedBy)}</div>
                         ${file.description ? `<div class="file-meta-item"><strong>Description:</strong> ${escapeHtml(file.description)}</div>` : ''}
-                        <div class="file-meta-item"><strong>Size:</strong> ${(file.size / 1024).toFixed(1)} KB</div>
+                        <div class="file-meta-item"><strong>Size:</strong> ${formatFileSize(file.size || 0)}</div>
                     </div>
                     <div class="file-actions" style="display: flex; gap: 0.5rem; flex-wrap: wrap; justify-content: center;">
                         <a href="/download/${encodeURIComponent(file.filename)}" class="button download" target="_blank">Download</a>
+                        ${getEditButton(file)}
                         ${getDeleteButton(file)}
                         <button class="button secondary small report-btn" data-filename="${file.filename}" data-original-name="${escapeHtml(file.originalName)}">🚩 Report</button>
                     </div>
@@ -2907,21 +2994,7 @@
                     return userRole === 'admin' || file.uploadedBy === userId;
                 }
 
-                function getCategoryEmoji(category) {
-                    const categoryEmojis = {
-                        'exam': '📝',
-                        'lecture notes': '📚',
-                        'homework': '✏️',
-                        'study guide': '📖',
-                        'cheat sheet': '🗒️',
-                        'project': '💻',
-                        'lab': '🧪',
-                        'textbook': '📕',
-                        'practice problems': '🔢',
-                        'other': '📎'
-                    };
-                    return categoryEmojis[category.toLowerCase()] || categoryEmojis[category] || '📎';
-                }
+                // Duplicate function removed - using the one defined earlier that uses dashboardConfig
 
                 function getDeleteButton(file) {
                     const userRole = '<%= user.role %>';
@@ -2939,6 +3012,188 @@
                 function showViewerAlert() {
                     alert('🔒 View-Only Mode\n\nYour account has been set to view-only access. You can download files but cannot upload or delete.\n\nPlease contact an administrator if you need upload/delete permissions.');
                 }
+
+                // Edit file functionality
+                function openEditModal(fileData) {
+                    const modal = document.getElementById('editFileModal');
+                    const form = document.getElementById('editFileForm');
+
+                    // Populate form with current file data
+                    document.getElementById('editFileId').value = fileData.filename;
+                    document.getElementById('editClassCode').value = fileData.classCode || '';
+                    document.getElementById('editProfessor').value = fileData.professor || '';
+                    document.getElementById('editSemester').value = fileData.semester || '';
+                    document.getElementById('editYear').value = fileData.year || '';
+
+                    // Set category selection - ensure exact match
+                    const categorySelect = document.getElementById('editCategory');
+                    const currentCategory = fileData.category || '';
+
+                    // Try to find exact match first
+                    for (let option of categorySelect.options) {
+                        if (option.value === currentCategory) {
+                            option.selected = true;
+                            break;
+                        }
+                    }
+
+                    // If no exact match found, try to find by display text
+                    if (categorySelect.value !== currentCategory) {
+                        for (let option of categorySelect.options) {
+                            if (option.text.includes(currentCategory) || currentCategory.includes(option.text)) {
+                                option.selected = true;
+                                break;
+                            }
+                        }
+                    }
+
+                    document.getElementById('editDescription').value = fileData.description || '';
+
+                    // Initialize UMD.io autocomplete for edit form
+                    initializeEditFormAutocomplete();
+
+                    // Show modal
+                    modal.style.display = 'block';
+                }
+
+                function closeEditModal() {
+                    const modal = document.getElementById('editFileModal');
+                    modal.style.display = 'none';
+                }
+
+                // Initialize UMD.io autocomplete for edit form
+                function initializeEditFormAutocomplete() {
+                    const editClassCodeInput = document.getElementById('editClassCode');
+                    const editProfessorInput = document.getElementById('editProfessor');
+
+                    if (!editClassCodeInput || !editProfessorInput) return;
+
+                    // Course autocomplete for edit form
+                    let editCourseData = [];
+                    let editProfessorData = [];
+                    let editCourseTimeout;
+
+                    // Fetch course data for edit form
+                    async function fetchEditCourseData() {
+                        try {
+                            const response = await fetch('/api/umd/courses');
+                            if (response.ok) {
+                                editCourseData = await response.json();
+                            }
+                        } catch (error) {
+                        }
+                    }
+
+                    // Fetch professor data for edit form
+                    async function fetchEditProfessorData(courseId) {
+                        try {
+                            const queryParams = new URLSearchParams();
+                            if (courseId) queryParams.append('course_id', courseId);
+
+                            const response = await fetch(`/api/umd/professors?${queryParams}`);
+                            if (response.ok) {
+                                editProfessorData = await response.json();
+                            }
+                        } catch (error) {
+                        }
+                    }
+
+                    // Initialize autocomplete on edit form inputs
+                    editClassCodeInput.addEventListener('input', function(e) {
+                        const value = e.target.value.trim();
+
+                        // Update course suggestions
+                        if (value.length >= 2 && editCourseData.length > 0) {
+                            const filtered = editCourseData.filter(course =>
+                                course.course_id.toLowerCase().includes(value.toLowerCase())
+                            );
+
+                            const datalist = document.getElementById('editClassCodeSuggestions');
+                            datalist.innerHTML = '';
+
+                            filtered.slice(0, 10).forEach(course => {
+                                const option = document.createElement('option');
+                                option.value = course.course_id;
+                                option.textContent = `${course.course_id} - ${course.course_name || ''}`;
+                                datalist.appendChild(option);
+                            });
+                        }
+
+                        clearTimeout(editCourseTimeout);
+                        editCourseTimeout = setTimeout(async () => {
+                            if (value.length >= 2) {
+                                await fetchEditProfessorData(value);
+                            }
+                        }, 300);
+                    });
+
+                    editProfessorInput.addEventListener('input', function(e) {
+                        const value = e.target.value.trim();
+
+                        if (value.length >= 2 && editProfessorData.length > 0) {
+                            const filtered = editProfessorData.filter(prof =>
+                                prof.name.toLowerCase().includes(value.toLowerCase())
+                            );
+
+                            const datalist = document.getElementById('editProfessorSuggestions');
+                            datalist.innerHTML = '';
+
+                            filtered.slice(0, 10).forEach(prof => {
+                                const option = document.createElement('option');
+                                option.value = prof.name;
+                                datalist.appendChild(option);
+                            });
+                        }
+                    });
+
+                    // Initialize course data
+                    fetchEditCourseData();
+                }
+
+                async function saveFileEdit() {
+                    const form = document.getElementById('editFileForm');
+                    const formData = new FormData(form);
+                    const fileId = formData.get('fileId');
+
+                    try {
+                        const response = await fetch('/edit-file', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify({
+                                filename: fileId,
+                                classCode: formData.get('classCode'),
+                                professor: formData.get('professor'),
+                                semester: formData.get('semester'),
+                                year: formData.get('year'),
+                                category: formData.get('category'),
+                                description: formData.get('description')
+                            })
+                        });
+
+                        if (response.ok) {
+                            showNotification('File updated successfully!', 'success', 3000);
+                            closeEditModal();
+                            // Refresh the current view
+                            applyFilters();
+                        } else {
+                            const error = await response.text();
+                            showNotification(`Error updating file: ${error}`, 'error', 5000);
+                        }
+                    } catch (error) {
+                        showNotification(`Error updating file: ${error.message}`, 'error', 5000);
+                    }
+                }
+
+                // Add event delegation for edit buttons
+                document.addEventListener('click', function (e) {
+                    if (e.target.classList.contains('edit-btn') || e.target.closest('.edit-btn')) {
+                        const button = e.target.classList.contains('edit-btn') ? e.target : e.target.closest('.edit-btn');
+                        const fileData = JSON.parse(button.getAttribute('data-file-data'));
+                        openEditModal(fileData);
+                    }
+                });
 
                 // Add event delegation for report buttons
                 document.addEventListener('click', function (e) {
@@ -2997,7 +3252,6 @@
                         }
                     } catch (error) {
                         alert('Failed to submit report. Please try again.');
-                        console.error('Report error:', error);
                     }
                 }
 
@@ -3066,14 +3320,6 @@
                         const description = document.getElementById('description').value.trim();
                         const academicIntegrity = document.getElementById('academicIntegrity').checked;
 
-                        console.log('[DEBUG] Form data collected:');
-                        console.log('  - classCode:', classCode);
-                        console.log('  - professor:', professor);
-                        console.log('  - semester:', semester);
-                        console.log('  - year:', year);
-                        console.log('  - category:', category);
-                        console.log('  - description:', description);
-                        console.log('  - academicIntegrity:', academicIntegrity);
 
                         // Comprehensive validation with specific error messages
                         const missingFields = [];
@@ -3158,7 +3404,6 @@
                             statusEl.textContent = `Processing ${file.name}... (${i + 1}/${files.length})`;
 
                             try {
-                                console.log(`Starting upload for file ${i + 1}/${files.length}: ${file.name}`);
 
                                 // Step 1: Calculate file hash (client-side to avoid server timeout)
                                 const arrayBuffer = await file.arrayBuffer();
@@ -3167,7 +3412,6 @@
                                 const fileHash = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
 
                                 statusEl.textContent = `Uploading ${file.name}...`;
-                                console.log(`Getting upload URL for: ${file.name}`);
 
                                 // Step 2: Get presigned URL
                                 const urlResponse = await fetchWithTimeout('/api/get-upload-url', {
@@ -3193,7 +3437,6 @@
                                 } catch (jsonError) {
                                     throw new Error(`Failed to parse upload URL response: ${jsonError.message}`);
                                 }
-                                console.log(`Upload URL received for: ${file.name}, uploading to S3...`);
 
                                 // Step 3: Upload directly to S3
                                 const s3Response = await fetchWithTimeout(uploadUrl, {
@@ -3208,7 +3451,6 @@
                                     const errorText = await s3Response.text();
                                     throw new Error(`S3 upload failed (${s3Response.status}): ${errorText || 'Unknown error'}`);
                                 }
-                                console.log(`S3 upload successful for: ${file.name}, confirming with backend...`);
 
                                 // Step 4: Confirm upload to backend
                                 const confirmResponse = await fetchWithTimeout('/api/confirm-upload', {
@@ -3242,7 +3484,6 @@
                                 } catch (jsonError) {
                                     throw new Error(`Failed to parse confirm upload response: ${jsonError.message}`);
                                 }
-                                console.log(`Backend confirmation successful for: ${file.name}`);
 
                                 if (result.duplicate) {
                                     statusEl.textContent = `${file.name} already exists (skipped)`;
@@ -3252,7 +3493,6 @@
 
                                 progressEl.textContent = i + 1;
                             } catch (error) {
-                                console.error('Upload error:', error);
                                 errorCount++;
                                 statusEl.textContent = `Error uploading ${file.name}: ${error.message}`;
                                 statusEl.style.color = '#EF4444';
@@ -3324,7 +3564,6 @@
                                 }
                             })
                             .catch(err => {
-                                console.error('Failed to load courses:', err);
                                 courseInfo.textContent = 'Type any class code to continue';
                                 courseInfo.style.color = '#9CA3AF';
                             });
@@ -3412,16 +3651,12 @@
                                 // For name search, use local filtering from course data or existing professorData
                                 // UMD.io name search is too restrictive for real-time search
                                 if (searchTerm.length >= 1) {
-                                    console.log(`🔍 Searching for "${searchTerm}" in professorData:`, professorData.length, 'professors available');
-                                    console.log(`🔍 Professor data structure:`, professorData.slice(0, 2)); // Debug: show first 2 professors
 
                                     // First try to filter from existing professorData (course-specific)
                                     let searchResults = professorData.filter(prof => {
-                                        console.log(`🔍 Checking professor: "${prof.name}" against "${searchTerm}"`);
                                         return prof.name.toUpperCase().includes(searchTerm.toUpperCase());
                                     });
 
-                                    console.log(`🔍 Search results for "${searchTerm}":`, searchResults.length, 'matches');
 
                                     // If no results from professor data, show message
                                     if (searchResults.length === 0) {
@@ -3430,7 +3665,6 @@
                                         return;
                                     }
 
-                                    console.log(`🔍 Found ${searchResults.length} professors matching "${searchTerm}"`);
 
                                     // Reset selection
                                     selectedProfessorIndex = -1;
@@ -3468,17 +3702,14 @@
 
                             // Show dropdown when focused if there's data
                             professorInput.addEventListener('focus', async function () {
-                                console.log(`🔍 [FOCUS] Professor field focused, professorData length: ${professorData.length}`);
                                 if (professorData.length > 0) {
                                     renderProfessorsDropdown(professorData, '');
                                 } else {
                                     // Try to load professor data if course is entered
                                     const selectedCourse = classCodeInput.value.trim();
                                     if (selectedCourse) {
-                                        console.log(`🔍 [FOCUS] No professor data but course "${selectedCourse}" entered - loading professors`);
                                         await updateProfessorList();
                                     } else {
-                                        console.log(`🔍 [FOCUS] No course entered - cannot load professors`);
                                     }
                                 }
                             });
@@ -3680,8 +3911,6 @@
                                 yearSelect.value = currentYear;
                             }
 
-                            console.log(`🎯 Updated dropdowns for professor "${professorName}":`, {
-                                availableSemesters: Array.from(availableSemesters),
                                 availableYears: Array.from(availableYears)
                             });
                         }
@@ -3718,7 +3947,6 @@
                                 yearSelect.appendChild(option);
                             });
 
-                            console.log('🔄 Reset dropdowns to show all options');
                         }
 
                         // Helper: Convert semester/year to UMD.io semester ID
@@ -3807,7 +4035,6 @@
                                     updateProfessorSemesterInfo([]);
                                 }
                             } catch (error) {
-                                console.error('[FRONTEND] Error fetching course details:', error);
                                 courseInfo.textContent = 'Could not verify course - you can still upload';
                                 courseInfo.style.color = '#9CA3AF';
                                 currentCourseData = null;
@@ -3819,10 +4046,8 @@
                         // Update professor list based on current selections
                         async function updateProfessorList() {
                             const selectedCourse = classCodeInput.value.trim();
-                            console.log(`🔍 [updateProfessorList] Called with course: "${selectedCourse}"`);
 
                             if (!selectedCourse) {
-                                console.log(`🔍 [updateProfessorList] No course selected - clearing professor data`);
                                 professorData = [];
                                 professorsDropdown.classList.remove('show');
                                 professorInput.placeholder = 'Enter professor name';
@@ -3847,18 +4072,15 @@
                             }
 
                             try {
-                                console.log(`🔍 [updateProfessorList] Fetching professors for course: ${selectedCourse} with filters: ${queryParams}`);
 
                                 // Fetch professors from enhanced UMD.io API
                                 const response = await fetch(`/api/umd/professors?${queryParams}`);
-                                console.log(`🔍 [updateProfessorList] API response status: ${response.status}`);
 
                                 if (!response.ok) {
                                     throw new Error(`API returned ${response.status}`);
                                 }
 
                                 const professors = await response.json();
-                                console.log(`🔍 [updateProfessorList] API returned ${professors.length} professors:`, professors);
 
                                 if (Array.isArray(professors) && professors.length > 0) {
                                     // New API returns objects with name and semesters array
@@ -3871,24 +4093,20 @@
                                     // Update semester info banner
                                     updateProfessorSemesterInfo(professorData);
 
-                                    console.log(`Loaded ${professorData.length} professors for ${selectedCourse}:`, professorData.map(p => p.name).slice(0, 3).join(', ') + (professorData.length > 3 ? '...' : ''));
                                 } else {
                                     // No professors found for this course
                                     professorData = [];
                                     professorInput.placeholder = 'No professors found - enter manually';
                                     document.getElementById('professorHelp').textContent = 'No professors found in UMD database - you can type any name';
                                     document.getElementById('professorSemesterInfo').textContent = '';
-                                    console.log(`No professors found for ${selectedCourse}`);
                                     // Update semester info (will clear dropdowns)
                                     updateProfessorSemesterInfo([]);
                                 }
 
                             } catch (error) {
-                                console.error('Error fetching professors from UMD.io, trying fallback:', error);
 
                                 // Fallback: Try to use existing course data if available
                                 if (currentCourseData && currentCourseData.sections) {
-                                    console.log('🔄 Using fallback course data for professors');
                                     const professorSet = new Set();
 
                                     currentCourseData.sections.forEach(section => {
@@ -3907,7 +4125,6 @@
                                         professorInput.placeholder = `${professorData.length} professor${professorData.length !== 1 ? 's' : ''} taught ${selectedCourse} (fallback data)`;
                                         document.getElementById('professorHelp').textContent = `${professorData.length} professor${professorData.length !== 1 ? 's' : ''} available from course data`;
                                         document.getElementById('professorSemesterInfo').textContent = '';
-                                        console.log(`Fallback: Found ${professorData.length} professors for ${selectedCourse}`);
                                         // Update semester info for fallback data
                                         updateProfessorSemesterInfo(professorData);
                                     } else {
@@ -4058,7 +4275,6 @@
                             }
 
                             try {
-                                console.log(`🔍 [REVERSE] Fetching courses for professor: ${professorName} with filters: ${queryParams}`);
 
                                 const response = await fetch(`/api/umd/professor-courses?${queryParams}`);
 
@@ -4071,15 +4287,12 @@
                                 if (Array.isArray(courses) && courses.length > 0) {
                                     // Update course dropdown with professor's courses
                                     updateCourseDropdownForProfessor(courses, professorName);
-                                    console.log(`[REVERSE] Found ${courses.length} courses for ${professorName}`);
                                 } else {
                                     // No courses found for this professor
                                     resetCourseDropdown();
-                                    console.log(`[REVERSE] No courses found for ${professorName}`);
                                 }
 
                             } catch (error) {
-                                console.error('[REVERSE] Error fetching professor courses:', error);
                                 resetCourseDropdown();
                             }
                         }
@@ -4640,7 +4853,7 @@
                     const isNew = isFileNew(file.uploadDate);
 
                     return `
-                        <div class="file-card"
+                        <div class="file-card animate-fade-in"
                              data-class="${escapeHtml(file.classCode || '')}"
                              data-major="${escapeHtml(file.major || '')}"
                              data-semester="${escapeHtml(file.semester || '')}"
@@ -4651,54 +4864,40 @@
                              data-name="${escapeHtml(file.originalName.toLowerCase())}"
                              data-date="${new Date(file.uploadDate).getTime()}"
                              data-downloads="${file.downloadCount || 0}"
-                             data-size="${file.size || 0}"
-                             style="background: white; border-radius: 8px; padding: 1rem; box-shadow: 0 2px 4px rgba(0,0,0,0.1); transition: all 0.2s; position: relative;">
-
-                            <!-- Checkbox -->
-                            <div style="position: absolute; top: 0.5rem; left: 0.5rem;">
-                                <input type="checkbox" class="file-select-checkbox" data-filename="${file.filename}"
-                                    style="width: 18px; height: 18px; cursor: pointer; accent-color: var(--umd-red);"
-                                    onchange="updateSelectedCount()" />
-                            </div>
-
-                            <!-- Download count -->
-                            <div style="position: absolute; top: 0.5rem; right: 0.5rem; background: #FEF3C7; color: #92400E; padding: 2px 6px; border-radius: 4px; font-size: 0.7rem; font-weight: 600; cursor: help; z-index: 10;" title="${file.downloadCount || 0} downloads">
-                                ${file.downloadCount || 0}
-                            </div>
-
-                            <!-- File Icon -->
-                            <div style="text-align: center; margin: 2rem 0 1rem 0;">
-                                ${getFileIcon(file.originalName)}
-                            </div>
-
-                            <!-- File Info -->
-                            <div style="margin-bottom: 1rem;">
-                                <h3 style="margin: 0 0 0.5rem 0; font-size: 1rem; color: #374151; text-align: center;">
-                                    <span class="filename-truncated" title="${escapeHtml(file.originalName)}">${truncateFilename(file.originalName, 18)}</span>
-                                </h3>
-
-                                <!-- Status badges -->
-                                <div style="display: flex; justify-content: center; flex-wrap: wrap; gap: 0.25rem; margin-bottom: 0.5rem;">
-                                    ${generateStatusBadges(file, isNew)}
+                             data-size="${file.size || 0}">
+                            <div class="file-header" style="position: relative; display: flex; align-items: center; justify-content: center; gap: 0.75rem; margin-bottom: 1rem;">
+                                <!-- Bulk select checkbox -->
+                                <div style="position: absolute; top: 0.5rem; left: 0.5rem; z-index: 20; background: rgba(255,255,255,0.9); padding: 2px; border-radius: 4px; border: 1px solid #D1D5DB;">
+                                    <input type="checkbox" class="file-select-checkbox" data-filename="${file.filename}"
+                                        style="width: 18px; height: 18px; cursor: pointer; accent-color: var(--umd-red); transform: scale(1.2);"
+                                        onchange="updateSelectedCount()" />
+                                </div>
+                                <div style="position: absolute; top: 0.5rem; right: 0.5rem; background: #FEF3C7; color: #92400E; padding: 2px 6px; border-radius: 4px; font-size: 0.7rem; font-weight: 600; cursor: help; z-index: 10;" title="${file.downloadCount || 0} downloads">
+                                    ${file.downloadCount || 0}
+                                </div>
+                                <div class="file-icon">${getFileIcon(file.originalName)}</div>
+                                <div class="file-info">
+                                    <h3 style="margin: 0 0 0.1rem 0; font-size: 1rem;">${truncateFilename(file.originalName, 15)}</h3>
                                 </div>
                             </div>
+                            <div class="file-meta" style="margin-top: 0.1rem;">
+                                <div class="tags-section" style="display: flex; flex-wrap: wrap; gap: 0.3rem; margin-bottom: 0.5rem;">
+                                    ${generateStatusBadges(file, isNew)}
+                                </div>
 
-                            <!-- File Details -->
-                            <div style="font-size: 0.875rem; color: #6B7280; margin-bottom: 1rem;">
                                 ${file.major ? `<div class="file-meta-item"><strong>Major:</strong> <span class="major-badge">${escapeHtml(file.major)}</span></div>` : ''}
-                                ${file.classCode ? `<div class="file-meta-item"><strong>Class:</strong> <span class="class-badge">${escapeHtml(file.classCode)}</span></div>` : ''}
+                                ${file.classCode ? `<div class="file-meta-item"><strong>Class:</strong> <span class="class-code-badge">${escapeHtml(file.classCode)}</span></div>` : ''}
                                 ${file.professor ? `<div class="file-meta-item"><strong>Professor:</strong> ${escapeHtml(file.professor)}</div>` : ''}
                                 ${file.semester && file.year ? `<div class="file-meta-item"><strong>Term:</strong> ${file.semester} ${file.year}</div>` : ''}
-                                ${file.uploadedBy ? `<div class="file-meta-item"><strong>Uploaded by:</strong> ${escapeHtml(file.uploadedBy)}</div>` : ''}
+                                <div class="file-meta-item"><strong>Uploaded by:</strong> ${escapeHtml(file.uploadedBy)}</div>
                                 ${file.description ? `<div class="file-meta-item"><strong>Description:</strong> ${escapeHtml(file.description)}</div>` : ''}
                                 <div class="file-meta-item"><strong>Size:</strong> ${formatFileSize(file.size || 0)}</div>
                             </div>
-
-                            <!-- Actions -->
-                            <div style="display: flex; gap: 0.5rem; justify-content: center;">
-                                <a href="/download/${encodeURIComponent(file.filename)}" class="button download" target="_blank" style="flex: 1; text-align: center; padding: 0.5rem 1rem; font-size: 0.875rem;">Download</a>
+                            <div class="file-actions" style="display: flex; gap: 0.5rem; flex-wrap: wrap; justify-content: center;">
+                                <a href="/download/${encodeURIComponent(file.filename)}" class="button download" target="_blank">Download</a>
+                                ${getEditButton(file)}
                                 ${getDeleteButton(file)}
-                                <button class="button secondary small report-btn" data-filename="${file.filename}" data-original-name="${escapeHtml(file.originalName)}" style="padding: 0.5rem 1rem; font-size: 0.875rem;">🚩 Report</button>
+                                <button class="button secondary small report-btn" data-filename="${file.filename}" data-original-name="${escapeHtml(file.originalName)}">🚩 Report</button>
                             </div>
                         </div>
                     `;
@@ -4777,19 +4976,22 @@
                                     </div>
                                 </div>
 
-                                <div style="display: flex; flex-wrap: wrap; gap: 0.5rem; font-size: 0.875rem; color: #6B7280;">
+                                <div style="display: flex; flex-wrap: wrap; gap: 0.5rem; font-size: 0.875rem; color: #6B7280; margin-bottom: 0.5rem;">
                                     ${file.major ? `<span style="background: #E0E7FF; color: #4338CA; padding: 2px 6px; border-radius: 4px; font-size: 0.75rem;">${escapeHtml(file.major)}</span>` : ''}
                                     ${file.classCode ? `<span style="background: #FEE2E2; color: #DC2626; padding: 2px 6px; border-radius: 4px; font-size: 0.75rem;">${escapeHtml(file.classCode)}</span>` : ''}
                                     ${file.professor ? `<span>Prof: ${escapeHtml(file.professor)}</span>` : ''}
                                     ${file.semester && file.year ? `<span>${file.semester} ${file.year}</span>` : ''}
                                     <span>${formatFileSize(file.size || 0)}</span>
-                                    <span>${file.downloadCount || 0} downloads</span>
+                                    <span style="background: #FEF3C7; color: #D97706; padding: 2px 6px; border-radius: 4px; font-size: 0.75rem;">📥 ${file.downloadCount || 0} downloads</span>
                                 </div>
+
+                                ${file.description ? `<div style="font-size: 0.875rem; color: #374151; font-style: italic; margin-top: 0.25rem;">${escapeHtml(file.description)}</div>` : ''}
                             </div>
 
                             <!-- Actions -->
                             <div style="display: flex; gap: 0.5rem; flex-shrink: 0;">
                                 <a href="/download/${encodeURIComponent(file.filename)}" class="button download" target="_blank" style="padding: 0.5rem 1rem; font-size: 0.875rem;">Download</a>
+                                ${getEditButton(file)}
                                 ${getDeleteButton(file)}
                                 <button class="button secondary small report-btn" data-filename="${file.filename}" data-original-name="${escapeHtml(file.originalName)}" style="padding: 0.5rem 1rem; font-size: 0.875rem;">🚩 Report</button>
                             </div>

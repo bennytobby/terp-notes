@@ -2247,6 +2247,67 @@ app.get('/logout', (req, res) => {
     });
 });
 
+// Edit file route
+app.post('/edit-file', async (req, res) => {
+    if (!req.session.user) return res.status(401).json({ error: 'Not authenticated' });
+
+    try {
+        const { filename, classCode, professor, semester, year, category, description } = req.body;
+        const user = req.session.user;
+
+        // Validate required fields
+        if (!filename || !classCode || !professor || !semester || !year || !category || !description) {
+            return res.status(400).json({ error: 'All fields are required' });
+        }
+
+        // Connect to MongoDB
+        await ensureConnection();
+
+        // Find the file in the database
+        const file = await client
+            .db(fileCollection.db)
+            .collection(fileCollection.collection)
+            .findOne({ filename: filename });
+
+        if (!file) {
+            return res.status(404).json({ error: 'File not found' });
+        }
+
+        // Check permissions - only admin or file owner can edit
+        if (user.role !== 'admin' && file.uploadedBy !== user.userid) {
+            return res.status(403).json({ error: 'You can only edit your own files' });
+        }
+
+        // Update file metadata
+        const major = classCode.replace(/[0-9]/g, '').trim();
+
+        await client
+            .db(fileCollection.db)
+            .collection(fileCollection.collection)
+            .updateOne(
+                { filename: filename },
+                {
+                    $set: {
+                        classCode: classCode,
+                        major: major,
+                        professor: professor,
+                        semester: semester,
+                        year: year,
+                        category: category,
+                        description: description,
+                        lastModified: new Date()
+                    }
+                }
+            );
+
+        res.json({ success: true, message: 'File updated successfully' });
+
+    } catch (error) {
+        console.error('Edit file error:', error);
+        res.status(500).json({ error: 'Failed to update file' });
+    }
+});
+
 app.get("/delete/:filename", async (req, res) => {
     if (!req.session.user) return res.redirect("/login");
 
