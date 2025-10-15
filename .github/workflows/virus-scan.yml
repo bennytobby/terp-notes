@@ -34,10 +34,10 @@ jobs:
           base_url="${base_url}/"
         fi
         endpoint_url="${base_url}api/cron/scan-pending-files"
-        
+
         echo "🔗 Calling endpoint: $endpoint_url"
         echo "🔑 Using CRON_SECRET: ${CRON_SECRET:0:10}..." # Show first 10 chars for debugging
-        
+
         response=$(curl -s -L -w "\n%{http_code}" -X GET \
           -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
           -H "User-Agent: GitHub-Actions-VirusScan/1.0" \

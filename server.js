@@ -251,6 +251,71 @@ app.use(session({
     }
 }));
 
+/* CRON ENDPOINTS - Must be before session middleware */
+// Cron endpoint for Vercel: Scan pending files
+app.get('/api/cron/scan-pending-files', async (req, res) => {
+    // Verify request is from Vercel Cron (required for security)
+    const authHeader = req.get('Authorization');
+    if (!process.env.CRON_SECRET) {
+        return res.status(500).json({ error: 'CRON_SECRET not configured' });
+    }
+    if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
+        return res.status(401).json({ error: 'Unauthorized' });
+    }
+
+    if (!VIRUSTOTAL_ENABLED) {
+        return res.json({ message: 'VirusTotal disabled' });
+    }
+
+    try {
+        await ensureConnection();
+
+        // Find files pending scan (uploaded more than 1 minute ago to avoid race conditions)
+        const oneMinuteAgo = new Date();
+        oneMinuteAgo.setMinutes(oneMinuteAgo.getMinutes() - 1);
+
+        const pendingFiles = await client
+            .db(fileCollection.db)
+            .collection(fileCollection.collection)
+            .find({
+                virusScanStatus: 'pending',
+                uploadDate: { $lt: oneMinuteAgo }
+            })
+            .limit(5) // Process max 5 files per cron run (avoid timeout)
+            .toArray();
+
+        if (pendingFiles.length === 0) {
+            return res.json({ message: 'No pending scans', scanned: 0 });
+        }
+
+        console.log(`🔄 Cron: Processing ${pendingFiles.length} pending scan(s)...`);
+
+        // Trigger scans (they run asynchronously)
+        for (const file of pendingFiles) {
+            try {
+                const s3Key = file.filename;
+                const s3Data = await s3.getObject({ Bucket: AWS_BUCKET, Key: s3Key }).promise();
+
+                // Don't await - let it run in background
+                scanFileWithVirusTotal(file._id, s3Data.Body, file.originalName).catch(err => {
+                    console.error('Cron scan error:', err);
+                });
+            } catch (s3Error) {
+                console.error('Error fetching file for scan:', s3Error);
+            }
+        }
+
+        res.json({ 
+            message: `Triggered ${pendingFiles.length} virus scan(s)`, 
+            scanned: pendingFiles.length 
+        });
+
+    } catch (error) {
+        console.error('Cron endpoint error:', error);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+});
+
 // Session timeout middleware - MUST come after session initialization
 app.use(sessionTimeout);
 
@@ -3511,72 +3576,6 @@ app.get('/health', (req, res) => {
     });
 });
 
-// Cron endpoint for Vercel: Scan pending files
-app.get('/api/cron/scan-pending-files', async (req, res) => {
-    // Verify request is from Vercel Cron (required for security)
-    const authHeader = req.get('Authorization');
-    if (!process.env.CRON_SECRET) {
-        return res.status(500).json({ error: 'CRON_SECRET not configured' });
-    }
-    if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
-        return res.status(401).json({ error: 'Unauthorized' });
-    }
-
-    if (!VIRUSTOTAL_ENABLED) {
-        return res.json({ message: 'VirusTotal disabled' });
-    }
-
-    try {
-        await ensureConnection();
-
-        // Find files pending scan (uploaded more than 1 minute ago to avoid race conditions)
-        const oneMinuteAgo = new Date();
-        oneMinuteAgo.setMinutes(oneMinuteAgo.getMinutes() - 1);
-
-        const pendingFiles = await client
-            .db(fileCollection.db)
-            .collection(fileCollection.collection)
-            .find({
-                virusScanStatus: 'pending',
-                uploadDate: { $lt: oneMinuteAgo }
-            })
-            .limit(5) // Process max 5 files per cron run (avoid timeout)
-            .toArray();
-
-        if (pendingFiles.length === 0) {
-            return res.json({ message: 'No pending scans', scanned: 0 });
-        }
-
-        console.log(`🔄 Cron: Processing ${pendingFiles.length} pending scan(s)...`);
-
-        // Trigger scans (they run asynchronously)
-        for (const file of pendingFiles) {
-            try {
-                const s3Data = await s3.getObject({
-                    Bucket: AWS_BUCKET,
-                    Key: file.filename
-                }).promise();
-
-                // Don't await - let it run in background
-                scanFileWithVirusTotal(file._id, s3Data.Body, file.originalName).catch(err => {
-                    console.error('Cron scan error:', err);
-                });
-            } catch (s3Error) {
-                console.error('Error fetching file for scan:', s3Error);
-            }
-        }
-
-        res.json({
-            message: 'Scan jobs triggered',
-            scanned: pendingFiles.length
-        });
-    } catch (error) {
-        console.error('Cron error:', error);
-        res.status(500).json({ error: 'Cron job failed' });
-    } finally {
-        await client.close();
-    }
-});
 
 
 // Export the app for testing
