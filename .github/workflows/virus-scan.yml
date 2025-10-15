@@ -1,0 +1,51 @@
+name: Virus Scan Cron
+
+on:
+  schedule:
+    # Run every 5 minutes for faster virus scanning
+    - cron: '*/5 * * * *'
+  # Allow manual triggering
+  workflow_dispatch:
+
+jobs:
+  virus-scan:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Check Secrets
+      run: |
+        if [ -z "${{ secrets.CRON_SECRET }}" ]; then
+          echo "❌ CRON_SECRET is not set"
+          exit 1
+        fi
+        if [ -z "${{ secrets.VERCEL_URL }}" ]; then
+          echo "❌ VERCEL_URL is not set"
+          exit 1
+        fi
+        echo "✅ Secrets are configured"
+
+    - name: Trigger Virus Scan
+      id: scan
+      run: |
+        echo "🔄 Triggering virus scan at $(date)"
+        response=$(curl -s -w "\n%{http_code}" -X GET \
+          -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
+          -H "User-Agent: GitHub-Actions-VirusScan/1.0" \
+          "${{ secrets.VERCEL_URL }}/api/cron/scan-pending-files")
+
+        # Extract response body and status code
+        http_code=$(echo "$response" | tail -n1)
+        response_body=$(echo "$response" | head -n -1)
+
+        echo "HTTP Status: $http_code"
+        echo "Response: $response_body"
+
+        if [ "$http_code" -eq 200 ]; then
+          echo "✅ Virus scan completed successfully"
+        else
+          echo "❌ Virus scan failed with status $http_code"
+          exit 1
+        fi
+
+    - name: Log Completion
+      run: echo "🎉 Virus scan cron completed at $(date)"
