@@ -422,11 +422,11 @@
                                                             </h3>
                                                             <div
                                                                 style="display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center;">
-                                                                        <% if (file.category) { 
+                                                                        <% if (file.category) {
                                                                             // Normalize category name for consistent display
                                                                             let normalizedCategory = file.category.replace(/[📚✏️📖📝📊📋💻🔬📄🧪🗒️]/g, '').trim();
                                                                             if (!normalizedCategory) normalizedCategory = 'Other';
-                                                                            
+
                                                                             // Map to CSS classes
                                                                             let categoryClass = 'category-other';
                                                                             if (normalizedCategory === 'Exam') {
