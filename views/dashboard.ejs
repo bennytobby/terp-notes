@@ -422,25 +422,34 @@
                                                             </h3>
                                                             <div
                                                                 style="display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center;">
-                                                                        <% if (file.category) { let
-                                                                            categoryClass='category-other' ; if
-                                                                            (file.category==='Exam' ) {
+                                                                        <% if (file.category) { 
+                                                                            // Normalize category name for consistent display
+                                                                            let normalizedCategory = file.category.replace(/[📚✏️📖📝📊📋💻🔬📄🧪🗒️]/g, '').trim();
+                                                                            if (!normalizedCategory) normalizedCategory = 'Other';
+                                                                            
+                                                                            // Map to CSS classes
+                                                                            let categoryClass = 'category-other';
+                                                                            if (normalizedCategory === 'Exam') {
                                                                                 categoryClass = 'category-exam';
-                                                                            } else if
-                                                                            (file.category==='Lecture Notes' ) {
-                                                                            categoryClass='category-lecture' ; } else if
-                                                                            (file.category==='Homework' ) {
-                                                                            categoryClass='category-homework' ; } else
-                                                                            if (file.category==='Study Guide' ) {
-                                                                            categoryClass='category-study' ; } else if
-                                                                            (file.category==='Cheat Sheet' ) {
-                                                                            categoryClass='category-cheat' ; } else if
-                                                                            (file.category==='Project' ) {
-                                                                            categoryClass='category-project' ; } else if
-                                                                            (file.category==='Lab' ) {
-                                                                            categoryClass='category-lab' ; } %>
+                                                                            } else if (normalizedCategory === 'Lecture Notes') {
+                                                                                categoryClass = 'category-lecture';
+                                                                            } else if (normalizedCategory === 'Homework') {
+                                                                                categoryClass = 'category-homework';
+                                                                            } else if (normalizedCategory === 'Study Guide') {
+                                                                                categoryClass = 'category-study';
+                                                                            } else if (normalizedCategory === 'Cheat Sheet') {
+                                                                                categoryClass = 'category-cheat';
+                                                                            } else if (normalizedCategory === 'Project') {
+                                                                                categoryClass = 'category-project';
+                                                                            } else if (normalizedCategory === 'Lab' || normalizedCategory === 'Lab Report') {
+                                                                                categoryClass = 'category-lab';
+                                                                            } else if (normalizedCategory === 'Textbook') {
+                                                                                categoryClass = 'category-textbook';
+                                                                            } else if (normalizedCategory === 'Practice Problems') {
+                                                                                categoryClass = 'category-practice';
+                                                                            } %>
                                                                             <span class="category-badge <%= categoryClass %>">
-                                                                                <%= file.category %>
+                                                                                <%= normalizedCategory %>
                                                                             </span>
                                                                             <% } %>
                                                                                         <%
@@ -1495,13 +1504,7 @@
                         });
                     }
 
-                    // Use dynamic category configuration
-                    const categoryIcons = {};
-                    if (dashboardConfig?.categories) {
-                        Object.keys(dashboardConfig.categories).forEach(category => {
-                            categoryIcons[category.toLowerCase()] = dashboardConfig.categories[category].icon;
-                        });
-                    }
+                    // Categories will use the consistent getCategoryEmoji() and getCategoryDisplayName() functions
 
                     // Generate HTML
                     let html = '<div class="expand-collapse-all" style="margin-bottom: 1rem;"><button id="expandAllBtn" onclick="toggleAllGroups()" style="background: var(--umd-red); color: white; border: none; padding: 8px 16px; border-radius: 6px; cursor: pointer; font-weight: 600;">Expand All</button></div>';
@@ -1595,8 +1598,8 @@
                                     const files = categories[category];
 
 
-                                    const categoryIcon = categoryIcons[category.toLowerCase()] || categoryIcons[category] || '';
-                                    const categoryLabel = category.split(' ').map(function (word) { return word.charAt(0).toUpperCase() + word.slice(1); }).join(' ');
+                                    const categoryIcon = getCategoryEmoji(category);
+                                    const categoryLabel = getCategoryDisplayName(category);
 
                                     html += `
                                         <div class="category-group" style="margin-bottom: 0.5rem;">
@@ -1687,15 +1690,15 @@
                 // Normalize category name by removing emojis and matching to config
                 function normalizeCategoryName(category) {
                     if (!category) return 'Other';
-                    
+
                     // Remove emojis and trim whitespace
                     const cleanCategory = category.replace(/[📚✏️📖📝📊📋💻🔬📄🧪🗒️]/g, '').trim();
-                    
+
                     // Try exact match first
                     const config = dashboardConfig?.categories || {};
                     if (config[category]) return category;
                     if (config[cleanCategory]) return cleanCategory;
-                    
+
                     // Try fuzzy matching for common variations
                     const fuzzyMatches = {
                         'Lab Report': ['Lab Report', 'Lab', '🔬 Lab Report'],
@@ -1707,13 +1710,13 @@
                         'Project': ['Project', '💻 Project'],
                         'Textbook': ['Textbook', '📕 Textbook']
                     };
-                    
+
                     for (const [normalized, variations] of Object.entries(fuzzyMatches)) {
                         if (variations.includes(category) || variations.includes(cleanCategory)) {
                             return normalized;
                         }
                     }
-                    
+
                     return 'Other';
                 }
 
@@ -5100,10 +5103,10 @@
                         }
 
                         // Category filter (case insensitive)
+                        // Category filter (multi-select)
                         if (selectedCategories.length > 0) {
-                            if (!file.category || !selectedCategories.some(selectedCat =>
-                                file.category.toLowerCase() === selectedCat.toLowerCase()
-                            )) {
+                            const fileCategory = normalizeCategoryName(file.category || 'Other');
+                            if (!selectedCategories.includes(fileCategory)) {
                                 return false;
                             }
                         }
