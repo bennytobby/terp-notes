@@ -554,18 +554,10 @@
                                                 <div class="file-actions">
                                                     <a href="/download/<%= encodeURIComponent(file.filename) %>"
                                                         class="button download" target="_blank">Download</a>
-                                                    <% if (user.role==='viewer' ) { %>
-                                                        <button class="button danger disabled"
-                                                            onclick="showViewerAlert(); return false;"
-                                                            title="View-only mode">Delete</button>
-                                                        <% } else if (user.role==='admin' ||
-                                                            file.uploadedBy===user.userid) { %>
-                                                            <button class="button danger"
-                                                                onclick="confirmDelete('<%= encodeURIComponent(file.filename) %>', '<%= file.originalName %>')">Delete</button>
-                                                            <% } else { %>
-                                                                <button class="button danger disabled" disabled
-                                                                    title="You can only delete your own files">Delete</button>
-                                                                <% } %>
+                                                    <% if (user.role==='admin' || file.uploadedBy===user.userid) { %>
+                                                        <button class="button danger"
+                                                            onclick="confirmDelete('<%= encodeURIComponent(file.filename) %>', '<%= file.originalName %>')">Delete</button>
+                                                    <% } %>
                                                                     <button class="button secondary small report-btn"
                                                                         data-filename="<%= file.filename %>"
                                                                         data-original-name="<%= file.originalName %>">🚩
@@ -3038,18 +3030,15 @@
                     const userRole = '<%= user.role %>';
                     const userId = '<%= user.userid %>';
 
-                    if (userRole === 'viewer') {
-                        return `<button class="button danger disabled" onclick="showViewerAlert(); return false;" title="View-only mode" style="font-size: 0.8rem; padding: 0.4rem 0.8rem;">Delete</button>`;
-                    } else if (userRole === 'admin' || file.uploadedBy === userId) {
+                    // Only show delete button if user can actually delete the file
+                    if (userRole === 'admin' || file.uploadedBy === userId) {
                         return `<button class="button danger" onclick="confirmDelete('${encodeURIComponent(file.filename)}', '${escapeHtml(file.originalName)}')" style="font-size: 0.8rem; padding: 0.4rem 0.8rem;">Delete</button>`;
                     } else {
-                        return `<button class="button danger disabled" disabled title="You can only delete your own files" style="font-size: 0.8rem; padding: 0.4rem 0.8rem;">Delete</button>`;
+                        return ''; // Hide button completely for viewers and non-owners
                     }
                 }
 
-                function showViewerAlert() {
-                    alert('🔒 View-Only Mode\n\nYour account has been set to view-only access. You can download files but cannot upload or delete.\n\nPlease contact an administrator if you need upload/delete permissions.');
-                }
+                // showViewerAlert function removed - buttons are now hidden instead of disabled
 
                 // Edit file functionality
                 function openEditModal(fileData) {
