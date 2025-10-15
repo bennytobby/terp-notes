@@ -2753,7 +2753,7 @@ app.post("/bulk-download", async (req, res) => {
 
     try {
         const { filenames } = req.body;
-        
+
         if (!filenames || !Array.isArray(filenames) || filenames.length === 0) {
             return res.status(400).json({ error: 'No files specified' });
         }
@@ -2765,7 +2765,7 @@ app.post("/bulk-download", async (req, res) => {
         }
 
         await ensureConnection();
-        
+
         // Get file metadata for all files
         const fileDocs = await client
             .db(fileCollection.db)
@@ -2780,7 +2780,7 @@ app.post("/bulk-download", async (req, res) => {
         // Set up zip archive
         res.setHeader('Content-Type', 'application/zip');
         res.setHeader('Content-Disposition', `attachment; filename="terp-notes-bulk-${Date.now()}.zip"`);
-        
+
         const archive = archiver('zip', { zlib: { level: 9 } });
         archive.pipe(res);
 
@@ -2789,12 +2789,12 @@ app.post("/bulk-download", async (req, res) => {
             try {
                 const s3Params = { Bucket: AWS_BUCKET, Key: fileDoc.filename };
                 const s3Data = await s3.getObject(s3Params).promise();
-                
+
                 // Use original filename if available, otherwise use stored filename
                 const displayName = fileDoc.originalName || fileDoc.filename;
-                
+
                 archive.append(s3Data.Body, { name: displayName });
-                
+
                 // Increment download count
                 await client
                     .db(fileCollection.db)

@@ -3335,11 +3335,29 @@
                     return '';
                 }
 
-                // Notification System
+                // Enhanced Notification System
                 function showNotification(message, type = 'error', duration = 3000) {
                     const notification = document.createElement('div');
-                    const bgColor = type === 'success' ? '#10B981' : '#EF4444';
-                    const icon = type === 'success' ? '✅' : '⚠️';
+                    
+                    // Define colors and icons for different types
+                    let bgColor, icon;
+                    switch (type) {
+                        case 'success':
+                            bgColor = '#10B981';
+                            icon = '✅';
+                            break;
+                        case 'warning':
+                            bgColor = '#F59E0B';
+                            icon = '⚠️';
+                            break;
+                        case 'info':
+                            bgColor = '#3B82F6';
+                            icon = 'ℹ️';
+                            break;
+                        default: // error
+                            bgColor = '#EF4444';
+                            icon = '❌';
+                    }
 
                     notification.style.cssText = `
                         position: fixed; top: 20px; right: 20px; background: ${bgColor}; color: white;
@@ -3356,7 +3374,63 @@
                     `;
 
                     document.body.appendChild(notification);
+                    
+                    // Return notification object with methods
+                    const notificationObj = {
+                        element: notification,
+                        remove: () => {
+                            notification.remove();
+                        },
+                        update: (newMessage, newType = type) => {
+                            // Update colors and icon for new type
+                            let newBgColor, newIcon;
+                            switch (newType) {
+                                case 'success':
+                                    newBgColor = '#10B981';
+                                    newIcon = '✅';
+                                    break;
+                                case 'warning':
+                                    newBgColor = '#F59E0B';
+                                    newIcon = '⚠️';
+                                    break;
+                                case 'info':
+                                    newBgColor = '#3B82F6';
+                                    newIcon = 'ℹ️';
+                                    break;
+                                default: // error
+                                    newBgColor = '#EF4444';
+                                    newIcon = '❌';
+                            }
+                            
+                            notification.style.background = newBgColor;
+                            notification.innerHTML = `
+                                <div style="display: flex; align-items: center; gap: 0.5rem;">
+                                    <span style="font-size: 1.2rem;">${newIcon}</span>
+                                    <span>${newMessage}</span>
+                                </div>
+                            `;
+                        }
+                    };
+                    
+                    // Auto-remove after duration (unless duration is 0)
+                    if (duration > 0) {
                     setTimeout(() => notification.remove(), duration);
+                    }
+                    
+                    return notificationObj;
+                }
+
+                // Helper functions for notification management
+                function updateNotification(notificationObj, message, type) {
+                    if (notificationObj && notificationObj.update) {
+                        notificationObj.update(message, type);
+                    }
+                }
+
+                function hideNotification(notificationObj) {
+                    if (notificationObj && notificationObj.remove) {
+                        notificationObj.remove();
+                    }
                 }
 
                 // Direct S3 Upload Form Handler
@@ -5263,8 +5337,8 @@
                         return;
                     }
 
-                    // Show notification
-                    showNotification(`Preparing download of ${selectedFiles.length} file(s)...`, 'info', 3000);
+                    // Show persistent yellow notification that stays until download completes
+                    const downloadNotification = showNotification(`📥 Preparing download of ${selectedFiles.length} file(s)...`, 'warning', 0); // 0 = no auto-hide
 
                     try {
                         // Call the bulk download endpoint
@@ -5283,6 +5357,9 @@
                             throw new Error(errorData.error || 'Download failed');
                         }
 
+                        // Update notification to show download in progress
+                        updateNotification(downloadNotification, `📥 Downloading ${selectedFiles.length} file(s) as zip...`, 'warning');
+
                         // Create download link for the zip file
                         const blob = await response.blob();
                         const url = window.URL.createObjectURL(blob);
@@ -5297,11 +5374,20 @@
 
                         // Clear selections after download
                         resetAllSelections();
-                        showNotification(`Successfully downloaded ${selectedFiles.length} file(s) as a zip!`, 'success', 4000);
+                        
+                        // Update notification to show success and auto-hide
+                        updateNotification(downloadNotification, `✅ Successfully downloaded ${selectedFiles.length} file(s) as a zip!`, 'success');
+                        setTimeout(() => {
+                            hideNotification(downloadNotification);
+                        }, 4000);
 
                     } catch (error) {
                         console.error('Bulk download error:', error);
-                        showNotification(`Download failed: ${error.message}`, 'error', 5000);
+                        // Update notification to show error and auto-hide
+                        updateNotification(downloadNotification, `❌ Download failed: ${error.message}`, 'error');
+                        setTimeout(() => {
+                            hideNotification(downloadNotification);
+                        }, 5000);
                     }
                 }
 
