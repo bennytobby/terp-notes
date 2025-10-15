@@ -3338,7 +3338,7 @@
                 // Enhanced Notification System
                 function showNotification(message, type = 'error', duration = 3000) {
                     const notification = document.createElement('div');
-                    
+
                     // Define colors and icons for different types
                     let bgColor, icon;
                     switch (type) {
@@ -3374,7 +3374,7 @@
                     `;
 
                     document.body.appendChild(notification);
-                    
+
                     // Return notification object with methods
                     const notificationObj = {
                         element: notification,
@@ -3401,7 +3401,7 @@
                                     newBgColor = '#EF4444';
                                     newIcon = '❌';
                             }
-                            
+
                             notification.style.background = newBgColor;
                             notification.innerHTML = `
                                 <div style="display: flex; align-items: center; gap: 0.5rem;">
@@ -3411,12 +3411,12 @@
                             `;
                         }
                     };
-                    
+
                     // Auto-remove after duration (unless duration is 0)
                     if (duration > 0) {
                     setTimeout(() => notification.remove(), duration);
                     }
-                    
+
                     return notificationObj;
                 }
 
@@ -5338,7 +5338,7 @@
                     }
 
                     // Show persistent yellow notification that stays until download completes
-                    const downloadNotification = showNotification(`📥 Preparing download of ${selectedFiles.length} file(s)...`, 'warning', 0); // 0 = no auto-hide
+                    const downloadNotification = showNotification(`Preparing download of ${selectedFiles.length} file(s)...`, 'warning', 0); // 0 = no auto-hide
 
                     try {
                         // Call the bulk download endpoint
@@ -5358,7 +5358,7 @@
                         }
 
                         // Update notification to show download in progress
-                        updateNotification(downloadNotification, `📥 Downloading ${selectedFiles.length} file(s) as zip...`, 'warning');
+                        updateNotification(downloadNotification, `Downloading ${selectedFiles.length} file(s) as zip...`, 'warning');
 
                         // Create download link for the zip file
                         const blob = await response.blob();
@@ -5374,9 +5374,9 @@
 
                         // Clear selections after download
                         resetAllSelections();
-                        
+
                         // Update notification to show success and auto-hide
-                        updateNotification(downloadNotification, `✅ Successfully downloaded ${selectedFiles.length} file(s) as a zip!`, 'success');
+                        updateNotification(downloadNotification, `Successfully downloaded ${selectedFiles.length} file(s) as a zip!`, 'success');
                         setTimeout(() => {
                             hideNotification(downloadNotification);
                         }, 4000);
@@ -5384,7 +5384,7 @@
                     } catch (error) {
                         console.error('Bulk download error:', error);
                         // Update notification to show error and auto-hide
-                        updateNotification(downloadNotification, `❌ Download failed: ${error.message}`, 'error');
+                        updateNotification(downloadNotification, `Download failed: ${error.message}`, 'error');
                         setTimeout(() => {
                             hideNotification(downloadNotification);
                         }, 5000);
