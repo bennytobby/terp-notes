@@ -811,6 +811,10 @@ async function retryStuckScans() {
                 $or: [
                     { scanAttempts: { $exists: false } }, // Legacy files without scanAttempts field
                     { scanAttempts: { $lt: 5 } } // Files with less than 5 attempts
+                ],
+                // Exclude files with permanent error codes
+                $nor: [
+                    { "virusScanDetails.error": { $regex: /413|400|422|QuotaExceeded|FileTooBig/ } }
                 ]
             })
             .toArray();
@@ -860,6 +864,54 @@ async function scanFileWithVirusTotal(fileId, fileBuffer, filename) {
     if (!VIRUSTOTAL_ENABLED) {
         console.log('VirusTotal disabled, skipping scan for:', filename);
         return;
+    }
+
+    // Check if file has already failed too many times or has permanent error codes
+    try {
+        await ensureConnection();
+        const fileDoc = await client
+            .db(fileCollection.db)
+            .collection(fileCollection.collection)
+            .findOne({ _id: fileId });
+
+        if (fileDoc) {
+            const scanAttempts = fileDoc.scanAttempts || 0;
+            const maxAttempts = 5;
+
+            // Check for permanent error codes in scan details
+            const hasPermanentError = fileDoc.virusScanDetails?.error &&
+                (fileDoc.virusScanDetails.error.includes('413') || // File too large
+                 fileDoc.virusScanDetails.error.includes('400') || // Bad request
+                 fileDoc.virusScanDetails.error.includes('422') || // Unprocessable entity
+                 fileDoc.virusScanDetails.error.includes('QuotaExceeded') ||
+                 fileDoc.virusScanDetails.error.includes('FileTooBig'));
+
+            if (scanAttempts >= maxAttempts || hasPermanentError) {
+                console.log(`Skipping scan for ${filename}: ${hasPermanentError ? 'permanent error detected' : 'max attempts reached'} (${scanAttempts}/${maxAttempts})`);
+
+                // Mark as permanently failed
+                await client
+                    .db(fileCollection.db)
+                    .collection(fileCollection.collection)
+                    .updateOne(
+                        { _id: fileId },
+                        {
+                            $set: {
+                                virusScanStatus: 'permanently_failed',
+                                virusScanDate: new Date(),
+                                virusScanDetails: {
+                                    ...fileDoc.virusScanDetails,
+                                    reason: hasPermanentError ? 'permanent_error' : 'max_attempts_reached',
+                                    attempts: scanAttempts
+                                }
+                            }
+                        }
+                    );
+                return;
+            }
+        }
+    } catch (checkError) {
+        console.error('Error checking scan attempts:', checkError);
     }
 
     try {
@@ -995,12 +1047,34 @@ async function scanFileWithVirusTotal(fileId, fileBuffer, filename) {
 
         if (!scanComplete) {
             console.log(`Scan timeout for ${filename}, will remain as pending`);
+
+            // Increment scan attempts on timeout
+            try {
+                await ensureConnection();
+                await client
+                    .db(fileCollection.db)
+                    .collection(fileCollection.collection)
+                    .updateOne(
+                        { _id: fileId },
+                        {
+                            $set: {
+                                virusScanStatus: 'timeout',
+                                virusScanDate: new Date(),
+                                virusScanDetails: { error: 'Scan timeout after maximum retries' }
+                            },
+                            $inc: { scanAttempts: 1 }
+                        }
+                    );
+                console.log(`Incremented scan attempts for timeout: ${filename}`);
+            } catch (dbError) {
+                console.error('Error updating timeout status:', dbError);
+            }
         }
 
     } catch (error) {
         console.error(`VirusTotal scan error for ${filename}:`, error.message);
 
-        // On error, leave file as 'pending' - don't delete
+        // On error, increment scan attempts and leave file as 'pending' - don't delete
         try {
             await ensureConnection();
             await client
@@ -1013,9 +1087,12 @@ async function scanFileWithVirusTotal(fileId, fileBuffer, filename) {
                             virusScanStatus: 'error',
                             virusScanDate: new Date(),
                             virusScanDetails: { error: error.message }
-                        }
+                        },
+                        $inc: { scanAttempts: 1 }
                     }
                 );
+
+            console.log(`Incremented scan attempts for ${filename}`);
         } catch (dbError) {
             console.error('Error updating scan status:', dbError);
         }
