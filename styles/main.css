@@ -1329,6 +1329,32 @@ input[type="reset"] {
   opacity: 1;
 }
 
+/* Clickable file card styles */
+.clickable-file-card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 20px 40px rgba(226, 24, 51, 0.12), 0 8px 16px rgba(0, 0, 0, 0.08);
+  border-color: rgba(226, 24, 51, 0.2);
+  background-color: #f8fafc;
+}
+
+.clickable-file-card:active {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(226, 24, 51, 0.08);
+}
+
+/* List view clickable styles */
+.file-list-item.clickable-file-card:hover {
+  background-color: #f8fafc;
+  border-color: #cbd5e1;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.file-list-item.clickable-file-card:active {
+  background-color: #f1f5f9;
+  transform: translateY(0);
+}
+
 .file-header {
   display: flex !important;
   align-items: center !important;

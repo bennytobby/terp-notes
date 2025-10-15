@@ -2017,7 +2017,7 @@
                     const isNew = isFileNew(file.uploadDate);
 
                     return `
-                <div class="file-card animate-fade-in"
+                <div class="file-card animate-fade-in clickable-file-card"
                      data-class="${escapeHtml(file.classCode || '')}"
                      data-major="${escapeHtml(file.major || '')}"
                      data-semester="${escapeHtml(file.semester || '')}"
@@ -2028,7 +2028,10 @@
                      data-name="${escapeHtml(file.originalName.toLowerCase())}"
                      data-date="${new Date(file.uploadDate).getTime()}"
                      data-downloads="${file.downloadCount || 0}"
-                     data-size="${file.size || 0}">
+                     data-size="${file.size || 0}"
+                     data-filename="${file.filename}"
+                     onclick="toggleFileSelection('${file.filename}')"
+                     style="cursor: pointer;">
                     <div class="file-header" style="position: relative; display: flex; align-items: center; justify-content: center; gap: 0.75rem; margin-bottom: 1rem;">
                         <!-- Bulk select checkbox -->
                         <div style="position: absolute; top: 0.5rem; left: 0.5rem; z-index: 20; background: rgba(255,255,255,0.9); padding: 2px; border-radius: 4px; border: 1px solid #D1D5DB;">
@@ -3433,6 +3436,18 @@
                     }
                 }
 
+                // Toggle file selection when clicking on file cards
+                function toggleFileSelection(filename) {
+                    // Find the checkbox for this file
+                    const checkbox = document.querySelector(`input[type="checkbox"][data-filename="${filename}"]`);
+                    if (checkbox) {
+                        // Toggle the checkbox
+                        checkbox.checked = !checkbox.checked;
+                        // Trigger the change event to update counters
+                        updateSelectedCount();
+                    }
+                }
+
                 // Direct S3 Upload Form Handler
                 const uploadForm = document.getElementById('uploadForm');
                 if (uploadForm) {
@@ -4731,6 +4746,18 @@
 
                     // Initialize selected count
                     updateSelectedCount();
+
+                    // Add event delegation to prevent buttons from triggering file selection
+                    document.addEventListener('click', function(event) {
+                        // If the clicked element is a button, link, or checkbox, don't trigger file selection
+                        if (event.target.tagName === 'BUTTON' || 
+                            event.target.tagName === 'A' || 
+                            event.target.tagName === 'INPUT' ||
+                            event.target.closest('.file-actions') ||
+                            event.target.closest('.file-select-checkbox')) {
+                            event.stopPropagation();
+                        }
+                    });
                 }
 
                 // Filename truncation helper function
@@ -5047,7 +5074,7 @@
                     const isNew = isFileNew(file.uploadDate);
 
                     return `
-                        <div class="file-card animate-fade-in"
+                        <div class="file-card animate-fade-in clickable-file-card"
                              data-class="${escapeHtml(file.classCode || '')}"
                              data-major="${escapeHtml(file.major || '')}"
                              data-semester="${escapeHtml(file.semester || '')}"
@@ -5058,7 +5085,10 @@
                              data-name="${escapeHtml(file.originalName.toLowerCase())}"
                              data-date="${new Date(file.uploadDate).getTime()}"
                              data-downloads="${file.downloadCount || 0}"
-                             data-size="${file.size || 0}">
+                             data-size="${file.size || 0}"
+                             data-filename="${file.filename}"
+                             onclick="toggleFileSelection('${file.filename}')"
+                             style="cursor: pointer;">
                             <div class="file-header" style="position: relative; display: flex; align-items: center; justify-content: center; gap: 0.75rem; margin-bottom: 1rem;">
                                 <!-- Bulk select checkbox -->
                                 <div style="position: absolute; top: 0.5rem; left: 0.5rem; z-index: 20; background: rgba(255,255,255,0.9); padding: 2px; border-radius: 4px; border: 1px solid #D1D5DB;">
@@ -5133,7 +5163,7 @@
                     const isNew = isFileNew(file.uploadDate);
 
                     return `
-                        <div class="file-list-item"
+                        <div class="file-list-item clickable-file-card"
                              data-class="${escapeHtml(file.classCode || '')}"
                              data-major="${escapeHtml(file.major || '')}"
                              data-semester="${escapeHtml(file.semester || '')}"
@@ -5145,7 +5175,9 @@
                              data-date="${new Date(file.uploadDate).getTime()}"
                              data-downloads="${file.downloadCount || 0}"
                              data-size="${file.size || 0}"
-                             style="display: flex; align-items: center; padding: 1rem; border: 1px solid #E5E7EB; border-radius: 8px; margin-bottom: 0.5rem; background: white; transition: all 0.2s;">
+                             data-filename="${file.filename}"
+                             onclick="toggleFileSelection('${file.filename}')"
+                             style="display: flex; align-items: center; padding: 1rem; border: 1px solid #E5E7EB; border-radius: 8px; margin-bottom: 0.5rem; background: white; transition: all 0.2s; cursor: pointer;">
 
                             <!-- Checkbox -->
                             <div style="margin-right: 1rem;">
