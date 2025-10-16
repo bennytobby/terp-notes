@@ -713,7 +713,7 @@ app.use(async (req, res, next) => {
                                 }
                             }
                         );
-                    
+
                     // Update session
                     req.session.user.role = 'viewer';
                 } else if (user.banStatus.isBanned) {
@@ -2962,7 +2962,7 @@ app.post('/registerSubmit', registerLimiter, async function (req, res) {
                     linkText: "Contact Support"
                 });
             }
-            
+
             if (result.email === email || result.email === `${emailUsername}@umd.edu`) {
                 return res.render('error', {
                     title: "Email Already Registered",
@@ -3264,7 +3264,7 @@ app.get('/admin', async (req, res) => {
 
     try {
         await ensureConnection();
-        
+
         // Get all users with enhanced analytics
         const users = await client
             .db(userCollection.db)
@@ -3681,7 +3681,7 @@ app.post('/api/ban-user', async (req, res) => {
 
     try {
         const { userId, banType, banReason, banDuration } = req.body;
-        
+
         if (!userId || !banType || !banReason) {
             return res.status(400).json({ error: 'Missing required fields' });
         }
@@ -3691,7 +3691,7 @@ app.post('/api/ban-user', async (req, res) => {
         }
 
         await ensureConnection();
-        
+
         // Check if user exists
         const user = await client
             .db(userCollection.db)
@@ -3753,13 +3753,13 @@ app.post('/api/unban-user', async (req, res) => {
 
     try {
         const { userId } = req.body;
-        
+
         if (!userId) {
             return res.status(400).json({ error: 'Missing user ID' });
         }
 
         await ensureConnection();
-        
+
         // Check if user exists
         const user = await client
             .db(userCollection.db)

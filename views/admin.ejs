@@ -296,7 +296,7 @@
                                         <% if (currentUser.analytics.latestUpload) { %>
                                             <div class="meta-item">
                                                 <strong>Latest Activity:</strong>
-                                                <%= currentUser.analytics.latestUpload.originalName %> 
+                                                <%= currentUser.analytics.latestUpload.originalName %>
                                                 <small style="color: #6B7280;">(<%= new Date(currentUser.analytics.latestUpload.uploadDate).toLocaleDateString() %>)</small>
                                             </div>
                                         <% } %>
@@ -351,7 +351,7 @@
                                                         Ban User
                                                     </button>
                                                 <% } %>
-                                                
+
                                                 <button class="button danger small delete-btn"
                                                     data-user-id="<%= currentUser.userid %>">
                                                     Delete User
@@ -722,14 +722,14 @@
                 btn.addEventListener('click', async function () {
                     const userId = this.dataset.userId;
                     const userName = this.dataset.userName;
-                    
+
                     // Show ban modal
                     const banType = prompt(`Ban ${userName}:\n\n1. Type 'timed' for temporary ban (will ask for duration)\n2. Type 'permanent' for permanent ban\n\nEnter ban type:`);
-                    
+
                     if (!banType || (banType !== 'timed' && banType !== 'permanent')) {
                         return;
                     }
-                    
+
                     let banDuration = null;
                     if (banType === 'timed') {
                         const durationInput = prompt('Enter ban duration in hours (e.g., 24 for 1 day, 168 for 1 week):');
@@ -739,13 +739,13 @@
                         }
                         banDuration = parseInt(durationInput);
                     }
-                    
+
                     const banReason = prompt('Enter ban reason:');
                     if (!banReason || banReason.trim() === '') {
                         alert('Ban reason is required.');
                         return;
                     }
-                    
+
                     if (!confirm(`Are you sure you want to ban ${userName}?\n\nType: ${banType}\n${banDuration ? `Duration: ${banDuration} hours` : 'Permanent'}\nReason: ${banReason}`)) {
                         return;
                     }
@@ -754,11 +754,11 @@
                         const response = await fetch('/api/ban-user', {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ 
-                                userId, 
-                                banType, 
-                                banReason, 
-                                banDuration 
+                            body: JSON.stringify({
+                                userId,
+                                banType,
+                                banReason,
+                                banDuration
                             })
                         });
 
@@ -780,7 +780,7 @@
             document.querySelectorAll('.unban-btn').forEach(btn => {
                 btn.addEventListener('click', async function () {
                     const userId = this.dataset.userId;
-                    
+
                     if (!confirm(`Are you sure you want to unban this user?`)) {
                         return;
                     }
