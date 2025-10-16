@@ -208,11 +208,11 @@
                                         </button>
                                         <button id="bulkDownloadBtn" onclick="bulkDownloadFiles()"
                                             style="padding: 6px 12px; border: none; background: #059669; color: white; border-radius: 6px; cursor: pointer; font-size: 0.875rem; font-weight: 600; transition: all 0.2s; opacity: 0.5; cursor: not-allowed;" disabled>
-                                            Download Selected (<span id="downloadCount">0</span>)
+                                            Download Selected (<span id="downloadCount">0</span>/20)
                                         </button>
                                         <button id="bulkDeleteBtn" onclick="bulkDeleteFiles()"
                                             style="padding: 6px 12px; border: none; background: var(--umd-red); color: white; border-radius: 6px; cursor: pointer; font-size: 0.875rem; font-weight: 600; transition: all 0.2s; opacity: 0.5; cursor: not-allowed;" disabled>
-                                            Delete Selected (<span id="selectedCount">0</span>)
+                                            Delete Selected (<span id="selectedCount">0</span>/20)
                                         </button>
                                     </div>
                                     <label
@@ -3517,6 +3517,15 @@
                     }
 
                     if (checkbox) {
+                        // Check if we're trying to select more than the limit
+                        const currentSelected = getSelectedCheckboxes().length;
+                        const maxSelection = 20; // Match the download limit
+                        
+                        if (!checkbox.checked && currentSelected >= maxSelection) {
+                            showNotification(`You can only select up to ${maxSelection} files at once. Please deselect some files first.`, 'warning', 4000);
+                            return;
+                        }
+                        
                         // Toggle the checkbox
                         checkbox.checked = !checkbox.checked;
                         // Trigger the change event to update counters
@@ -4983,12 +4992,28 @@
 
                     const selectAllBtn = document.getElementById('selectAllBtn');
                     const allChecked = Array.from(checkboxes).every(cb => cb.checked);
+                    const maxSelection = 20; // Match the download limit
 
-                    checkboxes.forEach(checkbox => {
-                        checkbox.checked = !allChecked;
-                    });
+                    if (!allChecked && checkboxes.length > maxSelection) {
+                        // If we're selecting all and there are more than maxSelection files, limit to maxSelection
+                        showNotification(`Selecting first ${maxSelection} files (limit reached). Use individual selection for more files.`, 'info', 4000);
+                        
+                        // Select only the first maxSelection files
+                        const limitedCheckboxes = Array.from(checkboxes).slice(0, maxSelection);
+                        limitedCheckboxes.forEach(checkbox => {
+                            checkbox.checked = true;
+                        });
+                        
+                        selectAllBtn.textContent = 'Deselect All';
+                    } else {
+                        // Normal behavior: select/deselect all visible files
+                        checkboxes.forEach(checkbox => {
+                            checkbox.checked = !allChecked;
+                        });
+                        
+                        selectAllBtn.textContent = allChecked ? 'Select All' : 'Deselect All';
+                    }
 
-                    selectAllBtn.textContent = allChecked ? 'Select All' : 'Deselect All';
                     updateSelectedCount();
                 }
 
@@ -5507,6 +5532,12 @@
                         return;
                     }
 
+                    const maxSelection = 20; // Match the download limit
+                    if (selectedFiles.length > maxSelection) {
+                        showNotification(`You can only download up to ${maxSelection} files at once. Please select fewer files.`, 'warning', 4000);
+                        return;
+                    }
+
                     // Show persistent yellow notification for progress tracking
                     const progressNotificationId = `bulk_download_${Date.now()}`;
                     const progressNotification = showNotification(`Preparing download of ${selectedFiles.length} file(s)...`, 'warning', 0, progressNotificationId);
@@ -5530,7 +5561,7 @@
 
                         // Extract download ID from response headers for progress tracking
                         const downloadId = response.headers.get('X-Download-ID') || `download_${Date.now()}`;
-                        
+
                         // Start progress tracking
                         startProgressTracking(downloadId, progressNotification, selectedFiles.length);
 
@@ -5646,6 +5677,12 @@
 
                     if (selectedFiles.length === 0) {
                         showNotification('Please select files to delete.');
+                        return;
+                    }
+
+                    const maxSelection = 20; // Match the download limit
+                    if (selectedFiles.length > maxSelection) {
+                        showNotification(`You can only delete up to ${maxSelection} files at once. Please select fewer files.`, 'warning', 4000);
                         return;
                     }
 
