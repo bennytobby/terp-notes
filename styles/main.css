@@ -1876,6 +1876,100 @@ footer a:hover {
     grid-template-columns: 1fr;
   }
 
+  /* Mobile-only: Force list view for better mobile experience */
+  #gridView {
+    display: none !important;
+  }
+
+  #groupedView {
+    display: none !important;
+  }
+
+  #listView {
+    display: block !important;
+  }
+
+  /* Mobile-only: Hide view toggle buttons */
+  .dashboard-controls > div[style*="display: flex"] > div[style*="background: #F3F4F6"] {
+    display: none !important;
+  }
+
+  /* Mobile-only: Add mobile notice */
+  .mobile-view-notice {
+    display: block !important;
+    background: #FEF3C7;
+    border: 1px solid #F59E0B;
+    border-radius: 6px;
+    padding: 0.75rem;
+    margin-bottom: 1rem;
+    font-size: 0.8rem;
+    color: #92400E;
+    text-align: center;
+  }
+
+  .mobile-view-notice::before {
+    content: "📱 Mobile View: List view only for optimal experience";
+    font-weight: 600;
+  }
+
+  /* Mobile-only: Optimize file list for mobile */
+  .file-list-item {
+    padding: 0.75rem;
+    margin-bottom: 0.5rem;
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  }
+
+  .file-list-item .file-actions {
+    flex-direction: column;
+    gap: 0.5rem;
+    margin-top: 0.75rem;
+  }
+
+  .file-list-item .file-actions button {
+    width: 100%;
+    padding: 0.75rem;
+    font-size: 0.8rem;
+    min-height: 44px; /* Touch-friendly */
+  }
+
+  /* Mobile-only: Optimize dashboard controls */
+  .dashboard-controls {
+    flex-direction: column;
+    gap: 1rem;
+    padding: 1rem;
+  }
+
+  .dashboard-controls > div {
+    width: 100%;
+  }
+
+  /* Mobile-only: Optimize search and filters */
+  .search-container {
+    width: 100%;
+    margin-bottom: 1rem;
+  }
+
+  .search-container input {
+    width: 100%;
+    padding: 0.75rem;
+    font-size: 1rem;
+  }
+
+  /* Mobile-only: Optimize bulk actions */
+  .bulk-actions {
+    flex-direction: column;
+    gap: 0.5rem;
+    width: 100%;
+  }
+
+  .bulk-actions button {
+    width: 100%;
+    padding: 0.75rem;
+    font-size: 0.8rem;
+    min-height: 44px;
+  }
+
   .form-row {
     grid-template-columns: 1fr;
   }

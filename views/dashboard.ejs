@@ -153,6 +153,9 @@
     </header>
 
     <main class="container">
+        <!-- Mobile View Notice (hidden on desktop) -->
+        <div class="mobile-view-notice" style="display: none;"></div>
+
         <!-- Announcements Section -->
         <% if (announcements && announcements.length > 0) { %>
             <% announcements.forEach(announcement=> { %>
@@ -3864,6 +3867,28 @@
 
                 // Initialize on page load
                 document.addEventListener('DOMContentLoaded', function () {
+                    // Mobile-only: Force list view on mobile devices
+                    if (window.innerWidth <= 768) {
+                        console.log('Mobile device detected - ensuring list view');
+                        const listView = document.getElementById('listView');
+                        const gridView = document.getElementById('gridView');
+                        const groupedView = document.getElementById('groupedView');
+
+                        if (listView && gridView && groupedView) {
+                            // Hide other views
+                            gridView.style.display = 'none';
+                            groupedView.style.display = 'none';
+                            // Show list view
+                            listView.style.display = 'block';
+
+                            // Show mobile notice
+                            const mobileNotice = document.querySelector('.mobile-view-notice');
+                            if (mobileNotice) {
+                                mobileNotice.style.display = 'block';
+                            }
+                        }
+                    }
+
                     // Real-time search as you type
                     const searchInput = document.getElementById('searchInput');
                     if (searchInput) {
