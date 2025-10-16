@@ -4924,31 +4924,19 @@
                     const groupedDisplay = groupedView ? window.getComputedStyle(groupedView).display : 'none';
                     const listDisplay = listView ? window.getComputedStyle(listView).display : 'none';
 
-                    console.log('Grid view computed display:', gridDisplay);
-                    console.log('Grouped view computed display:', groupedDisplay);
-                    console.log('List view computed display:', listDisplay);
-
                     if (gridDisplay !== 'none') {
                         checkboxes = gridView.querySelectorAll('.file-select-checkbox');
-                        console.log('Using grid view checkboxes');
                     } else if (groupedDisplay !== 'none') {
                         // For grouped view, only count visible checkboxes (from expanded folders)
                         checkboxes = getVisibleCheckboxesInGroupedView();
-                        console.log('Using grouped view checkboxes');
                     } else if (listDisplay !== 'none') {
                         checkboxes = listView.querySelectorAll('.file-select-checkbox');
-                        console.log('Using list view checkboxes');
                     } else {
                         // Fallback to all checkboxes if no view is clearly visible
                         checkboxes = document.querySelectorAll('.file-select-checkbox');
-                        console.log('Using fallback - all checkboxes');
                     }
 
-                    console.log('Found checkboxes in active view:', checkboxes.length);
-                    const checkedBoxes = Array.from(checkboxes).filter(cb => cb.checked);
-                    console.log('Checked checkboxes:', checkedBoxes.length);
-                    console.log('Sample checkbox states:', Array.from(checkboxes).slice(0, 3).map(cb => ({filename: cb.dataset.filename, checked: cb.checked})));
-                    const selectedCount = checkedBoxes.length;
+                    const selectedCount = Array.from(checkboxes).filter(cb => cb.checked).length;
                     const selectedCountSpan = document.getElementById('selectedCount');
                     const downloadCountSpan = document.getElementById('downloadCount');
                     const bulkDeleteBtn = document.getElementById('bulkDeleteBtn');
