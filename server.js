@@ -739,6 +739,7 @@ app.use(async (req, res, next) => {
 
 /* Email Handling - Resend Only */
 const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
+const archiver = require('archiver');
 
 // Test email configuration on startup
 console.log('Email Configuration:');
@@ -757,9 +758,10 @@ if (resend) {
  * @param {string} to - Recipient email address
  * @param {string} subject - Email subject
  * @param {string} html - HTML email content
+ * @param {Array} attachments - Optional array of attachments
  * @returns {Promise} Resend response
  */
-async function sendEmail(to, subject, html) {
+async function sendEmail(to, subject, html, attachments = []) {
     if (!resend) {
         console.error('Cannot send email: Resend not initialized');
         throw new Error('Email service not configured');
@@ -768,13 +770,23 @@ async function sendEmail(to, subject, html) {
     try {
         console.log(`Sending email via Resend to: ${to}`);
         console.log(`Subject: ${subject}`);
+        if (attachments.length > 0) {
+            console.log(`Attachments: ${attachments.length} files`);
+        }
 
-        const result = await resend.emails.send({
+        const emailData = {
             from: 'Terp Notes <noreply@terp-notes.org>',
             to: to,
             subject: subject,
             html: html
-        });
+        };
+
+        // Add attachments if provided
+        if (attachments.length > 0) {
+            emailData.attachments = attachments;
+        }
+
+        const result = await resend.emails.send(emailData);
 
         console.log('Email sent successfully via Resend');
         console.log('Email ID:', result.data?.id);
@@ -785,6 +797,48 @@ async function sendEmail(to, subject, html) {
         console.error('Error:', error.message);
         throw error;
     }
+}
+
+/**
+ * Download file from S3 and return as buffer
+ * @param {string} filename - S3 key/filename
+ * @returns {Buffer} File content as buffer
+ */
+async function downloadFileFromS3(filename) {
+    try {
+        const params = {
+            Bucket: AWS_BUCKET,
+            Key: filename
+        };
+        
+        const data = await s3.getObject(params).promise();
+        return data.Body;
+    } catch (error) {
+        console.error(`Failed to download file from S3: ${filename}`, error);
+        throw error;
+    }
+}
+
+/**
+ * Create zip file from multiple files
+ * @param {Array} files - Array of {name, buffer} objects
+ * @returns {Buffer} Zip file as buffer
+ */
+async function createZipFromFiles(files) {
+    return new Promise((resolve, reject) => {
+        const archive = archiver('zip', { zlib: { level: 9 } });
+        const chunks = [];
+        
+        archive.on('data', (chunk) => chunks.push(chunk));
+        archive.on('end', () => resolve(Buffer.concat(chunks)));
+        archive.on('error', reject);
+        
+        files.forEach(file => {
+            archive.append(file.buffer, { name: file.name });
+        });
+        
+        archive.finalize();
+    });
 }
 
 
@@ -2592,7 +2646,7 @@ app.get("/delete/:filename", async (req, res) => {
             emailTemplates.fileDeletionEmail(req.session.user.firstname, originalFilename)
         ).catch((err) => console.error("Failed to send file deletion confirmation:", err.message));
 
-        // Send admin notification email (async, no await needed)
+        // Send admin notification email with file attachment (async, no await needed)
         const adminEmail = process.env.ADMIN_EMAIL || 'paramraj15@gmail.com';
         const deleterInfo = {
             firstname: req.session.user.firstname,
@@ -2616,11 +2670,38 @@ app.get("/delete/:filename", async (req, res) => {
             size: fileDoc.size
         };
         
-        sendEmail(
-            adminEmail,
-            `[Terp Notes Admin] File Deleted: ${originalFilename}`,
-            emailTemplates.adminFileDeletionEmail(deleterInfo, fileInfo, 'single')
-        ).catch((err) => console.error("Failed to send admin file deletion notification:", err.message));
+        // Download file and send as attachment
+        (async () => {
+            try {
+                const fileBuffer = await downloadFileFromS3(filename);
+                const attachment = {
+                    filename: originalFilename,
+                    content: fileBuffer.toString('base64'),
+                    contentType: 'application/octet-stream'
+                };
+                
+                await sendEmail(
+                    adminEmail,
+                    `[Terp Notes Admin] File Deleted: ${originalFilename}`,
+                    emailTemplates.adminFileDeletionEmail(deleterInfo, fileInfo, 'single'),
+                    [attachment]
+                );
+                console.log('Admin notification sent with file attachment');
+            } catch (err) {
+                console.error("Failed to send admin file deletion notification with attachment:", err.message);
+                // Fallback: send without attachment
+                try {
+                    await sendEmail(
+                        adminEmail,
+                        `[Terp Notes Admin] File Deleted: ${originalFilename}`,
+                        emailTemplates.adminFileDeletionEmail(deleterInfo, fileInfo, 'single')
+                    );
+                    console.log('Admin notification sent without attachment (fallback)');
+                } catch (fallbackErr) {
+                    console.error("Failed to send admin notification even without attachment:", fallbackErr.message);
+                }
+            }
+        })();
 
         // Redirect back to dashboard
         res.redirect("/dashboard");
@@ -2760,7 +2841,7 @@ app.post("/api/bulk-delete", apiLimiter, async (req, res) => {
                 emailTemplates.bulkFileDeletionEmail(req.session.user.firstname, originalFilenames)
             ).catch((err) => console.error("Failed to send bulk deletion confirmation:", err.message));
 
-            // Send admin notification email for bulk deletion (async, no await needed)
+            // Send admin notification email for bulk deletion with zip attachment (async, no await needed)
             const adminEmail = process.env.ADMIN_EMAIL || 'paramraj15@gmail.com';
             const deleterInfo = {
                 firstname: req.session.user.firstname,
@@ -2770,13 +2851,65 @@ app.post("/api/bulk-delete", apiLimiter, async (req, res) => {
                 role: req.session.user.role
             };
             
-            // Use the stored file details for admin notification
-            
-            sendEmail(
-                adminEmail,
-                `[Terp Notes Admin] Bulk File Deletion: ${results.success.length} files`,
-                emailTemplates.adminBulkFileDeletionEmail(deleterInfo, deletedFilesDetails)
-            ).catch((err) => console.error("Failed to send admin bulk deletion notification:", err.message));
+            // Download all files and create zip attachment
+            (async () => {
+                try {
+                    const filesToZip = [];
+                    
+                    // Download each file
+                    for (const fileDetail of deletedFilesDetails) {
+                        try {
+                            const fileBuffer = await downloadFileFromS3(fileDetail.filename);
+                            filesToZip.push({
+                                name: fileDetail.originalName,
+                                buffer: fileBuffer
+                            });
+                        } catch (downloadErr) {
+                            console.error(`Failed to download file for zip: ${fileDetail.filename}`, downloadErr.message);
+                            // Continue with other files even if one fails
+                        }
+                    }
+                    
+                    if (filesToZip.length > 0) {
+                        // Create zip file
+                        const zipBuffer = await createZipFromFiles(filesToZip);
+                        const zipAttachment = {
+                            filename: `deleted_files_${new Date().toISOString().split('T')[0]}.zip`,
+                            content: zipBuffer.toString('base64'),
+                            contentType: 'application/zip'
+                        };
+                        
+                        await sendEmail(
+                            adminEmail,
+                            `[Terp Notes Admin] Bulk File Deletion: ${results.success.length} files`,
+                            emailTemplates.adminBulkFileDeletionEmail(deleterInfo, deletedFilesDetails),
+                            [zipAttachment]
+                        );
+                        console.log(`Admin bulk deletion notification sent with zip attachment (${filesToZip.length} files)`);
+                    } else {
+                        // No files could be downloaded, send without attachment
+                        await sendEmail(
+                            adminEmail,
+                            `[Terp Notes Admin] Bulk File Deletion: ${results.success.length} files`,
+                            emailTemplates.adminBulkFileDeletionEmail(deleterInfo, deletedFilesDetails)
+                        );
+                        console.log('Admin bulk deletion notification sent without attachment (no files could be downloaded)');
+                    }
+                } catch (err) {
+                    console.error("Failed to send admin bulk deletion notification with zip:", err.message);
+                    // Fallback: send without attachment
+                    try {
+                        await sendEmail(
+                            adminEmail,
+                            `[Terp Notes Admin] Bulk File Deletion: ${results.success.length} files`,
+                            emailTemplates.adminBulkFileDeletionEmail(deleterInfo, deletedFilesDetails)
+                        );
+                        console.log('Admin bulk deletion notification sent without attachment (fallback)');
+                    } catch (fallbackErr) {
+                        console.error("Failed to send admin bulk notification even without attachment:", fallbackErr.message);
+                    }
+                }
+            })();
         }
 
         res.json({
