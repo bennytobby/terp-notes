@@ -3437,8 +3437,25 @@
 
                 // Toggle file selection when clicking on file cards
                 function toggleFileSelection(filename) {
-                    // Find the checkbox for this file
-                    const checkbox = document.querySelector(`input[type="checkbox"][data-filename="${filename}"]`);
+                    // Find the checkbox for this file within the currently active view
+                    let checkbox;
+                    const gridView = document.getElementById('gridView');
+                    const groupedView = document.getElementById('groupedView');
+                    const listView = document.getElementById('listView');
+
+                    // Use getComputedStyle to get the actual computed display value
+                    const gridDisplay = gridView ? window.getComputedStyle(gridView).display : 'none';
+                    const groupedDisplay = groupedView ? window.getComputedStyle(groupedView).display : 'none';
+                    const listDisplay = listView ? window.getComputedStyle(listView).display : 'none';
+
+                    if (gridDisplay !== 'none') {
+                        checkbox = gridView.querySelector(`input[type="checkbox"][data-filename="${filename}"]`);
+                    } else if (groupedDisplay !== 'none') {
+                        checkbox = groupedView.querySelector(`input[type="checkbox"][data-filename="${filename}"]`);
+                    } else if (listDisplay !== 'none') {
+                        checkbox = listView.querySelector(`input[type="checkbox"][data-filename="${filename}"]`);
+                    }
+
                     if (checkbox) {
                         console.log('Before toggle - checkbox checked:', checkbox.checked);
                         // Toggle the checkbox
