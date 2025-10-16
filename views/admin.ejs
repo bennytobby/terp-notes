@@ -265,12 +265,41 @@
                                             <span class="user-role role-<%= currentUser.role %>">
                                                 <%= currentUser.role %>
                                             </span>
+                                            <% if (currentUser.analytics.isCurrentlyBanned) { %>
+                                                <span class="ban-badge" style="background: #EF4444; color: white; padding: 2px 8px; border-radius: 4px; font-size: 0.75rem; margin-left: 8px;">
+                                                    BANNED
+                                                </span>
+                                            <% } %>
                                         </div>
                                         <div class="meta-item">
                                             <strong>Joined:</strong>
-                                            <%= currentUser.createdAt ? new
-                                                Date(currentUser.createdAt).toLocaleDateString() : 'Unknown' %>
+                                            <%= currentUser.createdAt ? new Date(currentUser.createdAt).toLocaleDateString() : 'Unknown' %>
+                                            <small style="color: #6B7280;">(<%= currentUser.analytics.accountAge %> days ago)</small>
                                         </div>
+                                        <div class="meta-item">
+                                            <strong>Files:</strong>
+                                            <%= currentUser.analytics.filesUploaded %> uploaded, <%= currentUser.analytics.totalDownloads %> downloads
+                                        </div>
+                                        <div class="meta-item">
+                                            <strong>Reports:</strong>
+                                            <%= currentUser.analytics.filesReported %> made, <%= currentUser.analytics.filesOfUserReported %> against them
+                                        </div>
+                                        <% if (currentUser.analytics.banHistoryCount > 0) { %>
+                                            <div class="meta-item">
+                                                <strong>Ban History:</strong>
+                                                <%= currentUser.analytics.banHistoryCount %> incident(s)
+                                                <% if (currentUser.analytics.lastBanReason) { %>
+                                                    <small style="color: #EF4444;">(Last: <%= currentUser.analytics.lastBanReason %>)</small>
+                                                <% } %>
+                                            </div>
+                                        <% } %>
+                                        <% if (currentUser.analytics.latestUpload) { %>
+                                            <div class="meta-item">
+                                                <strong>Latest Activity:</strong>
+                                                <%= currentUser.analytics.latestUpload.originalName %> 
+                                                <small style="color: #6B7280;">(<%= new Date(currentUser.analytics.latestUpload.uploadDate).toLocaleDateString() %>)</small>
+                                            </div>
+                                        <% } %>
                                     </div>
                                 </div>
 
@@ -308,15 +337,29 @@
                                         <% if (user.userid !==currentUser.userid) { %>
                                             <% if (currentUser.isProtected) { %>
                                                 <span class="protected-badge"><img src="/images/icons/shield-check.png" alt="Protected" style="width: 36px; height: 36px; vertical-align: middle; margin-right: 10px;" /> Protected</span>
-                                                <% } else { %>
-                                                    <button class="button danger small delete-btn"
+                                            <% } else { %>
+                                                <!-- Ban/Unban Controls -->
+                                                <% if (currentUser.analytics.isCurrentlyBanned) { %>
+                                                    <button class="button success small unban-btn"
                                                         data-user-id="<%= currentUser.userid %>">
-                                                        Delete User
+                                                        Unban User
                                                     </button>
-                                                    <% } %>
-                                                        <% } else { %>
-                                                            <span class="current-user-badge">Current User</span>
-                                                            <% } %>
+                                                <% } else { %>
+                                                    <button class="button warning small ban-btn"
+                                                        data-user-id="<%= currentUser.userid %>"
+                                                        data-user-name="<%= currentUser.firstname %> <%= currentUser.lastname %>">
+                                                        Ban User
+                                                    </button>
+                                                <% } %>
+                                                
+                                                <button class="button danger small delete-btn"
+                                                    data-user-id="<%= currentUser.userid %>">
+                                                    Delete User
+                                                </button>
+                                            <% } %>
+                                        <% } else { %>
+                                            <span class="current-user-badge">Current User</span>
+                                        <% } %>
                                     </div>
                                 </div>
                             </div>
@@ -670,6 +713,95 @@
                         }
                     } catch (error) {
                         showNotification('Error deleting announcement', 'error');
+                    }
+                });
+            });
+
+            // Ban User Functionality
+            document.querySelectorAll('.ban-btn').forEach(btn => {
+                btn.addEventListener('click', async function () {
+                    const userId = this.dataset.userId;
+                    const userName = this.dataset.userName;
+                    
+                    // Show ban modal
+                    const banType = prompt(`Ban ${userName}:\n\n1. Type 'timed' for temporary ban (will ask for duration)\n2. Type 'permanent' for permanent ban\n\nEnter ban type:`);
+                    
+                    if (!banType || (banType !== 'timed' && banType !== 'permanent')) {
+                        return;
+                    }
+                    
+                    let banDuration = null;
+                    if (banType === 'timed') {
+                        const durationInput = prompt('Enter ban duration in hours (e.g., 24 for 1 day, 168 for 1 week):');
+                        if (!durationInput || isNaN(durationInput) || parseInt(durationInput) <= 0) {
+                            alert('Invalid duration. Please enter a positive number of hours.');
+                            return;
+                        }
+                        banDuration = parseInt(durationInput);
+                    }
+                    
+                    const banReason = prompt('Enter ban reason:');
+                    if (!banReason || banReason.trim() === '') {
+                        alert('Ban reason is required.');
+                        return;
+                    }
+                    
+                    if (!confirm(`Are you sure you want to ban ${userName}?\n\nType: ${banType}\n${banDuration ? `Duration: ${banDuration} hours` : 'Permanent'}\nReason: ${banReason}`)) {
+                        return;
+                    }
+
+                    try {
+                        const response = await fetch('/api/ban-user', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ 
+                                userId, 
+                                banType, 
+                                banReason, 
+                                banDuration 
+                            })
+                        });
+
+                        const result = await response.json();
+
+                        if (response.ok) {
+                            showNotification(`${userName} has been banned successfully!`, 'success');
+                            setTimeout(() => window.location.reload(), 1000);
+                        } else {
+                            showNotification('Error: ' + result.error, 'error');
+                        }
+                    } catch (error) {
+                        showNotification('Error banning user', 'error');
+                    }
+                });
+            });
+
+            // Unban User Functionality
+            document.querySelectorAll('.unban-btn').forEach(btn => {
+                btn.addEventListener('click', async function () {
+                    const userId = this.dataset.userId;
+                    
+                    if (!confirm(`Are you sure you want to unban this user?`)) {
+                        return;
+                    }
+
+                    try {
+                        const response = await fetch('/api/unban-user', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ userId })
+                        });
+
+                        const result = await response.json();
+
+                        if (response.ok) {
+                            showNotification('User unbanned successfully!', 'success');
+                            setTimeout(() => window.location.reload(), 1000);
+                        } else {
+                            showNotification('Error: ' + result.error, 'error');
+                        }
+                    } catch (error) {
+                        showNotification('Error unbanning user', 'error');
                     }
                 });
             });

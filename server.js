@@ -651,7 +651,7 @@ function sanitizeForHeader(filename) {
 }
 
 // Session validation middleware
-app.use((req, res, next) => {
+app.use(async (req, res, next) => {
     const publicRoutes = ['/', '/login', '/register', '/loginSubmit', '/registerSubmit', '/forgot-password', '/resend-verification', '/privacy', '/terms', '/contact', '/contact/submit', '/api/umd/professors', '/api/umd/courses', '/api/umd/professor-courses'];
     const publicRoutesRegex = /^\/(verify|reset-password)\/.+/; // Match /verify/:token and /reset-password/:token
 
@@ -674,6 +674,64 @@ app.use((req, res, next) => {
     // Protected routes require authentication
     if (!req.session.user && req.path !== '/logout') {
         return res.redirect('/login');
+    }
+
+    // Check if user is banned (for authenticated users)
+    if (req.session.user) {
+        try {
+            await ensureConnection();
+            const user = await client
+                .db(userCollection.db)
+                .collection(userCollection.collection)
+                .findOne({ userid: req.session.user.userid });
+
+            if (user && user.banStatus && user.banStatus.isBanned) {
+                // Check if timed ban has expired
+                if (user.banStatus.banType === 'timed' && user.banStatus.banExpiry && new Date() > user.banStatus.banExpiry) {
+                    // Ban expired, revert to viewer
+                    await client
+                        .db(userCollection.db)
+                        .collection(userCollection.collection)
+                        .updateOne(
+                            { userid: req.session.user.userid },
+                            {
+                                $set: {
+                                    role: 'viewer',
+                                    'banStatus.isBanned': false,
+                                    'banStatus.banType': null,
+                                    'banStatus.banReason': null,
+                                    'banStatus.bannedAt': null,
+                                    'banStatus.bannedBy': null,
+                                    'banStatus.banExpiry': null
+                                },
+                                $push: {
+                                    'banStatus.banHistory': {
+                                        action: 'expired_auto_unban',
+                                        timestamp: new Date(),
+                                        reason: 'Timed ban expired, automatically reverted to viewer'
+                                    }
+                                }
+                            }
+                        );
+                    
+                    // Update session
+                    req.session.user.role = 'viewer';
+                } else if (user.banStatus.isBanned) {
+                    // User is still banned, destroy session and redirect
+                    req.session.destroy();
+                    res.clearCookie('authToken');
+                    return res.render('error', {
+                        title: "Account Banned",
+                        message: `Your account has been banned. Reason: ${user.banStatus.banReason || 'Not specified'}. ${user.banStatus.banType === 'timed' && user.banStatus.banExpiry ? `Ban expires: ${new Date(user.banStatus.banExpiry).toLocaleString()}` : 'This is a permanent ban.'}`,
+                        link: "/contact",
+                        linkText: "Contact Support"
+                    });
+                }
+            }
+        } catch (error) {
+            console.error('Error checking ban status:', error);
+            // Continue if there's an error checking ban status
+        }
     }
 
     next();
@@ -2895,7 +2953,17 @@ app.post('/registerSubmit', registerLimiter, async function (req, res) {
             .findOne(conflictFilter);
 
         if (result) {
-            if (result.email === email) {
+            // Check if existing user is banned
+            if (result.banStatus && result.banStatus.isBanned) {
+                return res.render('error', {
+                    title: "Account Banned",
+                    message: `This email is associated with a banned account. Reason: ${result.banStatus.banReason || 'Not specified'}. ${result.banStatus.banType === 'timed' && result.banStatus.banExpiry ? `Ban expires: ${new Date(result.banStatus.banExpiry).toLocaleString()}` : 'This is a permanent ban.'}`,
+                    link: "/contact",
+                    linkText: "Contact Support"
+                });
+            }
+            
+            if (result.email === email || result.email === `${emailUsername}@umd.edu`) {
                 return res.render('error', {
                     title: "Email Already Registered",
                     message: "This email is already registered. Try logging in or use forgot password.",
@@ -2930,7 +2998,17 @@ app.post('/registerSubmit', registerLimiter, async function (req, res) {
             isProtected: false,
             isVerified: false,
             verificationToken: verificationToken,
-            createdAt: new Date()
+            createdAt: new Date(),
+            // Ban system fields
+            banStatus: {
+                isBanned: false,
+                banType: null, // 'timed' or 'permanent'
+                banReason: null,
+                bannedAt: null,
+                bannedBy: null,
+                banExpiry: null, // For timed bans
+                banHistory: [] // Track all ban/unban events
+            }
         };
 
         await client
@@ -3186,6 +3264,8 @@ app.get('/admin', async (req, res) => {
 
     try {
         await ensureConnection();
+        
+        // Get all users with enhanced analytics
         const users = await client
             .db(userCollection.db)
             .collection(userCollection.collection)
@@ -3209,10 +3289,71 @@ app.get('/admin', async (req, res) => {
             .sort({ createdAt: -1 })
             .toArray();
 
+        // Enhanced user analytics
+        const usersWithAnalytics = await Promise.all(users.map(async (user) => {
+            // Count files uploaded by this user
+            const filesUploaded = await client
+                .db(fileCollection.db)
+                .collection(fileCollection.collection)
+                .countDocuments({ uploadedBy: user.userid });
+
+            // Count files reported by this user
+            const filesReported = await client
+                .db(fileCollection.db)
+                .collection('reports')
+                .countDocuments({ reportedBy: user.userid });
+
+            // Count reports against this user's files
+            const filesOfUserReported = await client
+                .db(fileCollection.db)
+                .collection('reports')
+                .countDocuments({ fileUploader: user.userid });
+
+            // Get total downloads of user's files
+            const userFiles = await client
+                .db(fileCollection.db)
+                .collection(fileCollection.collection)
+                .find({ uploadedBy: user.userid }, { projection: { downloadCount: 1 } })
+                .toArray();
+            const totalDownloads = userFiles.reduce((sum, file) => sum + (file.downloadCount || 0), 0);
+
+            // Count ban history
+            const banHistoryCount = user.banStatus?.banHistory?.length || 0;
+
+            // Get user's latest activity (most recent file upload)
+            const latestUpload = await client
+                .db(fileCollection.db)
+                .collection(fileCollection.collection)
+                .findOne(
+                    { uploadedBy: user.userid },
+                    { projection: { uploadDate: 1, originalName: 1 }, sort: { uploadDate: -1 } }
+                );
+
+            // Calculate account age
+            const accountAge = user.createdAt ? Math.floor((new Date() - new Date(user.createdAt)) / (1000 * 60 * 60 * 24)) : 0;
+
+            return {
+                ...user,
+                analytics: {
+                    filesUploaded,
+                    filesReported,
+                    filesOfUserReported,
+                    totalDownloads,
+                    banHistoryCount,
+                    latestUpload,
+                    accountAge,
+                    isCurrentlyBanned: user.banStatus?.isBanned || false,
+                    banType: user.banStatus?.banType || null,
+                    banExpiry: user.banStatus?.banExpiry || null,
+                    lastBanReason: user.banStatus?.banHistory?.[user.banStatus.banHistory.length - 1]?.reason || null
+                }
+            };
+        }));
+
         res.render('admin', {
             title: "Admin Dashboard",
             user: req.session.user,
-            users: users,
+            users: usersWithAnalytics,
             reports: reports,
             announcements: announcements
         });
@@ -3529,6 +3670,137 @@ app.post('/api/update-user-role', async (req, res) => {
     } catch (error) {
         console.error('Error updating user role:', error);
         res.status(500).json({ error: 'Failed to update user role' });
+    }
+});
+
+// API: Ban user
+app.post('/api/ban-user', async (req, res) => {
+    if (!req.session.user || req.session.user.role !== 'admin') {
+        return res.status(401).json({ error: 'Unauthorized' });
+    }
+
+    try {
+        const { userId, banType, banReason, banDuration } = req.body;
+        
+        if (!userId || !banType || !banReason) {
+            return res.status(400).json({ error: 'Missing required fields' });
+        }
+
+        if (banType !== 'timed' && banType !== 'permanent') {
+            return res.status(400).json({ error: 'Invalid ban type' });
+        }
+
+        await ensureConnection();
+        
+        // Check if user exists
+        const user = await client
+            .db(userCollection.db)
+            .collection(userCollection.collection)
+            .findOne({ userid: userId });
+
+        if (!user) {
+            return res.status(404).json({ error: 'User not found' });
+        }
+
+        // Calculate ban expiry for timed bans
+        let banExpiry = null;
+        if (banType === 'timed' && banDuration) {
+            banExpiry = new Date();
+            banExpiry.setHours(banExpiry.getHours() + parseInt(banDuration));
+        }
+
+        // Update user with ban information
+        await client
+            .db(userCollection.db)
+            .collection(userCollection.collection)
+            .updateOne(
+                { userid: userId },
+                {
+                    $set: {
+                        role: 'banned',
+                        'banStatus.isBanned': true,
+                        'banStatus.banType': banType,
+                        'banStatus.banReason': banReason,
+                        'banStatus.bannedAt': new Date(),
+                        'banStatus.bannedBy': req.session.user.userid,
+                        'banStatus.banExpiry': banExpiry
+                    },
+                    $push: {
+                        'banStatus.banHistory': {
+                            action: 'banned',
+                            timestamp: new Date(),
+                            reason: banReason,
+                            bannedBy: req.session.user.userid,
+                            banType: banType,
+                            banExpiry: banExpiry
+                        }
+                    }
+                }
+            );
+
+        res.json({ success: true, message: 'User banned successfully' });
+    } catch (error) {
+        console.error('Ban user error:', error);
+        res.status(500).json({ error: 'Failed to ban user' });
+    }
+});
+
+// API: Unban user
+app.post('/api/unban-user', async (req, res) => {
+    if (!req.session.user || req.session.user.role !== 'admin') {
+        return res.status(401).json({ error: 'Unauthorized' });
+    }
+
+    try {
+        const { userId } = req.body;
+        
+        if (!userId) {
+            return res.status(400).json({ error: 'Missing user ID' });
+        }
+
+        await ensureConnection();
+        
+        // Check if user exists
+        const user = await client
+            .db(userCollection.db)
+            .collection(userCollection.collection)
+            .findOne({ userid: userId });
+
+        if (!user) {
+            return res.status(404).json({ error: 'User not found' });
+        }
+
+        // Update user to unban
+        await client
+            .db(userCollection.db)
+            .collection(userCollection.collection)
+            .updateOne(
+                { userid: userId },
+                {
+                    $set: {
+                        role: 'viewer', // Revert to viewer role
+                        'banStatus.isBanned': false,
+                        'banStatus.banType': null,
+                        'banStatus.banReason': null,
+                        'banStatus.bannedAt': null,
+                        'banStatus.bannedBy': null,
+                        'banStatus.banExpiry': null
+                    },
+                    $push: {
+                        'banStatus.banHistory': {
+                            action: 'unbanned',
+                            timestamp: new Date(),
+                            reason: 'Manually unbanned by admin',
+                            unbannedBy: req.session.user.userid
+                        }
+                    }
+                }
+            );
+
+        res.json({ success: true, message: 'User unbanned successfully' });
+    } catch (error) {
+        console.error('Unban user error:', error);
+        res.status(500).json({ error: 'Failed to unban user' });
     }
 });
 
