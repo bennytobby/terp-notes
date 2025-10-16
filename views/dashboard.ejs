@@ -3027,6 +3027,12 @@
                     return userRole === 'admin' || file.uploadedBy === userId;
                 }
 
+                // Check if user has any delete permissions at all
+                function userHasDeletePermissions() {
+                    const userRole = '<%= user.role %>';
+                    return userRole !== 'viewer';
+                }
+
                 // Duplicate function removed - using the one defined earlier that uses dashboardConfig
 
                 function getDeleteButton(file) {
@@ -4755,9 +4761,16 @@
                 // Initialize bulk actions
                 function initializeBulkActions() {
                     const bulkActions = document.getElementById('bulkActions');
+                    const bulkDeleteBtn = document.getElementById('bulkDeleteBtn');
+                    
                     if (bulkActions) {
                         // Show bulk actions in all views
                         bulkActions.style.display = 'flex';
+                    }
+
+                    // Hide bulk delete button if user has no delete permissions
+                    if (bulkDeleteBtn && !userHasDeletePermissions()) {
+                        bulkDeleteBtn.style.display = 'none';
                     }
 
                     // Initialize selected count
@@ -4799,7 +4812,6 @@
 
                 // Bulk Delete Functions
                 function resetAllSelections() {
-                    console.log('Resetting all selections due to view switch');
 
                     // Uncheck all checkboxes across all views
                     const allCheckboxes = document.querySelectorAll('.file-select-checkbox');
@@ -4826,7 +4838,7 @@
                     // Disable the bulk buttons
                     const bulkDeleteBtn = document.getElementById('bulkDeleteBtn');
                     const bulkDownloadBtn = document.getElementById('bulkDownloadBtn');
-                    if (bulkDeleteBtn) {
+                    if (bulkDeleteBtn && bulkDeleteBtn.style.display !== 'none') {
                         bulkDeleteBtn.disabled = true;
                         bulkDeleteBtn.style.opacity = '0.5';
                         bulkDeleteBtn.style.cursor = 'not-allowed';
@@ -4836,8 +4848,6 @@
                         bulkDownloadBtn.style.opacity = '0.5';
                         bulkDownloadBtn.style.cursor = 'not-allowed';
                     }
-
-                    console.log('All selections reset');
                 }
 
                 // Generate download URL with force download parameter
@@ -4939,8 +4949,6 @@
                     const bulkDownloadBtn = document.getElementById('bulkDownloadBtn');
                     const selectAllBtn = document.getElementById('selectAllBtn');
 
-                    console.log('Selected count:', selectedCount);
-
                     selectedCountSpan.textContent = selectedCount;
                     downloadCountSpan.textContent = selectedCount;
 
@@ -4951,20 +4959,24 @@
                         bulkDownloadBtn.style.opacity = '1';
                         bulkDownloadBtn.style.cursor = 'pointer';
 
-                        // Enable delete button
-                        bulkDeleteBtn.disabled = false;
-                        bulkDeleteBtn.style.opacity = '1';
-                        bulkDeleteBtn.style.cursor = 'pointer';
+                        // Enable delete button (only if it's visible and user has permissions)
+                        if (bulkDeleteBtn && bulkDeleteBtn.style.display !== 'none') {
+                            bulkDeleteBtn.disabled = false;
+                            bulkDeleteBtn.style.opacity = '1';
+                            bulkDeleteBtn.style.cursor = 'pointer';
+                        }
                     } else {
                         // Disable download button
                         bulkDownloadBtn.disabled = true;
                         bulkDownloadBtn.style.opacity = '0.5';
                         bulkDownloadBtn.style.cursor = 'not-allowed';
 
-                        // Disable delete button
-                        bulkDeleteBtn.disabled = true;
-                        bulkDeleteBtn.style.opacity = '0.5';
-                        bulkDeleteBtn.style.cursor = 'not-allowed';
+                        // Disable delete button (only if it's visible)
+                        if (bulkDeleteBtn && bulkDeleteBtn.style.display !== 'none') {
+                            bulkDeleteBtn.disabled = true;
+                            bulkDeleteBtn.style.opacity = '0.5';
+                            bulkDeleteBtn.style.cursor = 'not-allowed';
+                        }
                     }
 
                     // Update select all button text
