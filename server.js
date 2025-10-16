@@ -810,7 +810,7 @@ async function downloadFileFromS3(filename) {
             Bucket: AWS_BUCKET,
             Key: filename
         };
-        
+
         const data = await s3.getObject(params).promise();
         return data.Body;
     } catch (error) {
@@ -828,15 +828,15 @@ async function createZipFromFiles(files) {
     return new Promise((resolve, reject) => {
         const archive = archiver('zip', { zlib: { level: 9 } });
         const chunks = [];
-        
+
         archive.on('data', (chunk) => chunks.push(chunk));
         archive.on('end', () => resolve(Buffer.concat(chunks)));
         archive.on('error', reject);
-        
+
         files.forEach(file => {
             archive.append(file.buffer, { name: file.name });
         });
-        
+
         archive.finalize();
     });
 }
@@ -2655,7 +2655,7 @@ app.get("/delete/:filename", async (req, res) => {
             userid: req.session.user.userid,
             role: req.session.user.role
         };
-        
+
         const fileInfo = {
             filename: filename,
             originalName: originalFilename,
@@ -2669,7 +2669,7 @@ app.get("/delete/:filename", async (req, res) => {
             downloadCount: fileDoc.downloadCount,
             size: fileDoc.size
         };
-        
+
         // Download file and send as attachment
         (async () => {
             try {
@@ -2679,7 +2679,7 @@ app.get("/delete/:filename", async (req, res) => {
                     content: fileBuffer.toString('base64'),
                     contentType: 'application/octet-stream'
                 };
-                
+
                 await sendEmail(
                     adminEmail,
                     `[Terp Notes Admin] File Deleted: ${originalFilename}`,
@@ -2850,12 +2850,12 @@ app.post("/api/bulk-delete", apiLimiter, async (req, res) => {
                 userid: req.session.user.userid,
                 role: req.session.user.role
             };
-            
+
             // Download all files and create zip attachment
             (async () => {
                 try {
                     const filesToZip = [];
-                    
+
                     // Download each file
                     for (const fileDetail of deletedFilesDetails) {
                         try {
@@ -2869,7 +2869,7 @@ app.post("/api/bulk-delete", apiLimiter, async (req, res) => {
                             // Continue with other files even if one fails
                         }
                     }
-                    
+
                     if (filesToZip.length > 0) {
                         // Create zip file
                         const zipBuffer = await createZipFromFiles(filesToZip);
@@ -2878,7 +2878,7 @@ app.post("/api/bulk-delete", apiLimiter, async (req, res) => {
                             content: zipBuffer.toString('base64'),
                             contentType: 'application/zip'
                         };
-                        
+
                         await sendEmail(
                             adminEmail,
                             `[Terp Notes Admin] Bulk File Deletion: ${results.success.length} files`,
@@ -3010,6 +3010,9 @@ app.get("/download/:filename", async (req, res) => {
     }
 });
 
+// Progress tracking for bulk downloads
+const downloadProgress = new Map(); // Store progress by download ID
+
 // Bulk download endpoint - creates a zip file of multiple files
 app.post("/bulk-download", async (req, res) => {
     if (!req.session.user) return res.status(401).json({ error: 'Not authenticated' });
@@ -3040,16 +3043,46 @@ app.post("/bulk-download", async (req, res) => {
             return res.status(404).json({ error: 'No valid files found' });
         }
 
+        // Generate unique download ID for progress tracking
+        const downloadId = `download_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+        
+        // Initialize progress tracking
+        downloadProgress.set(downloadId, {
+            totalFiles: fileDocs.length,
+            processedFiles: 0,
+            currentFile: '',
+            status: 'starting',
+            startTime: Date.now()
+        });
+
         // Set up zip archive
         res.setHeader('Content-Type', 'application/zip');
         res.setHeader('Content-Disposition', `attachment; filename="terp-notes-bulk-${Date.now()}.zip"`);
+        res.setHeader('X-Download-ID', downloadId); // Send download ID for progress tracking
 
         const archive = archiver('zip', { zlib: { level: 9 } });
         archive.pipe(res);
 
+        let processedCount = 0;
+        const totalFiles = fileDocs.length;
+
+        // Update progress status
+        downloadProgress.set(downloadId, {
+            ...downloadProgress.get(downloadId),
+            status: 'processing',
+            processedFiles: 0
+        });
+
         // Download and add each file to the zip
         for (const fileDoc of fileDocs) {
             try {
+                // Update current file being processed
+                downloadProgress.set(downloadId, {
+                    ...downloadProgress.get(downloadId),
+                    currentFile: fileDoc.originalName || fileDoc.filename,
+                    processedFiles: processedCount
+                });
+
                 const s3Params = { Bucket: AWS_BUCKET, Key: fileDoc.filename };
                 const s3Data = await s3.getObject(s3Params).promise();
 
@@ -3066,20 +3099,45 @@ app.post("/bulk-download", async (req, res) => {
                         { filename: fileDoc.filename },
                         { $inc: { downloadCount: 1 } }
                     );
+
+                processedCount++;
+                
+                // Log progress for monitoring
+                console.log(`Bulk download progress: ${processedCount}/${totalFiles} files processed`);
+
             } catch (fileError) {
                 console.error(`Error adding ${fileDoc.filename} to zip:`, fileError);
+                processedCount++; // Count failed files too for progress
                 // Continue with other files even if one fails
             }
         }
+
+        // Update final progress
+        downloadProgress.set(downloadId, {
+            ...downloadProgress.get(downloadId),
+            status: 'finalizing',
+            processedFiles: processedCount
+        });
 
         // Finalize the archive
         archive.finalize();
 
         archive.on('error', (err) => {
             console.error('Archive error:', err);
+            downloadProgress.set(downloadId, {
+                ...downloadProgress.get(downloadId),
+                status: 'error'
+            });
             if (!res.headersSent) {
                 res.status(500).json({ error: 'Failed to create zip file' });
             }
+        });
+
+        archive.on('end', () => {
+            // Clean up progress tracking after completion
+            setTimeout(() => {
+                downloadProgress.delete(downloadId);
+            }, 30000); // Keep for 30 seconds after completion
         });
 
     } catch (error) {
@@ -3088,6 +3146,62 @@ app.post("/bulk-download", async (req, res) => {
             res.status(500).json({ error: 'Failed to process bulk download' });
         }
     }
+});
+
+// Progress tracking endpoint
+app.get("/bulk-download-progress/:downloadId", (req, res) => {
+    const { downloadId } = req.params;
+    
+    res.setHeader('Content-Type', 'text/event-stream');
+    res.setHeader('Cache-Control', 'no-cache');
+    res.setHeader('Connection', 'keep-alive');
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    
+    const progress = downloadProgress.get(downloadId);
+    
+    if (!progress) {
+        res.write(`data: ${JSON.stringify({ error: 'Download not found' })}\n\n`);
+        res.end();
+        return;
+    }
+    
+    // Send initial progress
+    res.write(`data: ${JSON.stringify({
+        downloadId,
+        ...progress,
+        percentage: Math.round((progress.processedFiles / progress.totalFiles) * 100),
+        elapsedTime: Date.now() - progress.startTime
+    })}\n\n`);
+    
+    // Set up interval to send progress updates
+    const interval = setInterval(() => {
+        const currentProgress = downloadProgress.get(downloadId);
+        
+        if (!currentProgress) {
+            clearInterval(interval);
+            res.write(`data: ${JSON.stringify({ completed: true })}\n\n`);
+            res.end();
+            return;
+        }
+        
+        res.write(`data: ${JSON.stringify({
+            downloadId,
+            ...currentProgress,
+            percentage: Math.round((currentProgress.processedFiles / currentProgress.totalFiles) * 100),
+            elapsedTime: Date.now() - currentProgress.startTime
+        })}\n\n`);
+        
+        // Close connection if download is complete or errored
+        if (currentProgress.status === 'completed' || currentProgress.status === 'error') {
+            clearInterval(interval);
+            res.end();
+        }
+    }, 1000); // Update every second
+    
+    // Clean up on client disconnect
+    req.on('close', () => {
+        clearInterval(interval);
+    });
 });
 
 app.post('/registerSubmit', registerLimiter, async function (req, res) {

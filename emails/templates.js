@@ -250,13 +250,13 @@ function adminFileDeletionEmail(deleterInfo, fileInfo, deletionType = 'single') 
 
         <h3 style="color: #374151; margin-top: 0;">🔍 Deletion Type</h3>
         <p style="color: #374151; line-height: 1.6;">${deletionType === 'single' ? 'Single file deletion' : `Bulk deletion (${deletionType} files)`}</p>
-        
+
         <div style="background: #F0F9FF; padding: 16px; border-radius: 8px; margin: 16px 0; border-left: 4px solid #0EA5E9;">
             <p style="color: #374151; line-height: 1.6; margin: 0;"><strong>📎 File Attached:</strong> The deleted file has been attached to this email for your records.</p>
         </div>
-        
+
         ${divider()}
-        
+
         <p style="color: #6B7280; font-size: 0.875rem;">This is an automated notification to help track file deletions on the platform.</p>
     `;
     return emailWrapper(content);
@@ -299,13 +299,13 @@ function adminBulkFileDeletionEmail(deleterInfo, deletedFiles) {
         <div style="max-height: 400px; overflow-y: auto; border: 1px solid #E5E7EB; border-radius: 8px; padding: 16px; margin: 16px 0;">
             ${fileList}
         </div>
-        
+
         <div style="background: #F0F9FF; padding: 16px; border-radius: 8px; margin: 16px 0; border-left: 4px solid #0EA5E9;">
             <p style="color: #374151; line-height: 1.6; margin: 0;"><strong>📎 Files Attached:</strong> All deleted files have been bundled into a ZIP archive and attached to this email for your records.</p>
         </div>
-        
+
         ${divider()}
-        
+
         <p style="color: #6B7280; font-size: 0.875rem;">This is an automated notification to help track bulk file deletions on the platform.</p>
     `;
     return emailWrapper(content);
