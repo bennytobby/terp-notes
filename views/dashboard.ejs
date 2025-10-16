@@ -3518,14 +3518,14 @@
 
                     if (checkbox) {
                         // Check if we're trying to select more than the limit
-                        const currentSelected = getSelectedCheckboxes().length;
+                        const currentSelected = document.querySelectorAll('.file-select-checkbox:checked').length;
                         const maxSelection = 20; // Match the download limit
-
+                        
                         if (!checkbox.checked && currentSelected >= maxSelection) {
                             showNotification(`You can only select up to ${maxSelection} files at once. Please deselect some files first.`, 'warning', 4000);
                             return;
                         }
-
+                        
                         // Toggle the checkbox
                         checkbox.checked = !checkbox.checked;
                         // Trigger the change event to update counters
@@ -4865,31 +4865,20 @@
                         const fileCard = event.target.closest('.clickable-file-card');
 
                         if (fileCard) {
-                            console.log('Clicked on file card:', fileCard);
-                            console.log('Event target:', event.target);
-                            console.log('Target tag name:', event.target.tagName);
-                            
                             // Don't trigger selection if clicking on buttons, links, or checkboxes
                             if (event.target.tagName === 'BUTTON' ||
                                 event.target.tagName === 'A' ||
                                 event.target.tagName === 'INPUT' ||
                                 event.target.closest('.file-actions') ||
                                 event.target.closest('.file-select-checkbox')) {
-                                console.log('Click ignored - button/link/checkbox');
                                 return; // Don't do anything for these elements
                             }
 
                             // Get the filename from the data attribute
                             const filename = fileCard.getAttribute('data-filename');
-                            console.log('Filename from card:', filename);
                             if (filename) {
-                                console.log('Calling toggleFileSelection for:', filename);
                                 toggleFileSelection(filename);
-                            } else {
-                                console.log('No filename found on card');
                             }
-                        } else {
-                            console.log('No clickable file card found');
                         }
                     });
                 }
