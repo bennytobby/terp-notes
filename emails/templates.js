@@ -211,6 +211,109 @@ function contactFormEmail(name, email, subject, message) {
     return emailWrapper(content);
 }
 
+/**
+ * Admin File Deletion Notification Email
+ */
+function adminFileDeletionEmail(deleterInfo, fileInfo, deletionType = 'single') {
+    const { firstname, lastname, email, userid, role } = deleterInfo;
+    const { filename, originalName, classCode, semester, year, professor, major, category, uploadDate, downloadCount, size } = fileInfo;
+    
+    const fileSize = size ? formatFileSize(size) : 'Unknown';
+    const uploadDateFormatted = uploadDate ? new Date(uploadDate).toLocaleDateString() : 'Unknown';
+    
+    const content = `
+        <h2 style="color: #DC2626; margin-top: 0;">🚨 File Deletion Alert</h2>
+        <p style="color: #374151; line-height: 1.6;">A file has been deleted from Terp Notes. Here are the details:</p>
+        
+        ${divider()}
+        
+        <h3 style="color: #374151; margin-top: 0;">👤 Who Deleted It</h3>
+        <div style="background: #FEF2F2; padding: 16px; border-radius: 8px; margin: 16px 0; border-left: 4px solid #DC2626;">
+            <p style="color: #374151; line-height: 1.6; margin: 0;"><strong>Name:</strong> ${firstname} ${lastname}</p>
+            <p style="color: #374151; line-height: 1.6; margin: 4px 0 0 0;"><strong>Email:</strong> ${email}</p>
+            <p style="color: #374151; line-height: 1.6; margin: 4px 0 0 0;"><strong>Username:</strong> ${userid}</p>
+            <p style="color: #374151; line-height: 1.6; margin: 4px 0 0 0;"><strong>Role:</strong> <span style="background: #E0E7FF; color: #4338CA; padding: 2px 6px; border-radius: 4px; font-size: 0.75rem;">${role}</span></p>
+        </div>
+        
+        <h3 style="color: #374151; margin-top: 0;">📁 File Details</h3>
+        <div style="background: #F3F4F6; padding: 16px; border-radius: 8px; margin: 16px 0;">
+            <p style="color: #374151; line-height: 1.6; margin: 0;"><strong>Original Name:</strong> ${originalName}</p>
+            <p style="color: #374151; line-height: 1.6; margin: 4px 0 0 0;"><strong>File Size:</strong> ${fileSize}</p>
+            <p style="color: #374151; line-height: 1.6; margin: 4px 0 0 0;"><strong>Upload Date:</strong> ${uploadDateFormatted}</p>
+            <p style="color: #374151; line-height: 1.6; margin: 4px 0 0 0;"><strong>Downloads:</strong> ${downloadCount || 0}</p>
+            ${classCode ? `<p style="color: #374151; line-height: 1.6; margin: 4px 0 0 0;"><strong>Class:</strong> ${classCode}</p>` : ''}
+            ${semester && year ? `<p style="color: #374151; line-height: 1.6; margin: 4px 0 0 0;"><strong>Semester:</strong> ${semester} ${year}</p>` : ''}
+            ${professor ? `<p style="color: #374151; line-height: 1.6; margin: 4px 0 0 0;"><strong>Professor:</strong> ${professor}</p>` : ''}
+            ${major ? `<p style="color: #374151; line-height: 1.6; margin: 4px 0 0 0;"><strong>Major:</strong> ${major}</p>` : ''}
+            ${category ? `<p style="color: #374151; line-height: 1.6; margin: 4px 0 0 0;"><strong>Category:</strong> ${category}</p>` : ''}
+        </div>
+        
+        <h3 style="color: #374151; margin-top: 0;">🔍 Deletion Type</h3>
+        <p style="color: #374151; line-height: 1.6;">${deletionType === 'single' ? 'Single file deletion' : `Bulk deletion (${deletionType} files)`}</p>
+        
+        ${divider()}
+        
+        <p style="color: #6B7280; font-size: 0.875rem;">This is an automated notification to help track file deletions on the platform.</p>
+    `;
+    return emailWrapper(content);
+}
+
+/**
+ * Admin Bulk File Deletion Notification Email
+ */
+function adminBulkFileDeletionEmail(deleterInfo, deletedFiles) {
+    const { firstname, lastname, email, userid, role } = deleterInfo;
+    const fileCount = deletedFiles.length;
+    
+    const fileList = deletedFiles.map(file => `
+        <div style="background: #F3F4F6; padding: 12px; border-radius: 6px; margin: 8px 0; border-left: 3px solid #DC2626;">
+            <p style="color: #374151; line-height: 1.4; margin: 0; font-weight: 600;">${file.originalName}</p>
+            <div style="display: flex; gap: 12px; margin-top: 4px; font-size: 0.875rem; color: #6B7280;">
+                ${file.classCode ? `<span>Class: ${file.classCode}</span>` : ''}
+                ${file.semester && file.year ? `<span>${file.semester} ${file.year}</span>` : ''}
+                ${file.professor ? `<span>Prof: ${file.professor}</span>` : ''}
+                <span>Downloads: ${file.downloadCount || 0}</span>
+            </div>
+        </div>
+    `).join('');
+    
+    const content = `
+        <h2 style="color: #DC2626; margin-top: 0;">🚨 Bulk File Deletion Alert</h2>
+        <p style="color: #374151; line-height: 1.6;"><strong>${fileCount} files</strong> have been deleted from Terp Notes in a bulk operation.</p>
+        
+        ${divider()}
+        
+        <h3 style="color: #374151; margin-top: 0;">👤 Who Deleted Them</h3>
+        <div style="background: #FEF2F2; padding: 16px; border-radius: 8px; margin: 16px 0; border-left: 4px solid #DC2626;">
+            <p style="color: #374151; line-height: 1.6; margin: 0;"><strong>Name:</strong> ${firstname} ${lastname}</p>
+            <p style="color: #374151; line-height: 1.6; margin: 4px 0 0 0;"><strong>Email:</strong> ${email}</p>
+            <p style="color: #374151; line-height: 1.6; margin: 4px 0 0 0;"><strong>Username:</strong> ${userid}</p>
+            <p style="color: #374151; line-height: 1.6; margin: 4px 0 0 0;"><strong>Role:</strong> <span style="background: #E0E7FF; color: #4338CA; padding: 2px 6px; border-radius: 4px; font-size: 0.75rem;">${role}</span></p>
+        </div>
+        
+        <h3 style="color: #374151; margin-top: 0;">📁 Deleted Files (${fileCount})</h3>
+        <div style="max-height: 400px; overflow-y: auto; border: 1px solid #E5E7EB; border-radius: 8px; padding: 16px; margin: 16px 0;">
+            ${fileList}
+        </div>
+        
+        ${divider()}
+        
+        <p style="color: #6B7280; font-size: 0.875rem;">This is an automated notification to help track bulk file deletions on the platform.</p>
+    `;
+    return emailWrapper(content);
+}
+
+// Helper function to format file size (reused from dashboard)
+function formatFileSize(bytes) {
+    if (!bytes || bytes === 0) return '0 B';
+    
+    const sizes = ['B', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(1024));
+    
+    if (i === 0) return `${bytes} ${sizes[i]}`;
+    return `${(bytes / Math.pow(1024, i)).toFixed(1)} ${sizes[i]}`;
+}
+
 module.exports = {
     verificationEmail,
     resendVerificationEmail,
@@ -222,6 +325,8 @@ module.exports = {
     fileDeletionEmail,
     bulkFileDeletionEmail,
     uploadSuccessEmail,
-    contactFormEmail
+    contactFormEmail,
+    adminFileDeletionEmail,
+    adminBulkFileDeletionEmail
 };
 

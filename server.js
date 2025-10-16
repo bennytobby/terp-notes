@@ -2584,13 +2584,43 @@ app.get("/delete/:filename", async (req, res) => {
             console.log(`File is deduplicated (${duplicateFiles} instances), keeping S3 file`);
         }
 
-        // Send email notification using template (async, no await needed)
+        // Send email notification to user using template (async, no await needed)
         const originalFilename = filename.split('_').slice(2).join('_'); // Extract original filename from S3 key
         sendEmail(
             req.session.user.email,
             "File Deleted - Terp Notes",
             emailTemplates.fileDeletionEmail(req.session.user.firstname, originalFilename)
         ).catch((err) => console.error("Failed to send file deletion confirmation:", err.message));
+
+        // Send admin notification email (async, no await needed)
+        const adminEmail = process.env.ADMIN_EMAIL || 'paramraj15@gmail.com';
+        const deleterInfo = {
+            firstname: req.session.user.firstname,
+            lastname: req.session.user.lastname,
+            email: req.session.user.email,
+            userid: req.session.user.userid,
+            role: req.session.user.role
+        };
+        
+        const fileInfo = {
+            filename: filename,
+            originalName: originalFilename,
+            classCode: fileDoc.classCode,
+            semester: fileDoc.semester,
+            year: fileDoc.year,
+            professor: fileDoc.professor,
+            major: fileDoc.major,
+            category: fileDoc.category,
+            uploadDate: fileDoc.uploadDate,
+            downloadCount: fileDoc.downloadCount,
+            size: fileDoc.size
+        };
+        
+        sendEmail(
+            adminEmail,
+            `[Terp Notes Admin] File Deleted: ${originalFilename}`,
+            emailTemplates.adminFileDeletionEmail(deleterInfo, fileInfo, 'single')
+        ).catch((err) => console.error("Failed to send admin file deletion notification:", err.message));
 
         // Redirect back to dashboard
         res.redirect("/dashboard");
@@ -2647,9 +2677,27 @@ app.post("/api/bulk-delete", apiLimiter, async (req, res) => {
             return res.status(403).json({ error: 'No files found that you can delete' });
         }
 
+        // Store detailed file information for admin notification before deletion
+        const deletedFilesDetails = [];
+
         // Process each file
         for (const file of deletableFiles) {
             try {
+                // Store file details before deletion for admin notification
+                deletedFilesDetails.push({
+                    filename: file.filename,
+                    originalName: file.originalName,
+                    classCode: file.classCode,
+                    semester: file.semester,
+                    year: file.year,
+                    professor: file.professor,
+                    major: file.major,
+                    category: file.category,
+                    uploadDate: file.uploadDate,
+                    downloadCount: file.downloadCount,
+                    size: file.size
+                });
+
                 // Check if file is deduplicated
                 const fileHash = file.fileHash;
                 const duplicateFiles = await client
@@ -2711,6 +2759,24 @@ app.post("/api/bulk-delete", apiLimiter, async (req, res) => {
                 "Files Deleted - Terp Notes",
                 emailTemplates.bulkFileDeletionEmail(req.session.user.firstname, originalFilenames)
             ).catch((err) => console.error("Failed to send bulk deletion confirmation:", err.message));
+
+            // Send admin notification email for bulk deletion (async, no await needed)
+            const adminEmail = process.env.ADMIN_EMAIL || 'paramraj15@gmail.com';
+            const deleterInfo = {
+                firstname: req.session.user.firstname,
+                lastname: req.session.user.lastname,
+                email: req.session.user.email,
+                userid: req.session.user.userid,
+                role: req.session.user.role
+            };
+            
+            // Use the stored file details for admin notification
+            
+            sendEmail(
+                adminEmail,
+                `[Terp Notes Admin] Bulk File Deletion: ${results.success.length} files`,
+                emailTemplates.adminBulkFileDeletionEmail(deleterInfo, deletedFilesDetails)
+            ).catch((err) => console.error("Failed to send admin bulk deletion notification:", err.message));
         }
 
         res.json({
