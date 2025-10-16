@@ -3627,6 +3627,7 @@
                                 }
 
                                 // Step 4: Confirm upload to backend
+                                console.log(`[CLIENT UPLOAD] Starting confirm-upload for ${file.name}`);
                                 const confirmResponse = await fetchWithTimeout('/api/confirm-upload', {
                                     method: 'POST',
                                     headers: { 'Content-Type': 'application/json' },
@@ -3647,8 +3648,10 @@
                                     })
                                 }, 15000); // 15 second timeout for confirming upload
 
+                                console.log(`[CLIENT UPLOAD] Confirm response status for ${file.name}:`, confirmResponse.status, confirmResponse.ok);
                                 if (!confirmResponse.ok) {
                                     const errorText = await confirmResponse.text();
+                                    console.error(`[CLIENT UPLOAD] Confirm failed for ${file.name}:`, errorText);
                                     throw new Error(`Failed to save file metadata (${confirmResponse.status}): ${errorText || 'Unknown error'}`);
                                 }
 
