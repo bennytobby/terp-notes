@@ -3457,14 +3457,10 @@
                     }
 
                     if (checkbox) {
-                        console.log('Before toggle - checkbox checked:', checkbox.checked);
                         // Toggle the checkbox
                         checkbox.checked = !checkbox.checked;
-                        console.log('After toggle - checkbox checked:', checkbox.checked);
                         // Trigger the change event to update counters
                         updateSelectedCount();
-                    } else {
-                        console.log('No checkbox found for filename:', filename);
                     }
                 }
 
