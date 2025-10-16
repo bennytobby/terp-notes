@@ -497,7 +497,7 @@
                                                                     <span class="scan-badge scan-pending">
                                                                         ⏳ Scanning...</span>
                                                                     <% } else if (file.virusScanStatus==='error' ) { %>
-                                                                        <span class="scan-badge scan-error" title="Scan Error: <%= file.virusScanDetails && file.virusScanDetails.error ? escapeHtml(file.virusScanDetails.error) : 'Scan failed' %>">⚠️ Scan Error</span>
+                                                                        <span class="scan-badge scan-error" title="Scan Error: <%= file.virusScanDetails && file.virusScanDetails.error ? file.virusScanDetails.error.replace(/"/g, '&quot;') : 'Scan failed' %>">⚠️ Scan Error</span>
                                                                         <% } %>
                                                         </div>
                                                         <% } %>
@@ -1804,20 +1804,17 @@
                     if (file.virusScanStatus) {
                         const status = file.virusScanStatus.toString().toLowerCase();
 
-                        // Error badge
+                        // Error badge - use getScanErrorBadge for tooltip support
                         if (config.error?.enabled && (status.includes('error') || status.includes('failed') || status.includes('virus'))) {
-                            const errorConfig = config.error;
-                            badges.push(`<span style="background: ${errorConfig.background}; color: ${errorConfig.color}; padding: 2px 6px; border-radius: 4px; font-size: 0.7rem; font-weight: 600;"><img src="${errorConfig.icon}" alt="${errorConfig.alt}" style="width: ${errorConfig.width}px; height: ${errorConfig.height}px; vertical-align: middle; margin-right: 4px;" onerror="this.style.display='none';" /> ${errorConfig.text}</span>`);
+                            badges.push(getScanErrorBadge(file));
                         }
-                        // Pending badge
+                        // Pending badge - use getScanningBadge for tooltip support
                         else if (config.pending?.enabled && (status.includes('pending') || status.includes('scanning'))) {
-                            const pendingConfig = config.pending;
-                            badges.push(`<span style="background: ${pendingConfig.background}; color: ${pendingConfig.color}; padding: 2px 6px; border-radius: 4px; font-size: 0.7rem; font-weight: 600;"><img src="${pendingConfig.icon}" alt="${pendingConfig.alt}" style="width: ${pendingConfig.width}px; height: ${pendingConfig.height}px; vertical-align: middle; margin-right: 4px;" onerror="this.style.display='none';" /> ${pendingConfig.text}</span>`);
+                            badges.push(getScanningBadge(file));
                         }
-                        // Scanned badge (only for clean/successful scans)
+                        // Scanned badge - use getScannedBadge for tooltip support
                         else if (config.scanned?.enabled && (status.includes('clean') || status.includes('scanned') || status === 'true')) {
-                            const scannedConfig = config.scanned;
-                            badges.push(`<span style="background: ${scannedConfig.background}; color: ${scannedConfig.color}; padding: 2px 6px; border-radius: 4px; font-size: 0.7rem; font-weight: 600;"><img src="${scannedConfig.icon}" alt="${scannedConfig.alt}" style="width: ${scannedConfig.width}px; height: ${scannedConfig.height}px; vertical-align: middle; margin-right: 4px;" onerror="this.style.display='none';" /> ${scannedConfig.text}</span>`);
+                            badges.push(getScannedBadge(file));
                         }
                     }
 
@@ -3347,10 +3344,10 @@
                 function getScanErrorBadge(file) {
                     let errorMessage = 'Scan failed';
                     let errorType = 'error';
-                    
+
                     if (file && file.virusScanDetails && file.virusScanDetails.error) {
                         const error = file.virusScanDetails.error;
-                        
+
                         // Parse common error types for user-friendly messages
                         if (error.includes('413') || error.includes('FileTooBig')) {
                             errorMessage = 'File too large for scanning';
@@ -3378,8 +3375,47 @@
                             errorMessage = error.length > 50 ? error.substring(0, 50) + '...' : error;
                         }
                     }
-                    
-                    return `<span class="scan-badge scan-error" title="Scan Error: ${escapeHtml(errorMessage)}" data-error-type="${errorType}">❌ Scan Error</span>`;
+
+                    // Use config-based styling for consistency
+                    const config = dashboardConfig?.statusBadges?.error || {};
+                    const background = config.background || '#FEF2F2';
+                    const color = config.color || '#DC2626';
+                    const icon = config.icon || '/images/icons/warning-triangle.png';
+                    const text = config.text || 'Scan Error';
+
+                    return `<span class="scan-badge scan-error" title="Scan Error: ${escapeHtml(errorMessage)}" data-error-type="${errorType}" style="background: ${background}; color: ${color}; padding: 2px 6px; border-radius: 4px; font-size: 0.7rem; font-weight: 600; cursor: help;"><img src="${icon}" alt="Scan Error" style="width: 16px; height: 16px; vertical-align: middle; margin-right: 4px;" onerror="this.style.display='none';" /> ${text}</span>`;
+                }
+
+                // Generate scanned badge with tooltip
+                function getScannedBadge(file) {
+                    const config = dashboardConfig?.statusBadges?.scanned || {};
+                    const background = config.background || '#FEF3C7';
+                    const color = config.color || '#D97706';
+                    const icon = config.icon || '/images/icons/security-shield-check.png';
+                    const text = config.text || 'Scanned';
+
+                    let tooltipMessage = 'No virus detected';
+
+                    // Add scan date if available
+                    if (file && file.virusScanDate) {
+                        const scanDate = new Date(file.virusScanDate).toLocaleDateString();
+                        tooltipMessage += ` (scanned on ${scanDate})`;
+                    }
+
+                    return `<span class="scan-badge scan-scanned" title="${escapeHtml(tooltipMessage)}" style="background: ${background}; color: ${color}; padding: 2px 6px; border-radius: 4px; font-size: 0.7rem; font-weight: 600; cursor: help;"><img src="${icon}" alt="Scanned" style="width: 16px; height: 16px; vertical-align: middle; margin-right: 4px;" onerror="this.style.display='none';" /> ${text}</span>`;
+                }
+
+                // Generate scanning badge with tooltip
+                function getScanningBadge(file) {
+                    const config = dashboardConfig?.statusBadges?.pending || {};
+                    const background = config.background || '#DBEAFE';
+                    const color = config.color || '#2563EB';
+                    const icon = config.icon || '/images/icons/clock-warning.png';
+                    const text = config.text || 'Scanning';
+
+                    const tooltipMessage = 'Virus scanner running';
+
+                    return `<span class="scan-badge scan-pending" title="${escapeHtml(tooltipMessage)}" style="background: ${background}; color: ${color}; padding: 2px 6px; border-radius: 4px; font-size: 0.7rem; font-weight: 600; cursor: help;"><img src="${icon}" alt="Scanning" style="width: 16px; height: 16px; vertical-align: middle; margin-right: 4px;" onerror="this.style.display='none';" /> ${text}</span>`;
                 }
 
                 // Enhanced Notification System with Queue/Stack Support
@@ -4904,12 +4940,13 @@
                         const fileCard = event.target.closest('.clickable-file-card');
 
                         if (fileCard) {
-                            // Don't trigger selection if clicking on buttons, links, or checkboxes
+                            // Don't trigger selection if clicking on buttons, links, checkboxes, or scan error badges
                             if (event.target.tagName === 'BUTTON' ||
                                 event.target.tagName === 'A' ||
                                 event.target.tagName === 'INPUT' ||
                                 event.target.closest('.file-actions') ||
-                                event.target.closest('.file-select-checkbox')) {
+                                event.target.closest('.file-select-checkbox') ||
+                                event.target.closest('.scan-error')) {
                                 return; // Don't do anything for these elements
                             }
 
@@ -4920,6 +4957,7 @@
                             }
                         }
                     });
+
                 }
 
                 // Filename truncation helper function
@@ -4931,6 +4969,7 @@
                         return `<span class="filename-truncated" title="${escapeHtml(filename)}">${escapeHtml(truncated)}</span>`;
                     }
                 }
+
 
                 // Bulk Delete Functions
                 function resetAllSelections() {
