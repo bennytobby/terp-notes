@@ -3437,18 +3437,13 @@
 
                 // Toggle file selection when clicking on file cards
                 function toggleFileSelection(filename) {
-                    console.log('toggleFileSelection called with filename:', filename);
                     // Find the checkbox for this file
                     const checkbox = document.querySelector(`input[type="checkbox"][data-filename="${filename}"]`);
-                    console.log('Found checkbox:', checkbox);
                     if (checkbox) {
                         // Toggle the checkbox
                         checkbox.checked = !checkbox.checked;
-                        console.log('Checkbox toggled to:', checkbox.checked);
                         // Trigger the change event to update counters
                         updateSelectedCount();
-                    } else {
-                        console.log('No checkbox found for filename:', filename);
                     }
                 }
 
@@ -4753,25 +4748,21 @@
 
                     // Add event delegation to handle file card clicks and prevent button interference
                     document.addEventListener('click', function(event) {
-                        console.log('Click event on:', event.target);
                         // Check if clicked element is a clickable file card
                         const fileCard = event.target.closest('.clickable-file-card');
-                        console.log('File card found:', fileCard);
-
+                        
                         if (fileCard) {
                             // Don't trigger selection if clicking on buttons, links, or checkboxes
-                            if (event.target.tagName === 'BUTTON' ||
-                                event.target.tagName === 'A' ||
+                            if (event.target.tagName === 'BUTTON' || 
+                                event.target.tagName === 'A' || 
                                 event.target.tagName === 'INPUT' ||
                                 event.target.closest('.file-actions') ||
                                 event.target.closest('.file-select-checkbox')) {
-                                console.log('Click ignored - button/link/checkbox');
                                 return; // Don't do anything for these elements
                             }
-
+                            
                             // Get the filename from the data attribute
                             const filename = fileCard.getAttribute('data-filename');
-                            console.log('Filename from card:', filename);
                             if (filename) {
                                 toggleFileSelection(filename);
                             }
@@ -4907,18 +4898,23 @@
                     const groupedView = document.getElementById('groupedView');
                     const listView = document.getElementById('listView');
 
-                    console.log('Grid view display:', gridView ? gridView.style.display : 'null');
-                    console.log('Grouped view display:', groupedView ? groupedView.style.display : 'null');
-                    console.log('List view display:', listView ? listView.style.display : 'null');
+                    // Use getComputedStyle to get the actual computed display value
+                    const gridDisplay = gridView ? window.getComputedStyle(gridView).display : 'none';
+                    const groupedDisplay = groupedView ? window.getComputedStyle(groupedView).display : 'none';
+                    const listDisplay = listView ? window.getComputedStyle(listView).display : 'none';
 
-                    if (gridView && gridView.style.display !== 'none') {
+                    console.log('Grid view computed display:', gridDisplay);
+                    console.log('Grouped view computed display:', groupedDisplay);
+                    console.log('List view computed display:', listDisplay);
+
+                    if (gridDisplay !== 'none') {
                         checkboxes = gridView.querySelectorAll('.file-select-checkbox');
                         console.log('Using grid view checkboxes');
-                    } else if (groupedView && groupedView.style.display !== 'none') {
+                    } else if (groupedDisplay !== 'none') {
                         // For grouped view, only count visible checkboxes (from expanded folders)
                         checkboxes = getVisibleCheckboxesInGroupedView();
                         console.log('Using grouped view checkboxes');
-                    } else if (listView && listView.style.display !== 'none') {
+                    } else if (listDisplay !== 'none') {
                         checkboxes = listView.querySelectorAll('.file-select-checkbox');
                         console.log('Using list view checkboxes');
                     } else {
