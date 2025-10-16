@@ -148,7 +148,7 @@
                 | <a href="/admin" class="logout-btn">Admin Panel</a>
                 <% } %>
                     | <a href="/profile" class="logout-btn">My Profile</a>
-                    | <a href="/logout" class="logout-btn">Logout</a>
+                    | <a href="/logout" class="logout-btn" onclick="return confirmLogout(event)">Logout</a>
         </div>
     </header>
 
@@ -6010,6 +6010,46 @@
                 // Debug: Confirm functions are loaded
                 console.log('Dashboard JavaScript loaded successfully');
                 console.log('switchView function available:', typeof switchView);
+            </script>
+
+            <script>
+                // Logout confirmation function
+                function confirmLogout(event) {
+                    event.preventDefault();
+
+                    const choice = confirm('How would you like to log out?\n\nClick OK to choose logout options\nClick Cancel to stay logged in');
+
+                    if (choice) {
+                        // Redirect to logout confirmation page
+                        window.location.href = '/logout';
+                    }
+
+                    return false;
+                }
+
+                // Listen for storage events to detect logout from other tabs
+                window.addEventListener('storage', function(e) {
+                    console.log('🔍 Storage event detected:', e.key, e.newValue);
+                    if (e.key === 'terpnotes_logout' && e.newValue === 'true') {
+                        console.log('🔍 Logout detected from another tab, redirecting...');
+                        // Another tab logged out, redirect to index with cache busting
+                        window.location.href = '/?loggedout=true&t=' + Date.now();
+                    }
+                });
+
+                // Also check localStorage periodically in case storage events don't fire
+                setInterval(function() {
+                    if (localStorage.getItem('terpnotes_logout') === 'true') {
+                        console.log('🔍 Periodic check detected logout, redirecting...');
+                        window.location.href = '/?loggedout=true&t=' + Date.now();
+                    }
+                }, 1000); // Check every second
+
+                // Listen for beforeunload to detect if this tab is being closed
+                window.addEventListener('beforeunload', function() {
+                    // Clear any logout flags when tab is closing
+                    localStorage.removeItem('terpnotes_logout');
+                });
             </script>
 
             <%- include('partials/footer') %>

@@ -883,6 +883,30 @@
                 });
             });
         });
+
+        // Listen for storage events to detect logout from other tabs
+        window.addEventListener('storage', function(e) {
+            console.log('🔍 Admin - Storage event detected:', e.key, e.newValue);
+            if (e.key === 'terpnotes_logout' && e.newValue === 'true') {
+                console.log('🔍 Admin - Logout detected from another tab, redirecting...');
+                // Another tab logged out, redirect to index with cache busting
+                window.location.href = '/?loggedout=true&t=' + Date.now();
+            }
+        });
+
+        // Also check localStorage periodically in case storage events don't fire
+        setInterval(function() {
+            if (localStorage.getItem('terpnotes_logout') === 'true') {
+                console.log('🔍 Admin - Periodic check detected logout, redirecting...');
+                window.location.href = '/?loggedout=true&t=' + Date.now();
+            }
+        }, 1000); // Check every second
+
+        // Listen for beforeunload to detect if this tab is being closed
+        window.addEventListener('beforeunload', function() {
+            // Clear any logout flags when tab is closing
+            localStorage.removeItem('terpnotes_logout');
+        });
     </script>
     <%- include('partials/footer') %>
 </body>

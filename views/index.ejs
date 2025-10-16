@@ -463,6 +463,121 @@
     </section>
 
     <%- include('partials/footer') %>
+
+    <!-- Notification Container -->
+    <div id="notificationContainer" style="position: fixed; top: 20px; right: 20px; z-index: 10000; max-width: 400px;"></div>
+
+    <script>
+        // Notification function
+        function showNotification(message, type = 'info') {
+            const container = document.getElementById('notificationContainer');
+            const notification = document.createElement('div');
+
+            const colors = {
+                success: '#10B981',
+                error: '#EF4444',
+                info: '#3B82F6',
+                warning: '#F59E0B'
+            };
+
+            notification.style.cssText = `
+                background: white;
+                border-left: 4px solid ${colors[type]};
+                border-radius: 8px;
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+                padding: 1rem;
+                margin-bottom: 0.5rem;
+                transform: translateX(100%);
+                transition: transform 0.3s ease;
+                font-size: 0.9rem;
+                color: #374151;
+            `;
+
+            notification.innerHTML = `
+                <div style="display: flex; align-items: center; gap: 0.5rem;">
+                    <div style="width: 8px; height: 8px; background: ${colors[type]}; border-radius: 50%;"></div>
+                    ${message}
+                </div>
+            `;
+
+            container.appendChild(notification);
+
+            // Animate in
+            setTimeout(() => {
+                notification.style.transform = 'translateX(0)';
+            }, 10);
+
+            // Auto remove after 3 seconds
+            setTimeout(() => {
+                notification.style.transform = 'translateX(100%)';
+                setTimeout(() => {
+                    if (container.contains(notification)) {
+                        container.removeChild(notification);
+                    }
+                }, 300);
+            }, 3000);
+        }
+
+        // Handle automatic login for existing sessions
+        document.addEventListener('DOMContentLoaded', function() {
+            // Show logout confirmation if user just logged out
+            <% if (loggedout) { %>
+                showNotification('You have been successfully logged out of all tabs.', 'success');
+            <% } %>
+
+            // Check session status immediately on page load
+            checkSessionStatus();
+
+            // Add click handlers to login buttons to show loading state
+            const loginButtons = document.querySelectorAll('a[href="/login"]');
+
+            loginButtons.forEach(button => {
+                button.addEventListener('click', function(e) {
+                    // Add loading state
+                    const originalText = this.textContent;
+                    this.textContent = 'Checking...';
+                    this.style.opacity = '0.7';
+                    this.style.pointerEvents = 'none';
+
+                    // Show notification
+                    showNotification('Checking for existing session...', 'info');
+
+                    // Check session status when login button is clicked
+                    checkSessionStatus();
+
+                    // If we're still here after a short delay, restore the button
+                    setTimeout(() => {
+                        if (this.textContent === 'Checking...') {
+                            this.textContent = originalText;
+                            this.style.opacity = '1';
+                            this.style.pointerEvents = 'auto';
+                        }
+                    }, 2000);
+                });
+            });
+        });
+
+        // Function to check session status and redirect if logged in
+        async function checkSessionStatus() {
+            try {
+                const response = await fetch('/api/session-status');
+                const data = await response.json();
+
+                if (data.loggedIn) {
+                    // User is already logged in, show notification and redirect
+                    showNotification(`Welcome back, ${data.user.firstname}! Redirecting to dashboard...`, 'success');
+
+                    // Redirect after a short delay to show the notification
+                    setTimeout(() => {
+                        window.location.href = '/dashboard';
+                    }, 1500);
+                }
+            } catch (error) {
+                console.error('Error checking session status:', error);
+                // If there's an error, just continue normally
+            }
+        }
+    </script>
 </body>
 
 </html>

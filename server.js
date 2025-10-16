@@ -248,6 +248,10 @@ app.use(session({
         maxAge: 24 * 60 * 60 * 1000, // 24 hours
         sameSite: 'lax',
         path: '/'
+    },
+    // Force new session for each login to prevent conflicts
+    genid: function(req) {
+        return require('crypto').randomBytes(16).toString('hex');
     }
 }));
 
@@ -657,14 +661,8 @@ app.use(async (req, res, next) => {
 
     const isPublicRoute = publicRoutes.includes(req.path) || publicRoutesRegex.test(req.path);
 
-    // Always restore session from JWT if available (for all routes, public or protected)
+    // Check if user is authenticated via session
     const sessionUser = req.session.user;
-    const authToken = req.cookies ? req.cookies.authToken : null;
-    const jwtUser = authToken ? verifyToken(authToken) : null;
-
-    if (jwtUser && !sessionUser) {
-        req.session.user = jwtUser;
-    }
 
     // Public routes don't require authentication
     if (isPublicRoute) {
@@ -672,18 +670,18 @@ app.use(async (req, res, next) => {
     }
 
     // Protected routes require authentication
-    if (!req.session.user && req.path !== '/logout') {
+    if (!sessionUser && req.path !== '/logout') {
         return res.redirect('/login');
     }
 
     // Check if user is banned (for authenticated users)
-    if (req.session.user) {
+    if (sessionUser) {
         try {
             await ensureConnection();
             const user = await client
                 .db(userCollection.db)
                 .collection(userCollection.collection)
-                .findOne({ userid: req.session.user.userid });
+                .findOne({ userid: sessionUser.userid });
 
             if (user && user.banStatus && user.banStatus.isBanned) {
                 // Check if timed ban has expired
@@ -1365,7 +1363,52 @@ const upload = multer({
 /* ROUTES */
 
 app.get('/', function (req, res) {
-    res.render('index', { title: "Terp Notes - Built for Terps, by Terps" });
+    // Debug logging
+    console.log('🔍 Index Route Debug:');
+    console.log('  Session exists:', !!req.session);
+    console.log('  User exists:', !!req.session?.user);
+    console.log('  User role:', req.session?.user?.role);
+    console.log('  User ID:', req.session?.user?.userid);
+    console.log('  Logged out parameter:', req.query.loggedout);
+    console.log('  Cache busting timestamp:', req.query.t);
+
+    // If this is a logout redirect, force session regeneration to clear any cached data
+    if (req.query.loggedout === 'true') {
+        console.log('  → Logout redirect detected, forcing session regeneration');
+        req.session.regenerate((err) => {
+            if (err) {
+                console.error('Session regeneration error:', err);
+            } else {
+                console.log('  → Session regenerated successfully');
+            }
+
+            // Now check again after regeneration
+            if (req.session.user) {
+                console.log('  → Still has user after regeneration, redirecting to dashboard');
+                return res.redirect('/dashboard');
+            }
+
+            console.log('  → Rendering index page (no user session after regeneration)');
+            res.render('index', {
+                title: "Terp Notes - Built for Terps, by Terps",
+                loggedout: true
+            });
+        });
+        return;
+    }
+
+    // Check if user is already logged in
+    if (req.session.user) {
+        console.log('  → Redirecting to dashboard (user logged in)');
+        // User is already logged in, redirect to dashboard
+        return res.redirect('/dashboard');
+    }
+
+    console.log('  → Rendering index page (no user session)');
+    res.render('index', {
+        title: "Terp Notes - Built for Terps, by Terps",
+        loggedout: req.query.loggedout === 'true'
+    });
 });
 
 // Icon Test Page (for development/verification)
@@ -1819,11 +1862,50 @@ app.post('/contact/submit', async function (req, res) {
 });
 
 app.get('/register', function (req, res) {
+    // Check if user is already logged in
+    if (req.session.user) {
+        // User is already logged in, redirect to dashboard
+        return res.redirect('/dashboard');
+    }
+
     res.render('register', { title: "Register - Terp Notes" });
 });
 
 app.get('/login', function (req, res) {
+    // Debug logging
+    console.log('🔍 Login Route Debug:');
+    console.log('  Session exists:', !!req.session);
+    console.log('  User exists:', !!req.session?.user);
+    console.log('  User role:', req.session?.user?.role);
+    console.log('  User ID:', req.session?.user?.userid);
+
+    // Check if user is already logged in
+    if (req.session.user) {
+        console.log('  → Redirecting to dashboard (user already logged in)');
+        // User is already logged in, redirect to dashboard
+        return res.redirect('/dashboard');
+    }
+
+    console.log('  → Rendering login page (no user session)');
     res.render('login', { title: "Login - Terp Notes" });
+});
+
+// API endpoint to check session status
+app.get('/api/session-status', function (req, res) {
+    if (req.session.user) {
+        res.json({
+            loggedIn: true,
+            user: {
+                userid: req.session.user.userid,
+                firstname: req.session.user.firstname,
+                role: req.session.user.role
+            }
+        });
+    } else {
+        res.json({
+            loggedIn: false
+        });
+    }
 });
 
 app.get('/forgot-password', function (req, res) {
@@ -2536,14 +2618,40 @@ app.delete('/delete-account', async (req, res) => {
 });
 
 app.get('/logout', (req, res) => {
-    res.clearCookie('authToken');
-    req.session.destroy(err => {
-        if (err) {
-            console.error('Logout error:', err);
-            return res.status(500).send("Could not log out.");
-        }
-        res.redirect('/');
-    });
+    const logoutAll = req.query.all === 'true';
+
+    if (logoutAll) {
+        // Logout from all tabs - destroy session completely
+        console.log('🔍 Logout All Debug - Before session destroy:');
+        console.log('  Session exists:', !!req.session);
+        console.log('  User exists:', !!req.session?.user);
+        console.log('  User ID:', req.session?.user?.userid);
+
+        req.session.destroy(err => {
+            if (err) {
+                console.error('Logout error:', err);
+                return res.status(500).send("Could not log out.");
+            }
+
+            console.log('🔍 Logout All Debug - After session destroy:');
+            console.log('  Session destroyed successfully');
+
+            // Clear any session cookies and redirect to index
+            res.clearCookie('terpnotes.sid');
+            res.clearCookie('terpnotes.sid', { path: '/' });
+            res.clearCookie('terpnotes.sid', { path: '/', domain: 'localhost' });
+            res.clearCookie('terpnotes.sid', { path: '/', domain: '.localhost' });
+
+            // Force a cache-busting redirect
+            res.redirect('/?loggedout=true&t=' + Date.now());
+        });
+    } else {
+        // Logout from this tab only - show choice
+        return res.render('logout-confirm', {
+            title: "Log Out",
+            user: req.session.user || { firstname: 'User' }
+        });
+    }
 });
 
 // Edit file route
@@ -3426,23 +3534,31 @@ app.post('/loginSubmit', loginLimiter, async function (req, res) {
         const { firstname, lastname, userid: userId, email, role } = result;
         const userData = { firstname, lastname, userid: userId, email, role };
 
-        const token = createToken(userData);
-
         // Initialize session with timestamps for timeout tracking
         const now = Date.now();
-        req.session.user = userData;
-        req.session.createdAt = now;
-        req.session.lastActivity = now;
-        req.session.rememberMe = false; // Can be set to true if "Remember Me" checkbox is added
 
-        res.cookie('authToken', token, {
-            httpOnly: true,
-            secure: process.env.NODE_ENV === 'production',
-            maxAge: 24 * 60 * 60 * 1000,
-            sameSite: 'lax'
+        // Allow account switching but provide clear feedback
+        if (req.session.user && req.session.user.userid !== userId) {
+            console.log(`🔄 Account switch: ${req.session.user.userid} → ${userId}`);
+        }
+
+        // Regenerate session ID to prevent session fixation attacks
+        req.session.regenerate((err) => {
+            if (err) {
+                console.error('Session regeneration error:', err);
+                return res.status(500).send("Session error. Please try again.");
+            }
+
+            req.session.user = userData;
+            req.session.createdAt = now;
+            req.session.lastActivity = now;
+            req.session.rememberMe = false; // Can be set to true if "Remember Me" checkbox is added
+
+            // Set a flag to indicate successful login for tab synchronization
+            req.session.loginTimestamp = now;
+
+            return res.redirect('/dashboard');
         });
-
-        return res.redirect('/dashboard');
     } catch (e) {
         console.error(e);
         return res.status(500).send("Server error. Try again later.");
@@ -3596,12 +3712,41 @@ app.get('/admin', async (req, res) => {
         return res.redirect('/login');
     }
 
+    // Validate admin role and session integrity
     if (req.session.user.role !== 'admin') {
         return res.render('error', {
-            title: "Access Denied",
-            message: "You don't have permission to access the admin dashboard.",
+            title: "Access Restricted",
+            message: "Administrative access is required to view this page. Please contact your system administrator if you believe this is an error.",
             link: "/dashboard",
-            linkText: "Back to Dashboard"
+            linkText: "Return to Dashboard"
+        });
+    }
+
+    // Additional security check - verify user still exists and has admin role
+    try {
+        await ensureConnection();
+        const currentUser = await client
+            .db(userCollection.db)
+            .collection(userCollection.collection)
+            .findOne({ userid: req.session.user.userid });
+
+        if (!currentUser || currentUser.role !== 'admin') {
+            // Session compromised or user role changed
+            req.session.destroy();
+            return res.render('error', {
+                title: "Session Invalid",
+                message: "Your session is no longer valid. Please log in again to continue.",
+                link: "/login",
+                linkText: "Log In"
+            });
+        }
+    } catch (error) {
+        console.error('Error validating admin session:', error);
+        return res.render('error', {
+            title: "System Error",
+            message: "Unable to verify your access permissions. Please try again or contact support.",
+            link: "/dashboard",
+            linkText: "Return to Dashboard"
         });
     }
 
