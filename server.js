@@ -1553,16 +1553,19 @@ app.post('/api/confirm-upload', async (req, res) => {
         if (existingFile) {
             console.log(`[DEDUP] DUPLICATE FOUND! Deleting S3 file: ${s3Key}`);
             console.log(`[DEDUP] Existing file: ${existingFile.originalName} uploaded by ${existingFile.uploadedBy}`);
-            
+
             // Delete newly uploaded file from S3 (it's a duplicate)
             await s3.deleteObject({ Bucket: AWS_BUCKET, Key: s3Key }).promise();
 
-            return res.json({
+            console.log(`[DEDUP] Sending duplicate response for ${filename}`);
+            const response = {
                 success: true,
                 duplicate: true,
                 message: 'File already exists',
                 existingFile: existingFile
-            });
+            };
+            console.log(`[DEDUP] Response object:`, response);
+            return res.json(response);
         } else {
             console.log(`[DEDUP] NEW FILE - no duplicates found for hash: ${fileHash}`);
         }
@@ -1606,12 +1609,14 @@ app.post('/api/confirm-upload', async (req, res) => {
                 .catch(err => console.error('Error fetching file for scan:', err));
         }
 
-        res.json({
+        const response = {
             success: true,
             duplicate: false,
             fileId: insertResult.insertedId,
             message: 'File uploaded successfully'
-        });
+        };
+        console.log(`[DEDUP] Sending success response for ${filename}:`, response);
+        res.json(response);
     } catch (error) {
         console.error('Confirm upload error:', error);
         res.status(500).json({ error: 'Failed to save file metadata' });

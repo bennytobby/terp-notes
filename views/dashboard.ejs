@@ -3655,13 +3655,17 @@
                                 let result;
                                 try {
                                     result = await confirmResponse.json();
+                                    console.log(`[CLIENT DEDUP] Response for ${file.name}:`, result);
                                 } catch (jsonError) {
+                                    console.error(`[CLIENT DEDUP] JSON parse error for ${file.name}:`, jsonError);
                                     throw new Error(`Failed to parse confirm upload response: ${jsonError.message}`);
                                 }
 
                                 if (result.duplicate) {
+                                    console.log(`[CLIENT DEDUP] DUPLICATE detected for ${file.name}`);
                                     statusEl.textContent = `${file.name} already exists (skipped)`;
                                 } else {
+                                    console.log(`[CLIENT DEDUP] NEW FILE uploaded: ${file.name}`);
                                     successCount++;
                                 }
 
