@@ -3765,7 +3765,7 @@
                         } else if (duplicateCount > 0) {
                             statusEl.textContent = `Upload complete! ${successCount} uploaded, ${duplicateCount} context duplicates skipped, ${errorCount} failed`;
                         } else {
-                            statusEl.textContent = `Upload complete! ${successCount} uploaded, ${errorCount} failed`;
+                        statusEl.textContent = `Upload complete! ${successCount} uploaded, ${errorCount} failed`;
                         }
 
                         // Show success notification
@@ -4865,20 +4865,31 @@
                         const fileCard = event.target.closest('.clickable-file-card');
 
                         if (fileCard) {
+                            console.log('Clicked on file card:', fileCard);
+                            console.log('Event target:', event.target);
+                            console.log('Target tag name:', event.target.tagName);
+                            
                             // Don't trigger selection if clicking on buttons, links, or checkboxes
                             if (event.target.tagName === 'BUTTON' ||
                                 event.target.tagName === 'A' ||
                                 event.target.tagName === 'INPUT' ||
                                 event.target.closest('.file-actions') ||
                                 event.target.closest('.file-select-checkbox')) {
+                                console.log('Click ignored - button/link/checkbox');
                                 return; // Don't do anything for these elements
                             }
 
                             // Get the filename from the data attribute
                             const filename = fileCard.getAttribute('data-filename');
+                            console.log('Filename from card:', filename);
                             if (filename) {
+                                console.log('Calling toggleFileSelection for:', filename);
                                 toggleFileSelection(filename);
+                            } else {
+                                console.log('No filename found on card');
                             }
+                        } else {
+                            console.log('No clickable file card found');
                         }
                     });
                 }
@@ -4996,7 +5007,7 @@
 
                     if (checkedCount >= 2) {
                         // Button says "Deselect All" - deselect all files
-                        checkboxes.forEach(checkbox => {
+                    checkboxes.forEach(checkbox => {
                             checkbox.checked = false;
                         });
                         selectAllBtn.textContent = 'Select All';
@@ -5005,7 +5016,7 @@
                         if (checkboxes.length > maxSelection) {
                             // If we're selecting all and there are more than maxSelection files, limit to maxSelection
                             showNotification(`Selecting first ${maxSelection} files (limit reached). Use individual selection for more files.`, 'info', 4000);
-                            
+
                             // Select only the first maxSelection files
                             const limitedCheckboxes = Array.from(checkboxes).slice(0, maxSelection);
                             limitedCheckboxes.forEach(checkbox => {
@@ -5083,13 +5094,13 @@
                         // Enable delete button only if user has deletable files selected
                         if (bulkDeleteBtn && bulkDeleteBtn.style.display !== 'none') {
                             if (deletableCount > 0) {
-                                bulkDeleteBtn.disabled = false;
-                                bulkDeleteBtn.style.opacity = '1';
-                                bulkDeleteBtn.style.cursor = 'pointer';
-                            } else {
-                                bulkDeleteBtn.disabled = true;
-                                bulkDeleteBtn.style.opacity = '0.5';
-                                bulkDeleteBtn.style.cursor = 'not-allowed';
+                        bulkDeleteBtn.disabled = false;
+                        bulkDeleteBtn.style.opacity = '1';
+                        bulkDeleteBtn.style.cursor = 'pointer';
+                    } else {
+                        bulkDeleteBtn.disabled = true;
+                        bulkDeleteBtn.style.opacity = '0.5';
+                        bulkDeleteBtn.style.cursor = 'not-allowed';
                             }
                         }
                     } else {
