@@ -2396,6 +2396,46 @@ button:disabled {
   background: #FEE2E2;
   color: #991B1B;
   border: 1px solid #EF4444;
+  cursor: help;
+  position: relative;
+}
+
+/* Enhanced tooltip for scan error badges */
+.scan-error[title] {
+  position: relative;
+}
+
+.scan-error[title]:hover::after {
+  content: attr(title);
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #1F2937;
+  color: white;
+  padding: 0.5rem 0.75rem;
+  border-radius: 0.375rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  white-space: nowrap;
+  z-index: 1000;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  border: 1px solid #374151;
+  max-width: 300px;
+  white-space: normal;
+  text-align: center;
+  line-height: 1.4;
+}
+
+.scan-error[title]:hover::before {
+  content: '';
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%) translateY(100%);
+  border: 5px solid transparent;
+  border-top-color: #1F2937;
+  z-index: 1000;
 }
 
 @keyframes pulse-scan {

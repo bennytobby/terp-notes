@@ -497,7 +497,7 @@
                                                                     <span class="scan-badge scan-pending">
                                                                         ⏳ Scanning...</span>
                                                                     <% } else if (file.virusScanStatus==='error' ) { %>
-                                                                        <span class="scan-badge scan-error">⚠️ Scan Error</span>
+                                                                        <span class="scan-badge scan-error" title="Scan Error: <%= file.virusScanDetails && file.virusScanDetails.error ? escapeHtml(file.virusScanDetails.error) : 'Scan failed' %>">⚠️ Scan Error</span>
                                                                         <% } %>
                                                         </div>
                                                         <% } %>
@@ -3332,15 +3332,54 @@
                     return div.innerHTML;
                 }
 
-                function getScanBadge(status) {
+                function getScanBadge(status, file = null) {
                     if (status === 'clean') {
                         return '<span class="scan-badge scan-clean"><img src="/images/icons/security-shield-check.png" alt="Security" style="width: 24px; height: 24px; vertical-align: middle; margin-right: 6px;" />Virus Scanned</span>';
                     } else if (status === 'pending') {
                         return '<span class="scan-badge scan-pending">⏳ Scanning...</span>';
                     } else if (status === 'error') {
-                        return '<span class="scan-badge scan-error">❌ Scan Error</span>';
+                        return getScanErrorBadge(file);
                     }
                     return '';
+                }
+
+                // Generate scan error badge with tooltip showing specific error
+                function getScanErrorBadge(file) {
+                    let errorMessage = 'Scan failed';
+                    let errorType = 'error';
+                    
+                    if (file && file.virusScanDetails && file.virusScanDetails.error) {
+                        const error = file.virusScanDetails.error;
+                        
+                        // Parse common error types for user-friendly messages
+                        if (error.includes('413') || error.includes('FileTooBig')) {
+                            errorMessage = 'File too large for scanning';
+                            errorType = 'size';
+                        } else if (error.includes('400') || error.includes('Bad request')) {
+                            errorMessage = 'Invalid file format';
+                            errorType = 'format';
+                        } else if (error.includes('422') || error.includes('Unprocessable')) {
+                            errorMessage = 'File cannot be processed';
+                            errorType = 'process';
+                        } else if (error.includes('QuotaExceeded')) {
+                            errorMessage = 'Scan quota exceeded';
+                            errorType = 'quota';
+                        } else if (error.includes('timeout')) {
+                            errorMessage = 'Scan timed out';
+                            errorType = 'timeout';
+                        } else if (error.includes('permanent_error')) {
+                            errorMessage = 'Cannot be scanned (permanent error)';
+                            errorType = 'permanent';
+                        } else if (error.includes('max_attempts_reached')) {
+                            errorMessage = 'Scan failed after multiple attempts';
+                            errorType = 'attempts';
+                        } else {
+                            // Use the actual error message if it's user-friendly
+                            errorMessage = error.length > 50 ? error.substring(0, 50) + '...' : error;
+                        }
+                    }
+                    
+                    return `<span class="scan-badge scan-error" title="Scan Error: ${escapeHtml(errorMessage)}" data-error-type="${errorType}">❌ Scan Error</span>`;
                 }
 
                 // Enhanced Notification System with Queue/Stack Support
