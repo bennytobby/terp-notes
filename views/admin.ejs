@@ -381,6 +381,43 @@
         </div>
     </div>
 
+    <!-- Ban User Modal -->
+    <div id="banModal" class="modal" style="display: none;">
+        <div class="modal-content" style="max-width: 500px;">
+            <h3>Ban User</h3>
+            <p id="banUserInfo" style="color: var(--color-text-light); margin-bottom: 1.5rem;"></p>
+
+            <div style="margin-bottom: 1rem;">
+                <label for="banType" style="display: block; margin-bottom: 0.5rem; font-weight: 600;">Ban Type:</label>
+                <select id="banType" style="width: 100%; padding: 0.5rem; border: 1px solid #ddd; border-radius: 4px;">
+                    <option value="timed">Temporary Ban</option>
+                    <option value="permanent">Permanent Ban</option>
+                </select>
+            </div>
+
+            <div id="banDurationSection" style="margin-bottom: 1rem;">
+                <label for="banDuration" style="display: block; margin-bottom: 0.5rem; font-weight: 600;">Ban Duration:</label>
+                <select id="banDuration" style="width: 100%; padding: 0.5rem; border: 1px solid #ddd; border-radius: 4px;">
+                    <option value="24">1 Day</option>
+                    <option value="72">3 Days</option>
+                    <option value="168">1 Week</option>
+                    <option value="336">2 Weeks</option>
+                    <option value="720">1 Month</option>
+                </select>
+            </div>
+
+            <div style="margin-bottom: 1.5rem;">
+                <label for="banReason" style="display: block; margin-bottom: 0.5rem; font-weight: 600;">Ban Reason: <span style="color: #dc2626;">*</span></label>
+                <textarea id="banReason" placeholder="Enter the reason for banning this user..." style="width: 100%; padding: 0.5rem; border: 1px solid #ddd; border-radius: 4px; min-height: 80px; resize: vertical;"></textarea>
+            </div>
+
+            <div class="modal-actions">
+                <button id="banConfirmBtn" class="button danger">Ban User</button>
+                <button id="banCancelBtn" class="button secondary">Cancel</button>
+            </div>
+        </div>
+    </div>
+
     <script>
         // Notification System
         function showNotification(message, type = 'success') {
@@ -723,30 +760,52 @@
                     const userId = this.dataset.userId;
                     const userName = this.dataset.userName;
 
-                    // Show ban modal
-                    const banType = prompt(`Ban ${userName}:\n\n1. Type 'timed' for temporary ban (will ask for duration)\n2. Type 'permanent' for permanent ban\n\nEnter ban type:`);
+                    showBanModal(userId, userName);
+                });
+            });
 
-                    if (!banType || (banType !== 'timed' && banType !== 'permanent')) {
+            // Show Ban Modal
+            function showBanModal(userId, userName) {
+                const modal = document.getElementById('banModal');
+                const userInfo = document.getElementById('banUserInfo');
+                const banType = document.getElementById('banType');
+                const banDurationSection = document.getElementById('banDurationSection');
+                const banDuration = document.getElementById('banDuration');
+                const banReason = document.getElementById('banReason');
+
+                // Reset form
+                banType.value = 'timed';
+                banDuration.value = '24';
+                banReason.value = '';
+                banDurationSection.style.display = 'block';
+
+                // Set user info
+                userInfo.textContent = `You are about to ban: ${userName}`;
+
+                // Show modal
+                modal.style.display = 'flex';
+
+                // Handle ban type change
+                banType.addEventListener('change', function() {
+                    if (this.value === 'permanent') {
+                        banDurationSection.style.display = 'none';
+                    } else {
+                        banDurationSection.style.display = 'block';
+                    }
+                });
+
+                // Handle ban confirmation
+                document.getElementById('banConfirmBtn').onclick = async function() {
+                    const selectedBanType = banType.value;
+                    const selectedDuration = banDuration.value;
+                    const reason = banReason.value.trim();
+
+                    if (!reason) {
+                        showNotification('Ban reason is required!', 'error');
                         return;
                     }
 
-                    let banDuration = null;
-                    if (banType === 'timed') {
-                        const durationInput = prompt('Enter ban duration in hours (e.g., 24 for 1 day, 168 for 1 week):');
-                        if (!durationInput || isNaN(durationInput) || parseInt(durationInput) <= 0) {
-                            alert('Invalid duration. Please enter a positive number of hours.');
-                            return;
-                        }
-                        banDuration = parseInt(durationInput);
-                    }
-
-                    const banReason = prompt('Enter ban reason:');
-                    if (!banReason || banReason.trim() === '') {
-                        alert('Ban reason is required.');
-                        return;
-                    }
-
-                    if (!confirm(`Are you sure you want to ban ${userName}?\n\nType: ${banType}\n${banDuration ? `Duration: ${banDuration} hours` : 'Permanent'}\nReason: ${banReason}`)) {
+                    if (!confirm(`Are you sure you want to ban ${userName}?\n\nType: ${selectedBanType === 'timed' ? 'Temporary' : 'Permanent'}\n${selectedBanType === 'timed' ? `Duration: ${getDurationText(selectedDuration)}` : ''}\nReason: ${reason}`)) {
                         return;
                     }
 
@@ -756,9 +815,9 @@
                             headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify({
                                 userId,
-                                banType,
-                                banReason,
-                                banDuration
+                                banType: selectedBanType,
+                                banReason: reason,
+                                banDuration: selectedBanType === 'timed' ? parseInt(selectedDuration) : null
                             })
                         });
 
@@ -766,6 +825,7 @@
 
                         if (response.ok) {
                             showNotification(`${userName} has been banned successfully!`, 'success');
+                            modal.style.display = 'none';
                             setTimeout(() => window.location.reload(), 1000);
                         } else {
                             showNotification('Error: ' + result.error, 'error');
@@ -773,8 +833,25 @@
                     } catch (error) {
                         showNotification('Error banning user', 'error');
                     }
-                });
-            });
+                };
+
+                // Handle cancel
+                document.getElementById('banCancelBtn').onclick = function() {
+                    modal.style.display = 'none';
+                };
+            }
+
+            // Helper function to get duration text
+            function getDurationText(hours) {
+                const durationMap = {
+                    '24': '1 Day',
+                    '72': '3 Days',
+                    '168': '1 Week',
+                    '336': '2 Weeks',
+                    '720': '1 Month'
+                };
+                return durationMap[hours] || `${hours} hours`;
+            }
 
             // Unban User Functionality
             document.querySelectorAll('.unban-btn').forEach(btn => {

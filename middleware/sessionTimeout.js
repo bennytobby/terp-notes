@@ -19,7 +19,10 @@ function sessionTimeout(req, res, next) {
     const publicRoutes = ['/', '/login', '/register', '/forgot-password', '/reset-password', '/verify', '/contact', '/terms', '/privacy'];
     const isPublicRoute = publicRoutes.some(route => req.path === route || req.path.startsWith('/reset-password/') || req.path.startsWith('/verify/'));
 
-    if (isPublicRoute) {
+    // Skip for API routes (they handle their own authentication)
+    const isApiRoute = req.path.startsWith('/api/');
+
+    if (isPublicRoute || isApiRoute) {
         return next();
     }
 

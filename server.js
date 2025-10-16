@@ -716,6 +716,22 @@ app.use(async (req, res, next) => {
 
                     // Update session
                     req.session.user.role = 'viewer';
+
+                    // Send automatic unban notification email
+                    try {
+                        const { accountUnbannedEmail } = require('./emails/templates');
+                        const emailContent = accountUnbannedEmail(user.first_name || 'User');
+
+                        // Send email asynchronously (don't await to avoid blocking the request)
+                        sendEmail(
+                            user.email,
+                            'Account Restored - Terp Notes',
+                            emailContent
+                        ).catch((err) => console.error('Failed to send automatic unban email:', err.message));
+                    } catch (emailError) {
+                        console.error('Error sending automatic unban notification email:', emailError);
+                        // Don't fail the unban if email fails
+                    }
                 } else if (user.banStatus.isBanned) {
                     // User is still banned, destroy session and redirect
                     req.session.destroy();
@@ -2440,6 +2456,14 @@ app.delete('/delete-account', async (req, res) => {
             return res.status(403).json({ error: 'Cannot delete protected system account' });
         }
 
+        // Check if user is banned (banned users cannot delete their accounts)
+        if (userDoc.banStatus && userDoc.banStatus.isBanned) {
+            return res.status(403).json({
+                error: 'Account is banned',
+                message: `Your account is currently banned. Reason: ${userDoc.banStatus.banReason || 'Not specified'}. ${userDoc.banStatus.banType === 'timed' && userDoc.banStatus.banExpiry ? `Ban expires: ${new Date(userDoc.banStatus.banExpiry).toLocaleString()}` : 'This is a permanent ban.'}`
+            });
+        }
+
         console.log(`Deleting account for user: ${userId} (${userEmail})`);
 
         // Get all files uploaded by this user
@@ -3561,6 +3585,13 @@ app.post("/upload", uploadLimiter, upload.array("documents", 50), async (req, re
 
 // Admin Dashboard
 app.get('/admin', async (req, res) => {
+    // Debug logging
+    console.log('🔍 Admin Dashboard Debug:');
+    console.log('  Session exists:', !!req.session);
+    console.log('  User exists:', !!req.session?.user);
+    console.log('  User role:', req.session?.user?.role);
+    console.log('  User ID:', req.session?.user?.userid);
+
     if (!req.session.user) {
         return res.redirect('/login');
     }
@@ -3629,8 +3660,8 @@ app.get('/admin', async (req, res) => {
                 .toArray();
             const totalDownloads = userFiles.reduce((sum, file) => sum + (file.downloadCount || 0), 0);
 
-            // Count ban history
-            const banHistoryCount = user.banStatus?.banHistory?.length || 0;
+            // Count actual bans (exclude unbans and auto-unbans)
+            const banHistoryCount = user.banStatus?.banHistory?.filter(entry => entry.action === 'banned')?.length || 0;
 
             // Get user's latest activity (most recent file upload)
             const latestUpload = await client
@@ -3657,7 +3688,7 @@ app.get('/admin', async (req, res) => {
                     isCurrentlyBanned: user.banStatus?.isBanned || false,
                     banType: user.banStatus?.banType || null,
                     banExpiry: user.banStatus?.banExpiry || null,
-                    lastBanReason: user.banStatus?.banHistory?.[user.banStatus.banHistory.length - 1]?.reason || null
+                    lastBanReason: user.banStatus?.banHistory?.filter(entry => entry.action === 'banned')?.slice(-1)[0]?.reason || null
                 }
             };
         }));
@@ -3987,7 +4018,15 @@ app.post('/api/update-user-role', async (req, res) => {
 
 // API: Ban user
 app.post('/api/ban-user', async (req, res) => {
+    // Debug logging
+    console.log('🔍 Ban API Debug:');
+    console.log('  Session exists:', !!req.session);
+    console.log('  User exists:', !!req.session?.user);
+    console.log('  User role:', req.session?.user?.role);
+    console.log('  User ID:', req.session?.user?.userid);
+
     if (!req.session.user || req.session.user.role !== 'admin') {
+        console.log('❌ Unauthorized - Session or role check failed');
         return res.status(401).json({ error: 'Unauthorized' });
     }
 
@@ -4050,6 +4089,26 @@ app.post('/api/ban-user', async (req, res) => {
                 }
             );
 
+        // Send ban notification email
+        try {
+            const { accountBannedEmail } = require('./emails/templates');
+            const emailContent = accountBannedEmail(
+                user.first_name || 'User',
+                banReason,
+                banType,
+                banExpiry
+            );
+
+            await sendEmail(
+                user.email,
+                'Account Banned - Terp Notes',
+                emailContent
+            );
+        } catch (emailError) {
+            console.error('Error sending ban notification email:', emailError);
+            // Don't fail the ban if email fails
+        }
+
         res.json({ success: true, message: 'User banned successfully' });
     } catch (error) {
         console.error('Ban user error:', error);
@@ -4108,6 +4167,21 @@ app.post('/api/unban-user', async (req, res) => {
                     }
                 }
             );
+
+        // Send unban notification email
+        try {
+            const { accountUnbannedEmail } = require('./emails/templates');
+            const emailContent = accountUnbannedEmail(user.first_name || 'User');
+
+            await sendEmail(
+                user.email,
+                'Account Restored - Terp Notes',
+                emailContent
+            );
+        } catch (emailError) {
+            console.error('Error sending unban notification email:', emailError);
+            // Don't fail the unban if email fails
+        }
 
         res.json({ success: true, message: 'User unbanned successfully' });
     } catch (error) {

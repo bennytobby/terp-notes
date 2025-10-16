@@ -31,7 +31,9 @@
                 <a href="<%= link %>" class="button primary">
                     <%= linkText %>
                 </a>
-                <a href="/contact" class="button secondary">Need Help?</a>
+                <% if (link !== '/contact') { %>
+                    <a href="/contact" class="button secondary">Need Help?</a>
+                <% } %>
             </div>
         </div>
     </main>

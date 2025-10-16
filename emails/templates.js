@@ -322,6 +322,54 @@ function formatFileSize(bytes) {
     return `${(bytes / Math.pow(1024, i)).toFixed(1)} ${sizes[i]}`;
 }
 
+/**
+ * Account Banned Email
+ */
+function accountBannedEmail(firstname, banReason, banType, banExpiry) {
+    const banDurationText = banType === 'permanent' ? 'permanently' : `until ${new Date(banExpiry).toLocaleString()}`;
+
+    const content = `
+        <h2 style="color: #DC2626; margin-top: 0;">Account Banned</h2>
+        <p style="color: #374151; line-height: 1.6;">Hello ${firstname},</p>
+        <p style="color: #374151; line-height: 1.6;">Your Terp Notes account has been banned ${banDurationText}.</p>
+
+        <div style="background: #FEF2F2; border: 1px solid #FECACA; border-radius: 8px; padding: 16px; margin: 20px 0;">
+            <h3 style="color: #DC2626; margin: 0 0 8px 0; font-size: 1rem;">Ban Details:</h3>
+            <p style="margin: 4px 0; color: #374151;"><strong>Reason:</strong> ${banReason}</p>
+            <p style="margin: 4px 0; color: #374151;"><strong>Duration:</strong> ${banType === 'permanent' ? 'Permanent' : `Until ${new Date(banExpiry).toLocaleString()}`}</p>
+        </div>
+
+        <p style="color: #374151; line-height: 1.6;">If you believe this ban was issued in error, please contact our support team.</p>
+        ${button('https://terp-notes.org/contact', 'Contact Support')}
+
+        <p style="color: #6B7280; font-size: 0.875rem; margin-top: 24px;">This action was taken to maintain the quality and safety of our community.</p>
+    `;
+    return emailWrapper(content);
+}
+
+/**
+ * Account Unbanned Email
+ */
+function accountUnbannedEmail(firstname) {
+    const content = `
+        <h2 style="color: #10B981; margin-top: 0;">Account Restored</h2>
+        <p style="color: #374151; line-height: 1.6;">Hello ${firstname},</p>
+        <p style="color: #374151; line-height: 1.6;">Great news! Your Terp Notes account has been restored and you can now access the platform again.</p>
+
+        <div style="background: #F0FDF4; border: 1px solid #BBF7D0; border-radius: 8px; padding: 16px; margin: 20px 0;">
+            <h3 style="color: #10B981; margin: 0 0 8px 0; font-size: 1rem;">Account Status:</h3>
+            <p style="margin: 4px 0; color: #374151;"><strong>Status:</strong> Active</p>
+            <p style="margin: 4px 0; color: #374151;"><strong>Access:</strong> Full platform access restored</p>
+        </div>
+
+        <p style="color: #374151; line-height: 1.6;">You can now log in and continue using Terp Notes. Welcome back!</p>
+        ${button('https://terp-notes.org/login', 'Login to Terp Notes')}
+
+        <p style="color: #6B7280; font-size: 0.875rem; margin-top: 24px;">Thank you for your patience during this process.</p>
+    `;
+    return emailWrapper(content);
+}
+
 module.exports = {
     verificationEmail,
     resendVerificationEmail,
@@ -335,6 +383,8 @@ module.exports = {
     uploadSuccessEmail,
     contactFormEmail,
     adminFileDeletionEmail,
-    adminBulkFileDeletionEmail
+    adminBulkFileDeletionEmail,
+    accountBannedEmail,
+    accountUnbannedEmail
 };
 
