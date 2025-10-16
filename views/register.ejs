@@ -26,18 +26,18 @@
     <main class="centered">
         <div class="auth-form">
             <h1>Join Terp Notes</h1>
-            <form action="/registerSubmit" method="POST">
+            <form action="/registerSubmit" method="POST" novalidate>
                 <div class="form-group">
                     <label for="first_name">First Name<span class="req">*</span></label>
-                    <input type="text" name="first_name" id="first_name" required placeholder="John" />
+                    <input type="text" name="first_name" id="first_name" placeholder="John" />
                 </div>
                 <div class="form-group">
                     <label for="last_name">Last Name<span class="req">*</span></label>
-                    <input type="text" name="last_name" id="last_name" required placeholder="Doe" />
+                    <input type="text" name="last_name" id="last_name" placeholder="Doe" />
                 </div>
                 <div class="form-group">
                     <label for="userid">Username<span class="req">*</span></label>
-                    <input type="text" name="userid" id="userid" required placeholder="johndoe" />
+                    <input type="text" name="userid" id="userid" placeholder="johndoe" />
                     <div class="username-warning">
                         <strong><img src="/images/icons/warning-triangle.png" alt="Warning" style="width: 40px; height: 40px; vertical-align: middle; margin-right: 10px;" /> Important:</strong> Your username is <strong>permanent</strong> and cannot be changed
                         later. Choose carefully!
@@ -45,11 +45,11 @@
                 </div>
                 <div class="form-group">
                     <label for="email">Email<span class="req">*</span></label>
-                    <input type="email" name="email" id="email" required placeholder="john@terpmail.umd.edu" />
+                    <input type="email" name="email" id="email" placeholder="john@terpmail.umd.edu" />
                 </div>
                 <div class="form-group">
                     <label for="password">Password<span class="req">*</span></label>
-                    <input type="password" name="password" id="password" required
+                    <input type="password" name="password" id="password"
                         placeholder="Enter a secure password" />
                     <div class="password-requirements" style="margin-top: 0.5rem; padding: 0.75rem; background: #F3F4F6; border-radius: 6px; font-size: 0.813rem;">
                         <strong style="color: #374151;">Password must include:</strong>
@@ -70,7 +70,7 @@
                 </div>
                 <div class="form-group">
                     <label for="confirm_pass">Confirm Password<span class="req">*</span></label>
-                    <input type="password" name="confirm_pass" id="confirm_pass" required
+                    <input type="password" name="confirm_pass" id="confirm_pass"
                         placeholder="Re-enter your password" />
                 </div>
                 <div class="form-group terms-agreement">
@@ -81,7 +81,7 @@
                         </p>
 
                         <label class="checkbox-label" style="margin: 1rem 0; display: flex; align-items: flex-start;">
-                            <input type="checkbox" id="agreeTerms" name="agreeTerms" required
+                            <input type="checkbox" id="agreeTerms" name="agreeTerms"
                                 style="margin-top: 0.25rem; flex-shrink: 0;">
                             <span style="margin-left: 0.5rem;">I have read and accept the
                                 <a href="/terms" target="_blank"
@@ -91,7 +91,7 @@
                         </label>
 
                         <label class="checkbox-label" style="margin: 1rem 0; display: flex; align-items: flex-start;">
-                            <input type="checkbox" id="agreePrivacy" name="agreePrivacy" required
+                            <input type="checkbox" id="agreePrivacy" name="agreePrivacy"
                                 style="margin-top: 0.25rem; flex-shrink: 0;">
                             <span style="margin-left: 0.5rem;">I have read and accept the
                                 <a href="/privacy" target="_blank"
@@ -116,6 +116,9 @@
                     <input type="submit" value="Sign Up" class="button danger" id="submitBtn" />
                     <input type="reset" value="Clear" class="button secondary" />
                 </div>
+
+                <!-- Notification container -->
+                <div id="notificationContainer" style="margin-top: 1rem;"></div>
             </form>
             <div class="alt-link">
                 <p>Already have an account? <a href="/login">Login here</a></p>
@@ -124,6 +127,50 @@
     </main>
 
     <script>
+        // Notification system
+        function showNotification(message, type = 'error') {
+            const container = document.getElementById('notificationContainer');
+            const notification = document.createElement('div');
+
+            const bgColor = type === 'error' ? '#FEF2F2' : '#F0FDF4';
+            const borderColor = type === 'error' ? '#FECACA' : '#BBF7D0';
+            const textColor = type === 'error' ? '#DC2626' : '#16A34A';
+            const icon = type === 'error' ? '⚠️' : '✅';
+
+            notification.style.cssText = `
+                background: ${bgColor};
+                border: 1px solid ${borderColor};
+                color: ${textColor};
+                padding: 12px 16px;
+                border-radius: 8px;
+                margin-bottom: 0.5rem;
+                font-size: 0.875rem;
+                display: flex;
+                align-items: center;
+                animation: slideDown 0.3s ease;
+            `;
+
+            notification.innerHTML = `
+                <span style="margin-right: 8px; font-size: 1rem;">${icon}</span>
+                <span>${message}</span>
+            `;
+
+            container.innerHTML = '';
+            container.appendChild(notification);
+
+            // Auto-hide after 5 seconds
+            setTimeout(() => {
+                if (notification.parentNode) {
+                    notification.style.animation = 'slideUp 0.3s ease';
+                    setTimeout(() => {
+                        if (notification.parentNode) {
+                            notification.remove();
+                        }
+                    }, 300);
+                }
+            }, 5000);
+        }
+
         // Password match validation for registration
         document.addEventListener('DOMContentLoaded', function () {
             const passwordInput = document.getElementById('password');
@@ -164,6 +211,12 @@
                 if (requirements.number) score += 15;
                 if (requirements.special) score += 15;
 
+                // If all requirements are met, ensure 100% score
+                const allRequirementsMet = Object.values(requirements).every(req => req);
+                if (allRequirementsMet) {
+                    score = 100;
+                }
+
                 // Show strength indicator
                 const strengthBar = document.getElementById('strength-bar');
                 const strengthText = document.getElementById('strength-text');
@@ -173,7 +226,8 @@
                     strengthContainer.style.display = 'block';
                     strengthBar.style.width = score + '%';
 
-                    if (score >= 80) {
+                    // Show "Strong" only if ALL requirements are met
+                    if (allRequirementsMet) {
                         strengthBar.style.background = '#10B981'; // Green
                         strengthText.textContent = 'Strong password';
                         strengthText.style.color = '#10B981';
@@ -229,15 +283,19 @@
                     confirmPasswordInput.parentElement.appendChild(successDiv);
                 }
 
-                // Disable submit if passwords don't match OR terms/privacy not agreed
+                // Update button styling based on form validity
                 if (!passwordsValid || !termsAgreed || !privacyAgreed) {
-                    submitBtn.disabled = true;
-                    submitBtn.style.opacity = '0.5';
-                    submitBtn.style.cursor = 'not-allowed';
+                    submitBtn.disabled = false; // Keep button enabled for better UX
+                    submitBtn.style.opacity = '1';
+                    submitBtn.style.cursor = 'pointer';
+                    submitBtn.style.background = '#6B7280'; // Gray when not ready
+                    submitBtn.style.border = '1px solid #6B7280';
                 } else {
                     submitBtn.disabled = false;
                     submitBtn.style.opacity = '1';
                     submitBtn.style.cursor = 'pointer';
+                    submitBtn.style.background = 'var(--umd-red)'; // Red when ready
+                    submitBtn.style.border = '1px solid var(--umd-red)';
                 }
             }
 
@@ -248,6 +306,46 @@
 
             // Initial check
             checkFormValidity();
+
+            // Form submission validation
+            document.querySelector('form').addEventListener('submit', function(e) {
+                const firstName = document.getElementById('first_name').value.trim();
+                const lastName = document.getElementById('last_name').value.trim();
+                const username = document.getElementById('userid').value.trim();
+                const email = document.getElementById('email').value.trim();
+                const password = document.getElementById('password').value;
+                const confirmPassword = document.getElementById('confirm_pass').value;
+                const termsAgreed = document.getElementById('agreeTerms').checked;
+                const privacyAgreed = document.getElementById('agreePrivacy').checked;
+
+                const missingFields = [];
+
+                if (!firstName) missingFields.push('First Name');
+                if (!lastName) missingFields.push('Last Name');
+                if (!username) missingFields.push('Username');
+                if (!email) missingFields.push('Email');
+                if (!password) missingFields.push('Password');
+                if (!confirmPassword) missingFields.push('Confirm Password');
+                if (!termsAgreed) missingFields.push('Terms of Service agreement');
+                if (!privacyAgreed) missingFields.push('Privacy Policy agreement');
+
+                // Check password strength
+                const passwordStrong = checkPasswordStrength(password);
+                if (!passwordStrong) {
+                    missingFields.push('Password does not meet all requirements');
+                }
+
+                // Check password match
+                if (password && confirmPassword && password !== confirmPassword) {
+                    missingFields.push('Passwords do not match');
+                }
+
+                if (missingFields.length > 0) {
+                    e.preventDefault(); // Prevent form submission
+                    showNotification('Please complete the following required fields:<br>• ' + missingFields.join('<br>• '));
+                    return false;
+                }
+            });
         });
     </script>
 

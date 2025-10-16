@@ -33,19 +33,22 @@
                 <p style="margin: 0.5rem 0 0 0;" id="expiryMessage"></p>
             </div>
 
-            <form action="/loginSubmit" method="POST">
+            <form action="/loginSubmit" method="POST" novalidate>
                 <div class="form-group">
                     <label for="userid">Username<span class="req">*</span></label>
-                    <input type="text" name="userid" id="userid" required placeholder="Enter your username" />
+                    <input type="text" name="userid" id="userid" placeholder="Enter your username" />
                 </div>
                 <div class="form-group">
                     <label for="password">Password<span class="req">*</span></label>
-                    <input type="password" name="password" id="password" required placeholder="Enter your password" />
+                    <input type="password" name="password" id="password" placeholder="Enter your password" />
                 </div>
                 <div class="form-buttons">
-                    <input type="submit" value="Login" class="button danger" />
+                    <input type="submit" value="Login" class="button danger" id="loginBtn" />
                     <input type="reset" value="Clear" class="button secondary" />
                 </div>
+
+                <!-- Notification container -->
+                <div id="notificationContainer" style="margin-top: 1rem;"></div>
             </form>
             <div class="alt-link">
                 <p><a href="/forgot-password">Forgot your password?</a></p>
@@ -57,6 +60,50 @@
     <%- include('partials/footer') %>
 
     <script>
+        // Notification system
+        function showNotification(message, type = 'error') {
+            const container = document.getElementById('notificationContainer');
+            const notification = document.createElement('div');
+
+            const bgColor = type === 'error' ? '#FEF2F2' : '#F0FDF4';
+            const borderColor = type === 'error' ? '#FECACA' : '#BBF7D0';
+            const textColor = type === 'error' ? '#DC2626' : '#16A34A';
+            const icon = type === 'error' ? '⚠️' : '✅';
+
+            notification.style.cssText = `
+                background: ${bgColor};
+                border: 1px solid ${borderColor};
+                color: ${textColor};
+                padding: 12px 16px;
+                border-radius: 8px;
+                margin-bottom: 0.5rem;
+                font-size: 0.875rem;
+                display: flex;
+                align-items: center;
+                animation: slideDown 0.3s ease;
+            `;
+
+            notification.innerHTML = `
+                <span style="margin-right: 8px; font-size: 1rem;">${icon}</span>
+                <span>${message}</span>
+            `;
+
+            container.innerHTML = '';
+            container.appendChild(notification);
+
+            // Auto-hide after 5 seconds
+            setTimeout(() => {
+                if (notification.parentNode) {
+                    notification.style.animation = 'slideUp 0.3s ease';
+                    setTimeout(() => {
+                        if (notification.parentNode) {
+                            notification.remove();
+                        }
+                    }, 300);
+                }
+            }, 5000);
+        }
+
         // Check for session expired message in URL
         const urlParams = new URLSearchParams(window.location.search);
         if (urlParams.get('session_expired') === 'true') {
@@ -77,6 +124,26 @@
             // Clean URL (remove query params)
             window.history.replaceState({}, document.title, '/login');
         }
+
+        // Login form validation
+        document.addEventListener('DOMContentLoaded', function () {
+            // Form submission validation
+            document.querySelector('form').addEventListener('submit', function(e) {
+                const username = document.getElementById('userid').value.trim();
+                const password = document.getElementById('password').value;
+
+                const missingFields = [];
+
+                if (!username) missingFields.push('Username');
+                if (!password) missingFields.push('Password');
+
+                if (missingFields.length > 0) {
+                    e.preventDefault(); // Prevent form submission
+                    showNotification('Please complete the following required fields:<br>• ' + missingFields.join('<br>• '));
+                    return false;
+                }
+            });
+        });
     </script>
 </body>
 
