@@ -3520,12 +3520,12 @@
                         // Check if we're trying to select more than the limit
                         const currentSelected = document.querySelectorAll('.file-select-checkbox:checked').length;
                         const maxSelection = 20; // Match the download limit
-                        
+
                         if (!checkbox.checked && currentSelected >= maxSelection) {
                             showNotification(`You can only select up to ${maxSelection} files at once. Please deselect some files first.`, 'warning', 4000);
                             return;
                         }
-                        
+
                         // Toggle the checkbox
                         checkbox.checked = !checkbox.checked;
                         // Trigger the change event to update counters
