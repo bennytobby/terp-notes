@@ -4958,11 +4958,11 @@
                         // Find the file data to check if user can delete it
                         const fileCard = cb.closest('.clickable-file-card');
                         if (!fileCard) return false;
-                        
+
                         const userRole = '<%= user.role %>';
                         const userId = '<%= user.userid %>';
                         const uploader = fileCard.dataset.uploader;
-                        
+
                         return userRole === 'admin' || uploader === userId;
                     }).length;
 

@@ -1282,7 +1282,6 @@ app.get('/api/umd/courses', async (req, res) => {
                 .db(fileCollection.db)
                 .collection(fileCollection.collection)
                 .distinct('classCode');
-            await client.close();
 
             return res.json(existingCodes.map(code => ({ course_id: code, name: code })));
         }
@@ -1464,7 +1463,6 @@ app.get('/api/umd/majors', async (req, res) => {
                 .db(fileCollection.db)
                 .collection(fileCollection.collection)
                 .distinct('major');
-            await client.close();
 
             return res.json(existingMajors.map(m => ({ major_id: m, name: m })));
         }
@@ -1611,8 +1609,6 @@ app.post('/api/confirm-upload', async (req, res) => {
     } catch (error) {
         console.error('Confirm upload error:', error);
         res.status(500).json({ error: 'Failed to save file metadata' });
-    } finally {
-        await client.close();
     }
 });
 
@@ -1733,8 +1729,6 @@ app.post('/forgot-password', async (req, res) => {
             link: "/forgot-password",
             linkText: "Try Again"
         });
-    } finally {
-        await client.close();
     }
 });
 
@@ -1773,8 +1767,6 @@ app.get('/reset-password/:token', async (req, res) => {
             link: "/forgot-password",
             linkText: "Back to Forgot Password"
         });
-    } finally {
-        await client.close();
     }
 });
 
@@ -1857,8 +1849,6 @@ app.post('/reset-password/:token', async (req, res) => {
             link: "/forgot-password",
             linkText: "Back to Forgot Password"
         });
-    } finally {
-        await client.close();
     }
 });
 
@@ -1918,8 +1908,6 @@ app.get('/verify/:token', async (req, res) => {
             link: "/register",
             linkText: "Back to Registration"
         });
-    } finally {
-        await client.close();
     }
 });
 
@@ -1992,8 +1980,6 @@ app.post('/resend-verification', async (req, res) => {
             link: "/login",
             linkText: "Back to Login"
         });
-    } finally {
-        await client.close();
     }
 });
 
@@ -2049,8 +2035,6 @@ app.get('/dashboard', async (req, res) => {
     } catch (e) {
         console.error(e);
         res.status(500).send("Failed to load dashboard.");
-    } finally {
-        await client.close();
     }
 });
 
@@ -2078,8 +2062,6 @@ app.get('/profile', async (req, res) => {
             link: "/dashboard",
             linkText: "Back to Dashboard"
         });
-    } finally {
-        await client.close();
     }
 });
 
@@ -2181,8 +2163,6 @@ app.post('/update-profile', async (req, res) => {
             link: "/profile",
             linkText: "Back to Profile"
         });
-    } finally {
-        await client.close();
     }
 });
 
@@ -2280,8 +2260,6 @@ app.post('/change-password', async (req, res) => {
             link: "/profile",
             linkText: "Back to Profile"
         });
-    } finally {
-        await client.close();
     }
 });
 
@@ -2379,8 +2357,6 @@ app.delete('/delete-account', async (req, res) => {
             error: 'Failed to delete account',
             message: 'An error occurred while deleting your account. Please try again or contact support.'
         });
-    } finally {
-        await client.close();
     }
 });
 
@@ -2502,9 +2478,6 @@ app.get("/delete/:filename", async (req, res) => {
             console.log(` Dismissed ${deletedReports.deletedCount} report(s) for deleted file`);
         }
 
-        // Close MongoDB connection AFTER all database operations
-        await client.close();
-
         // NOW do S3 deletion (after MongoDB is done)
         if (duplicateFiles === 1) {
             await s3.deleteObject({ Bucket: AWS_BUCKET, Key: filename }).promise();
@@ -2525,7 +2498,6 @@ app.get("/delete/:filename", async (req, res) => {
         res.redirect("/dashboard");
     } catch (err) {
         console.error("Delete failed:", err);
-        await client.close();
         res.status(500).send("Error deleting file.");
     }
 });
@@ -2574,7 +2546,6 @@ app.post("/api/bulk-delete", apiLimiter, async (req, res) => {
         );
 
         if (deletableFiles.length === 0) {
-            await client.close();
             return res.status(403).json({ error: 'No files found that you can delete' });
         }
 
@@ -2634,8 +2605,6 @@ app.post("/api/bulk-delete", apiLimiter, async (req, res) => {
             });
         }
 
-        await client.close();
-
         // Send email notification for successful deletions
         if (results.success.length > 0) {
             const originalFilenames = results.success.map(f => f.originalName);
@@ -2659,7 +2628,6 @@ app.post("/api/bulk-delete", apiLimiter, async (req, res) => {
 
     } catch (error) {
         console.error("Bulk delete failed:", error);
-        await client.close();
         res.status(500).json({ error: 'Internal server error during bulk delete' });
     }
 });
@@ -2742,8 +2710,6 @@ app.get("/download/:filename", async (req, res) => {
     } catch (err) {
         console.error("S3 download error:", err);
         res.status(500).send("File could not be downloaded.");
-    } finally {
-        await client.close();
     }
 });
 
@@ -2962,8 +2928,6 @@ app.post('/registerSubmit', registerLimiter, async function (req, res) {
             link: "/register",
             linkText: "Back to Registration"
         });
-    } finally {
-        await client.close();
     }
 });
 
@@ -3028,8 +2992,6 @@ app.post('/loginSubmit', loginLimiter, async function (req, res) {
     } catch (e) {
         console.error(e);
         return res.status(500).send("Server error. Try again later.");
-    } finally {
-        await client.close();
     }
 });
 
@@ -3164,8 +3126,6 @@ app.post("/upload", uploadLimiter, upload.array("documents", 50), async (req, re
     } catch (err) {
         console.error("Upload failed:", err);
         res.status(500).send("File upload failed.");
-    } finally {
-        await client.close();
     }
 });
 
@@ -3224,8 +3184,6 @@ app.get('/admin', async (req, res) => {
             link: "/dashboard",
             linkText: "Back to Dashboard"
         });
-    } finally {
-        await client.close();
     }
 });
 
@@ -3323,8 +3281,6 @@ app.post('/api/resolve-report', apiLimiter, async (req, res) => {
     } catch (error) {
         console.error('Error resolving report:', error);
         res.status(500).json({ error: 'Failed to resolve report' });
-    } finally {
-        await client.close();
     }
 });
 
@@ -3375,8 +3331,6 @@ app.post('/api/report-file', apiLimiter, async (req, res) => {
     } catch (error) {
         console.error('Error submitting report:', error);
         res.status(500).json({ error: 'Failed to submit report' });
-    } finally {
-        await client.close();
     }
 });
 
@@ -3416,8 +3370,6 @@ app.post('/api/create-announcement', apiLimiter, async (req, res) => {
     } catch (error) {
         console.error('Error creating announcement:', error);
         res.status(500).json({ error: 'Failed to create announcement' });
-    } finally {
-        await client.close();
     }
 });
 
@@ -3445,8 +3397,6 @@ app.post('/api/delete-announcement', apiLimiter, async (req, res) => {
     } catch (error) {
         console.error('Error deleting announcement:', error);
         res.status(500).json({ error: 'Failed to delete announcement' });
-    } finally {
-        await client.close();
     }
 });
 
@@ -3490,8 +3440,6 @@ app.post('/api/toggle-announcement', apiLimiter, async (req, res) => {
     } catch (error) {
         console.error('Error toggling announcement:', error);
         res.status(500).json({ error: 'Failed to toggle announcement' });
-    } finally {
-        await client.close();
     }
 });
 
@@ -3541,8 +3489,6 @@ app.post('/api/update-user-role', async (req, res) => {
     } catch (error) {
         console.error('Error updating user role:', error);
         res.status(500).json({ error: 'Failed to update user role' });
-    } finally {
-        await client.close();
     }
 });
 
@@ -3612,8 +3558,6 @@ app.post('/api/delete-user', async (req, res) => {
     } catch (error) {
         console.error('Error deleting user:', error);
         res.status(500).json({ error: 'Failed to delete user' });
-    } finally {
-        await client.close();
     }
 });
 
