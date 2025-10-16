@@ -3030,6 +3030,8 @@
                 // Check if user has any delete permissions at all
                 function userHasDeletePermissions() {
                     const userRole = '<%= user.role %>';
+                    console.log('User role:', userRole);
+                    console.log('Has delete permissions:', userRole !== 'viewer');
                     return userRole !== 'viewer';
                 }
 
@@ -4762,7 +4764,7 @@
                 function initializeBulkActions() {
                     const bulkActions = document.getElementById('bulkActions');
                     const bulkDeleteBtn = document.getElementById('bulkDeleteBtn');
-                    
+
                     if (bulkActions) {
                         // Show bulk actions in all views
                         bulkActions.style.display = 'flex';
@@ -4770,7 +4772,11 @@
 
                     // Hide bulk delete button if user has no delete permissions
                     if (bulkDeleteBtn && !userHasDeletePermissions()) {
+                        console.log('Hiding bulk delete button - user has no delete permissions');
                         bulkDeleteBtn.style.display = 'none';
+                    } else if (bulkDeleteBtn) {
+                        console.log('Showing bulk delete button - user has delete permissions');
+                        bulkDeleteBtn.style.display = 'inline-block';
                     }
 
                     // Initialize selected count
@@ -4961,9 +4967,9 @@
 
                         // Enable delete button (only if it's visible and user has permissions)
                         if (bulkDeleteBtn && bulkDeleteBtn.style.display !== 'none') {
-                            bulkDeleteBtn.disabled = false;
-                            bulkDeleteBtn.style.opacity = '1';
-                            bulkDeleteBtn.style.cursor = 'pointer';
+                        bulkDeleteBtn.disabled = false;
+                        bulkDeleteBtn.style.opacity = '1';
+                        bulkDeleteBtn.style.cursor = 'pointer';
                         }
                     } else {
                         // Disable download button
@@ -4973,9 +4979,9 @@
 
                         // Disable delete button (only if it's visible)
                         if (bulkDeleteBtn && bulkDeleteBtn.style.display !== 'none') {
-                            bulkDeleteBtn.disabled = true;
-                            bulkDeleteBtn.style.opacity = '0.5';
-                            bulkDeleteBtn.style.cursor = 'not-allowed';
+                        bulkDeleteBtn.disabled = true;
+                        bulkDeleteBtn.style.opacity = '0.5';
+                        bulkDeleteBtn.style.cursor = 'not-allowed';
                         }
                     }
 
