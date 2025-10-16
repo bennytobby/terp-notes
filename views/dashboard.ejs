@@ -4991,27 +4991,33 @@
                     }
 
                     const selectAllBtn = document.getElementById('selectAllBtn');
-                    const allChecked = Array.from(checkboxes).every(cb => cb.checked);
+                    const checkedCount = Array.from(checkboxes).filter(cb => cb.checked).length;
                     const maxSelection = 20; // Match the download limit
 
-                    if (!allChecked && checkboxes.length > maxSelection) {
-                        // If we're selecting all and there are more than maxSelection files, limit to maxSelection
-                        showNotification(`Selecting first ${maxSelection} files (limit reached). Use individual selection for more files.`, 'info', 4000);
-
-                        // Select only the first maxSelection files
-                        const limitedCheckboxes = Array.from(checkboxes).slice(0, maxSelection);
-                        limitedCheckboxes.forEach(checkbox => {
-                            checkbox.checked = true;
-                        });
-
-                        selectAllBtn.textContent = 'Deselect All';
-                    } else {
-                        // Normal behavior: select/deselect all visible files
+                    if (checkedCount >= 2) {
+                        // Button says "Deselect All" - deselect all files
                         checkboxes.forEach(checkbox => {
-                            checkbox.checked = !allChecked;
+                            checkbox.checked = false;
                         });
-
-                        selectAllBtn.textContent = allChecked ? 'Select All' : 'Deselect All';
+                        selectAllBtn.textContent = 'Select All';
+                    } else {
+                        // Button says "Select All" - select files (with limit check)
+                        if (checkboxes.length > maxSelection) {
+                            // If we're selecting all and there are more than maxSelection files, limit to maxSelection
+                            showNotification(`Selecting first ${maxSelection} files (limit reached). Use individual selection for more files.`, 'info', 4000);
+                            
+                            // Select only the first maxSelection files
+                            const limitedCheckboxes = Array.from(checkboxes).slice(0, maxSelection);
+                            limitedCheckboxes.forEach(checkbox => {
+                                checkbox.checked = true;
+                            });
+                        } else {
+                            // Select all visible files
+                            checkboxes.forEach(checkbox => {
+                                checkbox.checked = true;
+                            });
+                        }
+                        selectAllBtn.textContent = 'Deselect All';
                     }
 
                     updateSelectedCount();
