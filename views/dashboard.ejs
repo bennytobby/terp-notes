@@ -3661,7 +3661,11 @@
 
                                 if (result.duplicate) {
                                     statusEl.textContent = `${file.name} already exists (skipped)`;
+                                } else if (result.reusedFromDifferentContext) {
+                                    statusEl.textContent = `${file.name} uploaded (reused from different context)`;
+                                    successCount++;
                                 } else {
+                                    statusEl.textContent = `${file.name} uploaded successfully`;
                                     successCount++;
                                 }
 
@@ -3694,9 +3698,9 @@
 
                         // Show completion message
                         if (duplicateCount > 0 && successCount === 0 && errorCount === 0) {
-                            statusEl.textContent = `All ${files.length} files already exist (skipped duplicates)`;
+                            statusEl.textContent = `All ${files.length} files already exist in same context (skipped)`;
                         } else if (duplicateCount > 0) {
-                            statusEl.textContent = `Upload complete! ${successCount} uploaded, ${duplicateCount} duplicates skipped, ${errorCount} failed`;
+                            statusEl.textContent = `Upload complete! ${successCount} uploaded, ${duplicateCount} context duplicates skipped, ${errorCount} failed`;
                         } else {
                             statusEl.textContent = `Upload complete! ${successCount} uploaded, ${errorCount} failed`;
                         }
@@ -3707,9 +3711,9 @@
                         } else if (successCount > 0 && errorCount > 0) {
                             showNotification(`Uploaded ${successCount} file${successCount > 1 ? 's' : ''}, ${errorCount} failed`, 'error', 5000);
                         } else if (duplicateCount > 0 && successCount === 0 && errorCount === 0) {
-                            showNotification(`All ${files.length} files already exist - duplicates skipped`, 'info', 4000);
+                            showNotification(`All ${files.length} files already exist in same context - skipped`, 'info', 4000);
                         } else if (duplicateCount > 0) {
-                            showNotification(`${successCount} uploaded, ${duplicateCount} duplicates skipped`, 'info', 4000);
+                            showNotification(`${successCount} uploaded, ${duplicateCount} context duplicates skipped`, 'info', 4000);
                         } else {
                             showNotification('Upload failed - please try again', 'error', 4000);
                         }

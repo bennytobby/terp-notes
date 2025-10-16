@@ -1543,45 +1543,80 @@ app.post('/api/confirm-upload', async (req, res) => {
     try {
         await ensureConnection();
 
-        // Check for duplicates
+        // Check for contextual duplicates (same content AND same context)
+        const normalizedClassCode = classCode.trim().toUpperCase();
+        const normalizedSemester = semester ? semester.trim() : '';
+        const normalizedYear = year ? year.trim() : '';
+        const normalizedProfessor = professor ? professor.trim() : '';
+
         const existingFile = await client
             .db(fileCollection.db)
             .collection(fileCollection.collection)
-            .findOne({ fileHash: fileHash });
+            .findOne({ 
+                fileHash: fileHash,
+                classCode: normalizedClassCode,
+                semester: normalizedSemester,
+                year: normalizedYear,
+                professor: normalizedProfessor
+            });
 
         if (existingFile) {
-            // Delete newly uploaded file from S3 (it's a duplicate)
+            // Delete newly uploaded file from S3 (it's a contextual duplicate)
             await s3.deleteObject({ Bucket: AWS_BUCKET, Key: s3Key }).promise();
 
             return res.json({
                 success: true,
                 duplicate: true,
-                message: 'File already exists',
+                message: 'File already exists in this context',
                 existingFile: existingFile
             });
         }
 
+        // Check if file exists in different context (same content, different metadata)
+        const existingFileDifferentContext = await client
+            .db(fileCollection.db)
+            .collection(fileCollection.collection)
+            .findOne({ fileHash: fileHash });
+
+        if (existingFileDifferentContext) {
+            // File exists but in different context - reuse S3 file, create new metadata entry
+            console.log(`File ${filename} exists in different context - reusing S3 file and creating new metadata entry`);
+        }
+
+        // Determine S3 file to use and whether to delete the new upload
+        let finalS3Key = s3Key;
+        let finalS3Url = s3Url;
+        let shouldDeleteNewS3File = false;
+
+        if (existingFileDifferentContext) {
+            // Reuse existing S3 file from different context
+            finalS3Key = existingFileDifferentContext.filename;
+            finalS3Url = existingFileDifferentContext.s3Url;
+            shouldDeleteNewS3File = true;
+            console.log(`Reusing S3 file: ${finalS3Key} for new context`);
+        }
+
         // Save file metadata
         const fileMeta = {
-            filename: s3Key,
+            filename: finalS3Key,
             originalName: filename,
-            s3Url: s3Url,
+            s3Url: finalS3Url,
             mimetype: filetype,
             size: filesize,
             fileHash: fileHash,
             uploadDate: new Date(),
             uploadedBy: req.session.user.userid,
             description: description || "",
-            classCode: classCode.trim().toUpperCase(),
-            major: major || classCode.replace(/[0-9]/g, '').trim(),
-            semester: semester || "",
-            year: year || "",
-            professor: professor || "",
+            classCode: normalizedClassCode,
+            major: major || normalizedClassCode.replace(/[0-9]/g, '').trim(),
+            semester: normalizedSemester,
+            year: normalizedYear,
+            professor: normalizedProfessor,
             category: category || "Other",
-            virusScanStatus: 'pending',
-            virusScanDate: null,
-            virusScanDetails: null,
-            scanAttempts: 0
+            virusScanStatus: existingFileDifferentContext ? existingFileDifferentContext.virusScanStatus : 'pending',
+            virusScanDate: existingFileDifferentContext ? existingFileDifferentContext.virusScanDate : null,
+            virusScanDetails: existingFileDifferentContext ? existingFileDifferentContext.virusScanDetails : null,
+            scanAttempts: existingFileDifferentContext ? (existingFileDifferentContext.scanAttempts || 0) : 0
         };
 
         const insertResult = await client
@@ -1589,9 +1624,19 @@ app.post('/api/confirm-upload', async (req, res) => {
             .collection(fileCollection.collection)
             .insertOne(fileMeta);
 
-        // Trigger background virus scan (download from S3 asynchronously)
-        if (VIRUSTOTAL_ENABLED) {
-            s3.getObject({ Bucket: AWS_BUCKET, Key: s3Key }).promise()
+        // Delete the newly uploaded S3 file if we're reusing an existing one
+        if (shouldDeleteNewS3File) {
+            try {
+                await s3.deleteObject({ Bucket: AWS_BUCKET, Key: s3Key }).promise();
+                console.log(`Deleted duplicate S3 file: ${s3Key}`);
+            } catch (s3DeleteError) {
+                console.error(`Error deleting duplicate S3 file ${s3Key}:`, s3DeleteError);
+            }
+        }
+
+        // Trigger background virus scan only for new files (not reused ones)
+        if (VIRUSTOTAL_ENABLED && !existingFileDifferentContext) {
+            s3.getObject({ Bucket: AWS_BUCKET, Key: finalS3Key }).promise()
                 .then(s3Data => {
                     scanFileWithVirusTotal(insertResult.insertedId, s3Data.Body, filename).catch(err => {
                         console.error('Background virus scan error:', err);
@@ -1604,7 +1649,8 @@ app.post('/api/confirm-upload', async (req, res) => {
             success: true,
             duplicate: false,
             fileId: insertResult.insertedId,
-            message: 'File uploaded successfully'
+            message: existingFileDifferentContext ? 'File uploaded successfully (reused from different context)' : 'File uploaded successfully',
+            reusedFromDifferentContext: !!existingFileDifferentContext
         });
     } catch (error) {
         console.error('Confirm upload error:', error);
