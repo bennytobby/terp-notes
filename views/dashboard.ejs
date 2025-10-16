@@ -3030,8 +3030,6 @@
                 // Check if user has any delete permissions at all
                 function userHasDeletePermissions() {
                     const userRole = '<%= user.role %>';
-                    console.log('User role:', userRole);
-                    console.log('Has delete permissions:', userRole !== 'viewer');
                     return userRole !== 'viewer';
                 }
 
@@ -4772,10 +4770,8 @@
 
                     // Hide bulk delete button if user has no delete permissions
                     if (bulkDeleteBtn && !userHasDeletePermissions()) {
-                        console.log('Hiding bulk delete button - user has no delete permissions');
                         bulkDeleteBtn.style.display = 'none';
                     } else if (bulkDeleteBtn) {
-                        console.log('Showing bulk delete button - user has delete permissions');
                         bulkDeleteBtn.style.display = 'inline-block';
                     }
 
@@ -4831,7 +4827,7 @@
                         selectAllBtn.textContent = 'Select All';
                     }
 
-                    // Update the selected count to 0
+                    // Update the selected counts to 0
                     const selectedCountSpan = document.getElementById('selectedCount');
                     const downloadCountSpan = document.getElementById('downloadCount');
                     if (selectedCountSpan) {
@@ -4955,21 +4951,43 @@
                     const bulkDownloadBtn = document.getElementById('bulkDownloadBtn');
                     const selectAllBtn = document.getElementById('selectAllBtn');
 
-                    selectedCountSpan.textContent = selectedCount;
+                    // Calculate deletable files count (only files user can delete)
+                    const deletableCount = Array.from(checkboxes).filter(cb => {
+                        if (!cb.checked) return false;
+                        const filename = cb.dataset.filename;
+                        // Find the file data to check if user can delete it
+                        const fileCard = cb.closest('.clickable-file-card');
+                        if (!fileCard) return false;
+                        
+                        const userRole = '<%= user.role %>';
+                        const userId = '<%= user.userid %>';
+                        const uploader = fileCard.dataset.uploader;
+                        
+                        return userRole === 'admin' || uploader === userId;
+                    }).length;
+
+                    // Update counts - download shows all selected, delete shows only deletable
+                    selectedCountSpan.textContent = deletableCount;
                     downloadCountSpan.textContent = selectedCount;
 
                     // Enable/disable bulk buttons
                     if (selectedCount > 0) {
-                        // Enable download button
+                        // Enable download button (if any files are selected)
                         bulkDownloadBtn.disabled = false;
                         bulkDownloadBtn.style.opacity = '1';
                         bulkDownloadBtn.style.cursor = 'pointer';
 
-                        // Enable delete button (only if it's visible and user has permissions)
+                        // Enable delete button only if user has deletable files selected
                         if (bulkDeleteBtn && bulkDeleteBtn.style.display !== 'none') {
-                        bulkDeleteBtn.disabled = false;
-                        bulkDeleteBtn.style.opacity = '1';
-                        bulkDeleteBtn.style.cursor = 'pointer';
+                            if (deletableCount > 0) {
+                                bulkDeleteBtn.disabled = false;
+                                bulkDeleteBtn.style.opacity = '1';
+                                bulkDeleteBtn.style.cursor = 'pointer';
+                            } else {
+                                bulkDeleteBtn.disabled = true;
+                                bulkDeleteBtn.style.opacity = '0.5';
+                                bulkDeleteBtn.style.cursor = 'not-allowed';
+                            }
                         }
                     } else {
                         // Disable download button
@@ -4979,9 +4997,9 @@
 
                         // Disable delete button (only if it's visible)
                         if (bulkDeleteBtn && bulkDeleteBtn.style.display !== 'none') {
-                        bulkDeleteBtn.disabled = true;
-                        bulkDeleteBtn.style.opacity = '0.5';
-                        bulkDeleteBtn.style.cursor = 'not-allowed';
+                            bulkDeleteBtn.disabled = true;
+                            bulkDeleteBtn.style.opacity = '0.5';
+                            bulkDeleteBtn.style.cursor = 'not-allowed';
                         }
                     }
 
