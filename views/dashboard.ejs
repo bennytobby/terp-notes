@@ -458,17 +458,54 @@
                                                                             </span>
                                                                             <% } %>
                                                                                         <%
-                                                                                            // Calculate days ago
+                                                                                            // Calculate age-based tag
                                                                                             const uploadDate = new Date(file.uploadDate);
                                                                                             const now = new Date();
                                                                                             const daysAgo = Math.floor((now - uploadDate) / (1000 * 60 * 60 * 24));
+                                                                                            const monthsAgo = Math.floor(daysAgo / 30);
+                                                                                            const yearsAgo = Math.floor(daysAgo / 365);
+
+                                                                                            // Format the upload date for tooltip
+                                                                                            const uploadDateFormatted = uploadDate.toLocaleDateString('en-US', {
+                                                                                                year: 'numeric',
+                                                                                                month: 'long',
+                                                                                                day: 'numeric'
+                                                                                            });
+
+                                                                                            let ageTag = {};
+                                                                                            if (daysAgo <= 7) {
+                                                                                                ageTag = {
+                                                                                                    text: daysAgo === 0 ? 'Today' : daysAgo === 1 ? '1 day ago' : `${daysAgo} days ago`,
+                                                                                                    style: 'background: #D1FAE5; color: #065F46;',
+                                                                                                    icon: 'new-badge.png',
+                                                                                                    tooltip: `Uploaded ${daysAgo === 0 ? 'today' : daysAgo === 1 ? '1 day ago' : `${daysAgo} days ago`} (${uploadDateFormatted})`
+                                                                                                };
+                                                                                            } else if (daysAgo <= 30) {
+                                                                                                ageTag = {
+                                                                                                    text: daysAgo <= 14 ? `${daysAgo} days ago` : `${Math.floor(daysAgo / 7)} weeks ago`,
+                                                                                                    style: 'background: #FEF3C7; color: #92400E;',
+                                                                                                    icon: 'clock.png',
+                                                                                                    tooltip: `Uploaded ${daysAgo} days ago (${uploadDateFormatted})`
+                                                                                                };
+                                                                                            } else if (yearsAgo < 2) {
+                                                                                                ageTag = {
+                                                                                                    text: monthsAgo === 1 ? '1 month ago' : `${monthsAgo} months ago`,
+                                                                                                    style: 'background: #FEF3C7; color: #92400E;',
+                                                                                                    icon: 'clock.png',
+                                                                                                    tooltip: `Uploaded ${monthsAgo === 1 ? '1 month ago' : `${monthsAgo} months ago`} (${uploadDateFormatted})`
+                                                                                                };
+                                                                                            } else {
+                                                                                                ageTag = {
+                                                                                                    text: 'Old',
+                                                                                                    style: 'background: #FEE2E2; color: #DC2626;',
+                                                                                                    icon: 'warning-triangle.png',
+                                                                                                    tooltip: `Uploaded ${yearsAgo} years ago (${uploadDateFormatted})`
+                                                                                                };
+                                                                                            }
                                                                                         %>
-                                                                                            <% if (daysAgo <= 7) { %>
-                                                                                                <span
-                                                                                                    style="background: #D1FAE5; color: #065F46; padding: 2px 8px; border-radius: 4px; font-size: 0.7rem; font-weight: 600;">
-                                                                                                    <img src="/images/icons/new-badge.png" alt="New" style="width: 24px; height: 24px; vertical-align: middle; margin-right: 6px;" /> New
-                                                                                                </span>
-                                                                                                <% } %>
+                                                                                            <span class="age-badge" title="<%= ageTag.tooltip %>" style="<%= ageTag.style %> padding: 2px 8px; border-radius: 4px; font-size: 0.7rem; font-weight: 600; cursor: help;">
+                                                                                                <img src="/images/icons/<%= ageTag.icon %>" alt="<%= ageTag.text %>" style="width: 24px; height: 24px; vertical-align: middle; margin-right: 6px;" /> <%= ageTag.text %>
+                                                                                            </span>
                                                                                                     <%
                                                                                                         const sizeKB = file.size / 1024;
                                                                                                         let sizeClass = 'size-normal';
@@ -1760,6 +1797,52 @@
                     return daysAgo <= config.thresholdDays;
                 }
 
+                // Generate dynamic age-based tag
+                function getAgeTag(uploadDate) {
+                    const uploadDateObj = new Date(uploadDate);
+                    const now = new Date();
+                    const daysAgo = Math.floor((now - uploadDateObj) / (1000 * 60 * 60 * 24));
+                    const monthsAgo = Math.floor(daysAgo / 30);
+                    const yearsAgo = Math.floor(daysAgo / 365);
+
+                    // Format the upload date for tooltip
+                    const uploadDateFormatted = uploadDateObj.toLocaleDateString('en-US', {
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric'
+                    });
+
+                    if (daysAgo <= 7) {
+                        return {
+                            text: daysAgo === 0 ? 'Today' : daysAgo === 1 ? '1 day ago' : `${daysAgo} days ago`,
+                            style: 'background: #D1FAE5; color: #065F46;', // Green for recent
+                            icon: 'new-badge.png',
+                            tooltip: `Uploaded ${daysAgo === 0 ? 'today' : daysAgo === 1 ? '1 day ago' : `${daysAgo} days ago`} (${uploadDateFormatted})`
+                        };
+                    } else if (daysAgo <= 30) {
+                        return {
+                            text: daysAgo <= 14 ? `${daysAgo} days ago` : `${Math.floor(daysAgo / 7)} weeks ago`,
+                            style: 'background: #FEF3C7; color: #92400E;', // Yellow for somewhat recent
+                            icon: 'clock.png',
+                            tooltip: `Uploaded ${daysAgo} days ago (${uploadDateFormatted})`
+                        };
+                    } else if (yearsAgo < 2) {
+                        return {
+                            text: monthsAgo === 1 ? '1 month ago' : `${monthsAgo} months ago`,
+                            style: 'background: #FEF3C7; color: #92400E;', // Yellow for older
+                            icon: 'clock.png',
+                            tooltip: `Uploaded ${monthsAgo === 1 ? '1 month ago' : `${monthsAgo} months ago`} (${uploadDateFormatted})`
+                        };
+                    } else {
+                        return {
+                            text: 'Old',
+                            style: 'background: #FEE2E2; color: #DC2626;', // Red for very old
+                            icon: 'warning-triangle.png',
+                            tooltip: `Uploaded ${yearsAgo} years ago (${uploadDateFormatted})`
+                        };
+                    }
+                }
+
                 // Get delete button based on user permissions
                 function getDeleteButton(file) {
                     const userRole = '<%= user.role %>';
@@ -1793,15 +1876,13 @@
                 }
 
                 // Generate status badges dynamically
-                function generateStatusBadges(file, isNew) {
+                function generateStatusBadges(file) {
                     const badges = [];
                     const config = dashboardConfig?.statusBadges || {};
 
-                    // New badge
-                    if (config.new?.enabled && isNew) {
-                        const newConfig = config.new;
-                        badges.push(`<span style="background: ${newConfig.background}; color: ${newConfig.color}; padding: 2px 6px; border-radius: 4px; font-size: 0.7rem; font-weight: 600;"><img src="${newConfig.icon}" alt="${newConfig.alt}" style="width: ${newConfig.width}px; height: ${newConfig.height}px; vertical-align: middle; margin-right: 4px;" onerror="this.style.display='none';" /> ${newConfig.text}</span>`);
-                    }
+                    // Age-based tag (replaces New badge)
+                    const ageTag = getAgeTag(file.uploadDate);
+                    badges.push(`<span class="age-badge" title="${escapeHtml(ageTag.tooltip)}" style="${ageTag.style} padding: 2px 6px; border-radius: 4px; font-size: 0.7rem; font-weight: 600; cursor: help;"><img src="/images/icons/${ageTag.icon}" alt="${ageTag.text}" style="width: 16px; height: 16px; vertical-align: middle; margin-right: 4px;" onerror="this.style.display='none';" /> ${ageTag.text}</span>`);
 
                     // Handle virus scan status badges with proper logic
                     if (file.virusScanStatus) {
@@ -1958,11 +2039,8 @@
                         // Get file icon based on file type
                         const fileIcon = getFileIcon(file.originalName);
 
-                        // Check if file is "new" (within 7 days)
-                        const uploadDate = new Date(file.uploadDate);
-                        const now = new Date();
-                        const daysAgo = Math.floor((now - uploadDate) / (1000 * 60 * 60 * 24));
-                        const isNew = daysAgo <= 7;
+                        // Get age-based tag
+                        const ageTag = getAgeTag(file.uploadDate);
 
                         // Create download and delete links
                         const downloadLink = `/download/${file.filename}`;
@@ -1987,7 +2065,7 @@
                                         <span><strong>Uploaded by:</strong> ${uploader}</span>
                                     </div>
                                     <div class="file-list-tags" style="display: flex; flex-wrap: wrap; gap: 0.3rem; margin-top: 0.3rem;">
-                                        ${generateStatusBadges(file, isNew)}
+                                        ${generateStatusBadges(file)}
                                         ${major ? `<span style="background: #E0E7FF; color: #4338CA; padding: 2px 6px; border-radius: 4px; font-size: 0.7rem; font-weight: 600;"><img src="/images/icons/folder.png" alt="Folder" style="width: 16px; height: 16px; vertical-align: middle; margin-right: 4px;" /> ${major}</span>` : ''}
                                         ${classCode ? `<span style="background: #FEF2F2; color: #DC2626; padding: 2px 6px; border-radius: 4px; font-size: 0.7rem; font-weight: 600;"><img src="/images/icons/briefcase.png" alt="Course" style="width: 16px; height: 16px; vertical-align: middle; margin-right: 4px;" /> ${classCode}</span>` : ''}
                                     </div>
@@ -2013,8 +2091,8 @@
 
                 // Create a grouped file card from file data (using grid view structure)
                 function createGroupedFileCard(file) {
-                    // Calculate if file is "new" using dynamic configuration
-                    const isNew = isFileNew(file.uploadDate);
+                    // Get age-based tag
+                    const ageTag = getAgeTag(file.uploadDate);
 
                     return `
                 <div class="file-card animate-fade-in clickable-file-card"
@@ -2048,7 +2126,7 @@
                     </div>
                     <div class="file-meta" style="margin-top: 0.1rem;">
                         <div class="tags-section" style="display: flex; flex-wrap: wrap; gap: 0.3rem; margin-bottom: 0.5rem;">
-                            ${generateStatusBadges(file, isNew)}
+                            ${generateStatusBadges(file)}
                         </div>
                         ${file.major ? `<div class="file-meta-item"><strong>Major:</strong> <span class="major-badge">${escapeHtml(file.major)}</span></div>` : ''}
                         ${file.classCode ? `<div class="file-meta-item"><strong>Class:</strong> <span class="class-code-badge">${escapeHtml(file.classCode)}</span></div>` : ''}
@@ -2954,10 +3032,7 @@
                         gridView.style.display = currentView === 'grid' ? 'grid' : 'none';
                         gridView.innerHTML = files.map(file => {
                             // Calculate if file is "new" (within 7 days)
-                            const uploadDate = new Date(file.uploadDate);
-                            const now = new Date();
-                            const daysAgo = Math.floor((now - uploadDate) / (1000 * 60 * 60 * 24));
-                            const isNew = daysAgo <= 7;
+                            const ageTag = getAgeTag(file.uploadDate);
 
                             return `
                 <div class="file-card animate-fade-in"
@@ -2989,7 +3064,7 @@
                     </div>
                     <div class="file-meta" style="margin-top: 0.1rem;">
                         <div class="tags-section" style="display: flex; flex-wrap: wrap; gap: 0.3rem; margin-bottom: 0.5rem;">
-                            ${generateStatusBadges(file, isNew)}
+                            ${generateStatusBadges(file)}
                         </div>
                         ${file.major ? `<div class="file-meta-item"><strong>Major:</strong> <span class="major-badge">${escapeHtml(file.major)}</span></div>` : ''}
                         ${file.classCode ? `<div class="file-meta-item"><strong>Class:</strong> <span class="class-code-badge">${escapeHtml(file.classCode)}</span></div>` : ''}
@@ -5341,7 +5416,7 @@
 
                 // Create a grid view item from file data
                 function createGridViewItem(file) {
-                    const isNew = isFileNew(file.uploadDate);
+                    const ageTag = getAgeTag(file.uploadDate);
 
                     return `
                         <div class="file-card animate-fade-in clickable-file-card"
@@ -5375,7 +5450,7 @@
                             </div>
                             <div class="file-meta" style="margin-top: 0.1rem;">
                                 <div class="tags-section" style="display: flex; flex-wrap: wrap; gap: 0.3rem; margin-bottom: 0.5rem;">
-                                    ${generateStatusBadges(file, isNew)}
+                                    ${generateStatusBadges(file)}
                             </div>
 
                                 ${file.major ? `<div class="file-meta-item"><strong>Major:</strong> <span class="major-badge">${escapeHtml(file.major)}</span></div>` : ''}
@@ -5429,7 +5504,7 @@
 
                 // Create a list view item from file data
                 function createListViewItem(file) {
-                    const isNew = isFileNew(file.uploadDate);
+                    const ageTag = getAgeTag(file.uploadDate);
 
                     return `
                         <div class="file-list-item clickable-file-card"
@@ -5466,7 +5541,7 @@
                                         <span class="filename-truncated" title="${escapeHtml(file.originalName)}">${truncateFilename(file.originalName, 25)}</span>
                                     </h3>
                                     <div style="display: flex; gap: 0.25rem; flex-shrink: 0;">
-                                        ${generateStatusBadges(file, isNew)}
+                                        ${generateStatusBadges(file)}
                                     </div>
                                 </div>
 

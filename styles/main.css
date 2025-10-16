@@ -1902,6 +1902,16 @@ footer a:hover {
   }
 }
 
+/* ===== AGE BADGE TOOLTIPS ===== */
+.age-badge {
+  position: relative;
+  transition: opacity 0.2s ease;
+}
+
+.age-badge:hover {
+  opacity: 0.9;
+}
+
 /* ===== RESPONSIVE ===== */
 @media (max-width: 768px) {
   .topbar {
