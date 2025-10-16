@@ -1532,9 +1532,6 @@ app.post('/api/confirm-upload', async (req, res) => {
         description
     } = req.body;
 
-    console.log('[DEBUG] Server received data:');
-    console.log('  - category:', category);
-    console.log('  - req.body:', JSON.stringify(req.body, null, 2));
 
     if (!s3Key || !s3Url || !filename || !classCode || !fileHash) {
         return res.status(400).json({ error: 'Missing required fields' });
@@ -1552,7 +1549,7 @@ app.post('/api/confirm-upload', async (req, res) => {
         const existingFile = await client
             .db(fileCollection.db)
             .collection(fileCollection.collection)
-            .findOne({ 
+            .findOne({
                 fileHash: fileHash,
                 classCode: normalizedClassCode,
                 semester: normalizedSemester,
@@ -1580,7 +1577,6 @@ app.post('/api/confirm-upload', async (req, res) => {
 
         if (existingFileDifferentContext) {
             // File exists but in different context - reuse S3 file, create new metadata entry
-            console.log(`File ${filename} exists in different context - reusing S3 file and creating new metadata entry`);
         }
 
         // Determine S3 file to use and whether to delete the new upload
@@ -1593,7 +1589,6 @@ app.post('/api/confirm-upload', async (req, res) => {
             finalS3Key = existingFileDifferentContext.filename;
             finalS3Url = existingFileDifferentContext.s3Url;
             shouldDeleteNewS3File = true;
-            console.log(`Reusing S3 file: ${finalS3Key} for new context`);
         }
 
         // Save file metadata
@@ -1628,7 +1623,6 @@ app.post('/api/confirm-upload', async (req, res) => {
         if (shouldDeleteNewS3File) {
             try {
                 await s3.deleteObject({ Bucket: AWS_BUCKET, Key: s3Key }).promise();
-                console.log(`Deleted duplicate S3 file: ${s3Key}`);
             } catch (s3DeleteError) {
                 console.error(`Error deleting duplicate S3 file ${s3Key}:`, s3DeleteError);
             }
