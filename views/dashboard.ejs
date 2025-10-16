@@ -208,11 +208,11 @@
                                         </button>
                                         <button id="bulkDownloadBtn" onclick="bulkDownloadFiles()"
                                             style="padding: 6px 12px; border: none; background: #059669; color: white; border-radius: 6px; cursor: pointer; font-size: 0.875rem; font-weight: 600; transition: all 0.2s; opacity: 0.5; cursor: not-allowed;" disabled>
-                                            Download Selected (<span id="downloadCount">0</span>/20)
+                                            Download Selected (<span id="downloadCount">0</span>)
                                         </button>
                                         <button id="bulkDeleteBtn" onclick="bulkDeleteFiles()"
                                             style="padding: 6px 12px; border: none; background: var(--umd-red); color: white; border-radius: 6px; cursor: pointer; font-size: 0.875rem; font-weight: 600; transition: all 0.2s; opacity: 0.5; cursor: not-allowed;" disabled>
-                                            Delete Selected (<span id="selectedCount">0</span>/20)
+                                            Delete Selected (<span id="selectedCount">0</span>)
                                         </button>
                                     </div>
                                     <label
@@ -3520,12 +3520,12 @@
                         // Check if we're trying to select more than the limit
                         const currentSelected = getSelectedCheckboxes().length;
                         const maxSelection = 20; // Match the download limit
-                        
+
                         if (!checkbox.checked && currentSelected >= maxSelection) {
                             showNotification(`You can only select up to ${maxSelection} files at once. Please deselect some files first.`, 'warning', 4000);
                             return;
                         }
-                        
+
                         // Toggle the checkbox
                         checkbox.checked = !checkbox.checked;
                         // Trigger the change event to update counters
@@ -4997,20 +4997,20 @@
                     if (!allChecked && checkboxes.length > maxSelection) {
                         // If we're selecting all and there are more than maxSelection files, limit to maxSelection
                         showNotification(`Selecting first ${maxSelection} files (limit reached). Use individual selection for more files.`, 'info', 4000);
-                        
+
                         // Select only the first maxSelection files
                         const limitedCheckboxes = Array.from(checkboxes).slice(0, maxSelection);
                         limitedCheckboxes.forEach(checkbox => {
                             checkbox.checked = true;
                         });
-                        
+
                         selectAllBtn.textContent = 'Deselect All';
                     } else {
                         // Normal behavior: select/deselect all visible files
                         checkboxes.forEach(checkbox => {
                             checkbox.checked = !allChecked;
                         });
-                        
+
                         selectAllBtn.textContent = allChecked ? 'Select All' : 'Deselect All';
                     }
 
@@ -5101,13 +5101,10 @@
                     }
 
                     // Update select all button text
-                    const allChecked = Array.from(checkboxes).every(cb => cb.checked);
-                    const someChecked = Array.from(checkboxes).some(cb => cb.checked);
+                    const checkedCount = Array.from(checkboxes).filter(cb => cb.checked).length;
 
-                    if (allChecked && checkboxes.length > 0) {
+                    if (checkedCount >= 2) {
                         selectAllBtn.textContent = 'Deselect All';
-                    } else if (someChecked) {
-                        selectAllBtn.textContent = 'Select All';
                     } else {
                         selectAllBtn.textContent = 'Select All';
                     }

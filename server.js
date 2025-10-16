@@ -2156,7 +2156,7 @@ app.get('/dashboard', async (req, res) => {
 
         // Get unique semesters and years for filter dropdowns
         const uniqueSemesters = [...new Set(allFiles.map(f => f.semester).filter(Boolean))];
-        const uniqueYears = [...new Set(allFiles.map(f => f.year).filter(Boolean))].sort((a, b) => b - a); // Descending order (newest first)
+        const uniqueYears = [...new Set(allFiles.map(f => f.year).filter(Boolean).map(year => String(year)))].sort((a, b) => b - a); // Convert to string and sort descending (newest first)
 
         // Sort semesters in academic order: Spring, Summer, Fall, Winter
         const semesterOrder = ['Spring', 'Summer', 'Fall', 'Winter'];
