@@ -3440,10 +3440,14 @@
                     // Find the checkbox for this file
                     const checkbox = document.querySelector(`input[type="checkbox"][data-filename="${filename}"]`);
                     if (checkbox) {
+                        console.log('Before toggle - checkbox checked:', checkbox.checked);
                         // Toggle the checkbox
                         checkbox.checked = !checkbox.checked;
+                        console.log('After toggle - checkbox checked:', checkbox.checked);
                         // Trigger the change event to update counters
                         updateSelectedCount();
+                    } else {
+                        console.log('No checkbox found for filename:', filename);
                     }
                 }
 
@@ -4750,17 +4754,17 @@
                     document.addEventListener('click', function(event) {
                         // Check if clicked element is a clickable file card
                         const fileCard = event.target.closest('.clickable-file-card');
-                        
+
                         if (fileCard) {
                             // Don't trigger selection if clicking on buttons, links, or checkboxes
-                            if (event.target.tagName === 'BUTTON' || 
-                                event.target.tagName === 'A' || 
+                            if (event.target.tagName === 'BUTTON' ||
+                                event.target.tagName === 'A' ||
                                 event.target.tagName === 'INPUT' ||
                                 event.target.closest('.file-actions') ||
                                 event.target.closest('.file-select-checkbox')) {
                                 return; // Don't do anything for these elements
                             }
-                            
+
                             // Get the filename from the data attribute
                             const filename = fileCard.getAttribute('data-filename');
                             if (filename) {
@@ -4924,7 +4928,10 @@
                     }
 
                     console.log('Found checkboxes in active view:', checkboxes.length);
-                    const selectedCount = Array.from(checkboxes).filter(cb => cb.checked).length;
+                    const checkedBoxes = Array.from(checkboxes).filter(cb => cb.checked);
+                    console.log('Checked checkboxes:', checkedBoxes.length);
+                    console.log('Sample checkbox states:', Array.from(checkboxes).slice(0, 3).map(cb => ({filename: cb.dataset.filename, checked: cb.checked})));
+                    const selectedCount = checkedBoxes.length;
                     const selectedCountSpan = document.getElementById('selectedCount');
                     const downloadCountSpan = document.getElementById('downloadCount');
                     const bulkDeleteBtn = document.getElementById('bulkDeleteBtn');
