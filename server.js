@@ -1279,7 +1279,6 @@ async function scanFileWithVirusTotal(fileId, fileBuffer, filename) {
 /* Upload */
 const multer = require("multer");
 const storage = multer.memoryStorage();
-const archiver = require('archiver');
 
 // Whitelist of safe academic file types
 const ALLOWED_FILE_TYPES = {
@@ -3045,7 +3044,7 @@ app.post("/bulk-download", async (req, res) => {
 
         // Generate unique download ID for progress tracking
         const downloadId = `download_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-        
+
         // Initialize progress tracking
         downloadProgress.set(downloadId, {
             totalFiles: fileDocs.length,
@@ -3101,7 +3100,7 @@ app.post("/bulk-download", async (req, res) => {
                     );
 
                 processedCount++;
-                
+
                 // Log progress for monitoring
                 console.log(`Bulk download progress: ${processedCount}/${totalFiles} files processed`);
 
@@ -3151,20 +3150,20 @@ app.post("/bulk-download", async (req, res) => {
 // Progress tracking endpoint
 app.get("/bulk-download-progress/:downloadId", (req, res) => {
     const { downloadId } = req.params;
-    
+
     res.setHeader('Content-Type', 'text/event-stream');
     res.setHeader('Cache-Control', 'no-cache');
     res.setHeader('Connection', 'keep-alive');
     res.setHeader('Access-Control-Allow-Origin', '*');
-    
+
     const progress = downloadProgress.get(downloadId);
-    
+
     if (!progress) {
         res.write(`data: ${JSON.stringify({ error: 'Download not found' })}\n\n`);
         res.end();
         return;
     }
-    
+
     // Send initial progress
     res.write(`data: ${JSON.stringify({
         downloadId,
@@ -3172,32 +3171,32 @@ app.get("/bulk-download-progress/:downloadId", (req, res) => {
         percentage: Math.round((progress.processedFiles / progress.totalFiles) * 100),
         elapsedTime: Date.now() - progress.startTime
     })}\n\n`);
-    
+
     // Set up interval to send progress updates
     const interval = setInterval(() => {
         const currentProgress = downloadProgress.get(downloadId);
-        
+
         if (!currentProgress) {
             clearInterval(interval);
             res.write(`data: ${JSON.stringify({ completed: true })}\n\n`);
             res.end();
             return;
         }
-        
+
         res.write(`data: ${JSON.stringify({
             downloadId,
             ...currentProgress,
             percentage: Math.round((currentProgress.processedFiles / currentProgress.totalFiles) * 100),
             elapsedTime: Date.now() - currentProgress.startTime
         })}\n\n`);
-        
+
         // Close connection if download is complete or errored
         if (currentProgress.status === 'completed' || currentProgress.status === 'error') {
             clearInterval(interval);
             res.end();
         }
     }, 1000); // Update every second
-    
+
     // Clean up on client disconnect
     req.on('close', () => {
         clearInterval(interval);

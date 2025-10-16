@@ -5475,7 +5475,7 @@
 
                         // Extract download ID from response headers for progress tracking
                         const downloadId = response.headers.get('X-Download-ID') || `download_${Date.now()}`;
-                        
+
                         // Start progress tracking
                         startProgressTracking(downloadId, downloadNotification, selectedFiles.length);
 
@@ -5513,27 +5513,27 @@
                 // Progress tracking function for bulk downloads
                 function startProgressTracking(downloadId, notification, totalFiles) {
                     const eventSource = new EventSource(`/bulk-download-progress/${downloadId}`);
-                    
+
                     eventSource.onmessage = function(event) {
                         try {
                             const data = JSON.parse(event.data);
-                            
+
                             if (data.error) {
                                 console.error('Progress tracking error:', data.error);
                                 eventSource.close();
                                 return;
                             }
-                            
+
                             if (data.completed) {
                                 eventSource.close();
                                 return;
                             }
-                            
+
                             // Update notification with progress
                             const percentage = data.percentage || 0;
                             const currentFile = data.currentFile || '';
                             const status = data.status || 'processing';
-                            
+
                             let message = '';
                             if (status === 'starting') {
                                 message = `Preparing download of ${totalFiles} file(s)...`;
@@ -5541,7 +5541,7 @@
                                 message = `Processing files... ${percentage}% (${data.processedFiles}/${data.totalFiles})`;
                                 if (currentFile && currentFile.length > 0) {
                                     // Truncate long filenames for display
-                                    const displayName = currentFile.length > 30 ? 
+                                    const displayName = currentFile.length > 30 ?
                                         currentFile.substring(0, 30) + '...' : currentFile;
                                     message += ` - ${displayName}`;
                                 }
@@ -5552,19 +5552,19 @@
                                 eventSource.close();
                                 return;
                             }
-                            
+
                             updateNotification(notification, message, 'warning');
-                            
+
                         } catch (parseError) {
                             console.error('Error parsing progress data:', parseError);
                         }
                     };
-                    
+
                     eventSource.onerror = function(event) {
                         console.error('Progress tracking connection error:', event);
                         eventSource.close();
                     };
-                    
+
                     // Clean up after 5 minutes
                     setTimeout(() => {
                         eventSource.close();
