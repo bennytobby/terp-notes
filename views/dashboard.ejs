@@ -5291,6 +5291,7 @@
                                     ${file.professor ? `<span>Prof: ${escapeHtml(file.professor)}</span>` : ''}
                                     ${file.semester && file.year ? `<span>${file.semester} ${file.year}</span>` : ''}
                                     <span>${formatFileSize(file.size || 0)}</span>
+                                    ${file.uploadedBy ? `<span style="background: #F3E8FF; color: #7C3AED; padding: 2px 6px; border-radius: 4px; font-size: 0.75rem;">👤 ${escapeHtml(file.uploadedBy)}</span>` : ''}
                                     <span style="background: #FEF3C7; color: #D97706; padding: 2px 6px; border-radius: 4px; font-size: 0.75rem;">📥 ${file.downloadCount || 0} downloads</span>
                                 </div>
 
