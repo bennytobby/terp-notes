@@ -1544,30 +1544,21 @@ app.post('/api/confirm-upload', async (req, res) => {
         await ensureConnection();
 
         // Check for duplicates
-        console.log(`[DEDUP] Checking for duplicate with hash: ${fileHash}`);
         const existingFile = await client
             .db(fileCollection.db)
             .collection(fileCollection.collection)
             .findOne({ fileHash: fileHash });
 
         if (existingFile) {
-            console.log(`[DEDUP] DUPLICATE FOUND! Deleting S3 file: ${s3Key}`);
-            console.log(`[DEDUP] Existing file: ${existingFile.originalName} uploaded by ${existingFile.uploadedBy}`);
-
             // Delete newly uploaded file from S3 (it's a duplicate)
             await s3.deleteObject({ Bucket: AWS_BUCKET, Key: s3Key }).promise();
 
-            console.log(`[DEDUP] Sending duplicate response for ${filename}`);
-            const response = {
+            return res.json({
                 success: true,
                 duplicate: true,
                 message: 'File already exists',
                 existingFile: existingFile
-            };
-            console.log(`[DEDUP] Response object:`, response);
-            return res.json(response);
-        } else {
-            console.log(`[DEDUP] NEW FILE - no duplicates found for hash: ${fileHash}`);
+            });
         }
 
         // Save file metadata
@@ -1609,14 +1600,12 @@ app.post('/api/confirm-upload', async (req, res) => {
                 .catch(err => console.error('Error fetching file for scan:', err));
         }
 
-        const response = {
+        res.json({
             success: true,
             duplicate: false,
             fileId: insertResult.insertedId,
             message: 'File uploaded successfully'
-        };
-        console.log(`[DEDUP] Sending success response for ${filename}:`, response);
-        res.json(response);
+        });
     } catch (error) {
         console.error('Confirm upload error:', error);
         res.status(500).json({ error: 'Failed to save file metadata' });
