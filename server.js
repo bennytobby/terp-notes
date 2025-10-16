@@ -1544,12 +1544,16 @@ app.post('/api/confirm-upload', async (req, res) => {
         await ensureConnection();
 
         // Check for duplicates
+        console.log(`[DEDUP] Checking for duplicate with hash: ${fileHash}`);
         const existingFile = await client
             .db(fileCollection.db)
             .collection(fileCollection.collection)
             .findOne({ fileHash: fileHash });
 
         if (existingFile) {
+            console.log(`[DEDUP] DUPLICATE FOUND! Deleting S3 file: ${s3Key}`);
+            console.log(`[DEDUP] Existing file: ${existingFile.originalName} uploaded by ${existingFile.uploadedBy}`);
+            
             // Delete newly uploaded file from S3 (it's a duplicate)
             await s3.deleteObject({ Bucket: AWS_BUCKET, Key: s3Key }).promise();
 
@@ -1559,6 +1563,8 @@ app.post('/api/confirm-upload', async (req, res) => {
                 message: 'File already exists',
                 existingFile: existingFile
             });
+        } else {
+            console.log(`[DEDUP] NEW FILE - no duplicates found for hash: ${fileHash}`);
         }
 
         // Save file metadata
