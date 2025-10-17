@@ -1,0 +1,315 @@
+<!-- Custom Alert System -->
+<div id="customAlertOverlay" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.5); z-index: 10000; backdrop-filter: blur(4px);">
+    <div id="customAlertContainer" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); max-width: 500px; width: 90%; background: white; border-radius: 12px; box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3); animation: alertSlideIn 0.3s ease-out;">
+        <!-- Alert Header -->
+        <div id="alertHeader" style="padding: 1.5rem 2rem 1rem; border-bottom: 1px solid #E5E7EB;">
+            <div style="display: flex; align-items: center; gap: 0.75rem;">
+                <div id="alertIcon" style="width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                    <!-- Icon will be inserted here -->
+                </div>
+                <div>
+                    <h3 id="alertTitle" style="margin: 0; font-size: 1.25rem; font-weight: 700; color: #1F2937;">Alert</h3>
+                    <p id="alertSubtitle" style="margin: 0.25rem 0 0 0; font-size: 0.875rem; color: #6B7280;">Please review the information below</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Alert Content -->
+        <div id="alertContent" style="padding: 1.5rem 2rem;">
+            <p id="alertMessage" style="margin: 0; color: #374151; line-height: 1.6; font-size: 1rem;">Alert message will appear here</p>
+
+            <!-- Input field for prompt alerts -->
+            <div id="alertInputContainer" style="margin-top: 1rem; display: none;">
+                <label for="alertInput" style="display: block; margin-bottom: 0.5rem; font-weight: 600; color: #374151;">Enter your response:</label>
+                <input type="text" id="alertInput" style="width: 100%; padding: 0.75rem; border: 2px solid #D1D5DB; border-radius: 8px; font-size: 1rem; transition: border-color 0.2s ease;" placeholder="Type your response here...">
+                <p id="alertInputHint" style="margin: 0.5rem 0 0 0; font-size: 0.875rem; color: #6B7280;"></p>
+            </div>
+        </div>
+
+        <!-- Alert Actions -->
+        <div id="alertActions" style="padding: 1rem 2rem 1.5rem; display: flex; gap: 0.75rem; justify-content: flex-end; border-top: 1px solid #E5E7EB;">
+            <button id="alertCancel" class="button secondary" style="padding: 0.75rem 1.5rem; font-weight: 600; border: 2px solid #D1D5DB; color: #374151; background: white; border-radius: 8px; cursor: pointer; transition: all 0.2s ease; font-size: 0.9rem;">Cancel</button>
+            <button id="alertConfirm" class="button primary" style="padding: 0.75rem 1.5rem; font-weight: 600; background: #DC2626; color: white; border: none; border-radius: 8px; cursor: pointer; transition: all 0.2s ease; font-size: 0.9rem;">Confirm</button>
+        </div>
+    </div>
+</div>
+
+<style>
+    @keyframes alertSlideIn {
+        from {
+            opacity: 0;
+            transform: translate(-50%, -50%) scale(0.9);
+        }
+        to {
+            opacity: 1;
+            transform: translate(-50%, -50%) scale(1);
+        }
+    }
+
+    @keyframes alertSlideOut {
+        from {
+            opacity: 1;
+            transform: translate(-50%, -50%) scale(1);
+        }
+        to {
+            opacity: 0;
+            transform: translate(-50%, -50%) scale(0.9);
+        }
+    }
+
+    .alert-slide-out {
+        animation: alertSlideOut 0.2s ease-in forwards;
+    }
+
+    #alertInput:focus {
+        outline: none;
+        border-color: #DC2626;
+        box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.1);
+    }
+
+    .button:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+
+    .button:active {
+        transform: translateY(0);
+    }
+</style>
+
+<script>
+    // Custom Alert System
+    class CustomAlert {
+        constructor() {
+            this.overlay = document.getElementById('customAlertOverlay');
+            this.container = document.getElementById('customAlertContainer');
+            this.title = document.getElementById('alertTitle');
+            this.subtitle = document.getElementById('alertSubtitle');
+            this.message = document.getElementById('alertMessage');
+            this.icon = document.getElementById('alertIcon');
+            this.inputContainer = document.getElementById('alertInputContainer');
+            this.input = document.getElementById('alertInput');
+            this.inputHint = document.getElementById('alertInputHint');
+            this.cancelBtn = document.getElementById('alertCancel');
+            this.confirmBtn = document.getElementById('alertConfirm');
+
+            this.setupEventListeners();
+        }
+
+        setupEventListeners() {
+            // Close on overlay click
+            this.overlay.addEventListener('click', (e) => {
+                if (e.target === this.overlay) {
+                    this.hide();
+                }
+            });
+
+            // Close on escape key
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape' && this.overlay.style.display !== 'none') {
+                    this.hide();
+                }
+            });
+
+            // Handle input enter key
+            this.input.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') {
+                    this.confirmBtn.click();
+                }
+            });
+        }
+
+        show(options = {}) {
+            const {
+                title = 'Alert',
+                subtitle = 'Please review the information below',
+                message = 'Alert message',
+                type = 'info', // info, warning, error, success
+                showInput = false,
+                inputPlaceholder = 'Type your response here...',
+                inputHint = '',
+                confirmText = 'Confirm',
+                cancelText = 'Cancel',
+                onConfirm = null,
+                onCancel = null,
+                requireExactInput = null
+            } = options;
+
+            // Set content
+            this.title.textContent = title;
+            this.subtitle.textContent = subtitle;
+            this.message.innerHTML = message.replace(/\n/g, '<br>');
+            this.confirmBtn.textContent = confirmText;
+            this.cancelBtn.textContent = cancelText;
+
+            // Set icon and colors based on type
+            this.setIconAndColors(type);
+
+            // Handle input
+            if (showInput) {
+                this.inputContainer.style.display = 'block';
+                this.input.placeholder = inputPlaceholder;
+                this.input.value = '';
+                this.inputHint.textContent = inputHint;
+                this.input.focus();
+            } else {
+                this.inputContainer.style.display = 'none';
+            }
+
+            // Store callbacks
+            this.onConfirm = onConfirm;
+            this.onCancel = onCancel;
+            this.requireExactInput = requireExactInput;
+
+            // Show overlay
+            this.overlay.style.display = 'block';
+            this.container.style.animation = 'alertSlideIn 0.3s ease-out';
+
+            // Focus management
+            setTimeout(() => {
+                if (showInput) {
+                    this.input.focus();
+                } else {
+                    this.confirmBtn.focus();
+                }
+            }, 100);
+        }
+
+        setIconAndColors(type) {
+            const colors = {
+                info: { bg: '#3B82F6', text: '#1E40AF', icon: 'info' },
+                warning: { bg: '#F59E0B', text: '#92400E', icon: 'warning' },
+                error: { bg: '#EF4444', text: '#DC2626', icon: 'error' },
+                success: { bg: '#10B981', text: '#059669', icon: 'success' }
+            };
+
+            const color = colors[type] || colors.info;
+            this.icon.style.background = color.bg;
+            this.confirmBtn.style.background = color.bg;
+
+            // Set icon SVG
+            this.icon.innerHTML = this.getIconSVG(color.icon);
+        }
+
+        getIconSVG(type) {
+            const icons = {
+                info: `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M12 16V12M12 8H12.01M21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12Z" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>`,
+                warning: `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M12 9V13M12 17H12.01M21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12Z" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>`,
+                error: `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M12 8V12M12 16H12.01M21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12Z" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>`,
+                success: `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M5 13L9 17L19 7" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>`
+            };
+
+            return icons[type] || icons.info;
+        }
+
+        hide() {
+            this.container.classList.add('alert-slide-out');
+            setTimeout(() => {
+                this.overlay.style.display = 'none';
+                this.container.classList.remove('alert-slide-out');
+            }, 200);
+        }
+
+        // Event handlers
+        handleConfirm() {
+            if (this.inputContainer.style.display !== 'none') {
+                const inputValue = this.input.value.trim();
+
+                if (this.requireExactInput && inputValue !== this.requireExactInput) {
+                    // Show error for incorrect input
+                    this.input.style.borderColor = '#EF4444';
+                    this.input.style.boxShadow = '0 0 0 3px rgba(239, 68, 68, 0.1)';
+                    setTimeout(() => {
+                        this.input.style.borderColor = '#D1D5DB';
+                        this.input.style.boxShadow = 'none';
+                    }, 2000);
+                    return;
+                }
+
+                this.hide();
+                if (this.onConfirm) {
+                    this.onConfirm(inputValue);
+                }
+            } else {
+                this.hide();
+                if (this.onConfirm) {
+                    this.onConfirm(true);
+                }
+            }
+        }
+
+        handleCancel() {
+            this.hide();
+            if (this.onCancel) {
+                this.onCancel();
+            }
+        }
+    }
+
+    // Initialize custom alert system
+    const customAlert = new CustomAlert();
+
+    // Set up button event listeners
+    document.getElementById('alertConfirm').addEventListener('click', () => customAlert.handleConfirm());
+    document.getElementById('alertCancel').addEventListener('click', () => customAlert.handleCancel());
+
+    // Global functions to replace browser alerts
+    window.customAlert = (message, type = 'info') => {
+        return new Promise((resolve) => {
+            customAlert.show({
+                title: type === 'error' ? 'Error' : type === 'warning' ? 'Warning' : type === 'success' ? 'Success' : 'Information',
+                message: message,
+                type: type,
+                confirmText: 'OK',
+                cancelText: null,
+                onConfirm: () => resolve(true),
+                onCancel: () => resolve(false)
+            });
+
+            // Hide cancel button for simple alerts
+            if (type !== 'confirm') {
+                document.getElementById('alertCancel').style.display = 'none';
+            }
+        });
+    };
+
+    window.customConfirm = (message, title = 'Confirm Action') => {
+        return new Promise((resolve) => {
+            customAlert.show({
+                title: title,
+                message: message,
+                type: 'warning',
+                confirmText: 'Yes',
+                cancelText: 'No',
+                onConfirm: () => resolve(true),
+                onCancel: () => resolve(false)
+            });
+        });
+    };
+
+    window.customPrompt = (message, placeholder = '', requireExact = null) => {
+        return new Promise((resolve) => {
+            customAlert.show({
+                title: 'Input Required',
+                message: message,
+                type: 'info',
+                showInput: true,
+                inputPlaceholder: placeholder,
+                inputHint: requireExact ? `Type "${requireExact}" exactly to confirm` : '',
+                requireExactInput: requireExact,
+                confirmText: 'Submit',
+                cancelText: 'Cancel',
+                onConfirm: (value) => resolve(value),
+                onCancel: () => resolve(null)
+            });
+        });
+    };
+</script>

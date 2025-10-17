@@ -45,7 +45,6 @@ async function ensureConnection() {
     } catch (error) {
         // If connection fails, try to create a new client
         if (error.message.includes('Topology is closed') || error.message.includes('topology')) {
-            console.log('MongoDB topology closed, creating new connection...');
             try {
                 // Close the old client first
                 if (client && typeof client.close === 'function') {
@@ -60,7 +59,6 @@ async function ensureConnection() {
                 Object.setPrototypeOf(client, Object.getPrototypeOf(newClient));
                 Object.assign(client, newClient);
 
-                console.log('New MongoDB connection established');
             } catch (newConnectionError) {
                 console.error('Failed to create new MongoDB connection:', newConnectionError);
                 throw newConnectionError;
@@ -146,7 +144,6 @@ async function fetchUMDData(endpoint, cacheKey, cacheDuration = 24 * 60 * 60 * 1
             await fallbackClient.close();
 
             if (staleCache) {
-                console.log(`Using stale cache for ${cacheKey}`);
                 return staleCache.data;
             }
         } catch (fallbackError) {
@@ -159,7 +156,6 @@ async function fetchUMDData(endpoint, cacheKey, cacheDuration = 24 * 60 * 60 * 1
 
 /* Port Configuration */
 const portNumber = process.env.PORT || 3000;
-console.log(`Terp Notes Server starting on port ${portNumber}`);
 
 /* Express Setup */
 const express = require("express");
@@ -229,7 +225,6 @@ app.set("view engine", "ejs");
 // Serve static files
 app.use(express.static(__dirname));
 app.use("/styles", express.static(path.join(__dirname, "styles")));
-app.use("/js", express.static(path.join(__dirname, "public/js")));
 app.use(express.static(path.join(__dirname, "public"))); // Serve logo, favicon, etc.
 
 /* Session Handling - JWT-based */
@@ -422,25 +417,20 @@ app.get('/api/umd/professors', async (req, res) => {
 
         } else if (name) {
             // Search professors by name - use the existing UMD.io API
-            console.log(`[PROF API] Name search for: ${name}`);
             try {
                 const professors = await fetchUMDData(`/professors?name=${name}`, `professors_name_${name}`);
 
                 if (professors && professors.length > 0) {
                     const result = professors.map(p => ({ name: p.name, semesters: [] })).filter(p => p.name && p.name.trim());
-                    console.log(`[PROF API] Found ${result.length} professors matching "${name}"`);
                     return res.json(result);
                 } else {
-                    console.log(`[PROF API] No professors found for "${name}"`);
                     return res.json([]);
                 }
             } catch (error) {
-                console.log(`[PROF API] Name search failed: ${error.message}`);
                 return res.json([]);
             }
         } else {
             // No specific search - return all professors from recent semesters
-            console.log(`[PROF API] No specific search - fetching all professors from recent semesters`);
 
             // Fetch professors from last 2 years (current and previous year)
             const currentYear = new Date().getFullYear();
@@ -451,7 +441,6 @@ app.get('/api/umd/professors', async (req, res) => {
                 semestersToCheck.push(`${year}01`, `${year}05`, `${year}08`, `${year}12`);
             }
 
-            console.log(`[PROF API] Fetching professors from ${semestersToCheck.length} recent semesters`);
 
             // Fetch professor data for recent semesters
             const professorData = new Map(); // name -> {name, semesters: [{semester, year, semesterId}]}
@@ -498,14 +487,12 @@ app.get('/api/umd/professors', async (req, res) => {
                         }
                     }
                 } catch (error) {
-                    console.log(`[PROF API] Error fetching semester ${semesterId}: ${error.message}`);
                 }
             }
 
             // Convert Map to array and sort by name
             const result = Array.from(professorData.values()).sort((a, b) => a.name.localeCompare(b.name));
 
-            console.log(`[PROF API] Found ${result.length} professors from recent semesters`);
             return res.json(result);
         }
     } catch (error) {
@@ -518,7 +505,6 @@ app.get('/api/umd/professors', async (req, res) => {
 app.get('/api/umd/professor-courses', async (req, res) => {
     try {
         const { professor_name, filter_semester, filter_year } = req.query;
-        console.log(`[PROF-COURSES API] Request - professor: ${professor_name}, semester: ${filter_semester}, year: ${filter_year}`);
 
         if (!professor_name || !professor_name.trim()) {
             return res.json([]);
@@ -534,7 +520,6 @@ app.get('/api/umd/professor-courses', async (req, res) => {
             const semesterMap = { 'Spring': '01', 'Summer': '05', 'Fall': '08', 'Winter': '12' };
             const semesterId = `${filter_year}${semesterMap[filter_semester] || '01'}`;
             semestersToCheck = [semesterId];
-            console.log(`[PROF-COURSES API] Fetching specific: ${filter_semester} ${filter_year} (${semesterId})`);
         } else if (filter_semester) {
             // All years for this semester
             const semesterMap = { 'Spring': '01', 'Summer': '05', 'Fall': '08', 'Winter': '12' };
@@ -542,11 +527,9 @@ app.get('/api/umd/professor-courses', async (req, res) => {
             for (let year = 2020; year <= 2025; year++) {
                 semestersToCheck.push(`${year}${semesterNum}`);
             }
-            console.log(`[PROF-COURSES API] Fetching all years for ${filter_semester}: ${semestersToCheck.length} semesters`);
         } else if (filter_year) {
             // All semesters for this year
             semestersToCheck = [`${filter_year}01`, `${filter_year}05`, `${filter_year}08`, `${filter_year}12`];
-            console.log(`[PROF-COURSES API] Fetching all semesters for ${filter_year}: ${semestersToCheck.length} semesters`);
         } else {
             // Default: current semester only
             const now = new Date();
@@ -561,17 +544,14 @@ app.get('/api/umd/professor-courses', async (req, res) => {
             const semesterMap = { 'Spring': '01', 'Summer': '05', 'Fall': '08', 'Winter': '12' };
             const currentSemesterId = `${currentYear}${semesterMap[currentSemester] || '01'}`;
             semestersToCheck = [currentSemesterId];
-            console.log(`[PROF-COURSES API] Fetching current semester only: ${currentSemester} ${currentYear} (${currentSemesterId})`);
         }
 
         // Fetch course data for all required semesters
         const courseData = new Map(); // course_id -> {course_id, name, semesters: [{semester, year, semesterId}]}
 
-        console.log(`[PROF-COURSES API] Fetching course data for ${semestersToCheck.length} semester(s)...`);
 
         for (const semesterId of semestersToCheck) {
             try {
-                console.log(`[PROF-COURSES API] Fetching sections for semester: ${semesterId}`);
                 const sectionsData = await fetchUMDData(
                     `/courses/sections?semester=${semesterId}&per_page=100`,
                     `sections_${semesterId}`,
@@ -612,18 +592,15 @@ app.get('/api/umd/professor-courses', async (req, res) => {
                             });
                         });
 
-                        console.log(`[PROF-COURSES API] Found ${professorSections.length} sections for ${professorName} in ${semesterName} ${year}`);
                     }
                 }
             } catch (error) {
-                console.log(`[PROF-COURSES API] Error fetching semester ${semesterId}: ${error.message}`);
             }
         }
 
         // Convert Map to array and sort by course_id
         const result = Array.from(courseData.values()).sort((a, b) => a.course_id.localeCompare(b.course_id));
 
-        console.log(`[PROF-COURSES API] Found ${result.length} courses for ${professorName}`);
         return res.json(result);
 
     } catch (error) {
@@ -756,10 +733,6 @@ const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KE
 const archiver = require('archiver');
 
 // Test email configuration on startup
-console.log('Email Configuration:');
-console.log('   RESEND_API_KEY:', process.env.RESEND_API_KEY ? 'Set' : 'Missing');
-console.log('   NODE_ENV:', process.env.NODE_ENV || 'development');
-console.log('   VERCEL_URL:', process.env.VERCEL_URL || 'Not set');
 
 if (resend) {
     console.log('Resend email service initialized');
@@ -782,10 +755,7 @@ async function sendEmail(to, subject, html, attachments = []) {
     }
 
     try {
-        console.log(`Sending email via Resend to: ${to}`);
-        console.log(`Subject: ${subject}`);
         if (attachments.length > 0) {
-            console.log(`Attachments: ${attachments.length} files`);
         }
 
         const emailData = {
@@ -802,7 +772,6 @@ async function sendEmail(to, subject, html, attachments = []) {
 
         const result = await resend.emails.send(emailData);
 
-        console.log('Email sent successfully via Resend');
         console.log('Email ID:', result.data?.id);
         return result;
 
@@ -1364,31 +1333,20 @@ const upload = multer({
 
 app.get('/', function (req, res) {
     // Debug logging
-    console.log('🔍 Index Route Debug:');
-    console.log('  Session exists:', !!req.session);
-    console.log('  User exists:', !!req.session?.user);
-    console.log('  User role:', req.session?.user?.role);
-    console.log('  User ID:', req.session?.user?.userid);
-    console.log('  Logged out parameter:', req.query.loggedout);
-    console.log('  Cache busting timestamp:', req.query.t);
 
     // If this is a logout redirect, force session regeneration to clear any cached data
     if (req.query.loggedout === 'true') {
-        console.log('  → Logout redirect detected, forcing session regeneration');
         req.session.regenerate((err) => {
             if (err) {
                 console.error('Session regeneration error:', err);
             } else {
-                console.log('  → Session regenerated successfully');
             }
 
             // Now check again after regeneration
             if (req.session.user) {
-                console.log('  → Still has user after regeneration, redirecting to dashboard');
                 return res.redirect('/dashboard');
             }
 
-            console.log('  → Rendering index page (no user session after regeneration)');
             res.render('index', {
                 title: "Terp Notes - Built for Terps, by Terps",
                 loggedout: true
@@ -1399,12 +1357,10 @@ app.get('/', function (req, res) {
 
     // Check if user is already logged in
     if (req.session.user) {
-        console.log('  → Redirecting to dashboard (user logged in)');
         // User is already logged in, redirect to dashboard
         return res.redirect('/dashboard');
     }
 
-    console.log('  → Rendering index page (no user session)');
     res.render('index', {
         title: "Terp Notes - Built for Terps, by Terps",
         loggedout: req.query.loggedout === 'true'
@@ -1467,12 +1423,10 @@ app.get('/api/umd/courses', async (req, res) => {
 app.get('/api/umd/course/:courseId', async (req, res) => {
     try {
         const courseId = req.params.courseId.toUpperCase();
-        console.log(`[API] Fetching course data for: ${courseId}`);
 
         // Get query parameters for filtering
         const querySemester = req.query.filter_semester;
         const queryYear = req.query.filter_year;
-        console.log(`[API] Filters - Semester: ${querySemester}, Year: ${queryYear}`);
 
         // Determine which semesters to fetch based on filters
         let semestersToCheck = [];
@@ -1482,7 +1436,6 @@ app.get('/api/umd/course/:courseId', async (req, res) => {
             const semesterMap = { 'Spring': '01', 'Summer': '05', 'Fall': '08', 'Winter': '12' };
             const semesterId = `${queryYear}${semesterMap[querySemester] || '01'}`;
             semestersToCheck = [semesterId];
-            console.log(`[API] Fetching specific: ${querySemester} ${queryYear} (${semesterId})`);
         } else if (querySemester) {
             // All years for this semester
             const semesterMap = { 'Spring': '01', 'Summer': '05', 'Fall': '08', 'Winter': '12' };
@@ -1490,11 +1443,9 @@ app.get('/api/umd/course/:courseId', async (req, res) => {
             for (let year = 2020; year <= 2025; year++) {
                 semestersToCheck.push(`${year}${semesterNum}`);
             }
-            console.log(`[API] Fetching all years for ${querySemester}: ${semestersToCheck.length} semesters`);
         } else if (queryYear) {
             // All semesters for this year
             semestersToCheck = [`${queryYear}01`, `${queryYear}05`, `${queryYear}08`, `${queryYear}12`];
-            console.log(`[API] Fetching all semesters for ${queryYear}: ${semestersToCheck.length} semesters`);
         } else {
             // Default: current semester only (fast and efficient)
             const now = new Date();
@@ -1511,7 +1462,6 @@ app.get('/api/umd/course/:courseId', async (req, res) => {
             const currentSemesterId = `${currentYear}${semesterMap[currentSemester] || '01'}`;
 
             semestersToCheck = [currentSemesterId];
-            console.log(`[API] Fetching current semester only: ${currentSemester} ${currentYear} (${currentSemesterId})`);
         }
 
         // Fetch course info from first semester to get basic course data
@@ -1523,12 +1473,10 @@ app.get('/api/umd/course/:courseId', async (req, res) => {
         );
 
         if (!courseData || courseData.length === 0) {
-            console.log(`[API] Course not found: ${courseId}`);
             return res.status(404).json({ error: 'Course not found' });
         }
 
         const course = courseData[0];
-        console.log(`[API] Course found: ${course.name || courseId}`);
 
         // Fetch professor data for all required semesters
         const historicalData = {};
@@ -1536,11 +1484,9 @@ app.get('/api/umd/course/:courseId', async (req, res) => {
         const allSemesters = new Set();
         const allYears = new Set();
 
-        console.log(`[API] Fetching professor data for ${semestersToCheck.length} semester(s)...`);
 
         for (const semester of semestersToCheck) {
             try {
-                console.log(`[API] Fetching sections for semester: ${semester}`);
                 const sectionsData = await fetchUMDData(
                     `/courses/sections?course_id=${courseId}&semester=${semester}&per_page=100`,
                     `sections_${courseId}_${semester}`,
@@ -1570,15 +1516,11 @@ app.get('/api/umd/course/:courseId', async (req, res) => {
                         allSemesters.add(semesterName);
                         allYears.add(year);
 
-                        console.log(`[API] Found ${professors.length} professors for ${semesterName} ${year}: ${professors.join(', ')}`);
                     } else {
-                        console.log(`[API] No professors found for ${semester}`);
                     }
                 } else {
-                    console.log(`[API] No sections found for ${semester}`);
                 }
             } catch (error) {
-                console.log(`[API] Error fetching data for ${semester}:`, error.message);
             }
         }
 
@@ -1587,11 +1529,6 @@ app.get('/api/umd/course/:courseId', async (req, res) => {
         const semesterList = [...allSemesters].sort();
         const yearList = [...allYears].sort((a, b) => b - a);
 
-        console.log(` [API] Final results:`);
-        console.log(`   - Total professors: ${professorList.length}`);
-        console.log(`   - Semesters: ${semesterList.join(', ')}`);
-        console.log(`   - Years: ${yearList.join(', ')}`);
-        console.log(`   - Historical data keys: ${Object.keys(historicalData).join(', ')}`);
 
         // Determine current semester for response
         const now = new Date();
@@ -1873,20 +1810,13 @@ app.get('/register', function (req, res) {
 
 app.get('/login', function (req, res) {
     // Debug logging
-    console.log('🔍 Login Route Debug:');
-    console.log('  Session exists:', !!req.session);
-    console.log('  User exists:', !!req.session?.user);
-    console.log('  User role:', req.session?.user?.role);
-    console.log('  User ID:', req.session?.user?.userid);
 
     // Check if user is already logged in
     if (req.session.user) {
-        console.log('  → Redirecting to dashboard (user already logged in)');
         // User is already logged in, redirect to dashboard
         return res.redirect('/dashboard');
     }
 
-    console.log('  → Rendering login page (no user session)');
     res.render('login', { title: "Login - Terp Notes" });
 });
 
@@ -1954,8 +1884,6 @@ app.post('/forgot-password', async (req, res) => {
         const host = process.env.NODE_ENV === 'production' ? process.env.VERCEL_URL : req.get('host');
         const resetLink = `${protocol}://${host}/reset-password/${resetToken}`;
 
-        console.log(`Sending password reset email to ${email}`);
-        console.log(`🔗 Reset link: ${resetLink}`);
 
         // Send email asynchronously using template
         sendEmail(
@@ -2205,8 +2133,6 @@ app.post('/resend-verification', async (req, res) => {
         const host = process.env.NODE_ENV === 'production' ? process.env.VERCEL_URL : req.get('host');
         const verificationLink = `${protocol}://${host}/verify/${verificationToken}`;
 
-        console.log(`Resending verification email to ${req.body.email}`);
-        console.log(`🔗 Verification link: ${verificationLink}`);
 
         // Send email asynchronously using template
         sendEmail(
@@ -2622,10 +2548,6 @@ app.get('/logout', (req, res) => {
 
     if (logoutAll) {
         // Logout from all tabs - destroy session completely
-        console.log('🔍 Logout All Debug - Before session destroy:');
-        console.log('  Session exists:', !!req.session);
-        console.log('  User exists:', !!req.session?.user);
-        console.log('  User ID:', req.session?.user?.userid);
 
         req.session.destroy(err => {
             if (err) {
@@ -2633,8 +2555,6 @@ app.get('/logout', (req, res) => {
                 return res.status(500).send("Could not log out.");
             }
 
-            console.log('🔍 Logout All Debug - After session destroy:');
-            console.log('  Session destroyed successfully');
 
             // Clear any session cookies and redirect to index
             res.clearCookie('terpnotes.sid');
@@ -3466,8 +3386,6 @@ app.post('/registerSubmit', registerLimiter, async function (req, res) {
         const host = process.env.NODE_ENV === 'production' ? process.env.VERCEL_URL : req.get('host');
         const verificationLink = `${protocol}://${host}/verify/${verificationToken}`;
 
-        console.log(`Sending verification email to ${email}`);
-        console.log(`🔗 Verification link: ${verificationLink}`);
 
         // Send email asynchronously using template
         sendEmail(
@@ -3702,11 +3620,6 @@ app.post("/upload", uploadLimiter, upload.array("documents", 50), async (req, re
 // Admin Dashboard
 app.get('/admin', async (req, res) => {
     // Debug logging
-    console.log('🔍 Admin Dashboard Debug:');
-    console.log('  Session exists:', !!req.session);
-    console.log('  User exists:', !!req.session?.user);
-    console.log('  User role:', req.session?.user?.role);
-    console.log('  User ID:', req.session?.user?.userid);
 
     if (!req.session.user) {
         return res.redirect('/login');
@@ -4043,6 +3956,46 @@ app.post('/api/create-announcement', apiLimiter, async (req, res) => {
 });
 
 // API: Delete Announcement
+app.post('/api/edit-announcement', apiLimiter, async (req, res) => {
+    if (!req.session.user || req.session.user.role !== 'admin') {
+        return res.status(401).json({ error: 'Unauthorized' });
+    }
+
+    try {
+        const { announcementId, message, type } = req.body;
+
+        if (!announcementId || !message || !type) {
+            return res.status(400).json({ error: 'Missing required fields' });
+        }
+
+        await ensureConnection();
+
+        const result = await client
+            .db(fileCollection.db)
+            .collection('announcements')
+            .updateOne(
+                { _id: new ObjectId(announcementId) },
+                {
+                    $set: {
+                        message: message,
+                        type: type,
+                        updatedAt: new Date(),
+                        updatedBy: req.session.user.userid
+                    }
+                }
+            );
+
+        if (result.matchedCount === 0) {
+            return res.status(404).json({ error: 'Announcement not found' });
+        }
+
+        res.json({ success: true, message: 'Announcement updated successfully' });
+    } catch (error) {
+        console.error('Error editing announcement:', error);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+});
+
 app.post('/api/delete-announcement', apiLimiter, async (req, res) => {
     if (!req.session.user || req.session.user.role !== 'admin') {
         return res.status(401).json({ error: 'Unauthorized' });
@@ -4164,11 +4117,6 @@ app.post('/api/update-user-role', async (req, res) => {
 // API: Ban user
 app.post('/api/ban-user', async (req, res) => {
     // Debug logging
-    console.log('🔍 Ban API Debug:');
-    console.log('  Session exists:', !!req.session);
-    console.log('  User exists:', !!req.session?.user);
-    console.log('  User role:', req.session?.user?.role);
-    console.log('  User ID:', req.session?.user?.userid);
 
     if (!req.session.user || req.session.user.role !== 'admin') {
         console.log('❌ Unauthorized - Session or role check failed');

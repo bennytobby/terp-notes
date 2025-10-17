@@ -26,7 +26,7 @@
             </span> |
             <a href="/dashboard" class="logout-btn">Dashboard</a> |
             <a href="/profile" class="logout-btn">My Profile</a> |
-            <a href="/logout" class="logout-btn">Logout</a>
+            <button onclick="showQuickLogout()" class="logout-btn" style="background: none; border: none; color: inherit; cursor: pointer; text-decoration: underline;">Logout</button>
         </div>
     </header>
 
@@ -200,6 +200,12 @@
                                         </small>
                                     </div>
                                     <div style="display: flex; gap: 0.5rem;">
+                                        <button class="button primary small edit-announcement-btn"
+                                            data-id="<%= announcement._id %>"
+                                            data-message="<%= announcement.message %>"
+                                            data-type="<%= announcement.type %>">
+                                            Edit
+                                        </button>
                                         <button class="button secondary small toggle-announcement-btn"
                                             data-id="<%= announcement._id %>">
                                             <%= announcement.isActive ? 'Hide' : 'Show' %>
@@ -457,8 +463,9 @@
         }
 
         // Confirmation Modal
-        function showConfirmModal(title, message, onConfirm) {
-            if (confirm(`${title}\n\n${message}`)) {
+        async function showConfirmModal(title, message, onConfirm) {
+            const confirmed = await customConfirm(`${title}\n\n${message}`, title);
+            if (confirmed) {
                 onConfirm();
             }
         }
@@ -466,7 +473,8 @@
         // Resolve report function - GLOBAL SCOPE so onclick can find it
         async function resolveReport(reportId, action) {
             const actionText = action === 'delete' ? 'delete this file' : 'dismiss this report';
-            if (!confirm(`Are you sure you want to ${actionText}?`)) {
+            const confirmed = await customConfirm(`Are you sure you want to ${actionText}?`, 'Confirm Action');
+            if (!confirmed) {
                 return;
             }
 
@@ -722,10 +730,87 @@
                 });
             });
 
+            // Edit announcement form submission
+            const editAnnouncementForm = document.getElementById('editAnnouncementForm');
+            if (editAnnouncementForm) {
+                editAnnouncementForm.addEventListener('submit', async (e) => {
+                    e.preventDefault();
+
+                    const modal = document.getElementById('editAnnouncementModal');
+                    const announcementId = modal.dataset.announcementId;
+                    const message = document.getElementById('editAnnouncementMessage').value;
+                    const type = document.getElementById('editAnnouncementType').value;
+
+                    try {
+                        const response = await fetch('/api/edit-announcement', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                announcementId: announcementId,
+                                message: message,
+                                type: type
+                            })
+                        });
+
+                        const result = await response.json();
+
+                        if (response.ok) {
+                            showNotification('Announcement updated successfully!', 'success');
+                            closeEditAnnouncement();
+
+                            // Reload page to show updated announcement
+                            setTimeout(() => {
+                                window.location.reload();
+                            }, 1500);
+                        } else {
+                            showNotification('Error: ' + result.error, 'error');
+                        }
+                    } catch (error) {
+                        showNotification('Error updating announcement', 'error');
+                    }
+                });
+            }
+
+            // Edit announcement type selection
+            document.querySelectorAll('.edit-announcement-type-option').forEach(option => {
+                const card = option.querySelector('.type-card');
+                card.addEventListener('click', function () {
+                    const type = this.dataset.type;
+                    document.getElementById('editAnnouncementType').value = type;
+
+                    // Update radio button
+                    const radio = option.querySelector('input[type="radio"]');
+                    if (radio) {
+                        radio.checked = true;
+                    }
+
+                    // Update visual selection
+                    document.querySelectorAll('.edit-announcement-type-option .type-card').forEach(c => {
+                        c.style.borderColor = '#E5E7EB';
+                        c.style.backgroundColor = 'white';
+                    });
+
+                    this.style.borderColor = '#3B82F6';
+                    this.style.backgroundColor = '#F0F9FF';
+                });
+            });
+
             // Delete Announcement
+            // Edit Announcement
+            document.querySelectorAll('.edit-announcement-btn').forEach(btn => {
+                btn.addEventListener('click', function () {
+                    const id = this.dataset.id;
+                    const message = this.dataset.message;
+                    const type = this.dataset.type;
+
+                    showEditAnnouncement(id, message, type);
+                });
+            });
+
             document.querySelectorAll('.delete-announcement-btn').forEach(btn => {
                 btn.addEventListener('click', async function () {
-                    if (!confirm('Are you sure you want to delete this announcement?')) return;
+                    const confirmed = await customConfirm('Are you sure you want to delete this announcement?', 'Delete Announcement');
+                    if (!confirmed) return;
 
                     const id = this.dataset.id;
 
@@ -805,7 +890,11 @@
                         return;
                     }
 
-                    if (!confirm(`Are you sure you want to ban ${userName}?\n\nType: ${selectedBanType === 'timed' ? 'Temporary' : 'Permanent'}\n${selectedBanType === 'timed' ? `Duration: ${getDurationText(selectedDuration)}` : ''}\nReason: ${reason}`)) {
+                    const confirmed = await customConfirm(
+                        `Are you sure you want to ban ${userName}?\n\nType: ${selectedBanType === 'timed' ? 'Temporary' : 'Permanent'}\n${selectedBanType === 'timed' ? `Duration: ${getDurationText(selectedDuration)}` : ''}\nReason: ${reason}`,
+                        'Confirm Ban'
+                    );
+                    if (!confirmed) {
                         return;
                     }
 
@@ -858,7 +947,8 @@
                 btn.addEventListener('click', async function () {
                     const userId = this.dataset.userId;
 
-                    if (!confirm(`Are you sure you want to unban this user?`)) {
+                    const confirmed = await customConfirm('Are you sure you want to unban this user?', 'Confirm Unban');
+                    if (!confirmed) {
                         return;
                     }
 
@@ -886,9 +976,7 @@
 
         // Listen for storage events to detect logout from other tabs
         window.addEventListener('storage', function(e) {
-            console.log('🔍 Admin - Storage event detected:', e.key, e.newValue);
             if (e.key === 'terpnotes_logout' && e.newValue === 'true') {
-                console.log('🔍 Admin - Logout detected from another tab, redirecting...');
                 // Another tab logged out, redirect to index with cache busting
                 window.location.href = '/?loggedout=true&t=' + Date.now();
             }
@@ -897,10 +985,121 @@
         // Also check localStorage periodically in case storage events don't fire
         setInterval(function() {
             if (localStorage.getItem('terpnotes_logout') === 'true') {
-                console.log('🔍 Admin - Periodic check detected logout, redirecting...');
                 window.location.href = '/?loggedout=true&t=' + Date.now();
             }
         }, 1000); // Check every second
+
+        // Quick logout modal functions
+        function showQuickLogout() {
+            const modal = document.getElementById('quickLogoutModal');
+            modal.style.display = 'flex';
+            // Add click-outside-to-close functionality
+            modal.onclick = function(event) {
+                if (event.target === modal) {
+                    closeQuickLogout();
+                }
+            };
+        }
+
+        function closeQuickLogout() {
+            document.getElementById('quickLogoutModal').style.display = 'none';
+        }
+
+        // Ensure modal is hidden on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            const modal = document.getElementById('quickLogoutModal');
+            if (modal) {
+                modal.style.display = 'none';
+            }
+        });
+
+        // Add keyboard support (ESC key to close modal)
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Escape') {
+                const logoutModal = document.getElementById('quickLogoutModal');
+                const editModal = document.getElementById('editAnnouncementModal');
+                if (logoutModal && logoutModal.style.display === 'flex') {
+                    closeQuickLogout();
+                } else if (editModal && editModal.style.display === 'flex') {
+                    closeEditAnnouncement();
+                }
+            }
+        });
+
+        // Edit announcement modal functions
+        function showEditAnnouncement(announcementId, message, type) {
+            const modal = document.getElementById('editAnnouncementModal');
+            const messageField = document.getElementById('editAnnouncementMessage');
+            const typeField = document.getElementById('editAnnouncementType');
+
+            // Populate form with current values
+            messageField.value = message;
+            typeField.value = type;
+
+            // Set the announcement ID for the form
+            modal.dataset.announcementId = announcementId;
+
+            // Update radio button selection
+            document.querySelectorAll('input[name="editAnnouncementTypeRadio"]').forEach(radio => {
+                radio.checked = radio.value === type;
+            });
+
+            // Update visual selection
+            document.querySelectorAll('.edit-announcement-type-option .type-card').forEach(card => {
+                card.style.borderColor = '#E5E7EB';
+                card.style.backgroundColor = 'white';
+            });
+
+            const selectedCard = document.querySelector(`.edit-announcement-type-option .type-card[data-type="${type}"]`);
+            if (selectedCard) {
+                selectedCard.style.borderColor = '#3B82F6';
+                selectedCard.style.backgroundColor = '#F0F9FF';
+            }
+
+            modal.style.display = 'flex';
+
+            // Add click-outside-to-close functionality
+            modal.onclick = function(event) {
+                if (event.target === modal) {
+                    closeEditAnnouncement();
+                }
+            };
+        }
+
+        function closeEditAnnouncement() {
+            document.getElementById('editAnnouncementModal').style.display = 'none';
+        }
+
+        function quickLogoutAll() {
+            // Set localStorage flag to notify other tabs
+            localStorage.setItem('terpnotes_logout', 'true');
+            // Redirect to logout route
+            window.location.href = '/logout?all=true';
+        }
+
+        function quickLogoutThisTab() {
+            // Close the tab immediately like Ctrl+W
+            window.close();
+
+            // If window.close() doesn't work, show a message
+            setTimeout(() => {
+                if (!window.closed) {
+                    document.body.innerHTML = `
+                        <div style="display: flex; justify-content: center; align-items: center; height: 100vh; background: #F9FAFB;">
+                            <div style="text-align: center; padding: 2rem;">
+                                <div style="width: 60px; height: 60px; margin: 0 auto 1rem; background: #F59E0B; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                                    <svg width="30" height="30" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                        <path d="M12 9V13M12 17H12.01M21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12Z" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                    </svg>
+                                </div>
+                                <h2 style="color: #1F2937; margin: 0 0 0.5rem 0;">Tab Close Blocked</h2>
+                                <p style="color: #6B7280; margin: 0;">Please close this tab manually (Ctrl+W or Cmd+W). Your session remains active in other tabs.</p>
+                            </div>
+                        </div>
+                    `;
+                }
+            }, 100);
+        }
 
         // Listen for beforeunload to detect if this tab is being closed
         window.addEventListener('beforeunload', function() {
@@ -909,6 +1108,88 @@
         });
     </script>
     <%- include('partials/footer') %>
+    <%- include('partials/custom-alerts') %>
+
+    <!-- Edit Announcement Modal -->
+    <div id="editAnnouncementModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.5); z-index: 10000; align-items: center; justify-content: center;">
+        <div style="background: white; border-radius: 12px; padding: 2rem; max-width: 500px; width: 90%; box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);">
+            <div style="display: flex; align-items: center; margin-bottom: 1.5rem;">
+                <div style="width: 40px; height: 40px; margin-right: 1rem; background: #3B82F6; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M11 4H4C3.46957 4 2.96086 4.21071 2.58579 4.58579C2.21071 4.96086 2 5.46957 2 6V20C2 20.5304 2.21071 21.0391 2.58579 21.4142C2.96086 21.7893 3.46957 22 4 22H18C18.5304 22 19.0391 21.7893 19.4142 21.4142C19.7893 21.0391 20 20.5304 20 20V13M18.5 2.5C18.8978 2.10218 19.4374 1.87868 20 1.87868C20.5626 1.87868 21.1022 2.10218 21.5 2.5C21.8978 2.89782 22.1213 3.43739 22.1213 4C22.1213 4.56261 21.8978 5.10218 21.5 5.5L12 15L8 16L9 12L18.5 2.5Z" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </div>
+                <h2 style="color: #1F2937; font-size: 1.5rem; font-weight: 700; margin: 0;">Edit Announcement</h2>
+            </div>
+
+            <form id="editAnnouncementForm">
+                <div style="margin-bottom: 1.5rem;">
+                    <label for="editAnnouncementMessage" style="display: block; font-weight: 600; color: #374151; margin-bottom: 0.5rem;">Message</label>
+                    <textarea id="editAnnouncementMessage" required rows="3" placeholder="Enter announcement message..." style="width: 100%; padding: 0.75rem; border: 1px solid #D1D5DB; border-radius: 8px; font-size: 1rem; resize: vertical;"></textarea>
+                </div>
+
+                <div style="margin-bottom: 1.5rem;">
+                    <label style="display: block; font-weight: 600; color: #374151; margin-bottom: 0.5rem;">Type</label>
+                    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem;">
+                        <label class="edit-announcement-type-option">
+                            <input type="radio" name="editAnnouncementTypeRadio" value="info" style="display: none;">
+                            <div class="type-card type-card-info" data-type="info" style="padding: 1rem; border: 2px solid #E5E7EB; border-radius: 8px; text-align: center; cursor: pointer; transition: all 0.2s ease;">
+                                <div style="color: #3B82F6; font-weight: 600;">Info</div>
+                            </div>
+                        </label>
+                        <label class="edit-announcement-type-option">
+                            <input type="radio" name="editAnnouncementTypeRadio" value="warning" style="display: none;">
+                            <div class="type-card type-card-warning" data-type="warning" style="padding: 1rem; border: 2px solid #E5E7EB; border-radius: 8px; text-align: center; cursor: pointer; transition: all 0.2s ease;">
+                                <div style="color: #F59E0B; font-weight: 600;">Warning</div>
+                            </div>
+                        </label>
+                        <label class="edit-announcement-type-option">
+                            <input type="radio" name="editAnnouncementTypeRadio" value="success" style="display: none;">
+                            <div class="type-card type-card-success" data-type="success" style="padding: 1rem; border: 2px solid #E5E7EB; border-radius: 8px; text-align: center; cursor: pointer; transition: all 0.2s ease;">
+                                <div style="color: #10B981; font-weight: 600;">Success</div>
+                            </div>
+                        </label>
+                    </div>
+                    <input type="hidden" id="editAnnouncementType" value="info" required>
+                </div>
+
+                <div style="display: flex; gap: 1rem; justify-content: flex-end;">
+                    <button type="button" onclick="closeEditAnnouncement()" style="padding: 0.75rem 1.5rem; font-weight: 600; border-radius: 8px; background: white; color: #374151; border: 2px solid #D1D5DB; cursor: pointer; font-size: 1rem; transition: all 0.2s ease;">
+                        Cancel
+                    </button>
+                    <button type="submit" style="padding: 0.75rem 1.5rem; font-weight: 600; border-radius: 8px; background: #3B82F6; color: white; border: none; cursor: pointer; font-size: 1rem; transition: all 0.2s ease;">
+                        Update Announcement
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Quick Logout Modal -->
+    <div id="quickLogoutModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.5); z-index: 10000; align-items: center; justify-content: center;">
+        <div style="background: white; border-radius: 12px; padding: 2rem; max-width: 400px; width: 90%; box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2); text-align: center;">
+            <div style="width: 60px; height: 60px; margin: 0 auto 1rem; background: #FEF3C7; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                <svg width="30" height="30" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M9 21H5C4.46957 21 3.96086 20.7893 3.58579 20.4142C3.21071 20.0391 3 19.5304 3 19V5C3 4.46957 3.21071 3.96086 3.58579 3.58579C3.96086 3.21071 4.46957 3 5 3H9M16 17L21 12L16 7M21 12H9" stroke="#F59E0B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+            </div>
+            <h2 style="color: #1F2937; font-size: 1.5rem; font-weight: 700; margin: 0 0 0.5rem 0;">Log Out</h2>
+            <p style="color: #6B7280; font-size: 1rem; margin: 0 0 1.5rem 0;">How would you like to log out?</p>
+
+            <div style="display: flex; flex-direction: column; gap: 0.75rem; margin-bottom: 1.5rem;">
+                <button onclick="quickLogoutAll()" style="padding: 0.75rem 1.5rem; font-weight: 600; border-radius: 8px; background: #DC2626; color: white; border: none; cursor: pointer; font-size: 1rem; transition: all 0.2s ease;" onmouseover="this.style.background='#B91C1C'" onmouseout="this.style.background='#DC2626'">
+                    Log Out of All Tabs
+                </button>
+                <button onclick="quickLogoutThisTab()" style="padding: 0.75rem 1.5rem; font-weight: 600; border-radius: 8px; background: white; color: #374151; border: 2px solid #D1D5DB; cursor: pointer; font-size: 1rem; transition: all 0.2s ease;" onmouseover="this.style.borderColor='#9CA3AF'" onmouseout="this.style.borderColor='#D1D5DB'">
+                    Log Out of This Tab Only
+                </button>
+            </div>
+
+            <button onclick="closeQuickLogout()" style="color: #6B7280; text-decoration: none; font-size: 0.9rem; background: none; border: none; cursor: pointer;">
+                Cancel
+            </button>
+        </div>
+    </div>
 </body>
 
 </html>

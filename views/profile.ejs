@@ -268,9 +268,9 @@
             // Delete account functionality
             const deleteAccountBtn = document.getElementById('deleteAccountBtn');
             if (deleteAccountBtn) {
-                deleteAccountBtn.addEventListener('click', function() {
+                deleteAccountBtn.addEventListener('click', async function() {
                     // Create confirmation dialog
-                    const confirmed = confirm(
+                    const confirmed = await customConfirm(
                         'FINAL WARNING\n\n' +
                         'You are about to permanently delete your account. This action cannot be undone.\n\n' +
                         'This will delete:\n' +
@@ -278,12 +278,15 @@
                         '• All files you\'ve uploaded\n' +
                         '• Your download history and statistics\n\n' +
                         'Are you absolutely sure you want to delete your account?\n\n' +
-                        'Type "DELETE" in the next dialog to confirm.'
+                        'Type "DELETE" in the next dialog to confirm.',
+                        'Delete Account'
                     );
 
                     if (confirmed) {
-                        const userConfirmation = prompt(
-                            'Type "DELETE" (in all caps) to confirm account deletion:'
+                        const userConfirmation = await customPrompt(
+                            'Type "DELETE" (in all caps) to confirm account deletion:',
+                            'Type DELETE here...',
+                            'DELETE'
                         );
 
                         if (userConfirmation === 'DELETE') {
@@ -299,24 +302,24 @@
                                     'Content-Type': 'application/json',
                                 }
                             })
-                            .then(response => {
+                            .then(async response => {
                                 if (response.ok) {
-                                    alert('Account deleted successfully. You will be redirected to the home page.');
+                                    await customAlert('Account deleted successfully. You will be redirected to the home page.', 'success');
                                     window.location.href = '/';
                                 } else {
                                     throw new Error('Failed to delete account');
                                 }
                             })
-                            .catch(error => {
+                            .catch(async error => {
                                 console.error('Error:', error);
-                                alert('Failed to delete account. Please try again or contact support.');
+                                await customAlert('Failed to delete account. Please try again or contact support.', 'error');
                                 // Reset button state
                                 deleteAccountBtn.disabled = false;
                                 deleteAccountBtn.textContent = 'Delete My Account';
                                 deleteAccountBtn.style.opacity = '1';
                             });
                         } else if (userConfirmation !== null) {
-                            alert('Account deletion cancelled. The confirmation text did not match.');
+                            await customAlert('Account deletion cancelled. The confirmation text did not match.', 'warning');
                         }
                     }
                 });
@@ -325,6 +328,7 @@
         });
     </script>
     <%- include('partials/footer') %>
+    <%- include('partials/custom-alerts') %>
 </body>
 
 </html>
