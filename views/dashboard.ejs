@@ -154,7 +154,22 @@
 
     <main class="container">
         <!-- Mobile View Notice (hidden on desktop) -->
-        <div class="mobile-view-notice" style="display: none;"></div>
+        <div class="mobile-view-notice" style="display: none; background: #F0F9FF; border: 1px solid #0EA5E9; border-radius: 8px; padding: 0.75rem 1rem; margin-bottom: 1rem; color: #0C4A6E; font-size: 0.875rem; text-align: center;">
+            📱 <strong>Mobile View:</strong> You're using the mobile-optimized list view. Other view options are not available on mobile devices.
+        </div>
+
+        <!-- Narrow Screen Mobile Switch Button -->
+        <div id="narrowScreenMobileSwitch" style="display: none; background: #FEF3C7; border: 1px solid #F59E0B; border-radius: 8px; padding: 0.75rem 1rem; margin-bottom: 1rem; text-align: center;">
+            <div style="color: #92400E; font-size: 0.875rem; margin-bottom: 0.5rem;">
+                📱 <strong>Narrow Screen Detected</strong>
+            </div>
+            <p style="color: #92400E; font-size: 0.8rem; margin: 0 0 0.75rem 0;">
+                Your screen is narrow. Switch to our mobile-optimized view for a better experience.
+            </p>
+            <a href="/mobile/dashboard" style="background: #F59E0B; color: white; padding: 0.5rem 1rem; border-radius: 6px; text-decoration: none; font-size: 0.8rem; font-weight: 600; display: inline-block; transition: background 0.2s ease;" onmouseover="this.style.background='#D97706'" onmouseout="this.style.background='#F59E0B'">
+                Switch to Mobile View
+            </a>
+        </div>
 
         <!-- Announcements Section -->
         <% if (announcements && announcements.length > 0) { %>
@@ -187,7 +202,7 @@
 
                                 <div style="display: flex; align-items: center; gap: 1rem;">
                                     <!-- View Toggle -->
-                                    <div
+                                    <div class="view-toggle"
                                         style="display: flex; gap: 0.5rem; background: #F3F4F6; padding: 4px; border-radius: 8px;">
                                         <button id="groupedViewBtn" onclick="switchView('grouped')"
                                             style="padding: 6px 12px; border: none; background: var(--umd-red); color: white; border-radius: 6px; cursor: pointer; font-size: 0.875rem; font-weight: 600; transition: all 0.2s;">
@@ -505,7 +520,7 @@
                                                                                         %>
                                                                                             <span class="age-badge" title="<%= ageTag.tooltip %>" style="<%= ageTag.style %> padding: 2px 8px; border-radius: 4px; font-size: 0.7rem; font-weight: 600; cursor: help;">
                                                                                                 <img src="/images/icons/<%= ageTag.icon %>" alt="<%= ageTag.text %>" style="width: 24px; height: 24px; vertical-align: middle; margin-right: 6px;" /> <%= ageTag.text %>
-                                                                                            </span>
+                                                                                                </span>
                                                                                                     <%
                                                                                                         const sizeKB = file.size / 1024;
                                                                                                         let sizeClass = 'size-normal';
@@ -593,8 +608,11 @@
                                                 </div>
 
                                                 <div class="file-actions">
-                                                    <button onclick="downloadFile('<%= encodeURIComponent(file.filename) %>')"
-                                                        class="button download">Download</button>
+                                                    <% if (file.s3Missing) { %>
+                                                        <button class="button download" disabled style="opacity: 0.5; cursor: not-allowed;" title="File is no longer available">🚫 Unavailable</button>
+                                                    <% } else { %>
+                                                        <button onclick="downloadFile('<%= encodeURIComponent(file.filename) %>')" class="button download">Download</button>
+                                                    <% } %>
                                                     <% if (user.role==='admin' || file.uploadedBy===user.userid) { %>
                                                         <button class="button danger"
                                                             onclick="confirmDelete('<%= encodeURIComponent(file.filename) %>', '<%= file.originalName %>')">Delete</button>
@@ -860,8 +878,13 @@
                             </div>
                             <div class="form-group">
                                 <label for="editProfessor" class="form-label">Professor<span class="required">*</span></label>
-                                <input type="text" id="editProfessor" name="professor" class="form-input" required autocomplete="off" list="editProfessorSuggestions">
-                                <datalist id="editProfessorSuggestions"></datalist>
+                                <div class="custom-dropdown-wrapper">
+                                    <input type="text" id="editProfessor" name="professor" class="form-input" required autocomplete="off">
+                                    <div class="custom-dropdown" id="editProfessorsDropdown"></div>
+                                </div>
+                                <small class="form-help" id="editProfessorHelp" style="color: #9CA3AF; font-size: 0.75rem;">
+                                    Select a course first to see professors, then type to filter
+                                </small>
                             </div>
                         </div>
 
@@ -1102,8 +1125,8 @@
                     updateExpandCollapseButtonText();
                 }
 
-                // Switch between grid, grouped, and list views
-                function switchView(view, savePreference = true) {
+                // Switch between grid, grouped, and list views (make it globally available)
+                window.switchView = function switchView(view, savePreference = true) {
                     const gridView = document.getElementById('gridView');
                     const groupedView = document.getElementById('groupedView');
                     const listView = document.getElementById('listView');
@@ -1874,6 +1897,14 @@
                     return `<button class="button info small edit-btn" data-filename="${file.filename}" data-file-data='${JSON.stringify(file)}'>Edit</button>`;
                 }
 
+                // Generate download button with missing file check
+                function getDownloadButton(file) {
+                    if (file.s3Missing) {
+                        return `<button class="button download" disabled style="opacity: 0.5; cursor: not-allowed;" title="File is no longer available">🚫 Unavailable</button>`;
+                    }
+                    return `<button onclick="downloadFile('${encodeURIComponent(file.filename)}')" class="button download">Download</button>`;
+                }
+
                 // Generate status badges dynamically
                 function generateStatusBadges(file) {
                     const badges = [];
@@ -1882,6 +1913,11 @@
                     // Age-based tag (replaces New badge)
                     const ageTag = getAgeTag(file.uploadDate);
                     badges.push(`<span class="age-badge" title="${escapeHtml(ageTag.tooltip)}" style="${ageTag.style} padding: 2px 6px; border-radius: 4px; font-size: 0.7rem; font-weight: 600; cursor: help;"><img src="/images/icons/${ageTag.icon}" alt="${ageTag.text}" style="width: 16px; height: 16px; vertical-align: middle; margin-right: 4px;" onerror="this.style.display='none';" /> ${ageTag.text}</span>`);
+
+                    // Missing file indicator
+                    if (file.s3Missing) {
+                        badges.push(`<span style="background: #EF4444; color: white; padding: 2px 6px; border-radius: 4px; font-size: 0.7rem; font-weight: 600;" title="File is no longer available on our servers">🚫 Unavailable</span>`);
+                    }
 
                     // Handle virus scan status badges with proper logic
                     if (file.virusScanStatus) {
@@ -2071,7 +2107,7 @@
                                 </div>
                                 <div class="file-list-downloads" title="${downloadCount} downloads">${downloadCount}</div>
                                 <div class="file-list-actions">
-                                    <button onclick="downloadFile('${encodeURIComponent(file.filename)}')" class="button download" style="font-size: 0.8rem; padding: 0.4rem 0.8rem;">Download</button>
+                                    ${getDownloadButton(file)}
                                     ${getEditButton(file)}
                                     ${getDeleteButton(file)}
                                     <button class="button secondary small report-btn" data-filename="${filename}" data-original-name="${originalName}" style="font-size: 0.8rem; padding: 0.4rem 0.8rem;">🚩</button>
@@ -2136,7 +2172,7 @@
                         <div class="file-meta-item"><strong>Size:</strong> ${formatFileSize(file.size || 0)}</div>
                     </div>
                     <div class="file-actions" style="display: flex; gap: 0.5rem; flex-wrap: wrap; justify-content: center;">
-                        <button onclick="downloadFile('${encodeURIComponent(file.filename)}')" class="button download">Download</button>
+                        ${getDownloadButton(file)}
                         ${getEditButton(file)}
                                 ${getDeleteButton(file)}
                         <button class="button secondary small report-btn" data-filename="${file.filename}" data-original-name="${escapeHtml(file.originalName)}">🚩 Report</button>
@@ -3074,7 +3110,7 @@
                         <div class="file-meta-item"><strong>Size:</strong> ${formatFileSize(file.size || 0)}</div>
                     </div>
                     <div class="file-actions" style="display: flex; gap: 0.5rem; flex-wrap: wrap; justify-content: center;">
-                        <button onclick="downloadFile('${encodeURIComponent(file.filename)}')" class="button download">Download</button>
+                        ${getDownloadButton(file)}
                         ${getEditButton(file)}
                         ${getDeleteButton(file)}
                         <button class="button secondary small report-btn" data-filename="${file.filename}" data-original-name="${escapeHtml(file.originalName)}">🚩 Report</button>
@@ -3162,6 +3198,162 @@
                     // Initialize UMD.io autocomplete for edit form
                     initializeEditFormAutocomplete();
 
+                    // Add course input event listener to trigger professor data fetching
+                    const editClassCodeInput = document.getElementById('editClassCode');
+                    if (editClassCodeInput) {
+                        editClassCodeInput.addEventListener('input', async function() {
+                            const courseValue = this.value.trim();
+                            if (courseValue.length >= 3) {
+                                // Clear existing professor data
+                                editProfessorData = [];
+                                document.getElementById('editProfessor').value = '';
+
+                                // Fetch new professor data
+                                await fetchEditProfessorData(courseValue);
+                            } else {
+                                // Clear professor data if course is too short
+                                editProfessorData = [];
+                                document.getElementById('editProfessor').value = '';
+                                hideEditProfessorDropdown();
+                                resetEditSemesterYearDropdowns();
+                            }
+                        });
+                    }
+
+                    // Add professor input event listener for filtering
+                    const editProfessorInput = document.getElementById('editProfessor');
+                    if (editProfessorInput) {
+                        editProfessorInput.addEventListener('input', function() {
+                            const searchTerm = this.value.trim();
+
+                            if (searchTerm.length === 0) {
+                                if (editProfessorData.length > 0) {
+                                    showEditProfessorDropdown();
+                                } else {
+                                    hideEditProfessorDropdown();
+                                }
+                                return;
+                            }
+
+                            // Filter professors based on search term
+                            const filteredProfessors = editProfessorData.filter(prof =>
+                                prof.name.toLowerCase().includes(searchTerm.toLowerCase())
+                            );
+
+                            if (filteredProfessors.length > 0) {
+                                const dropdown = document.getElementById('editProfessorsDropdown');
+                                dropdown.innerHTML = filteredProfessors.map(prof => {
+                                    // Create semester tags (like in the image)
+                                    let semesterTags = '';
+                                    if (prof.semesters && prof.semesters.length > 0) {
+                                        const uniqueSemesters = [...new Set(prof.semesters.map(s => `${s.semester} ${s.year}`))];
+                                        semesterTags = uniqueSemesters.map(sem =>
+                                            `<span class="semester-tag" style="display: inline-block; background: #FEE2E2; color: #DC2626; padding: 2px 6px; border-radius: 4px; font-size: 0.75rem; margin: 1px 2px 1px 0; font-weight: 500;">${sem}</span>`
+                                        ).join('');
+                                    }
+
+                                    return `<div class="custom-dropdown-item" data-professor-name="${prof.name}" style="padding: 8px 12px; cursor: pointer; border-bottom: 1px solid #F3F4F6;">
+                                        <div style="font-weight: 600; color: #1F2937;">${prof.name}</div>
+                                        ${semesterTags ? `<div class="semester-tags" style="margin-top: 4px;">${semesterTags}</div>` : ''}
+                                    </div>`;
+                                }).join('');
+                                dropdown.style.display = 'block';
+                            } else {
+                                hideEditProfessorDropdown();
+                            }
+                        });
+
+                        // Add click event listeners for professor dropdown items
+                        document.addEventListener('click', async function(e) {
+                            if (e.target.closest('.custom-dropdown-item') && e.target.closest('#editProfessorsDropdown')) {
+                                const professorName = e.target.closest('.custom-dropdown-item').dataset.professorName;
+                                if (professorName) {
+                                    editProfessorInput.value = professorName;
+                                    hideEditProfessorDropdown();
+
+                                    // Prevent duplicate API calls
+                                    if (editProfessorInput.dataset.loading === 'true') {
+                                        return;
+                                    }
+                                    editProfessorInput.dataset.loading = 'true';
+
+                                    // Fetch detailed professor data with 4-year lookback
+                                    try {
+                                        const response = await fetch(`/api/umd/professor-details?name=${encodeURIComponent(professorName)}`);
+                                        if (response.ok) {
+                                            const professorDetails = await response.json();
+                                            if (professorDetails && professorDetails.semesters) {
+                                                updateEditSemesterYearDropdowns([professorDetails]);
+                                                return;
+                                            }
+                                        }
+                                    } catch (error) {
+                                        console.error('Error fetching professor details:', error);
+                                    }
+
+                                    // Try with title case if original failed
+                                    try {
+                                        const titleCase = professorName.toLowerCase().replace(/\b\w/g, l => l.toUpperCase());
+                                        if (titleCase !== professorName) {
+                                            const response = await fetch(`/api/umd/professor-details?name=${encodeURIComponent(titleCase)}`);
+                                            if (response.ok) {
+                                                const professorDetails = await response.json();
+                                                if (professorDetails && professorDetails.semesters) {
+                                                    updateEditSemesterYearDropdowns([professorDetails]);
+                                                    return;
+                                                }
+                                            }
+                                        }
+                                    } catch (error) {
+                                        console.error('Error fetching professor details with title case:', error);
+                                    }
+
+                                    // Fallback to existing data
+                                    const selectedProf = editProfessorData.find(p => p.name === professorName);
+                                    if (selectedProf && selectedProf.semesters) {
+                                        updateEditSemesterYearDropdowns([selectedProf]);
+                                    } else {
+                                        // If no professor data available, reset to show all semester/year options
+                                        resetEditSemesterYearDropdowns();
+                                    }
+
+                                    // Reset loading flag
+                                    editProfessorInput.dataset.loading = 'false';
+                                }
+                            }
+                        });
+                    }
+
+                    // Add semester and year change event listeners to trigger professor data updates
+                    const editSemesterSelect = document.getElementById('editSemester');
+                    const editYearSelect = document.getElementById('editYear');
+
+                    if (editSemesterSelect) {
+                        editSemesterSelect.addEventListener('change', async function() {
+                            const courseValue = document.getElementById('editClassCode').value.trim();
+                            if (courseValue.length >= 3) {
+                                await fetchEditProfessorData(courseValue);
+                            }
+                        });
+                    }
+
+                    if (editYearSelect) {
+                        editYearSelect.addEventListener('change', async function() {
+                            const courseValue = document.getElementById('editClassCode').value.trim();
+                            if (courseValue.length >= 3) {
+                                await fetchEditProfessorData(courseValue);
+                            }
+                        });
+                    }
+
+                    // Initialize professor list if course is already entered (like upload form)
+                    setTimeout(async function() {
+                        const selectedCourse = document.getElementById('editClassCode').value.trim();
+                        if (selectedCourse) {
+                            await fetchEditProfessorData(selectedCourse);
+                        }
+                    }, 100);
+
                     // Show modal
                     modal.style.display = 'block';
                 }
@@ -3171,14 +3363,7 @@
                     modal.style.display = 'none';
                 }
 
-                // Initialize UMD.io autocomplete for edit form
-                function initializeEditFormAutocomplete() {
-                    const editClassCodeInput = document.getElementById('editClassCode');
-                    const editProfessorInput = document.getElementById('editProfessor');
-
-                    if (!editClassCodeInput || !editProfessorInput) return;
-
-                    // Course autocomplete for edit form
+                // Global variables for edit form
                     let editCourseData = [];
                     let editProfessorData = [];
                     let editCourseTimeout;
@@ -3194,19 +3379,209 @@
                         }
                     }
 
-                    // Fetch professor data for edit form
+                // Helper function to show professor dropdown (global function)
+                function showEditProfessorDropdown() {
+                    const dropdown = document.getElementById('editProfessorsDropdown');
+                    if (editProfessorData && editProfessorData.length > 0) {
+                        dropdown.innerHTML = editProfessorData.map(prof => {
+                            // Create semester tags (like in the image)
+                            let semesterTags = '';
+                            if (prof.semesters && prof.semesters.length > 0) {
+                                const uniqueSemesters = [...new Set(prof.semesters.map(s => `${s.semester} ${s.year}`))];
+                                semesterTags = uniqueSemesters.map(sem =>
+                                    `<span class="semester-tag" style="display: inline-block; background: #FEE2E2; color: #DC2626; padding: 2px 6px; border-radius: 4px; font-size: 0.75rem; margin: 1px 2px 1px 0; font-weight: 500;">${sem}</span>`
+                                ).join('');
+                            }
+
+                            return `<div class="custom-dropdown-item" data-professor-name="${prof.name}" style="padding: 8px 12px; cursor: pointer; border-bottom: 1px solid #F3F4F6;">
+                                <div style="font-weight: 600; color: #1F2937;">${prof.name}</div>
+                                ${semesterTags ? `<div class="semester-tags" style="margin-top: 4px;">${semesterTags}</div>` : ''}
+                            </div>`;
+                        }).join('');
+                        dropdown.style.display = 'block';
+
+                        // Add click-outside-to-close functionality with a small delay to prevent interference
+                        setTimeout(() => {
+                            document.addEventListener('click', handleEditProfessorDropdownClick);
+                        }, 100);
+                    }
+                }
+
+                // Handle click outside professor dropdown to close it
+                function handleEditProfessorDropdownClick(event) {
+                    const dropdown = document.getElementById('editProfessorsDropdown');
+                    const professorInput = document.getElementById('editProfessor');
+
+                    // Check if click is outside both dropdown and input
+                    if (!dropdown.contains(event.target) && !professorInput.contains(event.target)) {
+                        hideEditProfessorDropdown();
+                        document.removeEventListener('click', handleEditProfessorDropdownClick);
+                    }
+                }
+
+                // Helper function to hide professor dropdown (global function)
+                function hideEditProfessorDropdown() {
+                    const dropdown = document.getElementById('editProfessorsDropdown');
+                    dropdown.style.display = 'none';
+
+                    // Remove click-outside-to-close event listener
+                    document.removeEventListener('click', handleEditProfessorDropdownClick);
+                }
+
+                // Reset semester and year dropdowns to show all options
+                function resetEditSemesterYearDropdowns() {
+                    const semesterSelect = document.getElementById('editSemester');
+                    const yearSelect = document.getElementById('editYear');
+
+                    if (semesterSelect) {
+                        semesterSelect.innerHTML = `
+                            <option value="">Select Semester</option>
+                            <option value="Spring">Spring</option>
+                            <option value="Summer">Summer</option>
+                            <option value="Fall">Fall</option>
+                            <option value="Winter">Winter</option>
+                        `;
+                    }
+
+                    if (yearSelect) {
+                        yearSelect.innerHTML = '<option value="">Select Year</option>';
+                        const currentYear = new Date().getFullYear();
+                        for (let year = currentYear; year >= 2020; year--) {
+                            const option = document.createElement('option');
+                            option.value = year;
+                            option.textContent = year;
+                            yearSelect.appendChild(option);
+                        }
+                    }
+
+                    // Clear info display
+                    const infoElement = document.querySelector('#editFileModal .semester-year-info');
+                    if (infoElement) {
+                        infoElement.textContent = '';
+                    }
+                }
+
+                // Update semester and year dropdowns based on professor data
+                function updateEditSemesterYearDropdowns(professorData) {
+                    // Collect all unique semesters and years from professor data
+                    const availableSemesters = new Set();
+                    const availableYears = new Set();
+
+                    professorData.forEach(prof => {
+                        if (prof.semesters && prof.semesters.length > 0) {
+                            prof.semesters.forEach(sem => {
+                                if (sem.semester) availableSemesters.add(sem.semester);
+                                if (sem.year) availableYears.add(sem.year.toString());
+                            });
+                        }
+                    });
+
+                    // Update semester dropdown
+                    const semesterSelect = document.getElementById('editSemester');
+                    if (semesterSelect) {
+                        const currentValue = semesterSelect.value;
+                        semesterSelect.innerHTML = '<option value="">Select semester</option>';
+
+                        Array.from(availableSemesters).sort().forEach(semester => {
+                            const option = document.createElement('option');
+                            option.value = semester;
+                            option.textContent = semester;
+                            if (semester === currentValue) option.selected = true;
+                            semesterSelect.appendChild(option);
+                        });
+                    }
+
+                    // Update year dropdown
+                    const yearSelect = document.getElementById('editYear');
+                    if (yearSelect) {
+                        const currentValue = yearSelect.value;
+                        yearSelect.innerHTML = '<option value="">Select year</option>';
+
+                        Array.from(availableYears).sort((a, b) => b - a).forEach(year => {
+                            const option = document.createElement('option');
+                            option.value = year;
+                            option.textContent = year;
+                            if (year === currentValue) option.selected = true;
+                            yearSelect.appendChild(option);
+                        });
+                    }
+
+                    // Show available options info
+                    const semesterInfo = Array.from(availableSemesters).sort().join(' | ');
+                    const yearInfo = Array.from(availableYears).sort((a, b) => b - a).join(' | ');
+
+                    // Update info display (similar to upload form)
+                    const infoElement = document.querySelector('#editFileModal .semester-year-info');
+                    if (infoElement) {
+                        infoElement.textContent = `Available semesters: ${semesterInfo} | Available years: ${yearInfo}`;
+                    } else {
+                        // Create info element if it doesn't exist
+                        const professorField = document.getElementById('editProfessor').closest('.form-group');
+                        if (professorField) {
+                            const infoDiv = document.createElement('div');
+                            infoDiv.className = 'semester-year-info';
+                            infoDiv.style.cssText = 'font-size: 0.875rem; color: #6B7280; margin-top: 4px;';
+                            infoDiv.textContent = `Available semesters: ${semesterInfo} | Available years: ${yearInfo}`;
+                            professorField.appendChild(infoDiv);
+                        }
+                    }
+                }
+
+                // Fetch professor data for edit form (global function)
                     async function fetchEditProfessorData(courseId) {
                         try {
-                            const queryParams = new URLSearchParams();
-                            if (courseId) queryParams.append('course_id', courseId);
+                            const selectedSemester = document.getElementById('editSemester').value;
+                            const selectedYear = document.getElementById('editYear').value;
+
+                            // Build query parameters (same logic as upload form)
+                            let queryParams = `course_id=${encodeURIComponent(courseId)}`;
+
+                            // Only add filters if both semester and year are specified
+                            if (selectedSemester && selectedYear) {
+                                queryParams += `&filter_semester=${encodeURIComponent(selectedSemester)}`;
+                                queryParams += `&filter_year=${encodeURIComponent(selectedYear)}`;
+                            } else if (selectedSemester) {
+                                // Only semester specified - get all years for this semester
+                                queryParams += `&filter_semester=${encodeURIComponent(selectedSemester)}`;
+                            } else if (selectedYear) {
+                                // Only year specified - get all semesters for this year
+                                queryParams += `&filter_year=${encodeURIComponent(selectedYear)}`;
+                            }
+                            // If neither is specified, use 4-year lookback (default behavior)
 
                             const response = await fetch(`/api/umd/professors?${queryParams}`);
                             if (response.ok) {
                                 editProfessorData = await response.json();
+
+                                // Update professor input placeholder and semester/year dropdowns (same as upload form)
+                                const professorInput = document.getElementById('editProfessor');
+                                if (editProfessorData && editProfessorData.length > 0) {
+                                    professorInput.placeholder = `${editProfessorData.length} professor${editProfessorData.length !== 1 ? 's' : ''} taught ${courseId}`;
+
+                                    // Update semester and year dropdowns based on professor data
+                                    updateEditSemesterYearDropdowns(editProfessorData);
+
+                                    // Show professor dropdown immediately (like upload form)
+                                    showEditProfessorDropdown();
+
+                                    // Update semester and year dropdowns with available options
+                                    updateEditSemesterYearDropdowns(editProfessorData);
+                                } else {
+                                    professorInput.placeholder = 'No professors found for this course';
+                                    hideEditProfessorDropdown();
+                                }
                             }
                         } catch (error) {
+                            console.error('Failed to load professor data:', error);
                         }
-                    }
+                }
+
+                // Initialize UMD.io autocomplete for edit form
+                function initializeEditFormAutocomplete() {
+                    const editClassCodeInput = document.getElementById('editClassCode');
+                    const editProfessorInput = document.getElementById('editProfessor');
+
+                    if (!editClassCodeInput || !editProfessorInput) return;
 
                     // Initialize autocomplete on edit form inputs
                     editClassCodeInput.addEventListener('input', function(e) {
@@ -3237,24 +3612,80 @@
                         }, 300);
                     });
 
-                    editProfessorInput.addEventListener('input', function(e) {
-                        const value = e.target.value.trim();
-
-                        if (value.length >= 2 && editProfessorData.length > 0) {
-                            const filtered = editProfessorData.filter(prof =>
-                                prof.name.toLowerCase().includes(value.toLowerCase())
-                            );
-
-                            const datalist = document.getElementById('editProfessorSuggestions');
-                            datalist.innerHTML = '';
-
-                            filtered.slice(0, 10).forEach(prof => {
-                                const option = document.createElement('option');
-                                option.value = prof.name;
-                                datalist.appendChild(option);
-                            });
+                    // Handle course selection in edit form (like upload form)
+                    editClassCodeInput.addEventListener('change', async function(e) {
+                        const selectedCourse = e.target.value.trim();
+                        if (selectedCourse) {
+                            await fetchEditProfessorData(selectedCourse);
                         }
                     });
+
+                    // Professor autocomplete for edit form (like upload form)
+                    editProfessorInput.addEventListener('input', function(e) {
+                        const query = e.target.value.toLowerCase();
+                        const dropdown = document.getElementById('editProfessorsDropdown');
+
+                        if (query.length === 0) {
+                            // Show all professors when field is empty (like upload form)
+                            showEditProfessorDropdown();
+                            return;
+                        }
+
+                        if (query.length < 1) {
+                            dropdown.style.display = 'none';
+                            return;
+                        }
+
+                        const filteredProfessors = editProfessorData.filter(prof =>
+                            prof.name.toLowerCase().includes(query)
+                        ).slice(0, 10);
+
+                        if (filteredProfessors.length > 0) {
+                            dropdown.innerHTML = filteredProfessors.map(prof =>
+                                `<div class="custom-dropdown-item" data-professor-name="${prof.name}">
+                                    ${prof.name}
+                                </div>`
+                            ).join('');
+                            dropdown.style.display = 'block';
+                        } else {
+                            dropdown.style.display = 'none';
+                        }
+                    });
+
+                    // Show professor dropdown when professor field is focused (like upload form)
+                    editProfessorInput.addEventListener('focus', function() {
+                        if (editProfessorData && editProfessorData.length > 0) {
+                            showEditProfessorDropdown();
+                        }
+                    });
+
+                    // Note: Professor selection is now handled by the global document click listener above
+                    // This prevents duplicate API calls
+
+
+                    // Add event listeners for semester and year changes (like upload form)
+                    const editSemesterSelect = document.getElementById('editSemester');
+                    const editYearSelect = document.getElementById('editYear');
+
+                    if (editSemesterSelect) {
+                        editSemesterSelect.addEventListener('change', async function() {
+                            console.log('Edit semester changed, reloading professors');
+                            const selectedCourse = document.getElementById('editClassCode').value.trim();
+                            if (selectedCourse) {
+                                await fetchEditProfessorData(selectedCourse);
+                            }
+                        });
+                    }
+
+                    if (editYearSelect) {
+                        editYearSelect.addEventListener('change', async function() {
+                            console.log('Edit year changed, reloading professors');
+                            const selectedCourse = document.getElementById('editClassCode').value.trim();
+                            if (selectedCourse) {
+                                await fetchEditProfessorData(selectedCourse);
+                            }
+                        });
+                    }
 
                     // Initialize course data
                     fetchEditCourseData();
@@ -3342,10 +3773,15 @@
 
                     if (typedConfirm === "DELETE") {
                         // Proceed with deletion
+                        console.log('Proceeding with deletion of:', filename);
                         window.location.href = `/delete/${filename}`;
                         return true;
                     } else if (typedConfirm !== null) {
-                        await customAlert("Deletion cancelled. You must type 'DELETE' exactly to confirm.", 'warning');
+                        if (typeof customAlert === 'function') {
+                            await customAlert("Deletion cancelled. You must type 'DELETE' exactly to confirm.", 'warning');
+                    } else {
+                        alert("Deletion cancelled. You must type 'DELETE' exactly to confirm.");
+                        }
                         return false;
                     } else {
                         return false;
@@ -3379,7 +3815,11 @@
 
                     const reasonIndex = parseInt(reason) - 1;
                     if (reasonIndex < 0 || reasonIndex >= reasons.length) {
-                        await customAlert('Invalid selection. Please try again.', 'error');
+                        if (typeof customAlert === 'function') {
+                            await customAlert('Invalid selection. Please try again.', 'error');
+                        } else {
+                        alert('Invalid selection. Please try again.');
+                        }
                         return;
                     }
 
@@ -3411,12 +3851,24 @@
                         const result = await response.json();
 
                         if (response.ok) {
-                            await customAlert('Report submitted successfully. An admin will review this file.', 'success');
+                            if (typeof customAlert === 'function') {
+                                await customAlert('Report submitted successfully. An admin will review this file.', 'success');
+                            } else {
+                            alert('Report submitted successfully. An admin will review this file.');
+                            }
                         } else {
-                            await customAlert('Error: ' + result.error, 'error');
+                            if (typeof customAlert === 'function') {
+                                await customAlert('Error: ' + result.error, 'error');
+                        } else {
+                            alert('Error: ' + result.error);
+                            }
                         }
                     } catch (error) {
-                        await customAlert('Failed to submit report. Please try again.', 'error');
+                        if (typeof customAlert === 'function') {
+                            await customAlert('Failed to submit report. Please try again.', 'error');
+                        } else {
+                        alert('Failed to submit report. Please try again.');
+                        }
                     }
                 }
 
@@ -3961,6 +4413,25 @@
 
                 // Initialize on page load
                 document.addEventListener('DOMContentLoaded', function () {
+                    // Check for narrow screens and show mobile switch button
+                    function checkScreenWidth() {
+                        const narrowScreenSwitch = document.getElementById('narrowScreenMobileSwitch');
+                        if (narrowScreenSwitch && window.innerWidth <= 768) {
+                            // Only show if not already on mobile route
+                            if (!window.location.pathname.startsWith('/mobile/')) {
+                                narrowScreenSwitch.style.display = 'block';
+                            }
+                        } else if (narrowScreenSwitch) {
+                            narrowScreenSwitch.style.display = 'none';
+                        }
+                    }
+
+                    // Check on load
+                    checkScreenWidth();
+
+                    // Check on resize
+                    window.addEventListener('resize', checkScreenWidth);
+
                     // Mobile-only: Force list view on mobile devices
                     if (window.innerWidth <= 768) {
                         const listView = document.getElementById('listView');
@@ -4267,15 +4738,19 @@
                                 // Highlight matching text
                                 const highlightedName = highlightText(professorName, searchTerm);
 
-                                // Create semester tags
-                                const semesterTags = prof.semesters.map(sem =>
-                                    `<span class="semester-tag">${sem.semester} ${sem.year}</span>`
-                                ).join('');
+                                // Create semester tags (like in the image)
+                                let semesterTags = '';
+                                if (prof.semesters && prof.semesters.length > 0) {
+                                    const uniqueSemesters = [...new Set(prof.semesters.map(s => `${s.semester} ${s.year}`))];
+                                    semesterTags = uniqueSemesters.map(sem =>
+                                        `<span class="semester-tag" style="display: inline-block; background: #FEE2E2; color: #DC2626; padding: 2px 6px; border-radius: 4px; font-size: 0.75rem; margin: 1px 2px 1px 0; font-weight: 500;">${sem}</span>`
+                                    ).join('');
+                                }
 
                                 return `
-                                    <div class="custom-dropdown-item" data-professor-name="${professorName}">
-                                        <span class="professor-name">${highlightedName}</span>
-                                        <div class="professor-semesters">${semesterTags}</div>
+                                    <div class="custom-dropdown-item" data-professor-name="${professorName}" style="padding: 8px 12px; cursor: pointer; border-bottom: 1px solid #F3F4F6;">
+                                        <div style="font-weight: 600; color: #1F2937;">${highlightedName}</div>
+                                        ${semesterTags ? `<div class="semester-tags" style="margin-top: 4px;">${semesterTags}</div>` : ''}
                                     </div>
                                 `;
                             }).join('');
@@ -4284,13 +4759,60 @@
 
                             // Add click handlers
                             professorsDropdown.querySelectorAll('.custom-dropdown-item').forEach((item, index) => {
-                                item.addEventListener('click', function () {
+                                item.addEventListener('click', async function () {
                                     const professorName = this.dataset.professorName;
                                     professorInput.value = professorName;
                                     professorsDropdown.classList.remove('show');
 
+                                    // Prevent duplicate API calls
+                                    if (professorInput.dataset.loading === 'true') {
+                                        return;
+                                    }
+                                    professorInput.dataset.loading = 'true';
+
                                     // Update semester/year dropdowns based on selected professor's available semesters
-                                    updateDropdownsForProfessor(professorName);
+                                    try {
+                                        // Fetch detailed professor data with 4-year lookback
+                                        const response = await fetch(`/api/umd/professor-details?name=${encodeURIComponent(professorName)}`);
+                                        if (response.ok) {
+                                            const professorDetails = await response.json();
+                                            if (professorDetails && professorDetails.semesters && professorDetails.semesters.length > 0) {
+                                                updateProfessorSemesterInfo([professorDetails]);
+                                                return;
+                                            }
+                                        }
+                                    } catch (error) {
+                                        console.error('Error fetching professor details:', error);
+                                    }
+
+                                    // If API call failed (possibly due to case sensitivity), try title case
+                                    try {
+                                        const titleCase = professorName.toLowerCase().replace(/\b\w/g, l => l.toUpperCase());
+                                        if (titleCase !== professorName) {
+                                            const response = await fetch(`/api/umd/professor-details?name=${encodeURIComponent(titleCase)}`);
+                                            if (response.ok) {
+                                                const professorDetails = await response.json();
+                                                if (professorDetails && professorDetails.semesters && professorDetails.semesters.length > 0) {
+                                                    updateProfessorSemesterInfo([professorDetails]);
+                                                    return;
+                                                }
+                                            }
+                                        }
+                                    } catch (error) {
+                                        console.error('Error fetching professor details with title case:', error);
+                                    }
+
+                                    // Fallback: Find the professor in the current professorData
+                                    const selectedProfessor = professorData.find(prof => prof.name === professorName);
+                                    if (selectedProfessor && selectedProfessor.semesters && selectedProfessor.semesters.length > 0) {
+                                        updateProfessorSemesterInfo([selectedProfessor]);
+                                    } else {
+                                        // If no professor data available, reset to show all semester/year options
+                                        resetDropdownsToAllOptions();
+                                    }
+
+                                    // Reset loading flag
+                                    professorInput.dataset.loading = 'false';
                                 });
 
                                 item.addEventListener('mouseenter', function () {
@@ -4301,64 +4823,6 @@
                         }
 
                         // Update semester/year dropdowns based on selected professor's available semesters
-                        function updateDropdownsForProfessor(professorName) {
-                            // Find the professor in the current professorData
-                            const selectedProfessor = professorData.find(prof => prof.name === professorName);
-
-                            if (!selectedProfessor || !selectedProfessor.semesters || selectedProfessor.semesters.length === 0) {
-                                // No semester data for this professor, keep all options
-                                return;
-                            }
-
-                            // Collect available semesters and years for this professor
-                            const availableSemesters = new Set();
-                            const availableYears = new Set();
-
-                            selectedProfessor.semesters.forEach(sem => {
-                                availableSemesters.add(sem.semester);
-                                availableYears.add(sem.year);
-                            });
-
-                            // Update semester dropdown with only available semesters
-                            const semesterSelect = document.getElementById('semester');
-                            const currentSemester = semesterSelect.value;
-
-                            semesterSelect.innerHTML = '<option value="">Select semester</option>';
-                            const allSemesterOptions = ['Spring', 'Summer', 'Fall', 'Winter'];
-
-                            allSemesterOptions.forEach(semester => {
-                                if (availableSemesters.has(semester)) {
-                                    const option = document.createElement('option');
-                                    option.value = semester;
-                                    option.textContent = semester;
-                                    semesterSelect.appendChild(option);
-                                }
-                            });
-
-                            // Restore current selection if it's still available
-                            if (currentSemester && availableSemesters.has(currentSemester)) {
-                                semesterSelect.value = currentSemester;
-                            }
-
-                            // Update year dropdown with only available years
-                            const yearSelect = document.getElementById('year');
-                            const currentYear = yearSelect.value;
-
-                            yearSelect.innerHTML = '<option value="">Select year</option>';
-                            const availableYearsArray = Array.from(availableYears).sort((a, b) => b - a);
-
-                            availableYearsArray.forEach(year => {
-                                const option = document.createElement('option');
-                                option.value = year;
-                                option.textContent = year;
-                                yearSelect.appendChild(option);
-                            });
-
-                            // Restore current selection if it's still available
-                            if (currentYear && availableYears.has(parseInt(currentYear))) {
-                                yearSelect.value = currentYear;
-                            }
-                        }
 
                         // Reset semester/year dropdowns to show all options (when professor is cleared)
                         function resetDropdownsToAllOptions() {
@@ -4376,12 +4840,12 @@
                                 semesterSelect.appendChild(option);
                             });
 
-                            // Reset year dropdown to show all years from 2021 to current+1
+                            // Reset year dropdown to show all years from 2020 to current year
                             yearSelect.innerHTML = '<option value="">Select year</option>';
                             const currentYear = new Date().getFullYear();
                             const years = [];
 
-                            for (let year = currentYear + 1; year >= 2021; year--) {
+                            for (let year = currentYear; year >= 2020; year--) {
                                 years.push(year.toString());
                             }
 
@@ -4490,6 +4954,12 @@
 
                         // Update professor list based on current selections
                         async function updateProfessorList() {
+                            // Prevent duplicate API calls
+                            if (classCodeInput.dataset.updating === 'true') {
+                                return;
+                            }
+                            classCodeInput.dataset.updating = 'true';
+
                             const selectedCourse = classCodeInput.value.trim();
 
                             if (!selectedCourse) {
@@ -4506,6 +4976,9 @@
                             // Get current filter values
                             const selectedSemester = document.getElementById('semester').value;
                             const selectedYear = document.getElementById('year').value;
+
+                            // Store current selections to preserve them after update
+                            const currentProfessor = professorInput.value;
 
                             // Build query parameters
                             let queryParams = `course_id=${encodeURIComponent(selectedCourse)}`;
@@ -4537,6 +5010,19 @@
 
                                     // Update semester info banner
                                     updateProfessorSemesterInfo(professorData);
+
+                                    // Restore user selections after update
+                                    setTimeout(() => {
+                                        if (selectedSemester) {
+                                            document.getElementById('semester').value = selectedSemester;
+                                        }
+                                        if (selectedYear) {
+                                            document.getElementById('year').value = selectedYear;
+                                        }
+                                        if (currentProfessor) {
+                                            professorInput.value = currentProfessor;
+                                        }
+                                    }, 50);
 
                                 } else {
                                     // No professors found for this course
@@ -4572,6 +5058,19 @@
                                         document.getElementById('professorSemesterInfo').textContent = '';
                                         // Update semester info for fallback data
                                         updateProfessorSemesterInfo(professorData);
+
+                                        // Restore user selections after update
+                                        setTimeout(() => {
+                                            if (selectedSemester) {
+                                                document.getElementById('semester').value = selectedSemester;
+                                            }
+                                            if (selectedYear) {
+                                                document.getElementById('year').value = selectedYear;
+                                            }
+                                            if (currentProfessor) {
+                                                professorInput.value = currentProfessor;
+                                            }
+                                        }, 50);
                                     } else {
                                         professorData = [];
                                         professorInput.placeholder = 'No professors found - enter manually';
@@ -4589,6 +5088,9 @@
                                     // Update semester info (will clear dropdowns)
                                     updateProfessorSemesterInfo([]);
                                 }
+                            } finally {
+                                // Reset updating flag
+                                classCodeInput.dataset.updating = 'false';
                             }
                         }
 
@@ -4597,6 +5099,10 @@
                             const semesterInfoEl = document.getElementById('professorSemesterInfo');
                             const semesterSelect = document.getElementById('semester');
                             const yearSelect = document.getElementById('year');
+
+                            // Store current selections before rebuilding
+                            const currentSemester = semesterSelect.value;
+                            const currentYear = yearSelect.value;
 
                             if (!professors || professors.length === 0) {
                                 semesterInfoEl.textContent = '';
@@ -4608,6 +5114,11 @@
                                     <option value="Summer">Summer</option>
                                     <option value="Winter">Winter</option>
                                 `;
+
+                                // Restore current selections if they were valid
+                                if (currentSemester && ['Fall', 'Spring', 'Summer', 'Winter'].includes(currentSemester)) {
+                                    semesterSelect.value = currentSemester;
+                                }
                                 return;
                             }
 
@@ -4631,58 +5142,46 @@
                                 semesterInfoEl.style.fontSize = '0.875rem';
                                 semesterInfoEl.style.marginTop = '4px';
 
-                                // Preserve existing semester selection if valid
-                                const existingSemester = semesterSelect.value;
-
-                                // Populate semester dropdown with all semesters (not just API data)
+                                // Populate semester dropdown with ONLY available semesters from professor data
+                                const availableSemesters = Array.from(allSemesters).sort();
                                 semesterSelect.innerHTML = '<option value="">Select semester</option>';
-                                const allSemesterOptions = ['Spring', 'Summer', 'Fall', 'Winter'];
 
-                                allSemesterOptions.forEach(semester => {
+                                availableSemesters.forEach(semester => {
                                     const option = document.createElement('option');
                                     option.value = semester;
                                     option.textContent = semester;
                                     semesterSelect.appendChild(option);
                                 });
 
-                                // Restore existing semester selection if valid
-                                if (existingSemester && ['Spring', 'Summer', 'Fall', 'Winter'].includes(existingSemester)) {
-                                    semesterSelect.value = existingSemester;
+                                // Restore current semester selection if valid and available
+                                if (currentSemester && availableSemesters.includes(currentSemester)) {
+                                    semesterSelect.value = currentSemester;
                                 }
 
-                                // Preserve existing year selection if valid
-                                const existingYear = yearSelect.value;
-
-                                // Populate year dropdown with all years from 2021 to current+1 (not just API data)
+                                // Populate year dropdown with ONLY available years from professor data
+                                const availableYears = Array.from(allYears).sort((a, b) => b - a);
                                 yearSelect.innerHTML = '<option value="">Select year</option>';
-                                const currentYear = new Date().getFullYear();
-                                const years = [];
 
-                                // Generate years from 2021 to current year + 1
-                                for (let year = currentYear + 1; year >= 2021; year--) {
-                                    years.push(year.toString());
-                                }
-
-                                years.forEach(year => {
+                                availableYears.forEach(year => {
                                     const option = document.createElement('option');
                                     option.value = year;
                                     option.textContent = year;
                                     yearSelect.appendChild(option);
                                 });
 
-                                // Restore existing year selection if valid
-                                if (existingYear && parseInt(existingYear) >= 2021) {
-                                    yearSelect.value = existingYear;
+                                // Restore current year selection if valid and available
+                                if (currentYear && availableYears.includes(currentYear)) {
+                                    yearSelect.value = currentYear;
                                 }
 
                                 // Only set defaults when BOTH semester and year are empty (common sense approach)
-                                const hasSemester = existingSemester && ['Spring', 'Summer', 'Fall', 'Winter'].includes(existingSemester);
-                                const hasYear = existingYear && parseInt(existingYear) >= 2021;
+                                const hasSemester = currentSemester && availableSemesters.includes(currentSemester);
+                                const hasYear = currentYear && availableYears.includes(currentYear);
 
-                                if (!hasSemester && !hasYear) {
-                                    // Both are empty - set only current year as default (no semester default)
-                                    const currentYear = new Date().getFullYear();
-                                    yearSelect.value = currentYear.toString();
+                                if (!hasSemester && !hasYear && availableYears.length > 0) {
+                                    // Both are empty - set the most recent available year as default
+                                    const mostRecentYear = availableYears[0]; // Already sorted descending
+                                    yearSelect.value = mostRecentYear;
 
                                     // Trigger API update with year default only
                                     setTimeout(() => {
@@ -4774,28 +5273,19 @@
                         }
 
                         // Fetch professors based on course/semester/year (simple approach)
+                        let courseChangeTimeout;
                         classCodeInput.addEventListener('change', async function () {
                             // Skip if we're selecting from dropdown
                             if (isSelectingFromDropdown) return;
 
-                            await updateProfessorList();
+                            // Debounce API calls
+                            clearTimeout(courseChangeTimeout);
+                            courseChangeTimeout = setTimeout(async () => {
+                                await updateProfessorList();
+                            }, 300);
                         });
 
-                        // Fetch professors when semester changes
-                        document.getElementById('semester').addEventListener('change', async function () {
-                            const selectedCourse = classCodeInput.value.trim();
-                            if (selectedCourse) {
-                                await updateProfessorList();
-                            }
-                        });
-
-                        // Fetch professors when year changes
-                        document.getElementById('year').addEventListener('change', async function () {
-                            const selectedCourse = classCodeInput.value.trim();
-                            if (selectedCourse) {
-                                await updateProfessorList();
-                            }
-                        });
+                        // Note: Semester and year change events are now handled in the custom dropdown click handlers
 
                         // Initialize professor list on page load if course is already entered
                         setTimeout(async function() {
@@ -4804,6 +5294,30 @@
                                 await updateProfessorList();
                             }
                         }, 100);
+
+                        // Fetch professors when semester changes
+                        let semesterChangeTimeout;
+                        document.getElementById('semester').addEventListener('change', async function () {
+                            const selectedCourse = classCodeInput.value.trim();
+                            if (selectedCourse) {
+                                clearTimeout(semesterChangeTimeout);
+                                semesterChangeTimeout = setTimeout(async () => {
+                                    await updateProfessorList();
+                                }, 300);
+                            }
+                        });
+
+                        // Fetch professors when year changes
+                        let yearChangeTimeout;
+                        document.getElementById('year').addEventListener('change', async function () {
+                            const selectedCourse = classCodeInput.value.trim();
+                            if (selectedCourse) {
+                                clearTimeout(yearChangeTimeout);
+                                yearChangeTimeout = setTimeout(async () => {
+                                    await updateProfessorList();
+                                }, 300);
+                            }
+                        });
 
                         // Helper: Reset dropdowns to show all options
                         function resetDropdowns() {
@@ -4874,25 +5388,7 @@
                             return true;
                         }
 
-                        // Re-fetch professors when semester or year changes
-                        const semesterInput = document.getElementById('semester');
-                        const yearInput = document.getElementById('year');
-
-                        if (semesterInput) {
-                            semesterInput.addEventListener('change', async function () {
-                                if (validateSemesterYear() && classCodeInput.value.trim()) {
-                                    await updateProfessorList(); // Update professor list with new semester filter
-                                }
-                            });
-                        }
-
-                        if (yearInput) {
-                            yearInput.addEventListener('change', async function () {
-                                if (validateSemesterYear() && classCodeInput.value.trim()) {
-                                    await updateProfessorList(); // Update professor list with new year filter
-                                }
-                            });
-                        }
+                        // Note: Semester and year change events are now handled in the custom dropdown click handlers
                     }
 
                     // Initialize drag-and-drop upload
@@ -5462,7 +5958,7 @@
                                 <div class="file-meta-item"><strong>Size:</strong> ${formatFileSize(file.size || 0)}</div>
                             </div>
                             <div class="file-actions" style="display: flex; gap: 0.5rem; flex-wrap: wrap; justify-content: center;">
-                                <button onclick="downloadFile('${encodeURIComponent(file.filename)}')" class="button download">Download</button>
+                                ${getDownloadButton(file)}
                                 ${getEditButton(file)}
                                 ${getDeleteButton(file)}
                                 <button class="button secondary small report-btn" data-filename="${file.filename}" data-original-name="${escapeHtml(file.originalName)}">🚩 Report</button>
@@ -5969,7 +6465,11 @@
 
                     if (typedConfirm !== "DELETE ALL") {
                         if (typedConfirm !== null) {
-                            await customAlert("Bulk deletion cancelled. You must type 'DELETE ALL' exactly to confirm.", 'warning');
+                            if (typeof customAlert === 'function') {
+                                await customAlert("Bulk deletion cancelled. You must type 'DELETE ALL' exactly to confirm.", 'warning');
+                            } else {
+                        alert("Bulk deletion cancelled. You must type 'DELETE ALL' exactly to confirm.");
+                            }
                         }
                         return;
                     }
@@ -6009,7 +6509,11 @@
                         window.location.reload();
 
                     } catch (error) {
-                        await customAlert(`Bulk delete failed: ${error.message}`, 'error');
+                        if (typeof customAlert === 'function') {
+                            await customAlert(`Bulk delete failed: ${error.message}`, 'error');
+                        } else {
+                        alert(`Bulk delete failed: ${error.message}`);
+                        }
                     }
                 }
 

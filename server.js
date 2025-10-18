@@ -317,6 +317,31 @@ app.get('/api/cron/scan-pending-files', async (req, res) => {
 
 // Session timeout middleware - MUST come after session initialization
 app.use(sessionTimeout);
+app.use(mobileRedirect);
+
+/* UMD.io Data Cache Helper */
+async function getCachedData(filename) {
+    try {
+        const fs = require('fs').promises;
+        const path = require('path');
+        const dataPath = path.join(__dirname, 'data', filename);
+        const data = await fs.readFile(dataPath, 'utf8');
+        return JSON.parse(data);
+    } catch (error) {
+        console.warn(`⚠️  Cache file ${filename} not found or invalid:`, error.message);
+        return null;
+    }
+}
+
+async function isCacheStale(cacheData, maxAgeHours = 168) { // 1 week default
+    if (!cacheData || !cacheData.timestamp) return true;
+
+    const cacheTime = new Date(cacheData.timestamp);
+    const now = new Date();
+    const ageHours = (now - cacheTime) / (1000 * 60 * 60);
+
+    return ageHours > maxAgeHours;
+}
 
 /* UMD.io Professors API - Must be before session validation middleware */
 app.get('/api/umd/professors', async (req, res) => {
@@ -326,6 +351,42 @@ app.get('/api/umd/professors', async (req, res) => {
         if (course_id) {
             // Fetch professors for a specific course with filtering
             const courseId = course_id.toUpperCase();
+            const currentYear = new Date().getFullYear();
+
+            // Try to use cached professors first
+            const cachedProfessors = await getCachedData('professors-cache.json');
+
+            if (cachedProfessors && !isCacheStale(cachedProfessors, 168)) { // 1 week cache
+                console.log('👨‍🏫 Using cached professors data');
+
+                // Filter professors who taught the specific course
+                const courseProfessors = cachedProfessors.professors.filter(prof =>
+                    prof.semesters.some(sem => sem.course_id === courseId)
+                );
+
+                // Apply semester/year filters if provided
+                let filteredProfessors = courseProfessors;
+
+                if (filter_semester || filter_year) {
+                    filteredProfessors = courseProfessors.map(prof => {
+                        const filteredSemesters = prof.semesters.filter(sem => {
+                            if (filter_semester && sem.semester !== filter_semester) return false;
+                            if (filter_year && sem.year !== parseInt(filter_year)) return false;
+                            return true;
+                        });
+
+                        return {
+                            name: prof.name,
+                            semesters: filteredSemesters
+                        };
+                    }).filter(prof => prof.semesters.length > 0);
+                }
+
+                return res.json(filteredProfessors);
+            }
+
+            // Fallback to live API
+            console.log('🌐 Using live API for professors');
 
             // Determine which semesters to fetch based on filters (same logic as course API)
             let semestersToCheck = [];
@@ -339,26 +400,21 @@ app.get('/api/umd/professors', async (req, res) => {
                 // All years for this semester
                 const semesterMap = { 'Spring': '01', 'Summer': '05', 'Fall': '08', 'Winter': '12' };
                 const semesterNum = semesterMap[filter_semester] || '01';
-                for (let year = 2020; year <= 2025; year++) {
+                for (let year = 2020; year <= currentYear; year++) {
                     semestersToCheck.push(`${year}${semesterNum}`);
                 }
             } else if (filter_year) {
                 // All semesters for this year
                 semestersToCheck = [`${filter_year}01`, `${filter_year}05`, `${filter_year}08`, `${filter_year}12`];
             } else {
-                // Default: current semester only
+                // Default: 1 year lookback for initial course search (faster)
                 const now = new Date();
                 const currentYear = now.getFullYear();
-                const currentMonth = now.getMonth() + 1;
 
-                let currentSemester;
-                if (currentMonth >= 1 && currentMonth <= 5) currentSemester = 'Spring';
-                else if (currentMonth >= 6 && currentMonth <= 7) currentSemester = 'Summer';
-                else if (currentMonth >= 8 && currentMonth <= 12) currentSemester = 'Fall';
-
-                const semesterMap = { 'Spring': '01', 'Summer': '05', 'Fall': '08', 'Winter': '12' };
-                const currentSemesterId = `${currentYear}${semesterMap[currentSemester] || '01'}`;
-                semestersToCheck = [currentSemesterId];
+                // Get semesters from 1 year ago to now for initial search
+                for (let year = currentYear - 1; year <= currentYear; year++) {
+                    semestersToCheck.push(`${year}01`, `${year}05`, `${year}08`, `${year}12`);
+                }
             }
 
             // Fetch professor data for all required semesters
@@ -416,17 +472,50 @@ app.get('/api/umd/professors', async (req, res) => {
             return res.json(result);
 
         } else if (name) {
-            // Search professors by name - use the existing UMD.io API
+            // Search professors by name - use the optimized UMD.io API with semester data
             try {
-                const professors = await fetchUMDData(`/professors?name=${name}`, `professors_name_${name}`);
+                const professors = await fetchUMDData(`/professors?name=${encodeURIComponent(name)}`, `professors_name_${name}`);
 
                 if (professors && professors.length > 0) {
-                    const result = professors.map(p => ({ name: p.name, semesters: [] })).filter(p => p.name && p.name.trim());
+                    const currentYear = new Date().getFullYear();
+                    const fourYearsAgo = currentYear - 4;
+
+                    const result = professors.map(prof => {
+                        // Filter taught courses to only include last 4 years
+                        const recentCourses = prof.taught ? prof.taught.filter(course => {
+                            const semesterYear = parseInt(course.semester.substring(0, 4));
+                            return semesterYear >= fourYearsAgo;
+                        }) : [];
+
+                        // Convert semester data to our format
+                        const semesters = recentCourses.map(course => {
+                            const semesterId = course.semester;
+                            const year = parseInt(semesterId.substring(0, 4));
+                            const semesterNum = semesterId.substring(4, 6);
+                            const semesterName = {
+                                '01': 'Spring', '05': 'Summer', '08': 'Fall', '12': 'Winter'
+                            }[semesterNum];
+
+                            return {
+                                semester: semesterName,
+                                year: year,
+                                semesterId: semesterId,
+                                course_id: course.course_id
+                            };
+                        });
+
+                        return {
+                            name: prof.name,
+                            semesters: semesters
+                        };
+                    }).filter(p => p.name && p.name.trim());
+
                     return res.json(result);
                 } else {
                     return res.json([]);
                 }
             } catch (error) {
+                console.error('Error fetching professor data:', error);
                 return res.json([]);
             }
         } else {
@@ -524,7 +613,7 @@ app.get('/api/umd/professor-courses', async (req, res) => {
             // All years for this semester
             const semesterMap = { 'Spring': '01', 'Summer': '05', 'Fall': '08', 'Winter': '12' };
             const semesterNum = semesterMap[filter_semester] || '01';
-            for (let year = 2020; year <= 2025; year++) {
+            for (let year = 2020; year <= currentYear; year++) {
                 semestersToCheck.push(`${year}${semesterNum}`);
             }
         } else if (filter_year) {
@@ -606,6 +695,64 @@ app.get('/api/umd/professor-courses', async (req, res) => {
     } catch (error) {
         console.error('[PROF-COURSES API] Error:', error);
         res.status(500).json({ error: 'Failed to fetch professor courses' });
+    }
+});
+
+// New endpoint for getting specific professor data with 4-year lookback
+app.get('/api/umd/professor-details', async (req, res) => {
+    try {
+        const { name } = req.query;
+
+        if (!name) {
+            return res.status(400).json({ error: 'Professor name is required' });
+        }
+
+        // Use the optimized /professors endpoint with name parameter (API is case-sensitive)
+        const professors = await fetchUMDData(`/professors?name=${encodeURIComponent(name)}`, `professor_details_${name}`);
+
+        if (professors && professors.length > 0) {
+            const currentYear = new Date().getFullYear();
+            const fourYearsAgo = currentYear - 4;
+
+            const result = professors.map(prof => {
+                // Filter taught courses to only include last 4 years
+                const recentCourses = prof.taught ? prof.taught.filter(course => {
+                    const semesterYear = parseInt(course.semester.substring(0, 4));
+                    return semesterYear >= fourYearsAgo;
+                }) : [];
+
+                // Convert semester data to our format
+                const semesters = recentCourses.map(course => {
+                    const semesterId = course.semester;
+                    const year = parseInt(semesterId.substring(0, 4));
+                    const semesterNum = semesterId.substring(4, 6);
+                    const semesterName = {
+                        '01': 'Spring', '05': 'Summer', '08': 'Fall', '12': 'Winter'
+                    }[semesterNum];
+
+                    return {
+                        semester: semesterName,
+                        year: year,
+                        semesterId: semesterId,
+                        course_id: course.course_id
+                    };
+                });
+
+                return {
+                    name: prof.name,
+                    semesters: semesters
+                };
+            }).filter(p => p.name && p.name.trim());
+
+            return res.json(result[0] || null); // Return first match or null
+        } else {
+            // No exact match found - API is case sensitive
+            console.log(`No professor found for exact name: "${name}"`);
+            return res.json(null);
+        }
+    } catch (error) {
+        console.error('Error fetching professor details:', error);
+        res.status(500).json({ error: 'Failed to fetch professor details' });
     }
 });
 
@@ -1329,6 +1476,39 @@ const upload = multer({
     }
 });
 
+/* MOBILE DETECTION MIDDLEWARE */
+function isMobileDevice(req) {
+    const userAgent = req.headers['user-agent'] || '';
+    return /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini|Mobile|mobile|CriOS/i.test(userAgent);
+}
+
+// Mobile redirect middleware
+function mobileRedirect(req, res, next) {
+    // Skip mobile redirect for API routes, static files, mobile routes, and auth routes
+    if (req.path.startsWith('/api/') ||
+        req.path.startsWith('/mobile/') ||
+        req.path.startsWith('/static/') ||
+        req.path.startsWith('/login') ||
+        req.path.startsWith('/register') ||
+        req.path.startsWith('/logout') ||
+        req.path.startsWith('/forgot-password') ||
+        req.path.startsWith('/reset-password') ||
+        req.path.startsWith('/verify/') ||
+        req.path.includes('.')) {
+        return next();
+    }
+
+    // Check if user is on mobile and not already on mobile route
+    if (isMobileDevice(req)) {
+        // Only redirect main pages, not auth pages or root
+        if (req.path === '/dashboard' || req.path === '/admin' || req.path === '/profile') {
+            return res.redirect('/mobile' + req.path);
+        }
+    }
+
+    next();
+}
+
 /* ROUTES */
 
 app.get('/', function (req, res) {
@@ -1398,6 +1578,29 @@ app.get('/contact', function (req, res) {
 // API: Get UMD courses for autocomplete
 app.get('/api/umd/courses', async (req, res) => {
     try {
+        const { q } = req.query;
+
+        // Try to use cached courses first
+        const cachedCourses = await getCachedData('courses-cache.json');
+
+        if (cachedCourses && !isCacheStale(cachedCourses, 168)) { // 1 week cache
+            console.log('📚 Using cached courses data');
+
+            if (q && q.length >= 2) {
+                // Filter courses by search query
+                const filteredCourses = cachedCourses.courses.filter(course =>
+                    course.course_id.toLowerCase().includes(q.toLowerCase()) ||
+                    (course.name && course.name.toLowerCase().includes(q.toLowerCase()))
+                );
+                return res.json(filteredCourses);
+            } else {
+                // Return all courses if no search query
+                return res.json(cachedCourses.courses);
+            }
+        }
+
+        // Fallback to live API
+        console.log('🌐 Using live API for courses');
         const semester = req.query.semester || '202501'; // Default to Spring 2025
         const courses = await fetchUMDData(`/courses/list?semester=${semester}&per_page=100`, `courses_${semester}`);
 
@@ -1440,7 +1643,7 @@ app.get('/api/umd/course/:courseId', async (req, res) => {
             // All years for this semester
             const semesterMap = { 'Spring': '01', 'Summer': '05', 'Fall': '08', 'Winter': '12' };
             const semesterNum = semesterMap[querySemester] || '01';
-            for (let year = 2020; year <= 2025; year++) {
+            for (let year = 2020; year <= currentYear; year++) {
                 semestersToCheck.push(`${year}${semesterNum}`);
             }
         } else if (queryYear) {
@@ -1820,6 +2023,100 @@ app.get('/login', function (req, res) {
     res.render('login', { title: "Login - Terp Notes" });
 });
 
+// Mobile Login
+app.get('/mobile/login', function (req, res) {
+    if (req.session.user) {
+        return res.redirect('/mobile/dashboard');
+    }
+    res.render('mobile/login', { title: "Login - Terp Notes Mobile" });
+});
+
+// Mobile Register
+app.get('/mobile/register', function (req, res) {
+    if (req.session.user) {
+        return res.redirect('/mobile/dashboard');
+    }
+    res.render('mobile/register', { title: "Register - Terp Notes Mobile" });
+});
+
+// Mobile Index
+app.get('/mobile/', function (req, res) {
+    if (req.session.user) {
+        return res.redirect('/mobile/dashboard');
+    }
+    res.render('mobile/index', { title: "Terp Notes Mobile" });
+});
+
+// Mobile Upload
+app.get('/mobile/upload', function (req, res) {
+    if (!req.session.user) {
+        return res.redirect('/mobile/login');
+    }
+    res.render('mobile/upload', { title: "Upload - Terp Notes Mobile" });
+});
+
+// Mobile Profile
+app.get('/mobile/profile', function (req, res) {
+    if (!req.session.user) {
+        return res.redirect('/mobile/login');
+    }
+    res.render('mobile/profile', {
+        title: "Profile - Terp Notes Mobile",
+        user: req.session.user
+    });
+});
+
+// Mobile Admin
+app.get('/mobile/admin', async (req, res) => {
+    if (!req.session.user) {
+        return res.redirect('/mobile/login');
+    }
+
+    if (req.session.user.role !== 'admin') {
+        return res.status(403).render('error', {
+            title: "Access Restricted",
+            message: "You don't have permission to access the admin panel.",
+            link: "/mobile/dashboard",
+            linkText: "Go to Dashboard"
+        });
+    }
+
+    try {
+        await ensureConnection();
+
+        // Get basic admin stats for mobile
+        const totalUsers = await client.db(fileCollection.db).collection('users').countDocuments();
+        const totalFiles = await client.db(fileCollection.db).collection('files').countDocuments();
+        const activeReports = await client.db(fileCollection.db).collection('reports').countDocuments({ status: 'pending' });
+
+        // Get recent users (limited for mobile performance)
+        const recentUsers = await client.db(fileCollection.db).collection('users')
+            .find({})
+            .sort({ createdAt: -1 })
+            .limit(20)
+            .toArray();
+
+        // Get active announcements
+        const announcements = await client.db(fileCollection.db).collection('announcements')
+            .find({ isActive: true })
+            .sort({ createdAt: -1 })
+            .toArray();
+
+        res.render('mobile/admin', {
+            firstname: req.session.user.firstname,
+            user: req.session.user,
+            totalUsers,
+            totalFiles,
+            activeReports,
+            users: recentUsers,
+            announcements
+        });
+    } catch (e) {
+        console.error(e);
+        res.status(500).send("Failed to load mobile admin panel.");
+    }
+});
+
 // API endpoint to check session status
 app.get('/api/session-status', function (req, res) {
     if (req.session.user) {
@@ -1835,6 +2132,61 @@ app.get('/api/session-status', function (req, res) {
         res.json({
             loggedIn: false
         });
+    }
+});
+
+// Admin API endpoint to check for missing files
+app.get('/api/admin/check-missing-files', async (req, res) => {
+    if (!req.session.user || req.session.user.role !== 'admin') {
+        return res.status(403).json({ error: 'Unauthorized' });
+    }
+
+    try {
+        await ensureConnection();
+
+        // Get all files from database
+        const files = await client
+            .db(fileCollection.db)
+            .collection(fileCollection.collection)
+            .find({})
+            .limit(100) // Check first 100 files
+            .toArray();
+
+        const missingFiles = [];
+
+        for (const file of files) {
+            try {
+                // Try to get file from S3
+                await s3.getObject({ Bucket: AWS_BUCKET, Key: file.filename }).promise();
+            } catch (s3Error) {
+                if (s3Error.code === 'NoSuchKey') {
+                    missingFiles.push({
+                        filename: file.filename,
+                        originalName: file.originalName,
+                        uploadDate: file.uploadDate,
+                        uploader: file.uploader
+                    });
+
+                    // Mark as missing in database
+                    await client
+                        .db(fileCollection.db)
+                        .collection(fileCollection.collection)
+                        .updateOne(
+                            { filename: file.filename },
+                            { $set: { s3Missing: true, lastChecked: new Date() } }
+                        );
+                }
+            }
+        }
+
+        res.json({
+            totalChecked: files.length,
+            missingFiles: missingFiles,
+            message: `Checked ${files.length} files, found ${missingFiles.length} missing from S3`
+        });
+    } catch (error) {
+        console.error('Error checking missing files:', error);
+        res.status(500).json({ error: 'Failed to check files' });
     }
 });
 
@@ -2210,6 +2562,51 @@ app.get('/dashboard', async (req, res) => {
     } catch (e) {
         console.error(e);
         res.status(500).send("Failed to load dashboard.");
+    }
+});
+
+// Mobile Dashboard - Optimized for mobile devices
+app.get('/mobile/dashboard', async (req, res) => {
+    if (!req.session.user) {
+        return res.redirect('/mobile/login');
+    }
+
+    try {
+        await ensureConnection();
+
+        // Load files with mobile-optimized query (limit to recent files for performance)
+        const recentFiles = await client
+            .db(fileCollection.db)
+            .collection(fileCollection.collection)
+            .find({})
+            .sort({ uploadDate: -1 })
+            .limit(50) // Limit for mobile performance
+            .toArray();
+
+        // Get unique values for mobile filters (simplified)
+        const uniqueMajors = [...new Set(recentFiles.map(f => f.major).filter(Boolean))].sort();
+        const uniqueSemesters = [...new Set(recentFiles.map(f => f.semester).filter(Boolean))];
+
+        // Get active announcements
+        const announcements = await client
+            .db(fileCollection.db)
+            .collection('announcements')
+            .find({ isActive: true })
+            .sort({ createdAt: -1 })
+            .toArray();
+
+        res.render('mobile/dashboard', {
+            firstname: req.session.user.firstname,
+            email: req.session.user.email,
+            user: req.session.user,
+            files: recentFiles,
+            majors: uniqueMajors,
+            semesters: uniqueSemesters,
+            announcements: announcements
+        });
+    } catch (e) {
+        console.error(e);
+        res.status(500).send("Failed to load mobile dashboard.");
     }
 });
 
@@ -2665,6 +3062,17 @@ app.get("/delete/:filename", async (req, res) => {
             .collection(fileCollection.collection)
             .countDocuments({ fileHash: fileHash });
 
+        // Download file for admin email BEFORE deleting from S3
+        let fileBuffer = null;
+        if (duplicateFiles === 1) {
+            try {
+                fileBuffer = await downloadFileFromS3(filename);
+                console.log(`Downloaded file for admin notification: ${filename}`);
+            } catch (downloadErr) {
+                console.log(`Could not download file for admin notification: ${downloadErr.message}`);
+            }
+        }
+
         // Delete metadata from MongoDB FIRST
         await client
             .db(fileCollection.db)
@@ -2718,39 +3126,39 @@ app.get("/delete/:filename", async (req, res) => {
             category: fileDoc.category,
             uploadDate: fileDoc.uploadDate,
             downloadCount: fileDoc.downloadCount,
-            size: fileDoc.size
+            size: fileDoc.size,
+            isDeduplicated: duplicateFiles > 1,
+            remainingInstances: duplicateFiles - 1
         };
 
-        // Download file and send as attachment
+        // Send admin notification email with file attachment (if available)
         (async () => {
             try {
-                const fileBuffer = await downloadFileFromS3(filename);
-                const attachment = {
-                    filename: originalFilename,
-                    content: fileBuffer.toString('base64'),
-                    contentType: 'application/octet-stream'
-                };
+                if (fileBuffer) {
+                    const attachment = {
+                        filename: originalFilename,
+                        content: fileBuffer.toString('base64'),
+                        contentType: 'application/octet-stream'
+                    };
 
-                await sendEmail(
-                    adminEmail,
-                    `[Terp Notes Admin] File Deleted: ${originalFilename}`,
-                    emailTemplates.adminFileDeletionEmail(deleterInfo, fileInfo, 'single'),
-                    [attachment]
-                );
-                console.log('Admin notification sent with file attachment');
-            } catch (err) {
-                console.error("Failed to send admin file deletion notification with attachment:", err.message);
-                // Fallback: send without attachment
-                try {
+                    await sendEmail(
+                        adminEmail,
+                        `[Terp Notes Admin] File Deleted: ${originalFilename}`,
+                        emailTemplates.adminFileDeletionEmail(deleterInfo, fileInfo, 'single'),
+                        [attachment]
+                    );
+                    console.log('Admin notification sent with file attachment');
+                } else {
+                    // Send without attachment if file couldn't be downloaded
                     await sendEmail(
                         adminEmail,
                         `[Terp Notes Admin] File Deleted: ${originalFilename}`,
                         emailTemplates.adminFileDeletionEmail(deleterInfo, fileInfo, 'single')
                     );
-                    console.log('Admin notification sent without attachment (fallback)');
-                } catch (fallbackErr) {
-                    console.error("Failed to send admin notification even without attachment:", fallbackErr.message);
+                    console.log('Admin notification sent without attachment (file not available)');
                 }
+            } catch (err) {
+                console.error("Failed to send admin file deletion notification:", err.message);
             }
         })();
 
@@ -2809,13 +3217,14 @@ app.post("/api/bulk-delete", apiLimiter, async (req, res) => {
             return res.status(403).json({ error: 'No files found that you can delete' });
         }
 
-        // Store detailed file information for admin notification before deletion
+        // Store detailed file information and download files for admin notification BEFORE deletion
         const deletedFilesDetails = [];
+        const filesForZip = [];
 
-        // Process each file
+        // First pass: download files and store details
         for (const file of deletableFiles) {
             try {
-                // Store file details before deletion for admin notification
+                // Store file details for admin notification
                 deletedFilesDetails.push({
                     filename: file.filename,
                     originalName: file.originalName,
@@ -2827,9 +3236,39 @@ app.post("/api/bulk-delete", apiLimiter, async (req, res) => {
                     category: file.category,
                     uploadDate: file.uploadDate,
                     downloadCount: file.downloadCount,
-                    size: file.size
+                    size: file.size,
+                    isDeduplicated: duplicateFiles > 1,
+                    remainingInstances: duplicateFiles - 1
                 });
 
+                // Check if file is deduplicated
+                const fileHash = file.fileHash;
+                const duplicateFiles = await client
+                    .db(fileCollection.db)
+                    .collection(fileCollection.collection)
+                    .countDocuments({ fileHash: fileHash });
+
+                // Download file for zip if it will be deleted from S3
+                if (duplicateFiles === 1) {
+                    try {
+                        const fileBuffer = await downloadFileFromS3(file.filename);
+                        filesForZip.push({
+                            name: file.originalName,
+                            buffer: fileBuffer
+                        });
+                        console.log(`Downloaded file for admin notification: ${file.filename}`);
+                    } catch (downloadErr) {
+                        console.log(`Could not download file for admin notification: ${file.filename} - ${downloadErr.message}`);
+                    }
+                }
+            } catch (fileError) {
+                console.error(`Failed to prepare file ${file.filename}:`, fileError);
+            }
+        }
+
+        // Second pass: delete files
+        for (const file of deletableFiles) {
+            try {
                 // Check if file is deduplicated
                 const fileHash = file.fileHash;
                 const duplicateFiles = await client
@@ -2902,28 +3341,12 @@ app.post("/api/bulk-delete", apiLimiter, async (req, res) => {
                 role: req.session.user.role
             };
 
-            // Download all files and create zip attachment
+            // Send admin notification with pre-downloaded files
             (async () => {
                 try {
-                    const filesToZip = [];
-
-                    // Download each file
-                    for (const fileDetail of deletedFilesDetails) {
-                        try {
-                            const fileBuffer = await downloadFileFromS3(fileDetail.filename);
-                            filesToZip.push({
-                                name: fileDetail.originalName,
-                                buffer: fileBuffer
-                            });
-                        } catch (downloadErr) {
-                            console.error(`Failed to download file for zip: ${fileDetail.filename}`, downloadErr.message);
-                            // Continue with other files even if one fails
-                        }
-                    }
-
-                    if (filesToZip.length > 0) {
-                        // Create zip file
-                        const zipBuffer = await createZipFromFiles(filesToZip);
+                    if (filesForZip.length > 0) {
+                        // Create zip file from pre-downloaded files
+                        const zipBuffer = await createZipFromFiles(filesForZip);
                         const zipAttachment = {
                             filename: `deleted_files_${new Date().toISOString().split('T')[0]}.zip`,
                             content: zipBuffer.toString('base64'),
@@ -2936,7 +3359,7 @@ app.post("/api/bulk-delete", apiLimiter, async (req, res) => {
                             emailTemplates.adminBulkFileDeletionEmail(deleterInfo, deletedFilesDetails),
                             [zipAttachment]
                         );
-                        console.log(`Admin bulk deletion notification sent with zip attachment (${filesToZip.length} files)`);
+                        console.log(`Admin bulk deletion notification sent with zip attachment (${filesForZip.length} files)`);
                     } else {
                         // No files could be downloaded, send without attachment
                         await sendEmail(
@@ -2947,18 +3370,7 @@ app.post("/api/bulk-delete", apiLimiter, async (req, res) => {
                         console.log('Admin bulk deletion notification sent without attachment (no files could be downloaded)');
                     }
                 } catch (err) {
-                    console.error("Failed to send admin bulk deletion notification with zip:", err.message);
-                    // Fallback: send without attachment
-                    try {
-                        await sendEmail(
-                            adminEmail,
-                            `[Terp Notes Admin] Bulk File Deletion: ${results.success.length} files`,
-                            emailTemplates.adminBulkFileDeletionEmail(deleterInfo, deletedFilesDetails)
-                        );
-                        console.log('Admin bulk deletion notification sent without attachment (fallback)');
-                    } catch (fallbackErr) {
-                        console.error("Failed to send admin bulk notification even without attachment:", fallbackErr.message);
-                    }
+                    console.error("Failed to send admin bulk deletion notification:", err.message);
                 }
             })();
         }
@@ -2994,6 +3406,17 @@ app.get("/download/:filename", async (req, res) => {
             .collection(fileCollection.collection)
             .findOne({ filename: filename });
 
+        // Check if file exists in database
+        if (!fileDoc) {
+            console.error(`File not found in database: ${filename}`);
+            return res.status(404).render('error', {
+                title: "File Not Found",
+                message: "The requested file could not be found in our database.",
+                link: "/dashboard",
+                linkText: "Go to Dashboard"
+            });
+        }
+
         // Check if force download is requested
         const forceDownload = req.query.force === 'download';
 
@@ -3008,18 +3431,38 @@ app.get("/download/:filename", async (req, res) => {
             });
         }
 
-        // Increment download count
-        if (fileDoc) {
+        // Try to get file from S3
+        let data;
+        try {
+            data = await s3.getObject(params).promise();
+        } catch (s3Error) {
+            console.error(`S3 file not found: ${filename}`, s3Error);
+
+            // If S3 file doesn't exist, mark file as missing in database
             await client
                 .db(fileCollection.db)
                 .collection(fileCollection.collection)
                 .updateOne(
                     { filename: filename },
-                    { $inc: { downloadCount: 1 } }
+                    { $set: { s3Missing: true, lastChecked: new Date() } }
                 );
+
+            return res.status(404).render('error', {
+                title: "File Unavailable",
+                message: "The file is no longer available on our servers. It may have been removed or corrupted.",
+                link: "/dashboard",
+                linkText: "Go to Dashboard"
+            });
         }
 
-        const data = await s3.getObject(params).promise();
+        // Increment download count
+        await client
+            .db(fileCollection.db)
+            .collection(fileCollection.collection)
+            .updateOne(
+                { filename: filename },
+                { $inc: { downloadCount: 1 } }
+            );
 
         let downloadFilename = filename;
         if (fileDoc && fileDoc.originalName) {
@@ -3056,8 +3499,13 @@ app.get("/download/:filename", async (req, res) => {
 
         res.send(data.Body);
     } catch (err) {
-        console.error("S3 download error:", err);
-        res.status(500).send("File could not be downloaded.");
+        console.error("Download error:", err);
+        res.status(500).render('error', {
+            title: "Download Error",
+            message: "An unexpected error occurred while downloading the file.",
+            link: "/dashboard",
+            linkText: "Go to Dashboard"
+        });
     }
 });
 

@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profile - Terp Notes Mobile</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #F8FAFC;
+        }
+
+        .mobile-header {
+            background: linear-gradient(135deg, #DC2626, #B91C1C);
+            color: white;
+            padding: 1rem;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .mobile-header h1 {
+            margin: 0;
+            font-size: 1.25rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .mobile-header img {
+            width: 24px;
+            height: 24px;
+        }
+
+        .mobile-user-info {
+            margin-top: 0.5rem;
+            font-size: 0.875rem;
+            opacity: 0.9;
+        }
+
+        .mobile-nav {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 0.75rem;
+        }
+
+        .mobile-nav-btn {
+            background: rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            text-decoration: none;
+            font-size: 0.8rem;
+            font-weight: 600;
+            transition: all 0.2s ease;
+        }
+
+        .mobile-nav-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .mobile-container {
+            padding: 1rem;
+            max-width: 100%;
+        }
+
+        .mobile-profile-section {
+            background: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        .mobile-profile-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: #1F2937;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .mobile-profile-info {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .mobile-info-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.75rem;
+            background: #F8FAFC;
+            border-radius: 8px;
+            border: 1px solid #E5E7EB;
+        }
+
+        .mobile-info-label {
+            font-weight: 600;
+            color: #374151;
+            font-size: 0.9rem;
+        }
+
+        .mobile-info-value {
+            color: #6B7280;
+            font-size: 0.9rem;
+        }
+
+        .mobile-role-badge {
+            background: #DC2626;
+            color: white;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .mobile-role-badge.viewer {
+            background: #6B7280;
+        }
+
+        .mobile-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+            margin-top: 1.5rem;
+        }
+
+        .mobile-action-btn {
+            background: #DC2626;
+            color: white;
+            border: none;
+            padding: 0.75rem 1rem;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s ease;
+        }
+
+        .mobile-action-btn:hover {
+            background: #B91C1C;
+        }
+
+        .mobile-action-btn.danger {
+            background: #EF4444;
+        }
+
+        .mobile-action-btn.danger:hover {
+            background: #DC2626;
+        }
+
+        .mobile-bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: white;
+            border-top: 1px solid #E5E7EB;
+            display: flex;
+            padding: 0.5rem 0;
+            z-index: 1000;
+        }
+
+        .mobile-nav-item {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 0.5rem;
+            text-decoration: none;
+            color: #6B7280;
+            font-size: 0.75rem;
+            transition: color 0.2s ease;
+        }
+
+        .mobile-nav-item.active {
+            color: #DC2626;
+        }
+
+        .mobile-nav-item:hover {
+            color: #DC2626;
+        }
+
+        .mobile-nav-icon {
+            font-size: 1.25rem;
+            margin-bottom: 0.25rem;
+        }
+
+        .mobile-body {
+            padding-bottom: 4rem; /* Space for bottom nav */
+        }
+
+        .mobile-notification {
+            padding: 0.75rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            font-size: 0.9rem;
+            display: none;
+        }
+
+        .mobile-notification.success {
+            background: #D1FAE5;
+            color: #065F46;
+            border: 1px solid #A7F3D0;
+        }
+
+        .mobile-notification.error {
+            background: #FEE2E2;
+            color: #991B1B;
+            border: 1px solid #FECACA;
+        }
+    </style>
+</head>
+<body>
+    <!-- Mobile Header -->
+    <header class="mobile-header">
+        <h1>
+            <img src="/logo.png" alt="Terp Notes">
+            My Profile
+        </h1>
+        <div class="mobile-user-info">
+            Welcome, <strong><%= user.firstname %></strong>
+        </div>
+        <div class="mobile-nav">
+            <a href="/mobile/dashboard" class="mobile-nav-btn">Dashboard</a>
+            <a href="/mobile/admin" class="mobile-nav-btn">Admin</a>
+            <a href="/logout" class="mobile-nav-btn">Logout</a>
+        </div>
+    </header>
+
+    <main class="mobile-body">
+        <div class="mobile-container">
+            <!-- Wide Screen Web Switch Button -->
+            <div id="wideScreenWebSwitch" style="display: none; background: #F0F9FF; border: 1px solid #0EA5E9; border-radius: 8px; padding: 0.75rem 1rem; margin-bottom: 1rem; text-align: center;">
+                <div style="color: #0C4A6E; font-size: 0.875rem; margin-bottom: 0.5rem;">
+                    💻 <strong>Wide Screen Detected</strong>
+                </div>
+                <p style="color: #0C4A6E; font-size: 0.8rem; margin: 0 0 0.75rem 0;">
+                    Your screen is wide enough for the full desktop experience with all features.
+                </p>
+                <a href="/profile" style="background: #0EA5E9; color: white; padding: 0.5rem 1rem; border-radius: 6px; text-decoration: none; font-size: 0.8rem; font-weight: 600; display: inline-block; transition: background 0.2s ease;" onmouseover="this.style.background='#0284C7'" onmouseout="this.style.background='#0EA5E9'">
+                    Switch to Web View
+                </a>
+            </div>
+
+            <div class="mobile-profile-section">
+                <h2 class="mobile-profile-title">👤 Profile Information</h2>
+
+                <div id="mobileNotification" class="mobile-notification"></div>
+
+                <div class="mobile-profile-info">
+                    <div class="mobile-info-item">
+                        <span class="mobile-info-label">Name</span>
+                        <span class="mobile-info-value"><%= user.firstname %> <%= user.lastname %></span>
+                    </div>
+
+                    <div class="mobile-info-item">
+                        <span class="mobile-info-label">Email</span>
+                        <span class="mobile-info-value"><%= user.email %></span>
+                    </div>
+
+                    <div class="mobile-info-item">
+                        <span class="mobile-info-label">Role</span>
+                        <span class="mobile-role-badge mobile-role-badge-<%= user.role %>"><%= user.role %></span>
+                    </div>
+
+                    <div class="mobile-info-item">
+                        <span class="mobile-info-label">Member Since</span>
+                        <span class="mobile-info-value"><%= new Date(user.createdAt).toLocaleDateString() %></span>
+                    </div>
+                </div>
+
+                <div class="mobile-actions">
+                    <button class="mobile-action-btn danger" onclick="deleteAccount()">
+                        🗑️ Delete Account
+                    </button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Mobile Bottom Navigation -->
+    <nav class="mobile-bottom-nav">
+        <a href="/mobile/dashboard" class="mobile-nav-item">
+            <div class="mobile-nav-icon">🏠</div>
+            <div>Home</div>
+        </a>
+        <a href="/mobile/admin" class="mobile-nav-item">
+            <div class="mobile-nav-icon">⚙️</div>
+            <div>Admin</div>
+        </a>
+        <a href="/mobile/profile" class="mobile-nav-item active">
+            <div class="mobile-nav-icon">👤</div>
+            <div>Profile</div>
+        </a>
+        <a href="/mobile/upload" class="mobile-nav-item">
+            <div class="mobile-nav-icon">📤</div>
+            <div>Upload</div>
+        </a>
+    </nav>
+
+
+    <script>
+        function deleteAccount() {
+            if (confirm('Are you sure you want to delete your account? This action cannot be undone.')) {
+                alert('Account deletion feature coming soon!');
+            }
+        }
+
+        // Check for wide screens and show web switch button
+        document.addEventListener('DOMContentLoaded', function() {
+            function checkScreenWidth() {
+                const wideScreenSwitch = document.getElementById('wideScreenWebSwitch');
+                if (wideScreenSwitch && window.innerWidth >= 1024) {
+                    // Only show if on mobile route
+                    if (window.location.pathname.startsWith('/mobile/')) {
+                        wideScreenSwitch.style.display = 'block';
+                    }
+                } else if (wideScreenSwitch) {
+                    wideScreenSwitch.style.display = 'none';
+                }
+            }
+
+            // Check on load
+            checkScreenWidth();
+
+            // Check on resize
+            window.addEventListener('resize', checkScreenWidth);
+        });
+    </script>
+</body>
+</html>

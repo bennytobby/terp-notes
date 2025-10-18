@@ -1,0 +1,101 @@
+name: Update UMD.io Data Cache
+
+on:
+  schedule:
+    # Run every Sunday at 3 AM UTC (10 PM EST Saturday)
+    - cron: '0 3 * * 0'
+  workflow_dispatch: # Allow manual triggers
+
+env:
+  NODE_VERSION: '18'
+
+jobs:
+  update-cache:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120 # 2 hour timeout for professor extraction
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'npm'
+
+    - name: Install dependencies
+      run: npm ci
+
+    - name: Create data directory
+      run: mkdir -p data
+
+    - name: Check for professor extraction needed
+      id: check-professors
+      run: |
+        # Check if professors cache exists and is recent
+        if [ -f "data/professors-cache.json" ]; then
+          LAST_PROF_UPDATE=$(jq -r '.timestamp' data/professors-cache.json)
+          LAST_PROF_EPOCH=$(date -d "$LAST_PROF_UPDATE" +%s)
+          CURRENT_EPOCH=$(date +%s)
+          DAYS_SINCE_PROF_UPDATE=$(( (CURRENT_EPOCH - LAST_PROF_EPOCH) / 86400 ))
+
+          if [ $DAYS_SINCE_PROF_UPDATE -gt 30 ]; then
+            echo "extract_professors=true" >> $GITHUB_OUTPUT
+            echo "reason=monthly_professor_extraction" >> $GITHUB_OUTPUT
+          else
+            echo "extract_professors=false" >> $GITHUB_OUTPUT
+            echo "reason=recent_professor_data_exists" >> $GITHUB_OUTPUT
+          fi
+        else
+          echo "extract_professors=true" >> $GITHUB_OUTPUT
+          echo "reason=no_professor_cache" >> $GITHUB_OUTPUT
+        fi
+
+    - name: Run cache update
+      run: |
+        echo "🔄 Updating UMD.io data cache..."
+        if [ "${{ steps.check-professors.outputs.extract_professors }}" = "true" ]; then
+          echo "📊 Extracting professors from course sections (reason: ${{ steps.check-professors.outputs.reason }})..."
+          node scripts/cache-umd-data.js --extract-professors
+        else
+          echo "📚 Updating courses only (reason: ${{ steps.check-professors.outputs.reason }})..."
+          node scripts/cache-umd-data.js
+        fi
+      continue-on-error: true
+
+    - name: Commit updated cache
+      if: always()
+      run: |
+        git config --local user.email "action@github.com"
+        git config --local user.name "GitHub Action"
+
+        # Add cache files
+        git add data/ || true
+
+        # Commit if there are changes
+        if git diff --staged --quiet; then
+          echo "ℹ️ No cache changes to commit"
+        else
+          git commit -m "🤖 Update UMD.io data cache [skip ci]
+
+          - Updated on: $(date -u +'%Y-%m-%d %H:%M:%S UTC')
+          - Weekly cache refresh"
+
+          git push
+        fi
+
+    - name: Create deployment summary
+      if: always()
+      run: |
+        echo "## 📊 UMD.io Cache Update Summary" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "**Timestamp:** $(date -u +'%Y-%m-%d %H:%M:%S UTC')" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+
+        if [ -f "data/cache-stats.json" ]; then
+          echo "**Cache Statistics:**" >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`json" >> $GITHUB_STEP_SUMMARY
+          cat data/cache-stats.json >> $GITHUB_STEP_SUMMARY
+          echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+        fi

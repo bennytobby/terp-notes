@@ -31,6 +31,19 @@
     </header>
 
     <main class="container">
+        <!-- Narrow Screen Mobile Switch Button -->
+        <div id="narrowScreenMobileSwitch" style="display: none; background: #FEF3C7; border: 1px solid #F59E0B; border-radius: 8px; padding: 0.75rem 1rem; margin-bottom: 1rem; text-align: center;">
+            <div style="color: #92400E; font-size: 0.875rem; margin-bottom: 0.5rem;">
+                📱 <strong>Narrow Screen Detected</strong>
+            </div>
+            <p style="color: #92400E; font-size: 0.8rem; margin: 0 0 0.75rem 0;">
+                Your screen is narrow. Switch to our mobile-optimized view for a better experience.
+            </p>
+            <a href="/mobile/admin" style="background: #F59E0B; color: white; padding: 0.5rem 1rem; border-radius: 6px; text-decoration: none; font-size: 0.8rem; font-weight: 600; display: inline-block; transition: background 0.2s ease;" onmouseover="this.style.background='#D97706'" onmouseout="this.style.background='#F59E0B'">
+                Switch to Mobile View
+            </a>
+        </div>
+
         <div class="admin-header">
             <h1>Admin Dashboard</h1>
             <p>Manage users, review reported files, moderate content, and post announcements</p>
@@ -508,6 +521,25 @@
         }
 
         document.addEventListener('DOMContentLoaded', function () {
+            // Check for narrow screens and show mobile switch button
+            function checkScreenWidth() {
+                const narrowScreenSwitch = document.getElementById('narrowScreenMobileSwitch');
+                if (narrowScreenSwitch && window.innerWidth <= 768) {
+                    // Only show if not already on mobile route
+                    if (!window.location.pathname.startsWith('/mobile/')) {
+                        narrowScreenSwitch.style.display = 'block';
+                    }
+                } else if (narrowScreenSwitch) {
+                    narrowScreenSwitch.style.display = 'none';
+                }
+            }
+
+            // Check on load
+            checkScreenWidth();
+
+            // Check on resize
+            window.addEventListener('resize', checkScreenWidth);
+
             // Search and filter
             const searchInput = document.getElementById('userSearch');
             const roleFilter = document.getElementById('roleFilter');

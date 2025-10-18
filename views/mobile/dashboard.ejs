@@ -1,0 +1,550 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Terp Notes - Mobile</title>
+    <link rel="stylesheet" href="/styles/main.css">
+    <style>
+        /* Mobile-specific styles */
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #F8FAFC;
+        }
+
+        .mobile-header {
+            background: linear-gradient(135deg, #DC2626, #B91C1C);
+            color: white;
+            padding: 1rem;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .mobile-header h1 {
+            margin: 0;
+            font-size: 1.25rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .mobile-header img {
+            width: 24px;
+            height: 24px;
+        }
+
+        .mobile-user-info {
+            margin-top: 0.5rem;
+            font-size: 0.875rem;
+            opacity: 0.9;
+        }
+
+        .mobile-nav {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 0.75rem;
+        }
+
+        .mobile-nav-btn {
+            background: rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            text-decoration: none;
+            font-size: 0.8rem;
+            font-weight: 600;
+            transition: all 0.2s ease;
+        }
+
+        .mobile-nav-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .mobile-container {
+            padding: 1rem;
+            max-width: 100%;
+        }
+
+        .mobile-announcements {
+            margin-bottom: 1rem;
+        }
+
+        .mobile-announcement {
+            background: white;
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 0.75rem;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            border-left: 4px solid #3B82F6;
+        }
+
+        .mobile-announcement.warning {
+            border-left-color: #F59E0B;
+        }
+
+        .mobile-announcement.success {
+            border-left-color: #10B981;
+        }
+
+        .mobile-files-section {
+            background: white;
+            border-radius: 12px;
+            padding: 1rem;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        .mobile-files-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .mobile-files-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: #1F2937;
+        }
+
+        .mobile-search {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #D1D5DB;
+            border-radius: 8px;
+            font-size: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .mobile-file-card {
+            background: #F9FAFB;
+            border: 1px solid #E5E7EB;
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 0.75rem;
+            transition: all 0.2s ease;
+        }
+
+        .mobile-file-card:hover {
+            background: #F3F4F6;
+            border-color: #D1D5DB;
+        }
+
+        .mobile-file-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 0.5rem;
+        }
+
+        .mobile-file-name {
+            font-weight: 600;
+            color: #1F2937;
+            font-size: 0.9rem;
+            line-height: 1.4;
+        }
+
+        .mobile-file-description {
+            color: #6B7280;
+            font-size: 0.8rem;
+            margin: 0.5rem 0;
+            font-style: italic;
+        }
+
+        .mobile-file-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .mobile-action-btn {
+            background: #3B82F6;
+            color: white;
+            border: none;
+            padding: 0.375rem 0.75rem;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .mobile-action-btn:hover {
+            background: #2563EB;
+        }
+
+        .mobile-action-btn.danger {
+            background: #DC2626;
+        }
+
+        .mobile-action-btn.danger:hover {
+            background: #B91C1C;
+        }
+
+        .mobile-file-info {
+            color: #6B7280;
+            font-size: 0.8rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .mobile-file-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            font-size: 0.75rem;
+            color: #9CA3AF;
+        }
+
+        .mobile-upload-fab {
+            position: fixed;
+            bottom: 1.5rem;
+            right: 1.5rem;
+            width: 56px;
+            height: 56px;
+            background: #DC2626;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            font-size: 1.5rem;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(220, 38, 38, 0.3);
+            transition: all 0.2s ease;
+            z-index: 1000;
+        }
+
+        .mobile-upload-fab:hover {
+            background: #B91C1C;
+            transform: scale(1.05);
+        }
+
+        .mobile-empty-state {
+            text-align: center;
+            padding: 2rem;
+            color: #6B7280;
+        }
+
+        .mobile-empty-state img {
+            width: 64px;
+            height: 64px;
+            margin-bottom: 1rem;
+            opacity: 0.5;
+        }
+
+        .mobile-bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: white;
+            border-top: 1px solid #E5E7EB;
+            display: flex;
+            padding: 0.5rem 0;
+            z-index: 1000;
+        }
+
+        .mobile-nav-item {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 0.5rem;
+            text-decoration: none;
+            color: #6B7280;
+            font-size: 0.75rem;
+            transition: color 0.2s ease;
+        }
+
+        .mobile-nav-item.active {
+            color: #DC2626;
+        }
+
+        .mobile-nav-item:hover {
+            color: #DC2626;
+        }
+
+        .mobile-nav-icon {
+            font-size: 1.25rem;
+            margin-bottom: 0.25rem;
+        }
+
+        .mobile-body {
+            padding-bottom: 4rem; /* Space for bottom nav */
+        }
+    </style>
+</head>
+<body>
+    <!-- Mobile Header -->
+    <header class="mobile-header">
+        <h1>
+            <img src="/logo.png" alt="Terp Notes">
+            Terp Notes
+        </h1>
+        <div class="mobile-user-info">
+            Welcome, <strong><%= firstname %></strong>
+            <span style="background: rgba(255,255,255,0.2); padding: 0.125rem 0.375rem; border-radius: 4px; font-size: 0.7rem; margin-left: 0.5rem;"><%= user.role %></span>
+        </div>
+        <div class="mobile-nav">
+            <% if (user.role === 'admin') { %>
+                <a href="/mobile/admin" class="mobile-nav-btn">Admin</a>
+            <% } %>
+            <a href="/mobile/profile" class="mobile-nav-btn">Profile</a>
+            <a href="/logout" class="mobile-nav-btn">Logout</a>
+        </div>
+    </header>
+
+    <main class="mobile-body">
+        <div class="mobile-container">
+            <!-- Wide Screen Web Switch Button -->
+            <div id="wideScreenWebSwitch" style="display: none; background: #F0F9FF; border: 1px solid #0EA5E9; border-radius: 8px; padding: 0.75rem 1rem; margin-bottom: 1rem; text-align: center;">
+                <div style="color: #0C4A6E; font-size: 0.875rem; margin-bottom: 0.5rem;">
+                    💻 <strong>Wide Screen Detected</strong>
+                </div>
+                <p style="color: #0C4A6E; font-size: 0.8rem; margin: 0 0 0.75rem 0;">
+                    Your screen is wide enough for the full desktop experience with all features.
+                </p>
+                <a href="/dashboard" style="background: #0EA5E9; color: white; padding: 0.5rem 1rem; border-radius: 6px; text-decoration: none; font-size: 0.8rem; font-weight: 600; display: inline-block; transition: background 0.2s ease;" onmouseover="this.style.background='#0284C7'" onmouseout="this.style.background='#0EA5E9'">
+                    Switch to Web View
+                </a>
+            </div>
+
+            <!-- Mobile Announcements -->
+            <% if (announcements && announcements.length > 0) { %>
+                <div class="mobile-announcements">
+                    <% announcements.forEach(announcement => { %>
+                        <div class="mobile-announcement mobile-announcement-<%= announcement.type %>">
+                            <div style="font-weight: 600; margin-bottom: 0.5rem;">
+                                <%= announcement.message %>
+                            </div>
+                        </div>
+                    <% }); %>
+                </div>
+            <% } %>
+
+            <!-- Mobile Files Section -->
+            <div class="mobile-files-section">
+                <div class="mobile-files-header">
+                    <h2 class="mobile-files-title">Recent Files</h2>
+                </div>
+
+                <!-- Mobile Search -->
+                <input type="text" class="mobile-search" placeholder="Search files..." id="mobileSearch">
+
+                <!-- Mobile Files List -->
+                <div id="mobileFilesList">
+                    <% if (files && files.length > 0) { %>
+                        <% files.forEach(file => { %>
+                            <div class="mobile-file-card" data-filename="<%= file.originalname %>">
+                                <div class="mobile-file-header">
+                                    <div class="mobile-file-name">
+                                        <%= file.originalName || file.originalname || 'Unknown File' %>
+                                    </div>
+                                    <div class="mobile-file-actions">
+                                        <button class="mobile-action-btn" onclick="downloadFile('<%= file.filename %>', '<%= file.originalName || file.originalname %>')">
+                                            📥
+                                        </button>
+                                        <!-- Mobile view - simplified actions -->
+                                    </div>
+                                </div>
+                                <% if (file.description) { %>
+                                    <div class="mobile-file-description">
+                                        📝 <%= file.description %>
+                                    </div>
+                                <% } %>
+                                <div class="mobile-file-info">
+                                    <%= file.major || 'General' %> • <%= file.semester || 'Unknown' %> <%= file.year || 'Unknown' %>
+                                </div>
+                                <div class="mobile-file-meta">
+                                    <span>📅 <%= new Date(file.uploadDate).toLocaleDateString() %></span>
+                                    <span>👤 <%= file.uploadedBy %></span>
+                                    <% if (file.classCode) { %>
+                                        <span>📁 <%= file.classCode %></span>
+                                    <% } %>
+                                </div>
+                            </div>
+                        <% }); %>
+                    <% } else { %>
+                        <div class="mobile-empty-state">
+                            <img src="/images/icons/folder.png" alt="No files">
+                            <h3>No files found</h3>
+                            <p>Upload your first file to get started!</p>
+                        </div>
+                    <% } %>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Mobile Upload FAB -->
+    <button class="mobile-upload-fab" onclick="showMobileUpload()" title="Upload File">
+        +
+    </button>
+
+    <!-- Mobile Bottom Navigation -->
+    <nav class="mobile-bottom-nav">
+        <a href="/mobile/dashboard" class="mobile-nav-item active">
+            <div class="mobile-nav-icon">🏠</div>
+            <div>Home</div>
+        </a>
+        <a href="/mobile/upload" class="mobile-nav-item">
+            <div class="mobile-nav-icon">📤</div>
+            <div>Upload</div>
+        </a>
+        <a href="/mobile/profile" class="mobile-nav-item">
+            <div class="mobile-nav-icon">👤</div>
+            <div>Profile</div>
+        </a>
+        <% if (user.role === 'admin') { %>
+            <a href="/mobile/admin" class="mobile-nav-item">
+                <div class="mobile-nav-icon">⚙️</div>
+                <div>Admin</div>
+            </a>
+        <% } %>
+    </nav>
+
+    <!-- Include custom alerts -->
+    <%- include('../partials/custom-alerts') %>
+
+    <script>
+        // Mobile search functionality
+        document.getElementById('mobileSearch').addEventListener('input', function(e) {
+            const searchTerm = e.target.value.toLowerCase();
+            const fileCards = document.querySelectorAll('.mobile-file-card');
+
+            fileCards.forEach(card => {
+                const filename = card.dataset.filename.toLowerCase();
+                if (filename.includes(searchTerm)) {
+                    card.style.display = 'block';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+        });
+
+        // Mobile file actions
+        function downloadFile(fileId, filename) {
+            // Use the same download logic as desktop
+            window.location.href = `/download/${fileId}`;
+        }
+
+        function deleteFile(fileId, filename) {
+            customConfirm(`Are you sure you want to delete "${filename}"?`, 'Delete File')
+                .then(result => {
+                    if (result) {
+                        fetch(`/api/delete-file/${fileId}`, {
+                            method: 'DELETE'
+                        })
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.success) {
+                                customAlert('File deleted successfully!', 'success');
+                                // Remove the file card from the UI
+                                const fileCard = document.querySelector(`[data-filename="${filename}"]`);
+                                if (fileCard) {
+                                    fileCard.remove();
+                                }
+                            } else {
+                                customAlert('Error deleting file: ' + data.error, 'error');
+                            }
+                        })
+                        .catch(error => {
+                            customAlert('Error deleting file', 'error');
+                        });
+                    }
+                });
+        }
+
+        function showMobileUpload() {
+            // Redirect to mobile upload page
+            window.location.href = '/mobile/upload';
+        }
+
+        // Mobile download function
+        async function downloadFile(filename, originalName) {
+            try {
+                const response = await fetch(`/download/${encodeURIComponent(filename)}`);
+
+                if (response.ok) {
+                    const blob = await response.blob();
+                    const url = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = originalName || filename;
+                    document.body.appendChild(a);
+                    a.click();
+                    window.URL.revokeObjectURL(url);
+                    document.body.removeChild(a);
+                } else {
+                    showMobileNotification('File could not be downloaded', 'error');
+                }
+            } catch (error) {
+                console.error('Download error:', error);
+                showMobileNotification('Download failed', 'error');
+            }
+        }
+
+        // Mobile view - simplified functionality
+
+        // Mobile notification function
+        function showMobileNotification(message, type) {
+            const notification = document.createElement('div');
+            notification.style.cssText = `
+                position: fixed;
+                top: 20px;
+                left: 50%;
+                transform: translateX(-50%);
+                background: ${type === 'error' ? '#FEE2E2' : '#D1FAE5'};
+                color: ${type === 'error' ? '#991B1B' : '#065F46'};
+                padding: 12px 16px;
+                border-radius: 8px;
+                font-size: 0.9rem;
+                z-index: 1000;
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            `;
+            notification.textContent = message;
+            document.body.appendChild(notification);
+
+            setTimeout(() => {
+                notification.remove();
+            }, 3000);
+        }
+
+        // Mobile touch optimizations
+        document.addEventListener('DOMContentLoaded', function() {
+            // Check for wide screens and show web switch button
+            function checkScreenWidth() {
+                const wideScreenSwitch = document.getElementById('wideScreenWebSwitch');
+                if (wideScreenSwitch && window.innerWidth >= 1024) {
+                    // Only show if on mobile route
+                    if (window.location.pathname.startsWith('/mobile/')) {
+                        wideScreenSwitch.style.display = 'block';
+                    }
+                } else if (wideScreenSwitch) {
+                    wideScreenSwitch.style.display = 'none';
+                }
+            }
+
+            // Check on load
+            checkScreenWidth();
+
+            // Check on resize
+            window.addEventListener('resize', checkScreenWidth);
+
+            // Add touch feedback to file cards
+            const fileCards = document.querySelectorAll('.mobile-file-card');
+            fileCards.forEach(card => {
+                card.addEventListener('touchstart', function() {
+                    this.style.transform = 'scale(0.98)';
+                });
+
+                card.addEventListener('touchend', function() {
+                    this.style.transform = 'scale(1)';
+                });
+            });
+        });
+    </script>
+</body>
+</html>

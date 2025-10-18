@@ -104,12 +104,15 @@
                 }
             });
 
-            // Close on escape key
-            document.addEventListener('keydown', (e) => {
-                if (e.key === 'Escape' && this.overlay.style.display !== 'none') {
-                    this.hide();
-                }
-            });
+            // Close on escape key (only add once)
+            if (!this.escapeListenerAdded) {
+                document.addEventListener('keydown', (e) => {
+                    if (e.key === 'Escape' && this.overlay.style.display !== 'none') {
+                        this.hide();
+                    }
+                });
+                this.escapeListenerAdded = true;
+            }
 
             // Handle input enter key
             this.input.addEventListener('keydown', (e) => {
@@ -120,6 +123,13 @@
         }
 
         show(options = {}) {
+            // Prevent multiple modals from being shown simultaneously
+            if (this.overlay.style.display === 'block') {
+                console.log('🟡 Modal already visible, queuing this one');
+                window.customAlertQueue.push(options);
+                return;
+            }
+
             const {
                 title = 'Alert',
                 subtitle = 'Please review the information below',
@@ -134,6 +144,8 @@
                 onCancel = null,
                 requireExactInput = null
             } = options;
+
+            console.log('🟢 Showing modal:', title, 'at', new Date().toISOString());
 
             // Set content
             this.title.textContent = title;
@@ -161,16 +173,22 @@
             this.onCancel = onCancel;
             this.requireExactInput = requireExactInput;
 
-            // Show overlay
+            // Show overlay with debugging
             this.overlay.style.display = 'block';
             this.container.style.animation = 'alertSlideIn 0.3s ease-out';
 
-            // Focus management
+            // Focus management - DON'T auto-focus confirm button to prevent auto-confirmation
             setTimeout(() => {
                 if (showInput) {
                     this.input.focus();
+                }
+                // Removed auto-focus on confirm button to prevent accidental confirmation
+
+                // Debug: Check if modal is still visible
+                if (this.overlay.style.display === 'block') {
+                    console.log('🟢 Modal is still visible after 100ms');
                 } else {
-                    this.confirmBtn.focus();
+                    console.log('🔴 Modal disappeared after 100ms - this is the bug!');
                 }
             }, 100);
         }
@@ -211,55 +229,106 @@
         }
 
         hide() {
+            console.log('🔴 Hiding custom alert - this might be the cause of the bug');
+            console.trace('Hide called from:'); // This will show the call stack
             this.container.classList.add('alert-slide-out');
             setTimeout(() => {
                 this.overlay.style.display = 'none';
                 this.container.classList.remove('alert-slide-out');
+
+                // Process queued modals
+                if (window.customAlertQueue && window.customAlertQueue.length > 0) {
+                    console.log('🟢 Processing queued modal');
+                    const nextOptions = window.customAlertQueue.shift();
+                    setTimeout(() => this.show(nextOptions), 100);
+                }
             }, 200);
         }
 
         // Event handlers
         handleConfirm() {
-            if (this.inputContainer.style.display !== 'none') {
-                const inputValue = this.input.value.trim();
+            console.log('🔴 handleConfirm called - checking if this is auto-triggered');
+            console.log('🔴 Event target:', event?.target);
+            console.log('🔴 Event type:', event?.type);
+            console.log('🔴 Current time:', new Date().toISOString());
 
-                if (this.requireExactInput && inputValue !== this.requireExactInput) {
-                    // Show error for incorrect input
-                    this.input.style.borderColor = '#EF4444';
-                    this.input.style.boxShadow = '0 0 0 3px rgba(239, 68, 68, 0.1)';
-                    setTimeout(() => {
-                        this.input.style.borderColor = '#D1D5DB';
-                        this.input.style.boxShadow = 'none';
-                    }, 2000);
-                    return;
-                }
+            // Add a small delay to prevent auto-triggering
+            setTimeout(() => {
+                console.log('🔴 handleConfirm executing after delay');
+                if (this.inputContainer.style.display !== 'none') {
+                    const inputValue = this.input.value.trim();
 
-                this.hide();
-                if (this.onConfirm) {
-                    this.onConfirm(inputValue);
+                    if (this.requireExactInput && inputValue !== this.requireExactInput) {
+                        // Show error for incorrect input
+                        this.input.style.borderColor = '#EF4444';
+                        this.input.style.boxShadow = '0 0 0 3px rgba(239, 68, 68, 0.1)';
+                        setTimeout(() => {
+                            this.input.style.borderColor = '#D1D5DB';
+                            this.input.style.boxShadow = 'none';
+                        }, 2000);
+                        return;
+                    }
+
+                    this.hide();
+                    if (this.onConfirm) {
+                        this.onConfirm(inputValue);
+                    }
+                } else {
+                    this.hide();
+                    if (this.onConfirm) {
+                        this.onConfirm(true);
+                    }
                 }
-            } else {
-                this.hide();
-                if (this.onConfirm) {
-                    this.onConfirm(true);
-                }
-            }
+            }, 100); // Increased delay to prevent auto-triggering
         }
 
         handleCancel() {
-            this.hide();
-            if (this.onCancel) {
-                this.onCancel();
-            }
+            console.log('🔴 handleCancel called - checking if this is auto-triggered');
+            console.log('🔴 Event target:', event?.target);
+            console.log('🔴 Event type:', event?.type);
+            console.log('🔴 Current time:', new Date().toISOString());
+
+            // Add a small delay to prevent auto-triggering
+            setTimeout(() => {
+                console.log('🔴 handleCancel executing after delay');
+                this.hide();
+                if (this.onCancel) {
+                    this.onCancel();
+                }
+            }, 100); // Increased delay to prevent auto-triggering
         }
     }
 
-    // Initialize custom alert system
-    const customAlert = new CustomAlert();
+    // Initialize custom alert system (only once globally)
+    if (!window.customAlertInstance) {
+        console.log('🟢 Creating new custom alert instance');
+        window.customAlertInstance = new CustomAlert();
+        window.customAlertQueue = []; // Queue for pending modals
+    } else {
+        console.log('🟡 Custom alert instance already exists, reusing');
+    }
+    const customAlert = window.customAlertInstance;
 
-    // Set up button event listeners
-    document.getElementById('alertConfirm').addEventListener('click', () => customAlert.handleConfirm());
-    document.getElementById('alertCancel').addEventListener('click', () => customAlert.handleCancel());
+    // Set up button event listeners (only once)
+    if (!customAlert.listenersAdded) {
+        console.log('🟢 Adding event listeners for custom alerts');
+        document.getElementById('alertConfirm').addEventListener('click', (e) => {
+            console.log('🟢 Confirm button clicked by user');
+            e.preventDefault();
+            e.stopPropagation();
+            customAlert.handleConfirm();
+        });
+        document.getElementById('alertCancel').addEventListener('click', (e) => {
+            console.log('🟢 Cancel button clicked by user');
+            e.preventDefault();
+            e.stopPropagation();
+            customAlert.handleCancel();
+        });
+        customAlert.listenersAdded = true;
+        console.log('🟢 Event listeners added successfully');
+    } else {
+        console.log('🟡 Event listeners already added, skipping');
+    }
 
     // Global functions to replace browser alerts
     window.customAlert = (message, type = 'info') => {

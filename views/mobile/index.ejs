@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Terp Notes Mobile</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #DC2626, #B91C1C);
+            min-height: 100vh;
+            color: white;
+        }
+
+        .mobile-hero {
+            padding: 2rem 1rem;
+            text-align: center;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .mobile-hero img {
+            width: 80px;
+            height: 80px;
+            margin-bottom: 1.5rem;
+        }
+
+        .mobile-hero h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin: 0 0 1rem 0;
+        }
+
+        .mobile-hero p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+            margin: 0 0 2rem 0;
+            line-height: 1.6;
+        }
+
+        .mobile-cta-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            width: 100%;
+            max-width: 300px;
+        }
+
+        .mobile-cta-btn {
+            background: white;
+            color: #DC2626;
+            border: none;
+            padding: 1rem 2rem;
+            border-radius: 12px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            text-decoration: none;
+            text-align: center;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .mobile-cta-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+        }
+
+        .mobile-cta-btn.secondary {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .mobile-cta-btn.secondary:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .mobile-features {
+            background: white;
+            color: #1F2937;
+            padding: 2rem 1rem;
+        }
+
+        .mobile-features h2 {
+            text-align: center;
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 2rem;
+        }
+
+        .mobile-feature-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 1.5rem;
+        }
+
+        .mobile-feature {
+            text-align: center;
+            padding: 1.5rem;
+            background: #F8FAFC;
+            border-radius: 12px;
+        }
+
+        .mobile-feature-icon {
+            font-size: 2rem;
+            margin-bottom: 1rem;
+        }
+
+        .mobile-feature h3 {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin: 0 0 0.5rem 0;
+        }
+
+        .mobile-feature p {
+            color: #6B7280;
+            font-size: 0.9rem;
+            margin: 0;
+            line-height: 1.5;
+        }
+
+        .mobile-footer {
+            background: #1F2937;
+            color: white;
+            padding: 2rem 1rem;
+            text-align: center;
+        }
+
+        .mobile-footer p {
+            margin: 0;
+            opacity: 0.8;
+            font-size: 0.9rem;
+        }
+
+        .mobile-footer a {
+            color: #DC2626;
+            text-decoration: none;
+        }
+
+        .mobile-footer a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="mobile-hero">
+        <img src="/logo.png" alt="Terp Notes">
+        <h1>Terp Notes</h1>
+        <p>Built for Terps, by Terps<br>Mobile Optimized</p>
+
+        <div class="mobile-cta-buttons">
+            <a href="/mobile/login" class="mobile-cta-btn">Login</a>
+            <a href="/mobile/register" class="mobile-cta-btn secondary">Create Account</a>
+        </div>
+    </div>
+
+    <div class="mobile-features">
+        <h2>Why Terp Notes?</h2>
+        <div class="mobile-feature-grid">
+            <div class="mobile-feature">
+                <div class="mobile-feature-icon">📚</div>
+                <h3>Course Materials</h3>
+                <p>Access notes, assignments, and study materials for your courses</p>
+            </div>
+            <div class="mobile-feature">
+                <div class="mobile-feature-icon">📱</div>
+                <h3>Mobile Optimized</h3>
+                <p>Designed specifically for mobile devices with touch-friendly interface</p>
+            </div>
+            <div class="mobile-feature">
+                <div class="mobile-feature-icon">🔒</div>
+                <h3>Secure & Private</h3>
+                <p>Your files are protected with enterprise-grade security</p>
+            </div>
+            <div class="mobile-feature">
+                <div class="mobile-feature-icon">⚡</div>
+                <h3>Fast & Reliable</h3>
+                <p>Quick access to your files with optimized mobile performance</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="mobile-footer">
+        <p>© 2024 Terp Notes. Built for the University of Maryland community.</p>
+        <p><a href="/">Use Desktop Version</a></p>
+    </div>
+</body>
+</html>

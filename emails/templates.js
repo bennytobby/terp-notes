@@ -216,7 +216,7 @@ function contactFormEmail(name, email, subject, message) {
  */
 function adminFileDeletionEmail(deleterInfo, fileInfo, deletionType = 'single') {
     const { firstname, lastname, email, userid, role } = deleterInfo;
-    const { filename, originalName, classCode, semester, year, professor, major, category, uploadDate, downloadCount, size } = fileInfo;
+    const { filename, originalName, classCode, semester, year, professor, major, category, uploadDate, downloadCount, size, isDeduplicated, remainingInstances } = fileInfo;
 
     const fileSize = size ? formatFileSize(size) : 'Unknown';
     const uploadDateFormatted = uploadDate ? new Date(uploadDate).toLocaleDateString() : 'Unknown';
@@ -251,6 +251,20 @@ function adminFileDeletionEmail(deleterInfo, fileInfo, deletionType = 'single') 
         <h3 style="color: #374151; margin-top: 0;">🔍 Deletion Type</h3>
         <p style="color: #374151; line-height: 1.6;">${deletionType === 'single' ? 'Single file deletion' : `Bulk deletion (${deletionType} files)`}</p>
 
+        ${isDeduplicated ? `
+        <h3 style="color: #374151; margin-top: 0;">🔄 Deduplication Status</h3>
+        <div style="background: #FEF3C7; padding: 16px; border-radius: 8px; margin: 16px 0; border-left: 4px solid #F59E0B;">
+            <p style="color: #374151; line-height: 1.6; margin: 0;"><strong>⚠️ File Still in S3:</strong> This file was deduplicated and is still being used by ${remainingInstances} other file(s).</p>
+            <p style="color: #374151; line-height: 1.6; margin: 4px 0 0 0; font-size: 0.875rem;">The file content remains in S3 storage because other users have uploaded the same file.</p>
+        </div>
+        ` : `
+        <h3 style="color: #374151; margin-top: 0;">🗑️ Storage Status</h3>
+        <div style="background: #DCFCE7; padding: 16px; border-radius: 8px; margin: 16px 0; border-left: 4px solid #22C55E;">
+            <p style="color: #374151; line-height: 1.6; margin: 0;"><strong>✅ Completely Removed:</strong> This file has been fully deleted from S3 storage.</p>
+            <p style="color: #374151; line-height: 1.6; margin: 4px 0 0 0; font-size: 0.875rem;">No other files were using this content, so it was completely removed.</p>
+        </div>
+        `}
+
         <div style="background: #F0F9FF; padding: 16px; border-radius: 8px; margin: 16px 0; border-left: 4px solid #0EA5E9;">
             <p style="color: #374151; line-height: 1.6; margin: 0;"><strong>📎 File Attached:</strong> The deleted file has been attached to this email for your records.</p>
         </div>
@@ -269,8 +283,12 @@ function adminBulkFileDeletionEmail(deleterInfo, deletedFiles) {
     const { firstname, lastname, email, userid, role } = deleterInfo;
     const fileCount = deletedFiles.length;
 
+    // Calculate deduplication stats
+    const deduplicatedFiles = deletedFiles.filter(file => file.isDeduplicated);
+    const completelyRemovedFiles = deletedFiles.filter(file => !file.isDeduplicated);
+
     const fileList = deletedFiles.map(file => `
-        <div style="background: #F3F4F6; padding: 12px; border-radius: 6px; margin: 8px 0; border-left: 3px solid #DC2626;">
+        <div style="background: #F3F4F6; padding: 12px; border-radius: 6px; margin: 8px 0; border-left: 3px solid ${file.isDeduplicated ? '#F59E0B' : '#DC2626'};">
             <p style="color: #374151; line-height: 1.4; margin: 0; font-weight: 600;">${file.originalName}</p>
             <div style="display: flex; gap: 12px; margin-top: 4px; font-size: 0.875rem; color: #6B7280;">
                 ${file.classCode ? `<span>Class: ${file.classCode}</span>` : ''}
@@ -278,6 +296,15 @@ function adminBulkFileDeletionEmail(deleterInfo, deletedFiles) {
                 ${file.professor ? `<span>Prof: ${file.professor}</span>` : ''}
                 <span>Downloads: ${file.downloadCount || 0}</span>
             </div>
+            ${file.isDeduplicated ? `
+                <div style="margin-top: 4px; font-size: 0.75rem; color: #F59E0B; font-weight: 600;">
+                    ⚠️ Still in S3 (${file.remainingInstances} other files using this content)
+                </div>
+            ` : `
+                <div style="margin-top: 4px; font-size: 0.75rem; color: #22C55E; font-weight: 600;">
+                    ✅ Completely removed from S3
+                </div>
+            `}
         </div>
     `).join('');
 
@@ -293,6 +320,18 @@ function adminBulkFileDeletionEmail(deleterInfo, deletedFiles) {
             <p style="color: #374151; line-height: 1.6; margin: 4px 0 0 0;"><strong>Email:</strong> ${email}</p>
             <p style="color: #374151; line-height: 1.6; margin: 4px 0 0 0;"><strong>Username:</strong> ${userid}</p>
             <p style="color: #374151; line-height: 1.6; margin: 4px 0 0 0;"><strong>Role:</strong> <span style="background: #E0E7FF; color: #4338CA; padding: 2px 6px; border-radius: 4px; font-size: 0.75rem;">${role}</span></p>
+        </div>
+
+        <h3 style="color: #374151; margin-top: 0;">📊 Deletion Summary</h3>
+        <div style="display: flex; gap: 16px; margin: 16px 0;">
+            <div style="background: #DCFCE7; padding: 12px; border-radius: 8px; border-left: 4px solid #22C55E; flex: 1;">
+                <p style="color: #374151; line-height: 1.4; margin: 0; font-weight: 600; font-size: 1.25rem;">${completelyRemovedFiles.length}</p>
+                <p style="color: #374151; line-height: 1.4; margin: 4px 0 0 0; font-size: 0.875rem;">Completely Removed</p>
+            </div>
+            <div style="background: #FEF3C7; padding: 12px; border-radius: 8px; border-left: 4px solid #F59E0B; flex: 1;">
+                <p style="color: #374151; line-height: 1.4; margin: 0; font-weight: 600; font-size: 1.25rem;">${deduplicatedFiles.length}</p>
+                <p style="color: #374151; line-height: 1.4; margin: 4px 0 0 0; font-size: 0.875rem;">Still in S3</p>
+            </div>
         </div>
 
         <h3 style="color: #374151; margin-top: 0;">📁 Deleted Files (${fileCount})</h3>

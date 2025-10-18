@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Terp Notes Mobile</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #F8FAFC, #E2E8F0);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .mobile-login-container {
+            background: white;
+            border-radius: 16px;
+            padding: 2rem;
+            width: 90%;
+            max-width: 400px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        }
+
+        .mobile-login-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .mobile-login-header img {
+            width: 48px;
+            height: 48px;
+            margin-bottom: 1rem;
+        }
+
+        .mobile-login-header h1 {
+            color: #1F2937;
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin: 0;
+        }
+
+        .mobile-login-header p {
+            color: #6B7280;
+            font-size: 0.9rem;
+            margin: 0.5rem 0 0 0;
+        }
+
+        .mobile-form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .mobile-form-label {
+            display: block;
+            color: #374151;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
+        }
+
+        .mobile-form-input {
+            width: 100%;
+            padding: 0.75rem;
+            border: 2px solid #E5E7EB;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: border-color 0.2s ease;
+            box-sizing: border-box;
+        }
+
+        .mobile-form-input:focus {
+            outline: none;
+            border-color: #DC2626;
+        }
+
+        .mobile-login-btn {
+            width: 100%;
+            background: #DC2626;
+            color: white;
+            border: none;
+            padding: 0.875rem;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s ease;
+        }
+
+        .mobile-login-btn:hover {
+            background: #B91C1C;
+        }
+
+        .mobile-login-btn:disabled {
+            background: #9CA3AF;
+            cursor: not-allowed;
+        }
+
+        .mobile-login-links {
+            text-align: center;
+            margin-top: 1.5rem;
+        }
+
+        .mobile-login-links a {
+            color: #DC2626;
+            text-decoration: none;
+            font-size: 0.9rem;
+            margin: 0 0.5rem;
+        }
+
+        .mobile-login-links a:hover {
+            text-decoration: underline;
+        }
+
+        .mobile-desktop-link {
+            text-align: center;
+            margin-top: 2rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid #E5E7EB;
+        }
+
+        .mobile-desktop-link a {
+            color: #6B7280;
+            text-decoration: none;
+            font-size: 0.8rem;
+        }
+
+        .mobile-desktop-link a:hover {
+            color: #DC2626;
+        }
+
+        .mobile-notification {
+            padding: 0.75rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            font-size: 0.9rem;
+            display: none;
+        }
+
+        .mobile-notification.success {
+            background: #D1FAE5;
+            color: #065F46;
+            border: 1px solid #A7F3D0;
+        }
+
+        .mobile-notification.error {
+            background: #FEE2E2;
+            color: #991B1B;
+            border: 1px solid #FECACA;
+        }
+    </style>
+</head>
+<body>
+    <div class="mobile-login-container">
+        <div class="mobile-login-header">
+            <img src="/logo.png" alt="Terp Notes">
+            <h1>Terp Notes</h1>
+            <p>Mobile Login</p>
+        </div>
+
+        <div id="mobileNotification" class="mobile-notification"></div>
+
+        <form id="mobileLoginForm" novalidate>
+            <div class="mobile-form-group">
+                <label for="mobileEmail" class="mobile-form-label">Email</label>
+                <input type="email" id="mobileEmail" name="email" class="mobile-form-input" required>
+            </div>
+
+            <div class="mobile-form-group">
+                <label for="mobilePassword" class="mobile-form-label">Password</label>
+                <input type="password" id="mobilePassword" name="password" class="mobile-form-input" required>
+            </div>
+
+            <button type="submit" class="mobile-login-btn" id="mobileLoginBtn">
+                Login
+            </button>
+        </form>
+
+        <div class="mobile-login-links">
+            <a href="/mobile/register">Create Account</a>
+            <a href="/forgot-password">Forgot Password?</a>
+        </div>
+
+        <div class="mobile-desktop-link">
+            <a href="/">Use Desktop Version</a>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('mobileLoginForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            const email = document.getElementById('mobileEmail').value;
+            const password = document.getElementById('mobilePassword').value;
+            const loginBtn = document.getElementById('mobileLoginBtn');
+            const notification = document.getElementById('mobileNotification');
+
+            if (!email || !password) {
+                showNotification('Please fill in all fields', 'error');
+                return;
+            }
+
+            loginBtn.disabled = true;
+            loginBtn.textContent = 'Logging in...';
+
+            try {
+                const response = await fetch('/loginSubmit', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ email, password })
+                });
+
+                if (response.ok) {
+                    showNotification('Login successful! Redirecting...', 'success');
+                    setTimeout(() => {
+                        window.location.href = '/mobile/dashboard';
+                    }, 1000);
+                } else {
+                    const data = await response.json();
+                    showNotification(data.error || 'Login failed', 'error');
+                }
+            } catch (error) {
+                showNotification('Network error. Please try again.', 'error');
+            } finally {
+                loginBtn.disabled = false;
+                loginBtn.textContent = 'Login';
+            }
+        });
+
+        function showNotification(message, type) {
+            const notification = document.getElementById('mobileNotification');
+            notification.textContent = message;
+            notification.className = `mobile-notification ${type}`;
+            notification.style.display = 'block';
+
+            setTimeout(() => {
+                notification.style.display = 'none';
+            }, 5000);
+        }
+    </script>
+</body>
+</html>
