@@ -30,6 +30,9 @@ async function fetchUMDData(endpoint) {
                     res.on('end', () => {
                         if (res.statusCode === 200) {
                             resolve(JSON.parse(data));
+                        } else if (res.statusCode === 404) {
+                            // 404 means no professors for this course - this is normal, don't retry
+                            resolve([]);
                         } else {
                             reject(new Error(`HTTP ${res.statusCode}: ${data}`));
                         }
@@ -39,6 +42,11 @@ async function fetchUMDData(endpoint) {
 
             return response;
         } catch (error) {
+            // Don't retry 404 errors - they're expected for courses with no professors
+            if (error.message.includes('404')) {
+                return [];
+            }
+
             console.warn(`⚠️  Attempt ${attempt} failed for ${endpoint}: ${error.message}`);
             if (attempt === config.retryAttempts) {
                 throw error;
@@ -113,7 +121,7 @@ async function cacheProfessors() {
         const cutoffYear = currentYear - config.years;
 
         // Process courses in batches
-        const batchSize = 50; // Larger batches for efficiency
+        const batchSize = 10; // Very conservative batch size to avoid rate limits
         let processedCourses = 0;
 
         for (let i = 0; i < courses.courses.length; i += batchSize) {
@@ -182,8 +190,8 @@ async function cacheProfessors() {
             await Promise.allSettled(promises);
             processedCourses += batch.length;
 
-            // Small delay between batches
-            await new Promise(resolve => setTimeout(resolve, 100));
+            // Longer delay between batches to be respectful to API
+            await new Promise(resolve => setTimeout(resolve, 1000));
         }
 
         const professors = Array.from(professorMap.values());
