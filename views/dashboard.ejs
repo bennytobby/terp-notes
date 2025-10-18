@@ -3356,6 +3356,41 @@
 
                     // Show modal
                     modal.style.display = 'block';
+
+                    // Initialize edit modal dropdowns with cache data
+                    if (courseCache && professorCache) {
+                        // Initialize edit course dropdown
+                        filterEditCourses('');
+
+                        // Initialize edit professor dropdown
+                        filterEditProfessors('');
+
+                        // Add event listeners for edit inputs
+                        const editClassCodeInput = document.getElementById('editClassCode');
+                        const editProfessorInput = document.getElementById('editProfessor');
+
+                        if (editClassCodeInput) {
+                            editClassCodeInput.addEventListener('input', function() {
+                                const searchTerm = this.value.trim();
+                                filterEditCourses(searchTerm);
+                            });
+
+                            editClassCodeInput.addEventListener('focus', function() {
+                                filterEditCourses('');
+                            });
+                        }
+
+                        if (editProfessorInput) {
+                            editProfessorInput.addEventListener('input', function() {
+                                const searchTerm = this.value.trim();
+                                filterEditProfessors(searchTerm);
+                            });
+
+                            editProfessorInput.addEventListener('focus', function() {
+                                filterEditProfessors('');
+                            });
+                        }
+                    }
                 }
 
                 function closeEditModal() {
@@ -5194,6 +5229,10 @@
                         let selectedProfessor = null;
                         let selectedCourse = null;
 
+                        // Track edit modal selections for filtering
+                        let editSelectedProfessor = null;
+                        let editSelectedCourse = null;
+
                         // Clear all selections
                         function clearSelections() {
                             selectedProfessor = null;
@@ -5284,6 +5323,178 @@
                                     semesters: allSemesters
                                 };
                             }), searchTerm);
+                        }
+
+                        // Edit modal filtering functions
+                        function filterEditCourses(searchTerm = '') {
+                            if (!courseCache) return;
+
+                            let courses;
+
+                            // If a professor is selected in edit modal, only show their courses
+                            if (editSelectedProfessor && professorCache && professorCache.professors[editSelectedProfessor]) {
+                                courses = Object.keys(professorCache.professors[editSelectedProfessor]);
+                                console.log('🎯 Edit: Filtering courses for selected professor:', editSelectedProfessor, 'Courses:', courses);
+                            } else {
+                                // Show all courses
+                                courses = Object.keys(courseCache.courses);
+                            }
+
+                            const filtered = courses.filter(courseId =>
+                                courseId.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                                courseCache.courses[courseId].courseInfo.name.toLowerCase().includes(searchTerm.toLowerCase())
+                            );
+
+                            renderEditCoursesDropdown(filtered.map(courseId => ({
+                                course_id: courseId,
+                                name: courseCache.courses[courseId].courseInfo.name
+                            })), searchTerm);
+                        }
+
+                        function renderEditCoursesDropdown(courses, searchTerm) {
+                            const editCoursesDropdown = document.getElementById('editClassCodeSuggestions');
+                            if (!editCoursesDropdown) return;
+
+                            if (courses.length === 0) {
+                                editCoursesDropdown.innerHTML = '';
+                                return;
+                            }
+
+                            // Sort courses alphabetically
+                            const sortedCourses = [...courses].sort((a, b) => a.course_id.localeCompare(b.course_id));
+
+                            editCoursesDropdown.innerHTML = sortedCourses.map(course => {
+                                const courseId = course.course_id;
+                                const courseName = course.name || courseId;
+                                return `<option value="${courseId}" data-course-name="${courseName}">${courseId} - ${courseName}</option>`;
+                            }).join('');
+                        }
+
+                        function filterEditProfessors(searchTerm = '') {
+                            if (!professorCache) return;
+
+                            const professors = Object.keys(professorCache.professors);
+                            const filtered = professors.filter(profName =>
+                                profName.toLowerCase().includes(searchTerm.toLowerCase())
+                            );
+
+                            renderEditProfessorsDropdown(filtered.map(profName => {
+                                const profData = professorCache.professors[profName];
+                                const allSemesters = [];
+
+                                // Collect all semesters for this professor
+                                Object.values(profData).forEach(semesters => {
+                                    semesters.forEach(semesterData => {
+                                        allSemesters.push(semesterData);
+                                    });
+                                });
+
+                                return {
+                                    name: profName,
+                                    courses: Object.keys(profData),
+                                    semesters: allSemesters
+                                };
+                            }), searchTerm);
+                        }
+
+                        function renderEditProfessorsDropdown(professors, searchTerm) {
+                            const editProfessorsDropdown = document.getElementById('editProfessorsDropdown');
+                            if (!editProfessorsDropdown) return;
+
+                            if (professors.length === 0) {
+                                editProfessorsDropdown.innerHTML = '<div class="custom-dropdown-empty">No professors found</div>';
+                                editProfessorsDropdown.classList.add('show');
+                                return;
+                            }
+
+                            // Sort professors alphabetically
+                            const sortedProfessors = [...professors].sort((a, b) => a.name.localeCompare(b.name));
+
+                            editProfessorsDropdown.innerHTML = sortedProfessors.map((prof, index) => {
+                                const professorName = prof.name;
+                                const highlightedName = highlightText(professorName, searchTerm);
+
+                                // Create semester tags
+                                let semesterTags = '';
+                                if (prof.semesters && prof.semesters.length > 0) {
+                                    const uniqueSemesters = [...new Set(prof.semesters.map(s => `${s.semester} ${s.year}`))];
+                                    semesterTags = uniqueSemesters.map(sem =>
+                                        `<span class="semester-tag" style="display: inline-block; background: #FEE2E2; color: #DC2626; padding: 2px 6px; border-radius: 4px; font-size: 0.75rem; margin: 1px 2px 1px 0; font-weight: 500;">${sem}</span>`
+                                    ).join('');
+                                }
+
+                                return `
+                                    <div class="custom-dropdown-item" data-professor-name="${professorName}" style="padding: 8px 12px; cursor: pointer; border-bottom: 1px solid #F3F4F6;">
+                                        <div style="font-weight: 600; color: #1F2937;">${highlightedName}</div>
+                                        ${semesterTags ? `<div class="semester-tags" style="margin-top: 4px;">${semesterTags}</div>` : ''}
+                                    </div>
+                                `;
+                            }).join('');
+
+                            editProfessorsDropdown.classList.add('show');
+
+                            // Add click handlers
+                            editProfessorsDropdown.querySelectorAll('.custom-dropdown-item').forEach((item, index) => {
+                                item.addEventListener('click', function () {
+                                    const professorName = this.dataset.professorName;
+                                    document.getElementById('editProfessor').value = professorName;
+                                    editProfessorsDropdown.classList.remove('show');
+
+                                    // Set edit professor selection
+                                    editSelectedProfessor = professorName;
+
+                                    // Clear edit course field
+                                    document.getElementById('editClassCode').value = '';
+
+                                    // Filter courses for this professor
+                                    filterEditCourses('');
+
+                                    // Update semester/year dropdowns
+                                    updateEditSemesterYearForProfessor(professorName);
+                                });
+                            });
+                        }
+
+                        function updateEditSemesterYearForProfessor(professorName) {
+                            if (!professorCache || !professorCache.professors[professorName]) return;
+
+                            const currentYear = new Date().getFullYear();
+                            const allSemesters = new Set();
+                            const allYears = new Set();
+
+                            // Collect all semesters and years for this professor
+                            Object.values(professorCache.professors[professorName]).forEach(semesters => {
+                                semesters.forEach(semesterData => {
+                                    if (semesterData.year <= currentYear) {
+                                        allSemesters.add(semesterData.semester);
+                                        allYears.add(semesterData.year);
+                                    }
+                                });
+                            });
+
+                            // Update semester dropdown
+                            const semesterSelect = document.getElementById('editSemester');
+                            if (semesterSelect) {
+                                semesterSelect.innerHTML = '<option value="">Select semester</option>';
+                                Array.from(allSemesters).sort().forEach(semester => {
+                                    const option = document.createElement('option');
+                                    option.value = semester;
+                                    option.textContent = semester;
+                                    semesterSelect.appendChild(option);
+                                });
+                            }
+
+                            // Update year dropdown
+                            const yearSelect = document.getElementById('editYear');
+                            if (yearSelect) {
+                                yearSelect.innerHTML = '<option value="">Select year</option>';
+                                Array.from(allYears).sort((a, b) => b - a).forEach(year => {
+                                    const option = document.createElement('option');
+                                    option.value = year;
+                                    option.textContent = year;
+                                    yearSelect.appendChild(option);
+                                });
+                            }
                         }
 
                         // Show success message for courses or professors

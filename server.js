@@ -344,7 +344,7 @@ async function isCacheStale(cacheData, maxAgeHours = 168) { // 1 week default
     return ageHours > maxAgeHours;
 }
 
-/* UMD.io Flexible Search API - Must be before session validation middleware */
+/* DEPRECATED UMD.io API endpoints - using cache system only
 app.get('/api/umd/search', async (req, res) => {
     try {
         const { professor, course, semester, year } = req.query;
@@ -4969,15 +4969,16 @@ app.get('/api/professor-cache', async (req, res) => {
         const cacheData = await fs.readFile(cachePath, 'utf8');
         const cache = JSON.parse(cacheData);
 
-        // Check if cache is stale (7 days)
+        // Check if cache is stale (7 days) - but serve anyway
         const cacheAge = Date.now() - new Date(cache.metadata.generated).getTime();
         const isStale = cacheAge > (7 * 24 * 60 * 60 * 1000);
 
         if (isStale) {
-            console.log('⚠️ Professor cache is stale, consider updating');
+            console.log('⚠️ Professor cache is stale but serving anyway - users can still enter data manually');
+        } else {
+            console.log('✅ Serving fresh professor cache');
         }
 
-        console.log('✅ Serving professor cache successfully');
         res.json(cache);
     } catch (error) {
         console.error('❌ Error serving professor cache:', error);
@@ -4992,15 +4993,16 @@ app.get('/api/course-cache', async (req, res) => {
         const cacheData = await fs.readFile(cachePath, 'utf8');
         const cache = JSON.parse(cacheData);
 
-        // Check if cache is stale (7 days)
+        // Check if cache is stale (7 days) - but serve anyway
         const cacheAge = Date.now() - new Date(cache.metadata.generated).getTime();
         const isStale = cacheAge > (7 * 24 * 60 * 60 * 1000);
 
         if (isStale) {
-            console.log('⚠️ Course cache is stale, consider updating');
+            console.log('⚠️ Course cache is stale but serving anyway - users can still enter data manually');
+        } else {
+            console.log('✅ Serving fresh course cache');
         }
 
-        console.log('✅ Serving course cache successfully');
         res.json(cache);
     } catch (error) {
         console.error('❌ Error serving course cache:', error);
@@ -5015,15 +5017,16 @@ app.get('/api/semester-year-cache', async (req, res) => {
         const cacheData = await fs.readFile(cachePath, 'utf8');
         const cache = JSON.parse(cacheData);
 
-        // Check if cache is stale (7 days)
+        // Check if cache is stale (7 days) - but serve anyway
         const cacheAge = Date.now() - new Date(cache.metadata.generated).getTime();
         const isStale = cacheAge > (7 * 24 * 60 * 60 * 1000);
 
         if (isStale) {
-            console.log('⚠️ Semester-year cache is stale, consider updating');
+            console.log('⚠️ Semester-year cache is stale but serving anyway - users can still enter data manually');
+        } else {
+            console.log('✅ Serving fresh semester-year cache');
         }
 
-        console.log('✅ Serving semester-year cache successfully');
         res.json(cache);
     } catch (error) {
         console.error('❌ Error serving semester-year cache:', error);

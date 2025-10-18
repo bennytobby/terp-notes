@@ -59,9 +59,13 @@ jobs:
     - name: Run cache update
       run: |
         echo "🔄 Updating UMD.io data cache..."
-        echo "📊 Extracting professors from all courses (this will take 10-15 minutes)..."
-        echo "🚀 Processing 5,116 courses to extract complete professor database..."
-        node scripts/cache-umd-data.js --extract-professors
+        echo "📊 Generating optimized cache format directly..."
+        echo "🚀 Processing courses to create professor-cache.json, course-cache.json, and semester-year-cache.json..."
+
+        # Generate optimized cache format directly
+        node scripts/generate-optimized-cache.js
+
+        echo "✅ Optimized cache format created successfully!"
       continue-on-error: true
 
     - name: Commit updated cache
