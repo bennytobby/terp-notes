@@ -308,7 +308,15 @@
                                                 <strong>Ban History:</strong>
                                                 <%= currentUser.analytics.banHistoryCount %> incident(s)
                                                 <% if (currentUser.analytics.lastBanReason) { %>
-                                                    <small style="color: #EF4444;">(Last: <%= currentUser.analytics.lastBanReason %>)</small>
+                                                    <br><small style="color: #EF4444;">
+                                                        Last: <%= currentUser.analytics.lastBanReason %>
+                                                        <% if (currentUser.analytics.lastBanDate) { %>
+                                                            on <%= new Date(currentUser.analytics.lastBanDate).toLocaleDateString() %>
+                                                        <% } %>
+                                                        <% if (currentUser.analytics.lastBanDurationText) { %>
+                                                            (<%= currentUser.analytics.lastBanDurationText %>)
+                                                        <% } %>
+                                                    </small>
                                                 <% } %>
                                             </div>
                                         <% } %>
@@ -407,14 +415,6 @@
             <p id="banUserInfo" style="color: var(--color-text-light); margin-bottom: 1.5rem;"></p>
 
             <div style="margin-bottom: 1rem;">
-                <label for="banType" style="display: block; margin-bottom: 0.5rem; font-weight: 600;">Ban Type:</label>
-                <select id="banType" style="width: 100%; padding: 0.5rem; border: 1px solid #ddd; border-radius: 4px;">
-                    <option value="timed">Temporary Ban</option>
-                    <option value="permanent">Permanent Ban</option>
-                </select>
-            </div>
-
-            <div id="banDurationSection" style="margin-bottom: 1rem;">
                 <label for="banDuration" style="display: block; margin-bottom: 0.5rem; font-weight: 600;">Ban Duration:</label>
                 <select id="banDuration" style="width: 100%; padding: 0.5rem; border: 1px solid #ddd; border-radius: 4px;">
                     <option value="24">1 Day</option>
@@ -422,6 +422,10 @@
                     <option value="168">1 Week</option>
                     <option value="336">2 Weeks</option>
                     <option value="720">1 Month</option>
+                    <option value="2160">3 Months</option>
+                    <option value="4320">6 Months</option>
+                    <option value="8760">1 Year</option>
+                    <option value="permanent">Permanent</option>
                 </select>
             </div>
 
@@ -885,16 +889,12 @@
             function showBanModal(userId, userName) {
                 const modal = document.getElementById('banModal');
                 const userInfo = document.getElementById('banUserInfo');
-                const banType = document.getElementById('banType');
-                const banDurationSection = document.getElementById('banDurationSection');
                 const banDuration = document.getElementById('banDuration');
                 const banReason = document.getElementById('banReason');
 
                 // Reset form
-                banType.value = 'timed';
                 banDuration.value = '24';
                 banReason.value = '';
-                banDurationSection.style.display = 'block';
 
                 // Set user info
                 userInfo.textContent = `You are about to ban: ${userName}`;
@@ -902,18 +902,8 @@
                 // Show modal
                 modal.style.display = 'flex';
 
-                // Handle ban type change
-                banType.addEventListener('change', function() {
-                    if (this.value === 'permanent') {
-                        banDurationSection.style.display = 'none';
-                    } else {
-                        banDurationSection.style.display = 'block';
-                    }
-                });
-
                 // Handle ban confirmation
                 document.getElementById('banConfirmBtn').onclick = async function() {
-                    const selectedBanType = banType.value;
                     const selectedDuration = banDuration.value;
                     const reason = banReason.value.trim();
 
@@ -922,8 +912,11 @@
                         return;
                     }
 
+                    const isPermanent = selectedDuration === 'permanent';
+                    const durationText = isPermanent ? 'Permanent' : getDurationText(selectedDuration);
+
                     const confirmed = await customConfirm(
-                        `Are you sure you want to ban ${userName}?\n\nType: ${selectedBanType === 'timed' ? 'Temporary' : 'Permanent'}\n${selectedBanType === 'timed' ? `Duration: ${getDurationText(selectedDuration)}` : ''}\nReason: ${reason}`,
+                        `Are you sure you want to ban ${userName}?\n\nDuration: ${durationText}\nReason: ${reason}`,
                         'Confirm Ban'
                     );
                     if (!confirmed) {
@@ -936,9 +929,9 @@
                             headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify({
                                 userId,
-                                banType: selectedBanType,
+                                banType: isPermanent ? 'permanent' : 'timed',
                                 banReason: reason,
-                                banDuration: selectedBanType === 'timed' ? parseInt(selectedDuration) : null
+                                banDuration: isPermanent ? null : parseInt(selectedDuration)
                             })
                         });
 
@@ -969,7 +962,11 @@
                     '72': '3 Days',
                     '168': '1 Week',
                     '336': '2 Weeks',
-                    '720': '1 Month'
+                    '720': '1 Month',
+                    '2160': '3 Months',
+                    '4320': '6 Months',
+                    '8760': '1 Year',
+                    'permanent': 'Permanent'
                 };
                 return durationMap[hours] || `${hours} hours`;
             }

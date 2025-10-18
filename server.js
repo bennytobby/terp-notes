@@ -340,8 +340,97 @@ async function isCacheStale(cacheData, maxAgeHours = 168) { // 1 week default
     const now = new Date();
     const ageHours = (now - cacheTime) / (1000 * 60 * 60);
 
+
     return ageHours > maxAgeHours;
 }
+
+/* UMD.io Flexible Search API - Must be before session validation middleware */
+app.get('/api/umd/search', async (req, res) => {
+    try {
+        const { professor, course, semester, year } = req.query;
+
+        // Get cached data
+        const cachedProfessors = await getCachedData('professors-cache.json');
+        const cachedCourses = await getCachedData('courses-cache.json');
+
+        if (!cachedProfessors || !cachedCourses ||
+            (await isCacheStale(cachedProfessors, 168)) ||
+            (await isCacheStale(cachedCourses, 168))) {
+            return res.status(503).json({ error: 'Cache unavailable, please try again later' });
+        }
+
+        let results = {
+            professors: [],
+            courses: [],
+            semesters: [],
+            years: []
+        };
+
+        // Filter professors based on criteria
+        if (professor) {
+            results.professors = cachedProfessors.professors.filter(prof =>
+                prof.name.toLowerCase().includes(professor.toLowerCase())
+            );
+        } else {
+            // If no professor filter, return all professors
+            results.professors = cachedProfessors.professors;
+        }
+
+        // Filter courses based on criteria
+        if (course) {
+            results.courses = cachedCourses.courses.filter(c =>
+                c.course_id.toLowerCase().includes(course.toLowerCase()) ||
+                (c.name && c.name.toLowerCase().includes(course.toLowerCase()))
+            );
+        } else {
+            // If no course filter, return all courses
+            results.courses = cachedCourses.courses;
+        }
+
+        // If we have a specific course, get its professors
+        if (course && !professor) {
+            const courseId = course.toUpperCase();
+            results.professors = cachedProfessors.professors.filter(prof =>
+                prof.semesters.some(sem => sem.course_id === courseId)
+            );
+        }
+
+        // If we have a specific professor, get their courses
+        if (professor && !course) {
+            const prof = cachedProfessors.professors.find(p =>
+                p.name.toLowerCase().includes(professor.toLowerCase())
+            );
+            if (prof) {
+                results.courses = prof.semesters.map(sem => ({
+                    course_id: sem.course_id,
+                    semester: sem.semester,
+                    year: sem.year
+                }));
+            }
+        }
+
+        // Get available semesters and years from filtered data
+        const allSemesters = new Set();
+        const allYears = new Set();
+
+        if (results.professors.length > 0) {
+            results.professors.forEach(prof => {
+                prof.semesters.forEach(sem => {
+                    allSemesters.add(sem.semester);
+                    allYears.add(sem.year);
+                });
+            });
+        }
+
+        results.semesters = Array.from(allSemesters).sort();
+        results.years = Array.from(allYears).sort((a, b) => b - a); // Most recent first
+
+        res.json(results);
+    } catch (error) {
+        console.error('[FLEXIBLE SEARCH API] Error:', error);
+        res.status(500).json({ error: 'Failed to perform flexible search' });
+    }
+});
 
 /* UMD.io Professors API - Must be before session validation middleware */
 app.get('/api/umd/professors', async (req, res) => {
@@ -356,7 +445,7 @@ app.get('/api/umd/professors', async (req, res) => {
             // Try to use cached professors first
             const cachedProfessors = await getCachedData('professors-cache.json');
 
-            if (cachedProfessors && !isCacheStale(cachedProfessors, 168)) { // 1 week cache
+            if (cachedProfessors && !(await isCacheStale(cachedProfessors, 168))) { // 1 week cache
                 console.log('👨‍🏫 Using cached professors data');
 
                 // Filter professors who taught the specific course
@@ -780,7 +869,7 @@ function sanitizeForHeader(filename) {
 
 // Session validation middleware
 app.use(async (req, res, next) => {
-    const publicRoutes = ['/', '/login', '/register', '/loginSubmit', '/registerSubmit', '/forgot-password', '/resend-verification', '/privacy', '/terms', '/contact', '/contact/submit', '/api/umd/professors', '/api/umd/courses', '/api/umd/professor-courses'];
+    const publicRoutes = ['/', '/login', '/register', '/loginSubmit', '/registerSubmit', '/forgot-password', '/resend-verification', '/privacy', '/terms', '/contact', '/contact/submit', '/api/umd/professors', '/api/umd/courses', '/api/umd/professor-courses', '/api/professor-cache', '/api/course-cache', '/api/semester-year-cache', '/api/optimized-cache'];
     const publicRoutesRegex = /^\/(verify|reset-password)\/.+/; // Match /verify/:token and /reset-password/:token
 
     const isPublicRoute = publicRoutes.includes(req.path) || publicRoutesRegex.test(req.path);
@@ -1575,6 +1664,31 @@ app.get('/contact', function (req, res) {
 });
 
 // Contact Form Submission
+
+// Optimized cache endpoint
+app.get('/api/optimized-cache', async (req, res) => {
+    try {
+        const fs = require('fs').promises;
+        const cachePath = path.join(__dirname, 'data', 'optimized-cache.json');
+        const cacheData = await fs.readFile(cachePath, 'utf8');
+        const cache = JSON.parse(cacheData);
+
+        // Check if cache is stale (7 days)
+        const cacheAge = Date.now() - new Date(cache.metadata.generated).getTime();
+        const isStale = cacheAge > (7 * 24 * 60 * 60 * 1000);
+
+        if (isStale) {
+            console.log('⚠️ Optimized cache is stale, consider updating');
+        }
+
+        console.log('✅ Serving optimized cache successfully');
+        res.json(cache);
+    } catch (error) {
+        console.error('❌ Error serving optimized cache:', error);
+        res.status(500).json({ error: 'Failed to load optimized cache' });
+    }
+});
+
 // API: Get UMD courses for autocomplete
 app.get('/api/umd/courses', async (req, res) => {
     try {
@@ -1583,7 +1697,7 @@ app.get('/api/umd/courses', async (req, res) => {
         // Try to use cached courses first
         const cachedCourses = await getCachedData('courses-cache.json');
 
-        if (cachedCourses && !isCacheStale(cachedCourses, 168)) { // 1 week cache
+        if (cachedCourses && !(await isCacheStale(cachedCourses, 168))) { // 1 week cache
             console.log('📚 Using cached courses data');
 
             if (q && q.length >= 2) {
@@ -4138,6 +4252,20 @@ app.get('/admin', async (req, res) => {
             .sort({ createdAt: -1 })
             .toArray();
 
+        // Helper function to convert ban duration to readable text
+        function getBanDurationText(duration) {
+            if (!duration) return 'Permanent';
+            if (duration === 24) return '1 Day';
+            if (duration === 72) return '3 Days';
+            if (duration === 168) return '1 Week';
+            if (duration === 336) return '2 Weeks';
+            if (duration === 720) return '1 Month';
+            if (duration === 2160) return '3 Months';
+            if (duration === 4320) return '6 Months';
+            if (duration === 8760) return '1 Year';
+            return `${duration} hours`;
+        }
+
         // Enhanced user analytics
         const usersWithAnalytics = await Promise.all(users.map(async (user) => {
             // Count files uploaded by this user
@@ -4169,6 +4297,11 @@ app.get('/admin', async (req, res) => {
             // Count actual bans (exclude unbans and auto-unbans)
             const banHistoryCount = user.banStatus?.banHistory?.filter(entry => entry.action === 'banned')?.length || 0;
 
+            // Get last ban details
+            const lastBanEntry = user.banStatus?.banHistory?.filter(entry => entry.action === 'banned')?.slice(-1)[0];
+            const lastBanDate = lastBanEntry?.timestamp || null;
+            const lastBanDuration = lastBanEntry?.duration || null;
+
             // Get user's latest activity (most recent file upload)
             const latestUpload = await client
                 .db(fileCollection.db)
@@ -4194,7 +4327,10 @@ app.get('/admin', async (req, res) => {
                     isCurrentlyBanned: user.banStatus?.isBanned || false,
                     banType: user.banStatus?.banType || null,
                     banExpiry: user.banStatus?.banExpiry || null,
-                    lastBanReason: user.banStatus?.banHistory?.filter(entry => entry.action === 'banned')?.slice(-1)[0]?.reason || null
+                    lastBanReason: user.banStatus?.banHistory?.filter(entry => entry.action === 'banned')?.slice(-1)[0]?.reason || null,
+                    lastBanDate: lastBanDate,
+                    lastBanDuration: lastBanDuration,
+                    lastBanDurationText: lastBanDuration ? getBanDurationText(lastBanDuration) : null
                 }
             };
         }));
@@ -4624,7 +4760,8 @@ app.post('/api/ban-user', async (req, res) => {
                             reason: banReason,
                             bannedBy: req.session.user.userid,
                             banType: banType,
-                            banExpiry: banExpiry
+                            banExpiry: banExpiry,
+                            duration: banType === 'timed' ? parseInt(banDuration) : null
                         }
                     }
                 }
@@ -4824,6 +4961,76 @@ app.use((error, req, res, next) => {
     next(error);
 });
 
+// Multiple cache endpoints for efficient dropdown population
+app.get('/api/professor-cache', async (req, res) => {
+    try {
+        const fs = require('fs').promises;
+        const cachePath = path.join(__dirname, 'data', 'professor-cache.json');
+        const cacheData = await fs.readFile(cachePath, 'utf8');
+        const cache = JSON.parse(cacheData);
+
+        // Check if cache is stale (7 days)
+        const cacheAge = Date.now() - new Date(cache.metadata.generated).getTime();
+        const isStale = cacheAge > (7 * 24 * 60 * 60 * 1000);
+
+        if (isStale) {
+            console.log('⚠️ Professor cache is stale, consider updating');
+        }
+
+        console.log('✅ Serving professor cache successfully');
+        res.json(cache);
+    } catch (error) {
+        console.error('❌ Error serving professor cache:', error);
+        res.status(500).json({ error: 'Failed to load professor cache' });
+    }
+});
+
+app.get('/api/course-cache', async (req, res) => {
+    try {
+        const fs = require('fs').promises;
+        const cachePath = path.join(__dirname, 'data', 'course-cache.json');
+        const cacheData = await fs.readFile(cachePath, 'utf8');
+        const cache = JSON.parse(cacheData);
+
+        // Check if cache is stale (7 days)
+        const cacheAge = Date.now() - new Date(cache.metadata.generated).getTime();
+        const isStale = cacheAge > (7 * 24 * 60 * 60 * 1000);
+
+        if (isStale) {
+            console.log('⚠️ Course cache is stale, consider updating');
+        }
+
+        console.log('✅ Serving course cache successfully');
+        res.json(cache);
+    } catch (error) {
+        console.error('❌ Error serving course cache:', error);
+        res.status(500).json({ error: 'Failed to load course cache' });
+    }
+});
+
+app.get('/api/semester-year-cache', async (req, res) => {
+    try {
+        const fs = require('fs').promises;
+        const cachePath = path.join(__dirname, 'data', 'semester-year-cache.json');
+        const cacheData = await fs.readFile(cachePath, 'utf8');
+        const cache = JSON.parse(cacheData);
+
+        // Check if cache is stale (7 days)
+        const cacheAge = Date.now() - new Date(cache.metadata.generated).getTime();
+        const isStale = cacheAge > (7 * 24 * 60 * 60 * 1000);
+
+        if (isStale) {
+            console.log('⚠️ Semester-year cache is stale, consider updating');
+        }
+
+        console.log('✅ Serving semester-year cache successfully');
+        res.json(cache);
+    } catch (error) {
+        console.error('❌ Error serving semester-year cache:', error);
+        res.status(500).json({ error: 'Failed to load semester-year cache' });
+    }
+});
+
 // 404 Handler - Must be last route
 app.use((req, res) => {
     res.status(404).render('404', {
@@ -4839,7 +5046,6 @@ app.get('/health', (req, res) => {
         service: 'Terp Notes'
     });
 });
-
 
 
 // Export the app for testing
