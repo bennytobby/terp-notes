@@ -113,7 +113,7 @@ async function cacheProfessors() {
         const cutoffYear = currentYear - config.years;
 
         // Process courses in batches
-        const batchSize = 20; // Smaller batches to avoid overwhelming API
+        const batchSize = 50; // Larger batches for efficiency
         let processedCourses = 0;
 
         for (let i = 0; i < courses.courses.length; i += batchSize) {
@@ -183,7 +183,7 @@ async function cacheProfessors() {
             processedCourses += batch.length;
 
             // Small delay between batches
-            await new Promise(resolve => setTimeout(resolve, 200));
+            await new Promise(resolve => setTimeout(resolve, 100));
         }
 
         const professors = Array.from(professorMap.values());

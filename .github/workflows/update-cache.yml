@@ -59,13 +59,9 @@ jobs:
     - name: Run cache update
       run: |
         echo "🔄 Updating UMD.io data cache..."
-        if [ "${{ steps.check-professors.outputs.extract_professors }}" = "true" ]; then
-          echo "📊 Extracting professors from course sections (reason: ${{ steps.check-professors.outputs.reason }})..."
-          node scripts/cache-umd-data.js --extract-professors
-        else
-          echo "📚 Updating courses only (reason: ${{ steps.check-professors.outputs.reason }})..."
-          node scripts/cache-umd-data.js
-        fi
+        echo "📊 Extracting professors from all courses (this will take 10-15 minutes)..."
+        echo "🚀 Processing 5,116 courses to extract complete professor database..."
+        node scripts/cache-umd-data.js --extract-professors
       continue-on-error: true
 
     - name: Commit updated cache
