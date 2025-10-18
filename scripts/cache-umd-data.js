@@ -85,9 +85,11 @@ async function cacheCourses() {
             }))
         };
 
+        // Write compressed cache file
+        const compressedData = JSON.stringify(cacheData);
         await fs.writeFile(
             path.join(__dirname, '..', 'data', 'courses-cache.json'),
-            JSON.stringify(cacheData, null, 2)
+            compressedData
         );
 
         console.log(`✅ Cached ${courses.length} courses`);
@@ -204,9 +206,11 @@ async function cacheProfessors() {
             cutoffYear: cutoffYear
         };
 
+        // Write compressed cache file
+        const compressedData = JSON.stringify(cacheData);
         await fs.writeFile(
             path.join(__dirname, '..', 'data', 'professors-cache.json'),
-            JSON.stringify(cacheData, null, 2)
+            compressedData
         );
 
         console.log(`✅ Extracted ${professors.length} professors from ${processedCourses} courses`);
