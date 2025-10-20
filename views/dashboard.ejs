@@ -32,6 +32,52 @@
 
         return `hsl(${hue}, ${saturation}%, ${lightness}%)`;
     }
+
+    // Server-side function to generate consistent color for major
+    function getMajorColor(major) {
+        if (!major) return '#6B7280'; // Default gray for empty majors
+
+        // Simple hash function to convert string to number
+        let hash = 0;
+        for (let i = 0; i < major.length; i++) {
+            const char = major.charCodeAt(i);
+            hash = ((hash << 5) - hash) + char;
+            hash = hash & hash; // Convert to 32-bit integer
+        }
+
+        // Use absolute value and modulo to get a positive number
+        hash = Math.abs(hash);
+
+        // Generate HSL color with consistent hue, subtle but distinct saturation and lightness
+        const hue = hash % 360; // 0-360 degrees for hue
+        const saturation = 30 + (hash % 40); // 30-69% saturation for distinct but not overwhelming colors
+        const lightness = 70 + (hash % 20); // 70-89% lightness for light, readable colors
+
+        return `hsl(${hue}, ${saturation}%, ${lightness}%)`;
+    }
+
+    // Server-side function to generate consistent color for course code
+    function getCourseColor(courseCode) {
+        if (!courseCode) return '#6B7280'; // Default gray for empty course codes
+
+        // Simple hash function to convert string to number
+        let hash = 0;
+        for (let i = 0; i < courseCode.length; i++) {
+            const char = courseCode.charCodeAt(i);
+            hash = ((hash << 5) - hash) + char;
+            hash = hash & hash; // Convert to 32-bit integer
+        }
+
+        // Use absolute value and modulo to get a positive number
+        hash = Math.abs(hash);
+
+        // Generate HSL color with consistent hue, subtle but distinct saturation and lightness
+        const hue = hash % 360; // 0-360 degrees for hue
+        const saturation = 35 + (hash % 35); // 35-69% saturation for distinct but not overwhelming colors
+        const lightness = 65 + (hash % 25); // 65-89% lightness for light, readable colors
+
+        return `hsl(${hue}, ${saturation}%, ${lightness}%)`;
+    }
     %>
     <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
     <link rel="shortcut icon" href="/favicon.ico" />
@@ -209,6 +255,52 @@
         }
 
         .user-color-default {
+            background: #F3F4F6;
+            color: #6B7280;
+        }
+
+        /* Major Color Tags */
+        .major-color-tag {
+            display: inline-block;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 500;
+            color: #1F2937;
+            border: 1px solid rgba(0, 0, 0, 0.1);
+            transition: all 0.2s ease;
+            cursor: help;
+        }
+
+        .major-color-tag:hover {
+            transform: scale(1.02);
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        .major-color-default {
+            background: #F3F4F6;
+            color: #6B7280;
+        }
+
+        /* Course Color Tags */
+        .course-color-tag {
+            display: inline-block;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 500;
+            color: #1F2937;
+            border: 1px solid rgba(0, 0, 0, 0.1);
+            transition: all 0.2s ease;
+            cursor: help;
+        }
+
+        .course-color-tag:hover {
+            transform: scale(1.02);
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        .course-color-default {
             background: #F3F4F6;
             color: #6B7280;
         }
@@ -656,15 +748,14 @@
                                                         <% } %>
                                                             <% if (file.major) { %>
                                                                 <div class="file-meta-item">
-                                                                    <strong>Major:</strong> <span class="major-badge">
+                                                                    <strong>Major:</strong> <span class="major-color-tag" style="background-color: <%= getMajorColor(file.major) %>" title="Files from <%= file.major %> department">
                                                                         <%= file.major %>
                                                                     </span>
                                                                 </div>
                                                                 <% } %>
                                                                     <% if (file.classCode) { %>
                                                                         <div class="file-meta-item">
-                                                                            <strong>Class:</strong> <span
-                                                                                class="class-code-badge">
+                                                                            <strong>Class:</strong> <span class="course-color-tag" style="background-color: <%= getCourseColor(file.classCode) %>" title="Files for course <%= file.classCode %>">
                                                                                 <%= file.classCode %>
                                                                             </span>
                                                                         </div>
@@ -689,7 +780,7 @@
                                                                                                 <%
                                                                                                     const userColor = getUserColor(file.uploadedBy);
                                                                                                 %>
-                                                                                                <span class="user-color-tag" style="background-color: <%= userColor %>">
+                                                                                                <span class="user-color-tag" style="background-color: <%= userColor %>" title="Files uploaded by <%= file.uploadedBy %>">
                                                                                                     <%= file.uploadedBy %>
                                                                                                 </span>
                                                                                             </div>
@@ -1985,6 +2076,52 @@
                     return `user-color-${username.toLowerCase().replace(/[^a-z0-9]/g, '-')}`;
                 }
 
+                // Generate consistent color for major based on major name
+                function getMajorColor(major) {
+                    if (!major) return '#6B7280'; // Default gray for empty majors
+
+                    // Simple hash function to convert string to number
+                    let hash = 0;
+                    for (let i = 0; i < major.length; i++) {
+                        const char = major.charCodeAt(i);
+                        hash = ((hash << 5) - hash) + char;
+                        hash = hash & hash; // Convert to 32-bit integer
+                    }
+
+                    // Use absolute value and modulo to get a positive number
+                    hash = Math.abs(hash);
+
+                    // Generate HSL color with consistent hue, subtle but distinct saturation and lightness
+                    const hue = hash % 360; // 0-360 degrees for hue
+                    const saturation = 30 + (hash % 40); // 30-69% saturation for distinct but not overwhelming colors
+                    const lightness = 70 + (hash % 20); // 70-89% lightness for light, readable colors
+
+                    return `hsl(${hue}, ${saturation}%, ${lightness}%)`;
+                }
+
+                // Generate consistent color for course code based on course code
+                function getCourseColor(courseCode) {
+                    if (!courseCode) return '#6B7280'; // Default gray for empty course codes
+
+                    // Simple hash function to convert string to number
+                    let hash = 0;
+                    for (let i = 0; i < courseCode.length; i++) {
+                        const char = courseCode.charCodeAt(i);
+                        hash = ((hash << 5) - hash) + char;
+                        hash = hash & hash; // Convert to 32-bit integer
+                    }
+
+                    // Use absolute value and modulo to get a positive number
+                    hash = Math.abs(hash);
+
+                    // Generate HSL color with consistent hue, subtle but distinct saturation and lightness
+                    const hue = hash % 360; // 0-360 degrees for hue
+                    const saturation = 35 + (hash % 35); // 35-69% saturation for distinct but not overwhelming colors
+                    const lightness = 65 + (hash % 25); // 65-89% lightness for light, readable colors
+
+                    return `hsl(${hue}, ${saturation}%, ${lightness}%)`;
+                }
+
                 // Check if file is "new" based on configurable threshold
                 function isFileNew(uploadDate) {
                     const config = dashboardConfig?.statusBadges?.new || { thresholdDays: 7 };
@@ -2276,8 +2413,8 @@
                                     </div>
                                     <div class="file-list-tags" style="display: flex; flex-wrap: wrap; gap: 0.3rem; margin-top: 0.3rem;">
                                         ${generateStatusBadges(file)}
-                                        ${major ? `<span style="background: #E0E7FF; color: #4338CA; padding: 2px 6px; border-radius: 4px; font-size: 0.7rem; font-weight: 600;"><img src="/images/icons/folder.png" alt="Folder" style="width: 16px; height: 16px; vertical-align: middle; margin-right: 4px;" /> ${major}</span>` : ''}
-                                        ${classCode ? `<span style="background: #FEF2F2; color: #DC2626; padding: 2px 6px; border-radius: 4px; font-size: 0.7rem; font-weight: 600;"><img src="/images/icons/briefcase.png" alt="Course" style="width: 16px; height: 16px; vertical-align: middle; margin-right: 4px;" /> ${classCode}</span>` : ''}
+                                        ${major ? `<span class="major-color-tag" style="background-color: ${getMajorColor(major)}" title="Files from ${major} department"><img src="/images/icons/folder.png" alt="Folder" style="width: 16px; height: 16px; vertical-align: middle; margin-right: 4px;" /> ${major}</span>` : ''}
+                                        ${classCode ? `<span class="course-color-tag" style="background-color: ${getCourseColor(classCode)}" title="Files for course ${classCode}"><img src="/images/icons/briefcase.png" alt="Course" style="width: 16px; height: 16px; vertical-align: middle; margin-right: 4px;" /> ${classCode}</span>` : ''}
                                     </div>
                                 </div>
                                 <div class="file-list-downloads" title="${downloadCount} downloads">${downloadCount}</div>
@@ -2342,7 +2479,7 @@
                         ${file.classCode ? `<div class="file-meta-item"><strong>Class:</strong> <span class="class-code-badge">${escapeHtml(file.classCode)}</span></div>` : ''}
                         ${file.professor ? `<div class="file-meta-item"><strong>Professor:</strong> ${escapeHtml(file.professor)}</div>` : ''}
                         ${file.semester && file.year ? `<div class="file-meta-item"><strong>Term:</strong> ${file.semester} ${file.year}</div>` : ''}
-                        <div class="file-meta-item"><strong>Uploaded by:</strong> <span class="user-color-tag" style="background-color: ${getUserColor(file.uploadedBy)}">${escapeHtml(file.uploadedBy)}</span></div>
+                        <div class="file-meta-item"><strong>Uploaded by:</strong> <span class="user-color-tag" style="background-color: ${getUserColor(file.uploadedBy)}" title="Files uploaded by ${escapeHtml(file.uploadedBy)}">${escapeHtml(file.uploadedBy)}</span></div>
                         ${file.description ? `<div class="file-meta-item"><strong>Description:</strong> ${escapeHtml(file.description)}</div>` : ''}
                         <div class="file-meta-item"><strong>Size:</strong> ${getFileSizeTag(file.size || 0)}</div>
                     </div>
@@ -3280,7 +3417,7 @@
                         ${file.classCode ? `<div class="file-meta-item"><strong>Class:</strong> <span class="class-code-badge">${escapeHtml(file.classCode)}</span></div>` : ''}
                         ${file.professor ? `<div class="file-meta-item"><strong>Professor:</strong> ${escapeHtml(file.professor)}</div>` : ''}
                         ${file.semester && file.year ? `<div class="file-meta-item"><strong>Term:</strong> ${file.semester} ${file.year}</div>` : ''}
-                        <div class="file-meta-item"><strong>Uploaded by:</strong> <span class="user-color-tag" style="background-color: ${getUserColor(file.uploadedBy)}">${escapeHtml(file.uploadedBy)}</span></div>
+                        <div class="file-meta-item"><strong>Uploaded by:</strong> <span class="user-color-tag" style="background-color: ${getUserColor(file.uploadedBy)}" title="Files uploaded by ${escapeHtml(file.uploadedBy)}">${escapeHtml(file.uploadedBy)}</span></div>
                         ${file.description ? `<div class="file-meta-item"><strong>Description:</strong> ${escapeHtml(file.description)}</div>` : ''}
                         <div class="file-meta-item"><strong>Size:</strong> ${getFileSizeTag(file.size || 0)}</div>
                     </div>
@@ -6792,7 +6929,7 @@
                                 ${file.classCode ? `<div class="file-meta-item"><strong>Class:</strong> <span class="class-code-badge">${escapeHtml(file.classCode)}</span></div>` : ''}
                                 ${file.professor ? `<div class="file-meta-item"><strong>Professor:</strong> ${escapeHtml(file.professor)}</div>` : ''}
                                 ${file.semester && file.year ? `<div class="file-meta-item"><strong>Term:</strong> ${file.semester} ${file.year}</div>` : ''}
-                                <div class="file-meta-item"><strong>Uploaded by:</strong> <span class="user-color-tag" style="background-color: ${getUserColor(file.uploadedBy)}">${escapeHtml(file.uploadedBy)}</span></div>
+                                <div class="file-meta-item"><strong>Uploaded by:</strong> <span class="user-color-tag" style="background-color: ${getUserColor(file.uploadedBy)}" title="Files uploaded by ${escapeHtml(file.uploadedBy)}">${escapeHtml(file.uploadedBy)}</span></div>
                                 ${file.description ? `<div class="file-meta-item"><strong>Description:</strong> ${escapeHtml(file.description)}</div>` : ''}
                                 <div class="file-meta-item"><strong>Size:</strong> ${getFileSizeTag(file.size || 0)}</div>
                             </div>
@@ -6880,12 +7017,12 @@
                                 </div>
 
                                 <div style="display: flex; flex-wrap: wrap; gap: 0.5rem; font-size: 0.875rem; color: #6B7280; margin-bottom: 0.5rem;">
-                                    ${file.major ? `<span style="background: #E0E7FF; color: #4338CA; padding: 2px 6px; border-radius: 4px; font-size: 0.75rem;">${escapeHtml(file.major)}</span>` : ''}
-                                    ${file.classCode ? `<span style="background: #FEE2E2; color: #DC2626; padding: 2px 6px; border-radius: 4px; font-size: 0.75rem;">${escapeHtml(file.classCode)}</span>` : ''}
+                                    ${file.major ? `<span class="major-color-tag" style="background-color: ${getMajorColor(file.major)}" title="Files from ${escapeHtml(file.major)} department">${escapeHtml(file.major)}</span>` : ''}
+                                    ${file.classCode ? `<span class="course-color-tag" style="background-color: ${getCourseColor(file.classCode)}" title="Files for course ${escapeHtml(file.classCode)}">${escapeHtml(file.classCode)}</span>` : ''}
                                     ${file.professor ? `<span>Prof: ${escapeHtml(file.professor)}</span>` : ''}
                                     ${file.semester && file.year ? `<span>${file.semester} ${file.year}</span>` : ''}
                                     ${getFileSizeTag(file.size || 0)}
-                                    ${file.uploadedBy ? `<span class="user-color-tag" style="background-color: ${getUserColor(file.uploadedBy)}">👤 ${escapeHtml(file.uploadedBy)}</span>` : ''}
+                                    ${file.uploadedBy ? `<span class="user-color-tag" style="background-color: ${getUserColor(file.uploadedBy)}" title="Files uploaded by ${escapeHtml(file.uploadedBy)}">👤 ${escapeHtml(file.uploadedBy)}</span>` : ''}
                                     <span style="background: #FEF3C7; color: #D97706; padding: 2px 6px; border-radius: 4px; font-size: 0.75rem;">📥 ${file.downloadCount || 0} downloads</span>
                                 </div>
 
