@@ -8,6 +8,31 @@
     <!-- Favicon and App Icons -->
     <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
     <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
+
+    <%
+    // Server-side function to generate consistent color for user
+    function getUserColor(username) {
+        if (!username) return '#6B7280'; // Default gray for empty usernames
+
+        // Simple hash function to convert string to number
+        let hash = 0;
+        for (let i = 0; i < username.length; i++) {
+            const char = username.charCodeAt(i);
+            hash = ((hash << 5) - hash) + char;
+            hash = hash & hash; // Convert to 32-bit integer
+        }
+
+        // Use absolute value and modulo to get a positive number
+        hash = Math.abs(hash);
+
+        // Generate HSL color with consistent hue, subtle but distinct saturation and lightness
+        const hue = hash % 360; // 0-360 degrees for hue
+        const saturation = 25 + (hash % 35); // 25-59% saturation for more distinct but still subtle colors
+        const lightness = 75 + (hash % 20); // 75-94% lightness for light but distinguishable colors
+
+        return `hsl(${hue}, ${saturation}%, ${lightness}%)`;
+    }
+    %>
     <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
     <link rel="shortcut icon" href="/favicon.ico" />
     <meta name="msapplication-TileColor" content="#E21833" />
@@ -163,6 +188,29 @@
         .file-size-huge {
             background: #FEE2E2;
             color: #991B1B;
+        }
+
+        /* User Color Tags - Subtle Style */
+        .user-color-tag {
+            display: inline-block;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 500;
+            color: #1F2937;
+            border: 1px solid rgba(0, 0, 0, 0.15);
+            transition: all 0.2s ease;
+            cursor: help;
+        }
+
+        .user-color-tag:hover {
+            transform: scale(1.02);
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        .user-color-default {
+            background: #F3F4F6;
+            color: #6B7280;
         }
     </style>
 </head>
@@ -638,7 +686,12 @@
                                                                                             <div class="file-meta-item">
                                                                                                 <strong>Uploaded
                                                                                                     by:</strong>
-                                                                                                <%= file.uploadedBy %>
+                                                                                                <%
+                                                                                                    const userColor = getUserColor(file.uploadedBy);
+                                                                                                %>
+                                                                                                <span class="user-color-tag" style="background-color: <%= userColor %>">
+                                                                                                    <%= file.uploadedBy %>
+                                                                                                </span>
                                                                                             </div>
                                                                                             <div class="file-meta-item">
                                                                                                 <strong>Size:</strong>
@@ -1903,6 +1956,35 @@
                     return `<span class="file-size-tag ${sizeClass}" title="${tooltip}">${formatFileSize(sizeInBytes)}</span>`;
                 }
 
+                // Generate consistent color for user based on username
+                function getUserColor(username) {
+                    if (!username) return '#6B7280'; // Default gray for empty usernames
+
+                    // Simple hash function to convert string to number
+                    let hash = 0;
+                    for (let i = 0; i < username.length; i++) {
+                        const char = username.charCodeAt(i);
+                        hash = ((hash << 5) - hash) + char;
+                        hash = hash & hash; // Convert to 32-bit integer
+                    }
+
+                    // Use absolute value and modulo to get a positive number
+                    hash = Math.abs(hash);
+
+                    // Generate HSL color with consistent hue, subtle but distinct saturation and lightness
+                    const hue = hash % 360; // 0-360 degrees for hue
+                    const saturation = 25 + (hash % 35); // 25-59% saturation for more distinct but still subtle colors
+                    const lightness = 75 + (hash % 20); // 75-94% lightness for light but distinguishable colors
+
+                    return `hsl(${hue}, ${saturation}%, ${lightness}%)`;
+                }
+
+                // Get user color class name for CSS
+                function getUserColorClass(username) {
+                    if (!username) return 'user-color-default';
+                    return `user-color-${username.toLowerCase().replace(/[^a-z0-9]/g, '-')}`;
+                }
+
                 // Check if file is "new" based on configurable threshold
                 function isFileNew(uploadDate) {
                     const config = dashboardConfig?.statusBadges?.new || { thresholdDays: 7 };
@@ -2260,7 +2342,7 @@
                         ${file.classCode ? `<div class="file-meta-item"><strong>Class:</strong> <span class="class-code-badge">${escapeHtml(file.classCode)}</span></div>` : ''}
                         ${file.professor ? `<div class="file-meta-item"><strong>Professor:</strong> ${escapeHtml(file.professor)}</div>` : ''}
                         ${file.semester && file.year ? `<div class="file-meta-item"><strong>Term:</strong> ${file.semester} ${file.year}</div>` : ''}
-                        <div class="file-meta-item"><strong>Uploaded by:</strong> ${escapeHtml(file.uploadedBy)}</div>
+                        <div class="file-meta-item"><strong>Uploaded by:</strong> <span class="user-color-tag" style="background-color: ${getUserColor(file.uploadedBy)}">${escapeHtml(file.uploadedBy)}</span></div>
                         ${file.description ? `<div class="file-meta-item"><strong>Description:</strong> ${escapeHtml(file.description)}</div>` : ''}
                         <div class="file-meta-item"><strong>Size:</strong> ${getFileSizeTag(file.size || 0)}</div>
                     </div>
@@ -3198,7 +3280,7 @@
                         ${file.classCode ? `<div class="file-meta-item"><strong>Class:</strong> <span class="class-code-badge">${escapeHtml(file.classCode)}</span></div>` : ''}
                         ${file.professor ? `<div class="file-meta-item"><strong>Professor:</strong> ${escapeHtml(file.professor)}</div>` : ''}
                         ${file.semester && file.year ? `<div class="file-meta-item"><strong>Term:</strong> ${file.semester} ${file.year}</div>` : ''}
-                        <div class="file-meta-item"><strong>Uploaded by:</strong> ${escapeHtml(file.uploadedBy)}</div>
+                        <div class="file-meta-item"><strong>Uploaded by:</strong> <span class="user-color-tag" style="background-color: ${getUserColor(file.uploadedBy)}">${escapeHtml(file.uploadedBy)}</span></div>
                         ${file.description ? `<div class="file-meta-item"><strong>Description:</strong> ${escapeHtml(file.description)}</div>` : ''}
                         <div class="file-meta-item"><strong>Size:</strong> ${getFileSizeTag(file.size || 0)}</div>
                     </div>
@@ -6710,7 +6792,7 @@
                                 ${file.classCode ? `<div class="file-meta-item"><strong>Class:</strong> <span class="class-code-badge">${escapeHtml(file.classCode)}</span></div>` : ''}
                                 ${file.professor ? `<div class="file-meta-item"><strong>Professor:</strong> ${escapeHtml(file.professor)}</div>` : ''}
                                 ${file.semester && file.year ? `<div class="file-meta-item"><strong>Term:</strong> ${file.semester} ${file.year}</div>` : ''}
-                                <div class="file-meta-item"><strong>Uploaded by:</strong> ${escapeHtml(file.uploadedBy)}</div>
+                                <div class="file-meta-item"><strong>Uploaded by:</strong> <span class="user-color-tag" style="background-color: ${getUserColor(file.uploadedBy)}">${escapeHtml(file.uploadedBy)}</span></div>
                                 ${file.description ? `<div class="file-meta-item"><strong>Description:</strong> ${escapeHtml(file.description)}</div>` : ''}
                                 <div class="file-meta-item"><strong>Size:</strong> ${getFileSizeTag(file.size || 0)}</div>
                             </div>
@@ -6803,7 +6885,7 @@
                                     ${file.professor ? `<span>Prof: ${escapeHtml(file.professor)}</span>` : ''}
                                     ${file.semester && file.year ? `<span>${file.semester} ${file.year}</span>` : ''}
                                     ${getFileSizeTag(file.size || 0)}
-                                    ${file.uploadedBy ? `<span style="background: #F3E8FF; color: #7C3AED; padding: 2px 6px; border-radius: 4px; font-size: 0.75rem;">👤 ${escapeHtml(file.uploadedBy)}</span>` : ''}
+                                    ${file.uploadedBy ? `<span class="user-color-tag" style="background-color: ${getUserColor(file.uploadedBy)}">👤 ${escapeHtml(file.uploadedBy)}</span>` : ''}
                                     <span style="background: #FEF3C7; color: #D97706; padding: 2px 6px; border-radius: 4px; font-size: 0.75rem;">📥 ${file.downloadCount || 0} downloads</span>
                                 </div>
 
