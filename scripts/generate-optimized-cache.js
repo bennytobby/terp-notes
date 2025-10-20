@@ -223,6 +223,22 @@ async function generateOptimizedCache() {
             JSON.stringify(semesterYearCache, null, 2)
         );
 
+        // Create cache statistics file
+        const cacheStats = {
+            timestamp: new Date().toISOString(),
+            courses: Object.keys(optimizedCache.courses).length,
+            professors: Object.keys(optimizedCache.professors).length,
+            semesters: optimizedCache.semesters.length,
+            years: optimizedCache.years.length,
+            semesterYearCombinations: optimizedCache.semesterYearCombinations.length,
+            generated: new Date().toISOString()
+        };
+
+        await fs.writeFile(
+            path.join(__dirname, '..', 'data', 'cache-stats.json'),
+            JSON.stringify(cacheStats, null, 2)
+        );
+
         console.log('✅ Optimized cache generation completed successfully!');
         console.log(`📊 Final Statistics:`);
         console.log(`   - Courses: ${Object.keys(optimizedCache.courses).length}`);

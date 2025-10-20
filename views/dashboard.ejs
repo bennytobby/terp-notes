@@ -3260,7 +3260,7 @@
                         }
 
                         return `<option value="${courseId}" data-course-name="${courseName}">${courseId} - ${courseName}</option>`;
-                    }).join('');
+                        }).join('');
                 }
 
                 function filterEditProfessors(searchTerm = '') {
@@ -3550,12 +3550,12 @@
                         if (currentSemesterSelection && availableSemesters.has(currentSemesterSelection)) {
                             semesterSelect.value = currentSemesterSelection;
                             console.log(`✅ Restored edit semester selection: "${currentSemesterSelection}"`);
-                        } else {
+                                } else {
                             console.log(`❌ Could not restore edit semester selection: "${currentSemesterSelection}" - not in available semesters:`, Array.from(availableSemesters));
-                        }
+                                }
 
                         console.log(`📅 Filtered edit semesters for ${selectedYear}:`, Array.from(availableSemesters).sort());
-                    }
+                        }
                 }
 
                 // Initialize edit modal with new multi-cache system

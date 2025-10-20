@@ -37,9 +37,9 @@ jobs:
     - name: Check for professor extraction needed
       id: check-professors
       run: |
-        # Check if professors cache exists and is recent
-        if [ -f "data/professors-cache.json" ]; then
-          LAST_PROF_UPDATE=$(jq -r '.timestamp' data/professors-cache.json)
+        # Check if professor cache exists and is recent
+        if [ -f "data/professor-cache.json" ]; then
+          LAST_PROF_UPDATE=$(jq -r '.metadata.generated' data/professor-cache.json)
           LAST_PROF_EPOCH=$(date -d "$LAST_PROF_UPDATE" +%s)
           CURRENT_EPOCH=$(date +%s)
           DAYS_SINCE_PROF_UPDATE=$(( (CURRENT_EPOCH - LAST_PROF_EPOCH) / 86400 ))
