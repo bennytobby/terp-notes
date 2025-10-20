@@ -1,6 +1,6 @@
 {
   "metadata": {
-    "generated": "2025-10-20T04:00:15.833Z",
+    "generated": "2025-10-20T04:19:21.685Z",
     "type": "semester-year-lookup",
     "structure": "semesters and years available"
   },
@@ -11,6 +11,7 @@
     "Unknown"
   ],
   "years": [
+    2026,
     2025,
     2024,
     2023,
@@ -21,6 +22,11 @@
     2018
   ],
   "semesterYearCombinations": [
+    {
+      "semester": "Spring",
+      "year": 2026,
+      "semesterId": "202601"
+    },
     {
       "semester": "Spring",
       "year": 2025,
