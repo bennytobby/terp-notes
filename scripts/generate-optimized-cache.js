@@ -7,6 +7,9 @@ const UMD_API_BASE = 'https://api.umd.io/v1';
 const BATCH_SIZE = 50;
 const DELAY_BETWEEN_BATCHES = 1000; // 1 second
 
+// Year filtering: Only include data from current year - 4 onwards (keeps it automatically current)
+const MIN_YEAR = new Date().getFullYear() - 5;
+
 async function fetchUMDData(endpoint) {
     return new Promise((resolve, reject) => {
         const url = `${UMD_API_BASE}${endpoint}`;
@@ -60,6 +63,7 @@ async function generateOptimizedCache() {
                 generated: new Date().toISOString(),
                 type: 'optimized-multi-cache',
                 coursesCount: courses.length,
+                yearFilter: `Only years ${MIN_YEAR} and after`,
                 structure: 'professor -> courses -> semesters, course -> professors -> semesters, semester-year lookup'
             },
             professors: {},
@@ -110,6 +114,11 @@ async function generateOptimizedCache() {
                         const semesterCode = teaching.semester;
                         const year = parseInt(semesterCode.substring(0, 4));
                         const semesterNum = parseInt(semesterCode.substring(4, 6));
+
+                        // Filter to only include years from MIN_YEAR onwards
+                        if (year < MIN_YEAR) {
+                            continue;
+                        }
 
                         let semesterName;
                         if (semesterNum === 1) semesterName = 'Spring';
@@ -180,6 +189,7 @@ async function generateOptimizedCache() {
                 generated: new Date().toISOString(),
                 type: 'professor-indexed',
                 professorsCount: Object.keys(optimizedCache.professors).length,
+                yearFilter: `Only years ${MIN_YEAR} and after`,
                 structure: 'professor -> courses -> semesters'
             },
             professors: optimizedCache.professors
@@ -190,6 +200,7 @@ async function generateOptimizedCache() {
                 generated: new Date().toISOString(),
                 type: 'course-indexed',
                 coursesCount: Object.keys(optimizedCache.courses).length,
+                yearFilter: `Only years ${MIN_YEAR} and after`,
                 structure: 'course -> professors -> semesters'
             },
             courses: optimizedCache.courses
@@ -199,6 +210,7 @@ async function generateOptimizedCache() {
             metadata: {
                 generated: new Date().toISOString(),
                 type: 'semester-year-lookup',
+                yearFilter: `Only years ${MIN_YEAR} and after`,
                 structure: 'semesters and years available'
             },
             semesters: optimizedCache.semesters,
@@ -226,6 +238,7 @@ async function generateOptimizedCache() {
         // Create cache statistics file
         const cacheStats = {
             timestamp: new Date().toISOString(),
+            yearFilter: `Only years ${MIN_YEAR} and after`,
             courses: Object.keys(optimizedCache.courses).length,
             professors: Object.keys(optimizedCache.professors).length,
             semesters: optimizedCache.semesters.length,
@@ -241,6 +254,7 @@ async function generateOptimizedCache() {
 
         console.log('✅ Optimized cache generation completed successfully!');
         console.log(`📊 Final Statistics:`);
+        console.log(`   - Year Filter: ${MIN_YEAR} and after`);
         console.log(`   - Courses: ${Object.keys(optimizedCache.courses).length}`);
         console.log(`   - Professors: ${Object.keys(optimizedCache.professors).length}`);
         console.log(`   - Semesters: ${optimizedCache.semesters.length}`);
