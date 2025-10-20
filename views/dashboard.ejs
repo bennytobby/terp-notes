@@ -128,6 +128,42 @@
         .clear-filters-btn:hover {
             background: #DC2626;
         }
+
+        /* File Size Tags */
+        .file-size-tag {
+            display: inline-block;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            cursor: help;
+            transition: all 0.2s ease;
+        }
+
+        .file-size-tag:hover {
+            transform: scale(1.05);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .file-size-small {
+            background: #D1FAE5;
+            color: #065F46;
+        }
+
+        .file-size-medium {
+            background: #FEF3C7;
+            color: #92400E;
+        }
+
+        .file-size-large {
+            background: #FED7AA;
+            color: #9A3412;
+        }
+
+        .file-size-huge {
+            background: #FEE2E2;
+            color: #991B1B;
+        }
     </style>
 </head>
 
@@ -523,18 +559,32 @@
                                                                                                 </span>
                                                                                                     <%
                                                                                                         const sizeKB = file.size / 1024;
-                                                                                                        let sizeClass = 'size-normal';
+                                                                                                        const sizeMB = sizeKB / 1024;
+                                                                                                        let sizeClass = '';
+                                                                                                        let tooltip = '';
                                                                                                         let sizeLabel = '';
+
+                                                                                                        if (sizeKB < 500) {
+                                                                                                            sizeClass = 'file-size-small';
+                                                                                                            tooltip = 'Small file - Quick to download';
+                                                                                                        } else if (sizeKB < 2048) {
+                                                                                                            sizeClass = 'file-size-medium';
+                                                                                                            tooltip = 'Medium file - Normal download time';
+                                                                                                        } else if (sizeMB < 20) {
+                                                                                                            sizeClass = 'file-size-large';
+                                                                                                            tooltip = 'Large file - May take longer to download';
+                                                                                                        } else {
+                                                                                                            sizeClass = 'file-size-huge';
+                                                                                                            tooltip = 'Very large file - Consider your connection speed';
+                                                                                                        }
+
                                                                                                         if (sizeKB < 1024) {
                                                                                                             sizeLabel = sizeKB.toFixed(0) + ' KB';
                                                                                                         } else {
                                                                                                             sizeLabel = (sizeKB / 1024).toFixed(1) + ' MB';
-                                                                                                            if (sizeKB / 1024 > 10) {
-                                                                                                                sizeClass = 'size-large';
-                                                                                                            }
                                                                                                         }
                                                                                                     %>
-                                                                                                        <span class="size-badge <%= sizeClass %>">
+                                                                                                        <span class="file-size-tag <%= sizeClass %>" title="<%= tooltip %>">
                                                                                                             <%= sizeLabel %>
                                                                                                         </span>
                                                             </div>
@@ -592,9 +642,27 @@
                                                                                             </div>
                                                                                             <div class="file-meta-item">
                                                                                                 <strong>Size:</strong>
-                                                                                                <%= (file.size /
-                                                                                                    1024).toFixed(1) %>
-                                                                                                    KB
+                                                                                                <%
+                                                                                                    const fileSizeKB = file.size / 1024;
+                                                                                                    const fileSizeMB = fileSizeKB / 1024;
+                                                                                                    let fileSizeClass = '';
+                                                                                                    let fileSizeTooltip = '';
+
+                                                                                                    if (fileSizeKB < 500) {
+                                                                                                        fileSizeClass = 'file-size-small';
+                                                                                                        fileSizeTooltip = 'Small file - Quick to download';
+                                                                                                    } else if (fileSizeKB < 2048) {
+                                                                                                        fileSizeClass = 'file-size-medium';
+                                                                                                        fileSizeTooltip = 'Medium file - Normal download time';
+                                                                                                    } else if (fileSizeMB < 20) {
+                                                                                                        fileSizeClass = 'file-size-large';
+                                                                                                        fileSizeTooltip = 'Large file - May take longer to download';
+                                                                                                    } else {
+                                                                                                        fileSizeClass = 'file-size-huge';
+                                                                                                        fileSizeTooltip = 'Very large file - Consider your connection speed';
+                                                                                                    }
+                                                                                                %>
+                                                                                                <span class="file-size-tag <%= fileSizeClass %>" title="<%= fileSizeTooltip %>"><%= (file.size / 1024).toFixed(1) %> KB</span>
                                                                                             </div>
                                                                                             <% if (file.description) {
                                                                                                 %>
@@ -1810,6 +1878,31 @@
                     return `${size.toFixed(config.decimalPlaces)} ${config.units[unitIndex]}`;
                 }
 
+                // Generate file size tag with color coding and tooltip
+                function getFileSizeTag(sizeInBytes) {
+                    const sizeKB = sizeInBytes / 1024;
+                    const sizeMB = sizeKB / 1024;
+
+                    let sizeClass = '';
+                    let tooltip = '';
+
+                    if (sizeKB < 500) {
+                        sizeClass = 'file-size-small';
+                        tooltip = 'Small file - Quick to download';
+                    } else if (sizeKB < 2048) {
+                        sizeClass = 'file-size-medium';
+                        tooltip = 'Medium file - Normal download time';
+                    } else if (sizeMB < 20) {
+                        sizeClass = 'file-size-large';
+                        tooltip = 'Large file - May take longer to download';
+                    } else {
+                        sizeClass = 'file-size-huge';
+                        tooltip = 'Very large file - Consider your connection speed';
+                    }
+
+                    return `<span class="file-size-tag ${sizeClass}" title="${tooltip}">${formatFileSize(sizeInBytes)}</span>`;
+                }
+
                 // Check if file is "new" based on configurable threshold
                 function isFileNew(uploadDate) {
                     const config = dashboardConfig?.statusBadges?.new || { thresholdDays: 7 };
@@ -2067,8 +2160,8 @@
                         const uploader = file.uploadedBy || '';
                         const downloadCount = file.downloadCount || 0;
 
-                        // Format file size
-                        const size = file.size ? `<span style="font-size: 0.75rem;">${formatFileSize(file.size || 0)}</span>` : '';
+                        // Format file size with color-coded tag
+                        const size = file.size ? getFileSizeTag(file.size || 0) : '';
                         const description = file.description || '';
 
                         // Get file icon based on file type
@@ -2169,7 +2262,7 @@
                         ${file.semester && file.year ? `<div class="file-meta-item"><strong>Term:</strong> ${file.semester} ${file.year}</div>` : ''}
                         <div class="file-meta-item"><strong>Uploaded by:</strong> ${escapeHtml(file.uploadedBy)}</div>
                         ${file.description ? `<div class="file-meta-item"><strong>Description:</strong> ${escapeHtml(file.description)}</div>` : ''}
-                        <div class="file-meta-item"><strong>Size:</strong> ${formatFileSize(file.size || 0)}</div>
+                        <div class="file-meta-item"><strong>Size:</strong> ${getFileSizeTag(file.size || 0)}</div>
                     </div>
                     <div class="file-actions" style="display: flex; gap: 0.5rem; flex-wrap: wrap; justify-content: center;">
                         ${getDownloadButton(file)}
@@ -3107,7 +3200,7 @@
                         ${file.semester && file.year ? `<div class="file-meta-item"><strong>Term:</strong> ${file.semester} ${file.year}</div>` : ''}
                         <div class="file-meta-item"><strong>Uploaded by:</strong> ${escapeHtml(file.uploadedBy)}</div>
                         ${file.description ? `<div class="file-meta-item"><strong>Description:</strong> ${escapeHtml(file.description)}</div>` : ''}
-                        <div class="file-meta-item"><strong>Size:</strong> ${formatFileSize(file.size || 0)}</div>
+                        <div class="file-meta-item"><strong>Size:</strong> ${getFileSizeTag(file.size || 0)}</div>
                     </div>
                     <div class="file-actions" style="display: flex; gap: 0.5rem; flex-wrap: wrap; justify-content: center;">
                         ${getDownloadButton(file)}
@@ -6132,7 +6225,7 @@
                                 <span class="file-item-icon">${icon}</span>
                                 <span class="file-item-name">${escapeHtml(file.name)}</span>
                             </div>
-                            <span class="file-item-size">${size} KB</span>
+                            ${getFileSizeTag(file.size)}
                         </div>
                     `;
                         });
@@ -6619,7 +6712,7 @@
                                 ${file.semester && file.year ? `<div class="file-meta-item"><strong>Term:</strong> ${file.semester} ${file.year}</div>` : ''}
                                 <div class="file-meta-item"><strong>Uploaded by:</strong> ${escapeHtml(file.uploadedBy)}</div>
                                 ${file.description ? `<div class="file-meta-item"><strong>Description:</strong> ${escapeHtml(file.description)}</div>` : ''}
-                                <div class="file-meta-item"><strong>Size:</strong> ${formatFileSize(file.size || 0)}</div>
+                                <div class="file-meta-item"><strong>Size:</strong> ${getFileSizeTag(file.size || 0)}</div>
                             </div>
                             <div class="file-actions" style="display: flex; gap: 0.5rem; flex-wrap: wrap; justify-content: center;">
                                 ${getDownloadButton(file)}
@@ -6709,7 +6802,7 @@
                                     ${file.classCode ? `<span style="background: #FEE2E2; color: #DC2626; padding: 2px 6px; border-radius: 4px; font-size: 0.75rem;">${escapeHtml(file.classCode)}</span>` : ''}
                                     ${file.professor ? `<span>Prof: ${escapeHtml(file.professor)}</span>` : ''}
                                     ${file.semester && file.year ? `<span>${file.semester} ${file.year}</span>` : ''}
-                                    <span>${formatFileSize(file.size || 0)}</span>
+                                    ${getFileSizeTag(file.size || 0)}
                                     ${file.uploadedBy ? `<span style="background: #F3E8FF; color: #7C3AED; padding: 2px 6px; border-radius: 4px; font-size: 0.75rem;">👤 ${escapeHtml(file.uploadedBy)}</span>` : ''}
                                     <span style="background: #FEF3C7; color: #D97706; padding: 2px 6px; border-radius: 4px; font-size: 0.75rem;">📥 ${file.downloadCount || 0} downloads</span>
                                 </div>
