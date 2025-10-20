@@ -215,6 +215,32 @@ const apiLimiter = rateLimit({
     message: 'Too many requests. Please slow down.',
 });
 
+// Per-user daily limits (uploads and reports)
+async function getStartOfTodayUtc() {
+    const now = new Date();
+    return new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), 0, 0, 0, 0));
+}
+
+async function countUserUploadsToday(userid) {
+    const startOfToday = await getStartOfTodayUtc();
+    return client
+        .db(fileCollection.db)
+        .collection(fileCollection.collection)
+        .countDocuments({ uploadedBy: userid, uploadDate: { $gte: startOfToday } });
+}
+
+async function countUserReportsToday(userid) {
+    const startOfToday = await getStartOfTodayUtc();
+    return client
+        .db(fileCollection.db)
+        .collection('reports')
+        .countDocuments({ reportedBy: userid, reportedAt: { $gte: startOfToday } });
+}
+
+// configurable caps
+const DAILY_UPLOAD_CAP = 1; // admins/managers bypass
+const DAILY_REPORT_CAP = 1; // per user per day
+
 // Increased body size limits for file uploads
 app.use(express.urlencoded({ extended: false, limit: '50mb' }));
 app.use(express.json({ limit: '50mb' }));
@@ -1139,6 +1165,17 @@ async function createDatabaseIndexes() {
             .db(fileCollection.db)
             .collection('reports')
             .createIndex({ filename: 1 }); // For cascading deletes
+
+        // Per-user/day indexes
+        await indexClient
+            .db(fileCollection.db)
+            .collection(fileCollection.collection)
+            .createIndex({ uploadedBy: 1, uploadDate: -1 });
+
+        await indexClient
+            .db(fileCollection.db)
+            .collection('reports')
+            .createIndex({ reportedBy: 1, reportedAt: -1 });
 
         // Announcements collection indexes
         await indexClient
@@ -4068,6 +4105,24 @@ app.post("/upload", uploadLimiter, upload.array("documents", 50), async (req, re
         });
     }
 
+    // Per-user daily upload cap (admins/managers bypass)
+    try {
+        const user = req.session.user;
+            if (user && user.role !== 'admin' && user.role !== 'manager') {
+                const uploadedCount = await countUserUploadsToday(user.userid);
+                if (uploadedCount >= DAILY_UPLOAD_CAP) {
+                    return res.render('error', {
+                        title: "Daily Upload Limit Reached",
+                        message: `You have reached your daily upload limit of ${DAILY_UPLOAD_CAP} files. Please try again tomorrow.`,
+                        link: "/dashboard",
+                        linkText: "Back to Dashboard"
+                    });
+                }
+            }
+    } catch (limitErr) {
+        console.warn('Upload cap check failed, continuing:', limitErr?.message);
+    }
+
     const files = req.files;
     if (!files || files.length === 0) return res.status(400).send("No files uploaded.");
 
@@ -4466,6 +4521,19 @@ app.post('/api/report-file', apiLimiter, async (req, res) => {
     }
 
     try {
+        // Per-user daily report cap (admins/managers bypass)
+        const currentUser = req.session.user;
+        try {
+            if (currentUser && currentUser.role !== 'admin' && currentUser.role !== 'manager') {
+                const reportsToday = await countUserReportsToday(currentUser.userid);
+                if (reportsToday >= DAILY_REPORT_CAP) {
+                    return res.status(429).json({ error: `Daily report limit reached (${DAILY_REPORT_CAP}/day). Please try again tomorrow.` });
+                }
+            }
+        } catch (capErr) {
+            console.warn('Report cap check failed, continuing:', capErr?.message);
+        }
+
         const { filename, originalName, reason, details } = req.body;
 
         if (!filename || !reason) {

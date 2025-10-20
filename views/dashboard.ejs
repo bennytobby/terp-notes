@@ -304,6 +304,172 @@
             background: #F3F4F6;
             color: #6B7280;
         }
+
+        /* Custom Report Modal Styles */
+        .custom-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            width: 100vw;
+            height: 100vh;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 10000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            box-sizing: border-box;
+            margin: 0;
+        }
+
+        .custom-modal-content {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+            max-width: 500px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+            position: relative;
+            margin: auto;
+        }
+
+        .custom-modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1.5rem 1.5rem 1rem 1.5rem;
+            border-bottom: 1px solid #E5E7EB;
+        }
+
+        .custom-modal-header h3 {
+            margin: 0;
+            color: #1F2937;
+            font-size: 1.25rem;
+        }
+
+        .custom-modal-close {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #6B7280;
+            cursor: pointer;
+            line-height: 1;
+        }
+
+        .custom-modal-close:hover {
+            color: #374151;
+        }
+
+        .custom-modal-body {
+            padding: 1.5rem;
+        }
+
+        .custom-modal-body p {
+            margin: 0 0 1rem 0;
+            color: #374151;
+        }
+
+        .report-reasons {
+            margin-bottom: 1.5rem;
+        }
+
+        .report-reason-item {
+            display: block;
+            margin-bottom: 0.75rem;
+            padding: 0.75rem;
+            border: 1px solid #E5E7EB;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .report-reason-item:hover {
+            background-color: #F9FAFB;
+            border-color: #D1D5DB;
+        }
+
+        .report-reason-item input[type="checkbox"] {
+            margin-right: 0.75rem;
+            transform: scale(1.1);
+        }
+
+        .report-reason-item input[type="checkbox"]:checked + .reason-text {
+            font-weight: 600;
+            color: #DC2626;
+        }
+
+        .report-reason-item:has(input[type="checkbox"]:checked) {
+            background-color: #FEF2F2;
+            border-color: #FCA5A5;
+        }
+
+        .reason-text {
+            font-size: 0.95rem;
+            line-height: 1.4;
+        }
+
+        .report-details label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: #374151;
+        }
+
+        .report-details textarea {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #D1D5DB;
+            border-radius: 6px;
+            font-size: 0.95rem;
+            line-height: 1.4;
+            resize: vertical;
+            min-height: 80px;
+            font-family: inherit;
+        }
+
+        .report-details textarea:focus {
+            outline: none;
+            border-color: #DC2626;
+            box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.1);
+        }
+
+        .custom-modal-footer {
+            display: flex;
+            justify-content: flex-end;
+            gap: 1rem;
+            padding: 1rem 1.5rem 1.5rem 1.5rem;
+            border-top: 1px solid #E5E7EB;
+        }
+
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 6px;
+            font-size: 0.95rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .btn-secondary {
+            background-color: #F3F4F6;
+            color: #374151;
+        }
+
+        .btn-secondary:hover {
+            background-color: #E5E7EB;
+        }
+
+        .btn-danger {
+            background-color: #DC2626;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background-color: #B91C1C;
+        }
     </style>
 </head>
 
@@ -675,14 +841,14 @@
                                                                                                 ageTag = {
                                                                                                     text: daysAgo <= 14 ? `${daysAgo} days ago` : `${Math.floor(daysAgo / 7)} weeks ago`,
                                                                                                     style: 'background: #FEF3C7; color: #92400E;',
-                                                                                                    icon: 'clock.png',
+                                                                                                    icon: 'clock-warning.png',
                                                                                                     tooltip: `Uploaded ${daysAgo} days ago (${uploadDateFormatted})`
                                                                                                 };
                                                                                             } else if (yearsAgo < 2) {
                                                                                                 ageTag = {
                                                                                                     text: monthsAgo === 1 ? '1 month ago' : `${monthsAgo} months ago`,
                                                                                                     style: 'background: #FEF3C7; color: #92400E;',
-                                                                                                    icon: 'clock.png',
+                                                                                                    icon: 'clock-warning.png',
                                                                                                     tooltip: `Uploaded ${monthsAgo === 1 ? '1 month ago' : `${monthsAgo} months ago`} (${uploadDateFormatted})`
                                                                                                 };
                                                                                             } else {
@@ -781,7 +947,7 @@
                                                                                                     const userColor = getUserColor(file.uploadedBy);
                                                                                                 %>
                                                                                                 <span class="user-color-tag" style="background-color: <%= userColor %>" title="Files uploaded by <%= file.uploadedBy %>">
-                                                                                                    <%= file.uploadedBy %>
+                                                                                                <%= file.uploadedBy %>
                                                                                                 </span>
                                                                                             </div>
                                                                                             <div class="file-meta-item">
@@ -2157,14 +2323,14 @@
                         return {
                             text: daysAgo <= 14 ? `${daysAgo} days ago` : `${Math.floor(daysAgo / 7)} weeks ago`,
                             style: 'background: #FEF3C7; color: #92400E;', // Yellow for somewhat recent
-                            icon: 'clock.png',
+                            icon: 'clock-warning.png',
                             tooltip: `Uploaded ${daysAgo} days ago (${uploadDateFormatted})`
                         };
                     } else if (yearsAgo < 2) {
                         return {
                             text: monthsAgo === 1 ? '1 month ago' : `${monthsAgo} months ago`,
                             style: 'background: #FEF3C7; color: #92400E;', // Yellow for older
-                            icon: 'clock.png',
+                            icon: 'clock-warning.png',
                             tooltip: `Uploaded ${monthsAgo === 1 ? '1 month ago' : `${monthsAgo} months ago`} (${uploadDateFormatted})`
                         };
                     } else {
@@ -3525,7 +3691,6 @@
                     // If a professor is selected in edit modal, only show their courses
                     if (editSelectedProfessor && professorCache && professorCache.professors[editSelectedProfessor]) {
                         courses = Object.keys(professorCache.professors[editSelectedProfessor]);
-                        console.log('🎯 Edit: Filtering courses for selected professor:', editSelectedProfessor, 'Courses:', courses);
                     } else {
                         // Show all courses
                         courses = Object.keys(courseCache.courses);
@@ -3606,7 +3771,6 @@
                     if (!courseCache || !courseCache.courses[courseId]) return;
 
                     const courseProfessors = Object.keys(courseCache.courses[courseId].professors);
-                    console.log('🎯 Edit: Filtering professors for course:', courseId, 'Professors:', courseProfessors);
 
                     // Show success message
                     showEditSuccessMessage('professors', courseProfessors.length, courseId);
@@ -4166,16 +4330,93 @@
                     }
                 }
 
+                // Custom report modal with checkboxes and text area
+                async function showCustomReportModal(originalName, reasons) {
+                    return new Promise((resolve) => {
+                        // Create modal HTML
+                        const modalHTML = `
+                            <div id="customReportModal" class="custom-modal" style="display: block;">
+                                <div class="custom-modal-content">
+                                    <div class="custom-modal-header">
+                                        <h3>🚩 Report File</h3>
+                                        <span class="custom-modal-close">&times;</span>
+                                    </div>
+                                    <div class="custom-modal-body">
+                                        <p><strong>File:</strong> "${originalName}"</p>
+                                        <p><strong>Why are you reporting this file?</strong> (Select all that apply)</p>
+                                        <div class="report-reasons">
+                                            ${reasons.map((reason, index) => `
+                                                <label class="report-reason-item">
+                                                    <input type="checkbox" name="reportReason" value="${reason}" id="reason${index}">
+                                                    <span class="reason-text">${reason}</span>
+                                                </label>
+                                            `).join('')}
+                                        </div>
+                                        <div class="report-details">
+                                            <label for="reportDetails"><strong>Additional Details:</strong> (Required)</label>
+                                            <textarea id="reportDetails" placeholder="Please provide specific details about why you're reporting this file..." rows="4" required></textarea>
+                                        </div>
+                                    </div>
+                                    <div class="custom-modal-footer">
+                                        <button type="button" class="btn btn-secondary" id="cancelReport">Cancel</button>
+                                        <button type="button" class="btn btn-danger" id="submitReport">Submit Report</button>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+
+                        // Add modal to page
+                        document.body.insertAdjacentHTML('beforeend', modalHTML);
+
+                        const modal = document.getElementById('customReportModal');
+                        const cancelBtn = document.getElementById('cancelReport');
+                        const submitBtn = document.getElementById('submitReport');
+                        const closeBtn = document.querySelector('#customReportModal .custom-modal-close');
+                        const detailsTextarea = document.getElementById('reportDetails');
+
+                        // Close modal functions
+                        function closeModal(result = null) {
+                            modal.remove();
+                            resolve(result);
+                        }
+
+                        // Event listeners
+                        cancelBtn.addEventListener('click', () => closeModal(null));
+                        closeBtn.addEventListener('click', () => closeModal(null));
+                        submitBtn.addEventListener('click', () => {
+                            const selectedReasons = document.querySelectorAll('input[name="reportReason"]:checked');
+                            const additionalDetails = detailsTextarea.value.trim();
+
+                            if (selectedReasons.length === 0) {
+                                showNotification('Please select at least one reason for reporting this file.', 'error', 4000);
+                                return;
+                            }
+
+                            if (!additionalDetails) {
+                                showNotification('Please provide additional details about why you\'re reporting this file.', 'error', 4000);
+                                return;
+                            }
+
+                            const selectedReasonsArray = Array.from(selectedReasons).map(input => input.value);
+                            const selectedReasonsText = selectedReasonsArray.join(', ');
+
+                            closeModal({
+                                selectedReason: selectedReasonsText,
+                                additionalDetails: additionalDetails
+                            });
+                        });
+
+                        // Close on outside click
+                        modal.addEventListener('click', (e) => {
+                            if (e.target === modal) {
+                                closeModal(null);
+                            }
+                        });
+                    });
+                }
+
                 // File reporting function
                 async function reportFile(filename, originalName) {
-                    // First confirmation
-                    const firstConfirm = await customConfirm(
-                        `🚩 REPORT FILE\n\nYou are about to report:\n"${originalName}"\n\nThis will notify administrators about potential issues with this file.\n\nContinue with report?`,
-                        'Report File'
-                    );
-
-                    if (!firstConfirm) return;
-
                     const reasons = [
                         'Inappropriate content',
                         'Copyright violation',
@@ -4185,30 +4426,16 @@
                         'Other'
                     ];
 
-                    const reasonText = `Why are you reporting "${originalName}"?\n\nSelect the reason:\n1. ${reasons[0]}\n2. ${reasons[1]}\n3. ${reasons[2]}\n4. ${reasons[3]}\n5. ${reasons[4]}\n6. ${reasons[5]}\n\nEnter number (1-6):`;
+                    // Create custom report modal with checkboxes and text area
+                    const reportResult = await showCustomReportModal(originalName, reasons);
+                    if (!reportResult) return; // User cancelled
 
-                    const reason = await customPrompt(reasonText, 'Enter number (1-6)...');
+                    const { selectedReason, additionalDetails } = reportResult;
 
-                    if (!reason) return; // User cancelled
+                    // Single confirmation with all details
+                    const confirmMessage = `🚨 CONFIRM REPORT\n\nFile: "${originalName}"\nReason: ${selectedReason}${additionalDetails ? '\nDetails: ' + additionalDetails : ''}\n\nSubmit report to administrators?`;
 
-                    const reasonIndex = parseInt(reason) - 1;
-                    if (reasonIndex < 0 || reasonIndex >= reasons.length) {
-                        if (typeof customAlert === 'function') {
-                            await customAlert('Invalid selection. Please try again.', 'error');
-                        } else {
-                        alert('Invalid selection. Please try again.');
-                        }
-                        return;
-                    }
-
-                    const selectedReason = reasons[reasonIndex];
-                    const additionalDetails = await customPrompt(`Optional: Add more details about the issue:`, 'Enter additional details...') || '';
-
-                    // Final confirmation
-                    const finalConfirm = await customConfirm(
-                        `🚨 FINAL CONFIRMATION\n\nReport "${originalName}"?\nReason: ${selectedReason}\n\nThis will notify administrators. Continue?`,
-                        'Confirm Report'
-                    );
+                    const finalConfirm = await customConfirm(confirmMessage, 'Submit Report');
 
                     if (!finalConfirm) return;
 
