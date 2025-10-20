@@ -4456,24 +4456,12 @@
                         const result = await response.json();
 
                         if (response.ok) {
-                            if (typeof customAlert === 'function') {
-                                await customAlert('Report submitted successfully. An admin will review this file.', 'success');
-                            } else {
-                            alert('Report submitted successfully. An admin will review this file.');
-                            }
+                            showNotification('Report submitted successfully. An admin will review this file.', 'success', 4000);
                         } else {
-                            if (typeof customAlert === 'function') {
-                                await customAlert('Error: ' + result.error, 'error');
-                        } else {
-                            alert('Error: ' + result.error);
-                            }
+                            showNotification('Error: ' + result.error, 'error', 5000);
                         }
                     } catch (error) {
-                        if (typeof customAlert === 'function') {
-                            await customAlert('Failed to submit report. Please try again.', 'error');
-                        } else {
-                        alert('Failed to submit report. Please try again.');
-                        }
+                        showNotification('Failed to submit report. Please try again.', 'error', 5000);
                     }
                 }
 
