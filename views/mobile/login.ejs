@@ -165,12 +165,20 @@
         <form id="mobileLoginForm" novalidate>
             <div class="mobile-form-group">
                 <label for="mobileEmail" class="mobile-form-label">Email</label>
-                <input type="email" id="mobileEmail" name="email" class="mobile-form-input" required>
+                <input type="email" id="mobileEmail" name="email" class="mobile-form-input" autocomplete="username" required>
             </div>
 
             <div class="mobile-form-group">
                 <label for="mobilePassword" class="mobile-form-label">Password</label>
-                <input type="password" id="mobilePassword" name="password" class="mobile-form-input" required>
+                <input type="password" id="mobilePassword" name="password" class="mobile-form-input" autocomplete="current-password" required>
+            </div>
+
+            <div class="mobile-form-group">
+                <label class="checkbox-label">
+                    <input type="checkbox" name="rememberMe" id="mobileRememberMe" />
+                    <span class="checkmark"></span>
+                    Remember me for 30 days
+                </label>
             </div>
 
             <button type="submit" class="mobile-login-btn" id="mobileLoginBtn">
@@ -194,6 +202,7 @@
 
             const email = document.getElementById('mobileEmail').value;
             const password = document.getElementById('mobilePassword').value;
+            const rememberMe = document.getElementById('mobileRememberMe').checked;
             const loginBtn = document.getElementById('mobileLoginBtn');
             const notification = document.getElementById('mobileNotification');
 
@@ -206,12 +215,16 @@
             loginBtn.textContent = 'Logging in...';
 
             try {
+                const formData = new FormData();
+                formData.append('userid', email); // Mobile login uses email as userid
+                formData.append('password', password);
+                if (rememberMe) {
+                    formData.append('rememberMe', 'on');
+                }
+
                 const response = await fetch('/loginSubmit', {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({ email, password })
+                    body: formData
                 });
 
                 if (response.ok) {

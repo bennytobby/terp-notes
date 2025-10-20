@@ -4032,7 +4032,16 @@ app.post('/loginSubmit', loginLimiter, async function (req, res) {
             req.session.user = userData;
             req.session.createdAt = now;
             req.session.lastActivity = now;
-            req.session.rememberMe = false; // Can be set to true if "Remember Me" checkbox is added
+            req.session.rememberMe = req.body.rememberMe === 'on'; // Handle "Remember Me" checkbox
+
+            // Set session expiration based on remember me option
+            if (req.session.rememberMe) {
+                // 30 days for "Remember Me"
+                req.session.cookie.maxAge = 30 * 24 * 60 * 60 * 1000; // 30 days in milliseconds
+            } else {
+                // Default session timeout (likely 30 minutes or 1 hour)
+                req.session.cookie.maxAge = 30 * 60 * 1000; // 30 minutes in milliseconds
+            }
 
             // Set a flag to indicate successful login for tab synchronization
             req.session.loginTimestamp = now;

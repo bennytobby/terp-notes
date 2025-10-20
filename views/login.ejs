@@ -36,11 +36,18 @@
             <form action="/loginSubmit" method="POST" novalidate>
                 <div class="form-group">
                     <label for="userid">Username<span class="req">*</span></label>
-                    <input type="text" name="userid" id="userid" placeholder="Enter your username" />
+                    <input type="text" name="userid" id="userid" placeholder="Enter your username" autocomplete="username" />
                 </div>
                 <div class="form-group">
                     <label for="password">Password<span class="req">*</span></label>
-                    <input type="password" name="password" id="password" placeholder="Enter your password" />
+                    <input type="password" name="password" id="password" placeholder="Enter your password" autocomplete="current-password" />
+                </div>
+                <div class="form-group">
+                    <label class="checkbox-label">
+                        <input type="checkbox" name="rememberMe" id="rememberMe" />
+                        <span class="checkmark"></span>
+                        Remember me for 30 days
+                    </label>
                 </div>
                 <div class="form-buttons">
                     <input type="submit" value="Login" class="button danger" id="loginBtn" />
