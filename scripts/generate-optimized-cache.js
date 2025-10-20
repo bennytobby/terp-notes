@@ -82,7 +82,7 @@ async function generateOptimizedCache() {
                 optimizedCache.courses[course.course_id] = {
                     courseInfo: {
                         id: course.course_id,
-                        name: course.name
+                        name: course.name // This should be the actual course title from UMD.io API
                     },
                     professors: {}
                 };
