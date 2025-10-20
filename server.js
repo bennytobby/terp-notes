@@ -221,6 +221,33 @@ async function getStartOfTodayUtc() {
     return new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), 0, 0, 0, 0));
 }
 
+// Account History Logging
+async function logAccountHistory(userId, action, details, adminId = null, metadata = {}) {
+    try {
+        await ensureConnection();
+
+        const historyEntry = {
+            userId: userId,
+            action: action, // 'UPLOAD', 'DOWNLOAD', 'REPORT', 'BAN', 'UNBAN', 'ROLE_CHANGE', 'LOGIN', 'LOGOUT', etc.
+            details: details, // Human-readable description
+            adminId: adminId, // Who performed the action (if admin action)
+            metadata: metadata, // Additional data (IP, file info, etc.)
+            timestamp: new Date(),
+            createdAt: new Date()
+        };
+
+        await client
+            .db(fileCollection.db)
+            .collection('account_history')
+            .insertOne(historyEntry);
+
+        console.log(`📝 Account history logged: ${userId} - ${action} - ${details}`);
+    } catch (error) {
+        console.error('Failed to log account history:', error);
+        // Don't throw - history logging shouldn't break main functionality
+    }
+}
+
 async function countUserUploadsToday(userid) {
     const startOfToday = await getStartOfTodayUtc();
     return client
@@ -238,8 +265,8 @@ async function countUserReportsToday(userid) {
 }
 
 // configurable caps
-const DAILY_UPLOAD_CAP = 1; // admins/managers bypass
-const DAILY_REPORT_CAP = 1; // per user per day
+const DAILY_UPLOAD_CAP = 100; // admins/managers bypass
+const DAILY_REPORT_CAP = 10; // per user per day
 
 // Increased body size limits for file uploads
 app.use(express.urlencoded({ extended: false, limit: '50mb' }));
@@ -1975,6 +2002,24 @@ app.post('/api/get-upload-url', async (req, res) => {
 app.post('/api/confirm-upload', async (req, res) => {
     if (!req.session.user) {
         return res.status(401).json({ error: 'Not authenticated' });
+    }
+
+    // Per-user daily upload cap (admins/managers bypass)
+    try {
+        const user = req.session.user;
+        if (user && user.role !== 'admin' && user.role !== 'manager') {
+            const uploadedCount = await countUserUploadsToday(user.userid);
+
+            console.log(`🔍 Upload cap check: User ${user.userid}, Already uploaded: ${uploadedCount}, Trying to upload: 1, Limit: ${DAILY_UPLOAD_CAP}`);
+
+            if (uploadedCount >= DAILY_UPLOAD_CAP) {
+                return res.status(429).json({
+                    error: `Upload limit reached! You have uploaded ${uploadedCount} files today. Your daily limit is ${DAILY_UPLOAD_CAP} files. Please try again tomorrow.`
+                });
+            }
+        }
+    } catch (limitErr) {
+        console.warn('Upload cap check failed, continuing:', limitErr?.message);
     }
 
     const {
@@ -4071,6 +4116,17 @@ app.post('/loginSubmit', loginLimiter, async function (req, res) {
             req.session.lastActivity = now;
             req.session.rememberMe = req.body.rememberMe === 'on'; // Handle "Remember Me" checkbox
 
+            // Log login to account history
+            logAccountHistory(userId, 'LOGIN',
+                `Successful login from ${req.ip}`,
+                null,
+                {
+                    ip: req.ip,
+                    userAgent: req.get('User-Agent'),
+                    rememberMe: req.body.rememberMe === 'on'
+                }
+            );
+
             // Set session expiration based on remember me option
             if (req.session.rememberMe) {
                 // 30 days for "Remember Me"
@@ -4110,12 +4166,13 @@ app.post("/upload", uploadLimiter, upload.array("documents", 50), async (req, re
         const user = req.session.user;
             if (user && user.role !== 'admin' && user.role !== 'manager') {
                 const uploadedCount = await countUserUploadsToday(user.userid);
-                if (uploadedCount >= DAILY_UPLOAD_CAP) {
-                    return res.render('error', {
-                        title: "Daily Upload Limit Reached",
-                        message: `You have reached your daily upload limit of ${DAILY_UPLOAD_CAP} files. Please try again tomorrow.`,
-                        link: "/dashboard",
-                        linkText: "Back to Dashboard"
+                const filesToUpload = req.files ? req.files.length : 0;
+
+                console.log(`🔍 Upload cap check: User ${user.userid}, Already uploaded: ${uploadedCount}, Trying to upload: ${filesToUpload}, Limit: ${DAILY_UPLOAD_CAP}`);
+
+                if (uploadedCount + filesToUpload > DAILY_UPLOAD_CAP) {
+                    return res.status(429).json({
+                        error: `Upload limit reached! You have uploaded ${uploadedCount} files today and are trying to upload ${filesToUpload} more files. Your daily limit is ${DAILY_UPLOAD_CAP} files. Please try again tomorrow.`
                     });
                 }
             }
@@ -4204,6 +4261,21 @@ app.post("/upload", uploadLimiter, upload.array("documents", 50), async (req, re
                     .db(fileCollection.db)
                     .collection(fileCollection.collection)
                     .insertOne(fileMeta);
+
+                // Log upload to account history
+                await logAccountHistory(req.session.user.userid, 'UPLOAD',
+                    `Uploaded file: ${file.originalname} (${file.filename})`,
+                    null,
+                    {
+                        filename: file.filename,
+                        originalName: file.originalname,
+                        size: file.size,
+                        classCode: classCode,
+                        professor: professor,
+                        semester: semester,
+                        year: year
+                    }
+                );
 
                 uploadedFiles.push(file.originalname);
 
@@ -4570,6 +4642,20 @@ app.post('/api/report-file', apiLimiter, async (req, res) => {
             .collection('reports')
             .insertOne(report);
 
+        // Log report to account history
+        await logAccountHistory(req.session.user.userid, 'REPORT',
+            `Reported file: ${originalName} - Reason: ${reason}`,
+            null,
+            {
+                reportedFile: filename,
+                originalName: originalName,
+                reason: reason,
+                details: details,
+                fileUploader: file.uploadedBy,
+                classCode: file.classCode
+            }
+        );
+
         res.json({ success: true, message: 'Report submitted successfully' });
     } catch (error) {
         console.error('Error submitting report:', error);
@@ -4768,6 +4854,17 @@ app.post('/api/update-user-role', async (req, res) => {
                 { $set: { role: newRole, updatedAt: new Date() } }
             );
 
+        // Log role change to account history
+        await logAccountHistory(userId, 'ROLE_CHANGE',
+            `Role changed from ${user.role} to ${newRole} by admin`,
+            req.session.user.userid,
+            {
+                oldRole: user.role,
+                newRole: newRole,
+                changedBy: req.session.user.userid
+            }
+        );
+
         res.json({ success: true, message: 'User role updated successfully' });
     } catch (error) {
         console.error('Error updating user role:', error);
@@ -4864,6 +4961,18 @@ app.post('/api/ban-user', async (req, res) => {
             // Don't fail the ban if email fails
         }
 
+        // Log ban to account history
+        await logAccountHistory(userId, 'BAN',
+            `Banned by admin: ${banReason} (${banType === 'timed' ? banDuration + ' days' : 'permanent'})`,
+            req.session.user.userid,
+            {
+                banType: banType,
+                banReason: banReason,
+                banDuration: banType === 'timed' ? banDuration : null,
+                banExpiry: banExpiry
+            }
+        );
+
         res.json({ success: true, message: 'User banned successfully' });
     } catch (error) {
         console.error('Ban user error:', error);
@@ -4938,10 +5047,83 @@ app.post('/api/unban-user', async (req, res) => {
             // Don't fail the unban if email fails
         }
 
+        // Log unban to account history
+        await logAccountHistory(userId, 'UNBAN',
+            `Unbanned by admin: Manually unbanned`,
+            req.session.user.userid,
+            {
+                unbanReason: 'Manually unbanned by admin'
+            }
+        );
+
         res.json({ success: true, message: 'User unbanned successfully' });
     } catch (error) {
         console.error('Unban user error:', error);
         res.status(500).json({ error: 'Failed to unban user' });
+    }
+});
+
+// API: Get user account history
+app.get('/api/user-history/:userId', async (req, res) => {
+    if (!req.session.user || req.session.user.role !== 'admin') {
+        return res.status(401).json({ error: 'Unauthorized' });
+    }
+
+    try {
+        const { userId } = req.params;
+        const { page = 1, limit = 50, action = null } = req.query;
+
+        await ensureConnection();
+
+        // Build query
+        let query = { userId: userId };
+        if (action) {
+            query.action = action;
+        }
+
+        // Get total count for pagination
+        const totalCount = await client
+            .db(fileCollection.db)
+            .collection('account_history')
+            .countDocuments(query);
+
+        // Get history with pagination
+        const history = await client
+            .db(fileCollection.db)
+            .collection('account_history')
+            .find(query)
+            .sort({ timestamp: -1 })
+            .skip((page - 1) * limit)
+            .limit(parseInt(limit))
+            .toArray();
+
+        // Get user info for context
+        const user = await client
+            .db(userCollection.db)
+            .collection(userCollection.collection)
+            .findOne({ userid: userId });
+
+        res.json({
+            success: true,
+            history: history,
+            user: {
+                userid: user?.userid,
+                first_name: user?.first_name,
+                last_name: user?.last_name,
+                email: user?.email,
+                role: user?.role,
+                createdAt: user?.createdAt
+            },
+            pagination: {
+                page: parseInt(page),
+                limit: parseInt(limit),
+                total: totalCount,
+                pages: Math.ceil(totalCount / limit)
+            }
+        });
+    } catch (error) {
+        console.error('Error fetching user history:', error);
+        res.status(500).json({ error: 'Failed to fetch user history' });
     }
 });
 

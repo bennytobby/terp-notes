@@ -1121,6 +1121,7 @@
                                                     <option value="Spring">Spring</option>
                                                     <option value="Summer">Summer</option>
                                                     <option value="Winter">Winter</option>
+                                                    <option value="Unknown">Unknown</option>
                                                 </select>
                                             </div>
 
@@ -1129,14 +1130,14 @@
                                                         class="required">*</span></label>
                                                 <select name="year" id="year" class="form-input">
                                                     <option value="">Select year</option>
-                                                    <% for (let y=new Date().getFullYear(); y >= 2020; y--) { %>
+                                                    <% for (let y=new Date().getFullYear() + 1; y >= new Date().getFullYear() - 10; y--) { %>
                                                         <option value="<%= y %>">
                                                             <%= y %>
                                                         </option>
                                                         <% } %>
                                                 </select>
                                                 <small class="form-help" style="color: #9CA3AF; font-size: 0.75rem;">
-                                                    Past semesters only (2021-present)
+                                                    All available years
                                                 </small>
                                             </div>
                                         </div>
@@ -4928,8 +4929,15 @@
                                 }, 15000); // 15 second timeout for confirming upload
 
                                 if (!confirmResponse.ok) {
-                                    const errorText = await confirmResponse.text();
-                                    throw new Error(`Failed to save file metadata (${confirmResponse.status}): ${errorText || 'Unknown error'}`);
+                                    let errorMessage;
+                                    try {
+                                        const errorData = await confirmResponse.json();
+                                        errorMessage = errorData.error || 'Unknown error';
+                                    } catch (jsonError) {
+                                        const errorText = await confirmResponse.text();
+                                        errorMessage = errorText || 'Unknown error';
+                                    }
+                                    throw new Error(errorMessage);
                                 }
 
                                 let result;
@@ -5399,27 +5407,47 @@
                             const semesterSelect = document.getElementById('semester');
                             const yearSelect = document.getElementById('year');
 
-                            // Reset semester dropdown to show all semesters
+                            // Reset semester dropdown to show all semesters from cache + basic options
                             semesterSelect.innerHTML = '<option value="">Select semester</option>';
-                            const allSemesterOptions = ['Spring', 'Summer', 'Fall', 'Winter'];
+                            const basicSemesterOptions = ['Spring', 'Summer', 'Fall', 'Winter', 'Unknown'];
 
-                            allSemesterOptions.forEach(semester => {
+                            // Add basic options first
+                            basicSemesterOptions.forEach(semester => {
                                 const option = document.createElement('option');
                                 option.value = semester;
                                 option.textContent = semester;
                                 semesterSelect.appendChild(option);
                             });
 
-                            // Reset year dropdown to show current year and past 4 years only
-                            yearSelect.innerHTML = '<option value="">Select year</option>';
-                            const currentYear = new Date().getFullYear();
-                            const years = [];
-
-                            for (let year = currentYear; year >= currentYear - 4; year--) {
-                                years.push(year.toString());
+                            // Add any additional semesters from cache if available
+                            if (semesterYearCache && semesterYearCache.semesters) {
+                                semesterYearCache.semesters.forEach(semester => {
+                                    if (!basicSemesterOptions.includes(semester)) {
+                                        const option = document.createElement('option');
+                                        option.value = semester;
+                                        option.textContent = semester;
+                                        semesterSelect.appendChild(option);
+                                    }
+                                });
                             }
 
-                            years.forEach(year => {
+                            // Reset year dropdown to show all years from cache + reasonable range
+                            yearSelect.innerHTML = '<option value="">Select year</option>';
+                            const currentYear = new Date().getFullYear();
+                            const years = new Set();
+
+                            // Add years from cache if available
+                            if (semesterYearCache && semesterYearCache.years) {
+                                semesterYearCache.years.forEach(year => years.add(year));
+                            }
+
+                            // Add reasonable range (current year + 1 to current year - 10)
+                            for (let year = currentYear + 1; year >= currentYear - 10; year--) {
+                                years.add(year);
+                            }
+
+                            // Sort years in descending order and add to dropdown
+                            Array.from(years).sort((a, b) => b - a).forEach(year => {
                                 const option = document.createElement('option');
                                 option.value = year;
                                 option.textContent = year;
@@ -7830,3 +7858,4 @@
 </body>
 
 </html>
+

@@ -258,22 +258,57 @@
                             <div class="user-card" data-user-id="<%= currentUser.userid %>"
                                 data-role="<%= currentUser.role %>"
                                 data-name="<%= (currentUser.firstname + ' ' + currentUser.lastname).toLowerCase() %>"
-                                data-email="<%= currentUser.email.toLowerCase() %>">
-                                <div class="user-header">
-                                    <div class="user-avatar">
-                                        <%= currentUser.firstname.charAt(0).toUpperCase() %>
-                                            <%= currentUser.lastname.charAt(0).toUpperCase() %>
+                                data-email="<%= currentUser.email.toLowerCase() %>"
+                                style="
+                                    background: white;
+                                    border: 1px solid var(--color-border);
+                                    border-radius: 12px;
+                                    padding: 1.5rem;
+                                    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+                                    transition: all 0.2s ease;
+                                    position: relative;
+                                    overflow: hidden;
+                                " onmouseover="this.style.boxShadow='0 4px 16px rgba(0, 0, 0, 0.12)'; this.style.transform='translateY(-2px)'" onmouseout="this.style.boxShadow='0 2px 8px rgba(0, 0, 0, 0.06)'; this.style.transform='translateY(0)'">
+                                <div class="user-header" style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1.5rem;">
+                                    <div class="user-avatar" style="
+                                        width: 60px;
+                                        height: 60px;
+                                        border-radius: 50%;
+                                        background: linear-gradient(135deg, var(--color-primary), var(--color-primary-hover));
+                                        color: white;
+                                        display: flex;
+                                        align-items: center;
+                                        justify-content: center;
+                                        font-weight: 700;
+                                        font-size: 1.25rem;
+                                        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+                                    ">
+                                        <%= currentUser.firstname.charAt(0).toUpperCase() %><%= currentUser.lastname.charAt(0).toUpperCase() %>
                                     </div>
-                                    <div class="user-info">
-                                        <h3>
-                                            <%= currentUser.firstname %>
-                                                <%= currentUser.lastname %>
+                                    <div class="user-info" style="flex: 1; min-width: 0;">
+                                        <h3 style="
+                                            margin: 0 0 0.25rem 0;
+                                            color: var(--color-text);
+                                            font-size: 1.25rem;
+                                            font-weight: 700;
+                                            line-height: 1.2;
+                                        ">
+                                            <%= currentUser.firstname %> <%= currentUser.lastname %>
                                         </h3>
-                                        <p class="user-email">
+                                        <p class="user-email" style="
+                                            margin: 0 0 0.25rem 0;
+                                            color: var(--color-text-light);
+                                            font-size: 0.9rem;
+                                            word-break: break-all;
+                                        ">
                                             <%= currentUser.email %>
                                         </p>
-                                        <p class="user-id">@<%= currentUser.userid %>
-                                        </p>
+                                        <p class="user-id" style="
+                                            margin: 0;
+                                            color: var(--color-text-muted);
+                                            font-size: 0.8rem;
+                                            font-weight: 500;
+                                        ">@<%= currentUser.userid %></p>
                                     </div>
                                 </div>
 
@@ -331,61 +366,151 @@
                                 </div>
 
                                 <div class="user-actions">
-                                    <div class="role-controls">
-                                        <label for="role-<%= currentUser.userid %>">Change Role:</label>
-                                        <% if (currentUser.isProtected) { %>
-                                            <select id="role-<%= currentUser.userid %>" class="role-select" disabled>
-                                                <option value="<%= currentUser.role %>" selected>
-                                                    <%= currentUser.role %>
-                                                </option>
-                                            </select>
-                                            <button class="button primary small disabled" disabled>Update</button>
+                                    <div class="role-controls" style="
+                                        padding: 1rem;
+                                        background: var(--color-background-secondary);
+                                        border-radius: 8px;
+                                        margin-bottom: 1rem;
+                                        border: 1px solid var(--color-border);
+                                    ">
+                                        <div style="display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap;">
+                                            <label for="role-<%= currentUser.userid %>" style="
+                                                font-weight: 600;
+                                                color: var(--color-text);
+                                                margin: 0;
+                                                white-space: nowrap;
+                                            ">Change Role:</label>
+                                            <% if (currentUser.isProtected) { %>
+                                                <div style="display: flex; gap: 0.5rem; align-items: center; flex: 1; min-width: 200px;">
+                                                    <select id="role-<%= currentUser.userid %>" class="role-select" disabled style="
+                                                        flex: 1;
+                                                        padding: 0.5rem 0.75rem;
+                                                        border: 1px solid var(--color-border);
+                                                        border-radius: 6px;
+                                                        background: var(--gray-100);
+                                                        color: var(--gray-500);
+                                                        font-size: 0.875rem;
+                                                    ">
+                                                        <option value="<%= currentUser.role %>" selected>
+                                                            <%= currentUser.role.charAt(0).toUpperCase() + currentUser.role.slice(1) %>
+                                                        </option>
+                                                    </select>
+                                                    <button class="button primary small disabled" disabled style="
+                                                        padding: 0.5rem 1rem;
+                                                        opacity: 0.5;
+                                                        cursor: not-allowed;
+                                                        font-size: 0.875rem;
+                                                    ">Update</button>
+                                                </div>
                                             <% } else { %>
-                                                <select id="role-<%= currentUser.userid %>" class="role-select"
-                                                    data-user-id="<%= currentUser.userid %>">
-                                                    <option value="admin" <%=currentUser.role==='admin' ? 'selected'
-                                                        : '' %>
-                                                        >Admin</option>
-                                                    <option value="contributor" <%=currentUser.role==='contributor'
-                                                        ? 'selected' : '' %>
-                                                        >Contributor</option>
-                                                    <option value="viewer" <%=currentUser.role==='viewer' ? 'selected'
-                                                        : '' %>
-                                                        >Viewer</option>
-                                                </select>
-                                                <button class="button primary small update-role-btn"
-                                                    data-user-id="<%= currentUser.userid %>">
-                                                    Update
-                                                </button>
-                                                <% } %>
+                                                <div style="display: flex; gap: 0.5rem; align-items: center; flex: 1; min-width: 200px;">
+                                                    <select id="role-<%= currentUser.userid %>" class="role-select"
+                                                        data-user-id="<%= currentUser.userid %>"
+                                                        style="
+                                                            flex: 1;
+                                                            padding: 0.5rem 0.75rem;
+                                                            border: 1px solid var(--color-border);
+                                                            border-radius: 6px;
+                                                            background: white;
+                                                            color: var(--color-text);
+                                                            font-size: 0.875rem;
+                                                            transition: border-color 0.2s ease;
+                                                        " onfocus="this.style.borderColor='var(--color-primary)'" onblur="this.style.borderColor='var(--color-border)'">
+                                                        <option value="admin" <%=currentUser.role==='admin' ? 'selected' : '' %>>
+                                                            👑 Admin
+                                                        </option>
+                                                        <option value="contributor" <%=currentUser.role==='contributor' ? 'selected' : '' %>>
+                                                            📝 Contributor
+                                                        </option>
+                                                        <option value="viewer" <%=currentUser.role==='viewer' ? 'selected' : '' %>>
+                                                            👁️ Viewer
+                                                        </option>
+                                                    </select>
+                                                    <button class="button primary small update-role-btn"
+                                                        data-user-id="<%= currentUser.userid %>"
+                                                        style="
+                                                            padding: 0.5rem 1rem;
+                                                            font-size: 0.875rem;
+                                                            font-weight: 600;
+                                                            white-space: nowrap;
+                                                        ">
+                                                        ✨ Update
+                                                    </button>
+                                                </div>
+                                            <% } %>
+                                        </div>
                                     </div>
 
-                                    <div class="action-buttons">
+                                    <div class="action-buttons" style="display: flex; flex-direction: column; gap: 0.5rem;">
                                         <% if (user.userid !==currentUser.userid) { %>
                                             <% if (currentUser.isProtected) { %>
-                                                <span class="protected-badge"><img src="/images/icons/shield-check.png" alt="Protected" style="width: 36px; height: 36px; vertical-align: middle; margin-right: 10px;" /> Protected</span>
+                                                <div class="protected-badge" style="
+                                                    display: flex;
+                                                    align-items: center;
+                                                    justify-content: center;
+                                                    padding: 0.75rem 1rem;
+                                                    background: linear-gradient(135deg, #f59e0b, #d97706);
+                                                    color: white;
+                                                    border-radius: 6px;
+                                                    font-weight: 600;
+                                                    font-size: 0.875rem;
+                                                    text-align: center;
+                                                ">
+                                                    <img src="/images/icons/shield-check.png" alt="Protected" style="width: 20px; height: 20px; margin-right: 0.5rem;" />
+                                                    Protected Account
+                                                </div>
                                             <% } else { %>
-                                                <!-- Ban/Unban Controls -->
-                                                <% if (currentUser.analytics.isCurrentlyBanned) { %>
-                                                    <button class="button success small unban-btn"
-                                                        data-user-id="<%= currentUser.userid %>">
-                                                        Unban User
-                                                    </button>
-                                                <% } else { %>
-                                                    <button class="button warning small ban-btn"
-                                                        data-user-id="<%= currentUser.userid %>"
-                                                        data-user-name="<%= currentUser.firstname %> <%= currentUser.lastname %>">
-                                                        Ban User
-                                                    </button>
-                                                <% } %>
+                                                <!-- Action Buttons Row -->
+                                                <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+                                                    <!-- Ban/Unban Button -->
+                                                    <% if (currentUser.analytics.isCurrentlyBanned) { %>
+                                                        <button class="button success small unban-btn"
+                                                            data-user-id="<%= currentUser.userid %>"
+                                                            style="flex: 1; min-width: 120px;">
+                                                            ✅ Unban User
+                                                        </button>
+                                                    <% } else { %>
+                                                        <button class="button warning small ban-btn"
+                                                            data-user-id="<%= currentUser.userid %>"
+                                                            data-user-name="<%= currentUser.firstname %> <%= currentUser.lastname %>"
+                                                            style="flex: 1; min-width: 120px;">
+                                                            🚫 Ban User
+                                                        </button>
+                                                    <% } %>
 
-                                                <button class="button danger small delete-btn"
-                                                    data-user-id="<%= currentUser.userid %>">
-                                                    Delete User
-                                                </button>
+                                                    <!-- Delete Button -->
+                                                    <button class="button danger small delete-btn"
+                                                        data-user-id="<%= currentUser.userid %>"
+                                                        style="flex: 1; min-width: 120px;">
+                                                        🗑️ Delete User
+                                                    </button>
+                                                </div>
                                             <% } %>
-                                        <% } else { %>
-                                            <span class="current-user-badge">Current User</span>
+                                        <% } %>
+
+                                        <!-- View History Button (for all users) - Full width -->
+                                        <button class="button info small history-btn"
+                                            data-user-id="<%= currentUser.userid %>"
+                                            data-user-name="<%= currentUser.firstname %> <%= currentUser.lastname %>"
+                                            style="width: 100%; padding: 0.75rem 1rem; font-weight: 600; font-size: 0.875rem;">
+                                            📋 View Account History
+                                        </button>
+
+                                        <% if (user.userid === currentUser.userid) { %>
+                                            <div class="current-user-badge" style="
+                                                display: flex;
+                                                align-items: center;
+                                                justify-content: center;
+                                                padding: 0.75rem 1rem;
+                                                background: linear-gradient(135deg, #3b82f6, #2563eb);
+                                                color: white;
+                                                border-radius: 6px;
+                                                font-weight: 600;
+                                                font-size: 0.875rem;
+                                                text-align: center;
+                                            ">
+                                                👤 Current User
+                                            </div>
                                         <% } %>
                                     </div>
                                 </div>
@@ -437,6 +562,62 @@
             <div class="modal-actions">
                 <button id="banConfirmBtn" class="button danger">Ban User</button>
                 <button id="banCancelBtn" class="button secondary">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- User History Modal -->
+    <div id="historyModal" class="modal" style="display: none;">
+        <div class="modal-content" style="max-width: 90vw; width: 1000px; max-height: 90vh; overflow-y: auto;">
+            <div class="modal-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; padding-bottom: 1rem; border-bottom: 2px solid var(--color-border);">
+                <h3 id="historyModalTitle">Account History</h3>
+                <button id="historyModalClose" class="button secondary small" style="padding: 0.5rem 1rem;">✕ Close</button>
+            </div>
+
+            <div class="history-filters" style="margin-bottom: 1rem; padding: 1rem; background: var(--color-background-secondary); border-radius: 8px;">
+                <div style="display: flex; gap: 1rem; align-items: center; flex-wrap: wrap;">
+                    <div>
+                        <label for="historyActionFilter" style="display: block; margin-bottom: 0.25rem; font-weight: 600;">Filter by Action:</label>
+                        <select id="historyActionFilter" style="padding: 0.5rem; border: 1px solid var(--color-border); border-radius: 4px;">
+                            <option value="">All Actions</option>
+                            <option value="UPLOAD">Uploads</option>
+                            <option value="DOWNLOAD">Downloads</option>
+                            <option value="REPORT">Reports</option>
+                            <option value="BAN">Bans</option>
+                            <option value="UNBAN">Unbans</option>
+                            <option value="ROLE_CHANGE">Role Changes</option>
+                            <option value="LOGIN">Logins</option>
+                            <option value="LOGOUT">Logouts</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="historyPageSize" style="display: block; margin-bottom: 0.25rem; font-weight: 600;">Items per page:</label>
+                        <select id="historyPageSize" style="padding: 0.5rem; border: 1px solid var(--color-border); border-radius: 4px;">
+                            <option value="25">25</option>
+                            <option value="50" selected>50</option>
+                            <option value="100">100</option>
+                        </select>
+                    </div>
+                    <button id="refreshHistory" class="button primary small">🔄 Refresh</button>
+                </div>
+            </div>
+
+            <div id="historyContent" style="min-height: 400px;">
+                <div class="loading-spinner" style="text-align: center; padding: 2rem;">
+                    <div style="display: inline-block; width: 40px; height: 40px; border: 4px solid var(--color-border); border-top: 4px solid var(--color-primary); border-radius: 50%; animation: spin 1s linear infinite;"></div>
+                    <p style="margin-top: 1rem; color: var(--color-text-light);">Loading account history...</p>
+                </div>
+            </div>
+
+            <div id="historyPagination" style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--color-border); display: none;">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <div id="historyPaginationInfo" style="color: var(--color-text-light); font-size: 0.9rem;"></div>
+                    <div style="display: flex; gap: 0.5rem;">
+                        <button id="historyPrevPage" class="button secondary small" disabled>← Previous</button>
+                        <span id="historyPageNumbers" style="display: flex; gap: 0.25rem; align-items: center;"></span>
+                        <button id="historyNextPage" class="button secondary small" disabled>Next →</button>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -524,6 +705,233 @@
             }
         }
 
+        // User History Modal Functionality
+        let currentHistoryUserId = null;
+        let currentHistoryPage = 1;
+        let currentHistoryLimit = 50;
+        let currentHistoryAction = '';
+
+        function openHistoryModal(userId, userName) {
+            currentHistoryUserId = userId;
+            currentHistoryPage = 1;
+            currentHistoryAction = '';
+
+            document.getElementById('historyModalTitle').textContent = `Account History - ${userName}`;
+            document.getElementById('historyModal').style.display = 'block';
+            document.getElementById('historyActionFilter').value = '';
+            document.getElementById('historyPageSize').value = '50';
+
+            loadUserHistory();
+        }
+
+        function closeHistoryModal() {
+            document.getElementById('historyModal').style.display = 'none';
+            currentHistoryUserId = null;
+        }
+
+        async function loadUserHistory() {
+            if (!currentHistoryUserId) return;
+
+            const historyContent = document.getElementById('historyContent');
+            const historyPagination = document.getElementById('historyPagination');
+
+            // Show loading
+            historyContent.innerHTML = `
+                <div class="loading-spinner" style="text-align: center; padding: 2rem;">
+                    <div style="display: inline-block; width: 40px; height: 40px; border: 4px solid var(--color-border); border-top: 4px solid var(--color-primary); border-radius: 50%; animation: spin 1s linear infinite;"></div>
+                    <p style="margin-top: 1rem; color: var(--color-text-light);">Loading account history...</p>
+                </div>
+            `;
+            historyPagination.style.display = 'none';
+
+            try {
+                const params = new URLSearchParams({
+                    page: currentHistoryPage,
+                    limit: currentHistoryLimit
+                });
+
+                if (currentHistoryAction) {
+                    params.append('action', currentHistoryAction);
+                }
+
+                const response = await fetch(`/api/user-history/${currentHistoryUserId}?${params}`);
+                const data = await response.json();
+
+                if (data.success) {
+                    renderHistoryContent(data);
+                    renderHistoryPagination(data.pagination);
+                } else {
+                    historyContent.innerHTML = `
+                        <div style="text-align: center; padding: 2rem; color: var(--color-error);">
+                            <h4>❌ Error Loading History</h4>
+                            <p>Failed to load account history. Please try again.</p>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                console.error('Error loading user history:', error);
+                historyContent.innerHTML = `
+                    <div style="text-align: center; padding: 2rem; color: var(--color-error);">
+                        <h4>❌ Network Error</h4>
+                        <p>Unable to connect to server. Please check your connection and try again.</p>
+                    </div>
+                `;
+            }
+        }
+
+        function renderHistoryContent(data) {
+            const historyContent = document.getElementById('historyContent');
+
+            if (!data.history || data.history.length === 0) {
+                historyContent.innerHTML = `
+                    <div style="text-align: center; padding: 2rem; color: var(--color-text-light);">
+                        <h4>📋 No History Found</h4>
+                        <p>This user has no recorded account history yet.</p>
+                        <small>History tracking started recently. Older activities may not be recorded.</small>
+                    </div>
+                `;
+                return;
+            }
+
+            const historyHTML = data.history.map(entry => {
+                const timestamp = new Date(entry.timestamp).toLocaleString();
+                const actionIcon = getActionIcon(entry.action);
+                const actionColor = getActionColor(entry.action);
+
+                return `
+                    <div class="history-entry" style="
+                        border: 1px solid var(--color-border);
+                        border-radius: 8px;
+                        padding: 1rem;
+                        margin-bottom: 0.75rem;
+                        background: var(--color-background);
+                        transition: all 0.2s ease;
+                    " onmouseover="this.style.boxShadow='0 2px 8px rgba(0,0,0,0.1)'" onmouseout="this.style.boxShadow='none'">
+                        <div style="display: flex; align-items: flex-start; gap: 1rem;">
+                            <div style="
+                                width: 40px;
+                                height: 40px;
+                                border-radius: 50%;
+                                background: ${actionColor};
+                                display: flex;
+                                align-items: center;
+                                justify-content: center;
+                                color: white;
+                                font-size: 1.2rem;
+                                flex-shrink: 0;
+                            ">
+                                ${actionIcon}
+                            </div>
+                            <div style="flex: 1; min-width: 0;">
+                                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.5rem;">
+                                    <h4 style="margin: 0; color: var(--color-text); font-size: 1rem; font-weight: 600;">
+                                        ${entry.action.replace('_', ' ')}
+                                    </h4>
+                                    <span style="color: var(--color-text-light); font-size: 0.85rem; white-space: nowrap;">
+                                        ${timestamp}
+                                    </span>
+                                </div>
+                                <p style="margin: 0 0 0.5rem 0; color: var(--color-text); line-height: 1.4;">
+                                    ${entry.details}
+                                </p>
+                                ${entry.adminId ? `
+                                    <div style="font-size: 0.8rem; color: var(--color-text-light);">
+                                        <strong>Admin:</strong> ${entry.adminId}
+                                    </div>
+                                ` : ''}
+                                ${entry.metadata && Object.keys(entry.metadata).length > 0 ? `
+                                    <details style="margin-top: 0.5rem;">
+                                        <summary style="cursor: pointer; font-size: 0.8rem; color: var(--color-text-light);">
+                                            View Details
+                                        </summary>
+                                        <pre style="
+                                            margin: 0.5rem 0 0 0;
+                                            padding: 0.5rem;
+                                            background: var(--color-background-secondary);
+                                            border-radius: 4px;
+                                            font-size: 0.75rem;
+                                            overflow-x: auto;
+                                            white-space: pre-wrap;
+                                        ">${JSON.stringify(entry.metadata, null, 2)}</pre>
+                                    </details>
+                                ` : ''}
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            historyContent.innerHTML = historyHTML;
+        }
+
+        function renderHistoryPagination(pagination) {
+            const historyPagination = document.getElementById('historyPagination');
+            const paginationInfo = document.getElementById('historyPaginationInfo');
+            const prevBtn = document.getElementById('historyPrevPage');
+            const nextBtn = document.getElementById('historyNextPage');
+            const pageNumbers = document.getElementById('historyPageNumbers');
+
+            if (pagination.pages <= 1) {
+                historyPagination.style.display = 'none';
+                return;
+            }
+
+            historyPagination.style.display = 'block';
+            paginationInfo.textContent = `Showing ${((pagination.page - 1) * pagination.limit) + 1}-${Math.min(pagination.page * pagination.limit, pagination.total)} of ${pagination.total} entries`;
+
+            prevBtn.disabled = pagination.page <= 1;
+            nextBtn.disabled = pagination.page >= pagination.pages;
+
+            // Generate page numbers
+            const maxVisiblePages = 5;
+            const startPage = Math.max(1, pagination.page - Math.floor(maxVisiblePages / 2));
+            const endPage = Math.min(pagination.pages, startPage + maxVisiblePages - 1);
+
+            pageNumbers.innerHTML = '';
+            for (let i = startPage; i <= endPage; i++) {
+                const pageBtn = document.createElement('button');
+                pageBtn.textContent = i;
+                pageBtn.className = `button ${i === pagination.page ? 'primary' : 'secondary'} small`;
+                pageBtn.style.padding = '0.25rem 0.5rem';
+                pageBtn.style.minWidth = '32px';
+                pageBtn.onclick = () => {
+                    currentHistoryPage = i;
+                    loadUserHistory();
+                };
+                pageNumbers.appendChild(pageBtn);
+            }
+        }
+
+        function getActionIcon(action) {
+            const icons = {
+                'UPLOAD': '📤',
+                'DOWNLOAD': '📥',
+                'REPORT': '🚩',
+                'BAN': '🚫',
+                'UNBAN': '✅',
+                'ROLE_CHANGE': '👤',
+                'LOGIN': '🔑',
+                'LOGOUT': '🚪',
+                'DELETE': '🗑️'
+            };
+            return icons[action] || '📋';
+        }
+
+        function getActionColor(action) {
+            const colors = {
+                'UPLOAD': '#10b981',
+                'DOWNLOAD': '#3b82f6',
+                'REPORT': '#f59e0b',
+                'BAN': '#ef4444',
+                'UNBAN': '#10b981',
+                'ROLE_CHANGE': '#8b5cf6',
+                'LOGIN': '#06b6d4',
+                'LOGOUT': '#6b7280',
+                'DELETE': '#ef4444'
+            };
+            return colors[action] || '#6b7280';
+        }
+
         document.addEventListener('DOMContentLoaded', function () {
             // Check for narrow screens and show mobile switch button
             function checkScreenWidth() {
@@ -543,6 +951,53 @@
 
             // Check on resize
             window.addEventListener('resize', checkScreenWidth);
+
+            // History modal event listeners
+            document.addEventListener('click', function(e) {
+                if (e.target.classList.contains('history-btn')) {
+                    const userId = e.target.dataset.userId;
+                    const userName = e.target.dataset.userName;
+                    openHistoryModal(userId, userName);
+                }
+            });
+
+            // History modal close buttons
+            document.getElementById('historyModalClose').addEventListener('click', closeHistoryModal);
+            document.getElementById('historyModal').addEventListener('click', function(e) {
+                if (e.target === this) {
+                    closeHistoryModal();
+                }
+            });
+
+            // History filters
+            document.getElementById('historyActionFilter').addEventListener('change', function() {
+                currentHistoryAction = this.value;
+                currentHistoryPage = 1;
+                loadUserHistory();
+            });
+
+            document.getElementById('historyPageSize').addEventListener('change', function() {
+                currentHistoryLimit = parseInt(this.value);
+                currentHistoryPage = 1;
+                loadUserHistory();
+            });
+
+            document.getElementById('refreshHistory').addEventListener('click', function() {
+                loadUserHistory();
+            });
+
+            // History pagination
+            document.getElementById('historyPrevPage').addEventListener('click', function() {
+                if (currentHistoryPage > 1) {
+                    currentHistoryPage--;
+                    loadUserHistory();
+                }
+            });
+
+            document.getElementById('historyNextPage').addEventListener('click', function() {
+                // We'll enable/disable this button based on pagination data
+                loadUserHistory();
+            });
 
             // Search and filter
             const searchInput = document.getElementById('userSearch');

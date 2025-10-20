@@ -4815,6 +4815,31 @@ main > .container > p:first-of-type {
   box-shadow: none !important;
 }
 
+.button.info {
+  background: linear-gradient(135deg, #3b82f6, #2563eb);
+  color: white;
+  border: 2px solid #3b82f6;
+  font-weight: var(--font-weight-semibold);
+  padding: var(--space-3) var(--space-8);
+  transition: all var(--transition-fast);
+}
+
+.button.info:hover {
+  background: linear-gradient(135deg, #2563eb, #1d4ed8);
+  border-color: #2563eb;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+}
+
+.button.info:disabled {
+  background: var(--gray-400) !important;
+  color: var(--gray-600) !important;
+  border-color: var(--gray-400) !important;
+  cursor: not-allowed !important;
+  transform: none !important;
+  box-shadow: none !important;
+}
+
 /* DANGER ZONE Styling */
 .danger-zone {
   border: 3px solid var(--red-300);
