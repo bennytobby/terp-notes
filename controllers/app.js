@@ -286,7 +286,7 @@ const LEGITIMATE_WORDS = new Set([
 ]);
 
 // AI/ML Profanity Filter (Self-Improving version)
-const SelfImprovingMLFilter = require('./models/self-improving-ml-filter');
+const SelfImprovingMLFilter = require('./self-improving-ml-filter');
 let aiFilter = null;
 
 // Load profanity list from file

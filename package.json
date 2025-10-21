@@ -6,6 +6,7 @@
         "node": ">=18.0.0"
     },
     "dependencies": {
+        "@tensorflow/tfjs": "^4.22.0",
         "@vercel/analytics": "^1.5.0",
         "@vercel/speed-insights": "^1.2.0",
         "archiver": "^7.0.1",
@@ -24,11 +25,13 @@
         "jsonwebtoken": "^9.0.2",
         "mongodb": "^6.20.0",
         "multer": "^2.0.0-rc.4",
+        "natural": "^8.1.0",
         "node-fetch": "^2.7.0",
         "nodemailer": "^6.10.0",
         "openai": "^4.104.0",
         "redis": "^5.8.2",
         "resend": "^6.1.2",
+        "sentiment": "^5.0.2",
         "sharp": "^0.33.5"
     },
     "scripts": {

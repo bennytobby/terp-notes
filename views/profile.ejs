@@ -9,6 +9,55 @@
     </title>
     <link rel="icon" type="image/png" href="/favicon.png" />
     <link rel="stylesheet" href="/styles/main.css" />
+    <style>
+        /* Navigation Styles */
+        .main-nav {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .nav-link {
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            text-decoration: none;
+            color: rgba(255, 255, 255, 0.9);
+            font-weight: 500;
+            transition: all 0.2s ease;
+            border: 1px solid transparent;
+        }
+
+        .nav-link:hover {
+            background: rgba(255, 255, 255, 0.15);
+            color: white;
+            border-color: rgba(255, 255, 255, 0.3);
+        }
+
+        .nav-link.active {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border-color: rgba(255, 255, 255, 0.4);
+            font-weight: 600;
+        }
+
+        .welcome-text {
+            font-size: 0.9rem;
+            color: rgba(255, 255, 255, 0.9);
+        }
+
+        /* Fix navigation centering */
+        .topbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .main-nav {
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+    </style>
 </head>
 
 <body>
@@ -17,18 +66,22 @@
             <img src="/logo.png" alt="Terp Notes Logo" style="width: 32px; height: 32px; vertical-align: middle; margin-right: 8px; pointer-events: none;" />
             Terp Notes
         </a></h2>
+
+        <!-- Navigation Links -->
+        <nav class="main-nav">
+            <a href="/dashboard" class="nav-link nav-dashboard">Dashboard</a>
+            <a href="/profile" class="nav-link nav-profile">Profile</a>
+            <% if (user.role==='admin' ) { %>
+                <a href="/admin" class="nav-link nav-admin">Admin Panel</a>
+            <% } %>
+        </nav>
+
         <div class="user-info">
-            Welcome, <strong>
-                <%= user.firstname %>
-            </strong>
+            <span class="welcome-text">Welcome, <strong><%= user.firstname %></strong></span>
             <span class="user-role role-<%= user.role %>">
                 <%= user.role %>
             </span>
-            <% if (user.role==='admin' ) { %>
-                | <a href="/admin" class="logout-btn">Admin Panel</a>
-                <% } %>
-                    | <a href="/dashboard" class="logout-btn">Dashboard</a>
-                    | <a href="/logout" class="logout-btn">Logout</a>
+            <a href="/logout" class="logout-btn">Logout</a>
         </div>
     </header>
 
@@ -37,6 +90,13 @@
             <h1>My Profile</h1>
             <p class="profile-subtitle">Manage your account information</p>
 
+            <% if (typeof error !== 'undefined' && error) { %>
+                <div style="background: #FEF2F2; border: 1px solid #FECACA; color: #DC2626; padding: 12px 16px; border-radius: 8px; margin-bottom: 1rem; font-size: 0.875rem; display: flex; align-items: center;">
+                    <span style="margin-right: 8px;">⚠️</span>
+                    <%= error %>
+                </div>
+            <% } %>
+
             <!-- Profile Information -->
             <section class="profile-section">
                 <h2>Profile Information</h2>
@@ -44,12 +104,12 @@
                     <div class="form-row">
                         <div class="form-group">
                             <label for="firstname">First Name</label>
-                            <input type="text" id="firstname" name="firstname" value="<%= user.firstname %>" required>
+                            <input type="text" id="firstname" name="firstname" value="<%= typeof firstname !== 'undefined' ? firstname : user.firstname %>" required>
                         </div>
 
                         <div class="form-group">
                             <label for="lastname">Last Name</label>
-                            <input type="text" id="lastname" name="lastname" value="<%= user.lastname %>" required>
+                            <input type="text" id="lastname" name="lastname" value="<%= typeof lastname !== 'undefined' ? lastname : user.lastname %>" required>
                         </div>
                     </div>
 
@@ -325,6 +385,17 @@
                 });
             }
 
+        });
+
+        // Set active navigation link
+        document.addEventListener('DOMContentLoaded', function() {
+            const currentPath = window.location.pathname;
+            document.querySelectorAll('.nav-link').forEach(link => {
+                link.classList.remove('active');
+                if (link.getAttribute('href') === currentPath) {
+                    link.classList.add('active');
+                }
+            });
         });
     </script>
     <%- include('partials/footer') %>

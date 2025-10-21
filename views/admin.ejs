@@ -9,6 +9,55 @@
     </title>
     <link rel="icon" type="image/png" href="/favicon.png" />
     <link rel="stylesheet" href="/styles/main.css" />
+    <style>
+        /* Navigation Styles */
+        .main-nav {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .nav-link {
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            text-decoration: none;
+            color: rgba(255, 255, 255, 0.9);
+            font-weight: 500;
+            transition: all 0.2s ease;
+            border: 1px solid transparent;
+        }
+
+        .nav-link:hover {
+            background: rgba(255, 255, 255, 0.15);
+            color: white;
+            border-color: rgba(255, 255, 255, 0.3);
+        }
+
+        .nav-link.active {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border-color: rgba(255, 255, 255, 0.4);
+            font-weight: 600;
+        }
+
+        .welcome-text {
+            font-size: 0.9rem;
+            color: rgba(255, 255, 255, 0.9);
+        }
+
+        /* Fix navigation centering */
+        .topbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .main-nav {
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+    </style>
 </head>
 
 <body>
@@ -17,15 +66,19 @@
             <img src="/logo.png" alt="Terp Notes Logo" style="width: 32px; height: 32px; vertical-align: middle; margin-right: 8px; pointer-events: none;" />
             Terp Notes - Admin
         </a></h2>
+
+        <!-- Navigation Links -->
+        <nav class="main-nav">
+            <a href="/dashboard" class="nav-link nav-dashboard">Dashboard</a>
+            <a href="/profile" class="nav-link nav-profile">Profile</a>
+            <a href="/admin" class="nav-link nav-admin">Admin Panel</a>
+        </nav>
+
         <div class="user-info">
-            Welcome, <strong>
-                <%= user.firstname %>
-            </strong>
+            <span class="welcome-text">Welcome, <strong><%= user.firstname %></strong></span>
             <span class="user-role role-<%= user.role %>">
                 <%= user.role %>
-            </span> |
-            <a href="/dashboard" class="logout-btn">Dashboard</a> |
-            <a href="/profile" class="logout-btn">My Profile</a> |
+            </span>
             <button onclick="showQuickLogout()" class="logout-btn" style="background: none; border: none; color: inherit; cursor: pointer; text-decoration: underline;">Logout</button>
         </div>
     </header>
@@ -236,6 +289,259 @@
                                 one to
                                 get started!</p>
                             <% } %>
+                </section>
+
+                <!-- ML Model Performance Section -->
+                <section class="ml-model-section" style="margin-top: 3rem; border: 3px solid #F59E0B; border-radius: 12px; padding: 2rem; background: #FFFBEB;">
+                    <div class="section-header">
+                        <h2>🤖 ML Model Performance</h2>
+                        <p style="color: #6B7280; margin-bottom: 1.5rem;">Monitor and evaluate the self-improving ML profanity filter performance</p>
+                    </div>
+
+                    <!-- Model Status Card -->
+                    <div class="model-status-card" style="
+                        background: white;
+                        border: 1px solid var(--color-border);
+                        border-radius: 12px;
+                        padding: 2rem;
+                        margin-bottom: 2rem;
+                        box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+                    ">
+                        <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1.5rem;">
+                            <div id="modelStatusIndicator" style="
+                                width: 40px;
+                                height: 40px;
+                                border-radius: 50%;
+                                background: #6B7280;
+                                display: flex;
+                                align-items: center;
+                                justify-content: center;
+                                color: white;
+                                font-size: 1.2rem;
+                            ">⏳</div>
+                            <div>
+                                <h3 style="margin: 0 0 0.25rem 0; color: var(--color-text);">Model Status</h3>
+                                <p id="modelStatusText" style="margin: 0; color: var(--color-text-light);">Loading...</p>
+                            </div>
+                        </div>
+
+                        <div id="modelStats" style="display: none;">
+                            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
+                                <div class="stat-item">
+                                    <div class="stat-value" id="totalPredictions">0</div>
+                                    <div class="stat-label">Total Predictions</div>
+                                </div>
+                                <div class="stat-item">
+                                    <div class="stat-value" id="accuracy">0%</div>
+                                    <div class="stat-label">Accuracy</div>
+                                </div>
+                                <div class="stat-item">
+                                    <div class="stat-value" id="agreementRate">0%</div>
+                                    <div class="stat-label">Rule Agreement</div>
+                                </div>
+                                <div class="stat-item">
+                                    <div class="stat-item">
+                                        <div class="stat-value" id="trainingExamples">0</div>
+                                        <div class="stat-label">Training Examples</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Model Actions -->
+                            <div style="margin-top: 1.5rem; padding-top: 1rem; border-top: 1px solid var(--color-border);">
+                                <div style="display: flex; gap: 1rem; flex-wrap: wrap; margin-bottom: 1rem;">
+                                    <button id="resetModelBtn" class="button warning" style="
+                                        padding: 0.75rem 1.5rem;
+                                        font-size: 0.875rem;
+                                        font-weight: 600;
+                                    ">
+                                        🔄 Reset Model
+                                    </button>
+                                    <button id="clearConflictsBtn" class="button danger" style="
+                                        padding: 0.75rem 1.5rem;
+                                        font-size: 0.875rem;
+                                        font-weight: 600;
+                                    ">
+                                        🧹 Clear Conflicts
+                                    </button>
+                                </div>
+                                <p style="margin: 0.5rem 0 0 0; color: #6B7280; font-size: 0.8rem;">
+                                    <strong>Reset Model:</strong> Reinitialize with better weights. <strong>Clear Conflicts:</strong> Remove conflicting training data that's confusing the model.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Reinforcement Learning Statistics -->
+                    <div class="rl-stats-card" style="
+                        background: white;
+                        border: 1px solid var(--color-border);
+                        border-radius: 12px;
+                        padding: 2rem;
+                        margin-bottom: 2rem;
+                        box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+                    ">
+                        <h3 style="margin: 0 0 1.5rem 0; color: var(--color-text);">🧠 Reinforcement Learning Stats</h3>
+                        <div id="rlStats" style="display: none;">
+                            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
+                                <div class="stat-item">
+                                    <div class="stat-value" id="episodeCount">0</div>
+                                    <div class="stat-label">Learning Episodes</div>
+                                </div>
+                                <div class="stat-item">
+                                    <div class="stat-value" id="explorationRate">0%</div>
+                                    <div class="stat-label">Exploration Rate</div>
+                                </div>
+                                <div class="stat-item">
+                                    <div class="stat-value" id="successStreak">0</div>
+                                    <div class="stat-label">Success Streak</div>
+                                </div>
+                                <div class="stat-item">
+                                    <div class="stat-value" id="avgReward">0.00</div>
+                                    <div class="stat-label">Avg Reward</div>
+                                </div>
+                                <div class="stat-item">
+                                    <div class="stat-value" id="successRate">0%</div>
+                                    <div class="stat-label">Success Rate</div>
+                                </div>
+                                <div class="stat-item">
+                                    <div class="stat-value" id="qTableSize">0</div>
+                                    <div class="stat-label">Q-Table Size</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Model Testing Section -->
+                    <div class="model-testing-card" style="
+                        background: white;
+                        border: 1px solid var(--color-border);
+                        border-radius: 12px;
+                        padding: 2rem;
+                        margin-bottom: 2rem;
+                        box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+                    ">
+                        <h3 style="margin: 0 0 1.5rem 0; color: var(--color-text);">Test ML Model</h3>
+                        <p style="color: #6B7280; margin-bottom: 1.5rem;">Test the model with sample text to see how it performs</p>
+
+                        <form id="modelTestForm" style="margin-bottom: 1.5rem;">
+                            <div class="form-group">
+                                <label for="testText" style="display: block; margin-bottom: 0.5rem; font-weight: 600;">Test Text:</label>
+                                <textarea id="testText" required rows="3" placeholder="Enter text to test the ML model..." style="
+                                    width: 100%;
+                                    padding: 0.75rem;
+                                    border: 1px solid #D1D5DB;
+                                    border-radius: 8px;
+                                    font-size: 1rem;
+                                    resize: vertical;
+                                "></textarea>
+                            </div>
+                            <button type="submit" class="button primary" style="margin-top: 1rem;">
+                                🧪 Test Model
+                            </button>
+                        </form>
+
+                        <div id="testResults" style="display: none;">
+                            <h4 style="margin: 0 0 1rem 0; color: var(--color-text);">Test Results:</h4>
+                            <div id="testResultContent" style="
+                                background: var(--color-background-secondary);
+                                border: 1px solid var(--color-border);
+                                border-radius: 8px;
+                                padding: 1rem;
+                                font-family: monospace;
+                                font-size: 0.9rem;
+                                white-space: pre-wrap;
+                                margin-bottom: 1rem;
+                            "></div>
+
+                            <!-- Admin Feedback Section -->
+                            <div id="adminFeedback" style="
+                                background: #F0F9FF;
+                                border: 1px solid #3B82F6;
+                                border-radius: 8px;
+                                padding: 1rem;
+                                margin-top: 1rem;
+                            ">
+                                <h5 style="margin: 0 0 0.75rem 0; color: #1E40AF; font-size: 1rem;">🤖 Model Feedback</h5>
+                                <p style="margin: 0 0 1rem 0; color: #1E40AF; font-size: 0.9rem;">
+                                    Was the model's decision correct? Help it learn by providing feedback:
+                                </p>
+                                <div style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
+                                    <button id="feedbackCorrect" class="button success small" style="
+                                        padding: 0.5rem 1rem;
+                                        font-size: 0.875rem;
+                                        font-weight: 600;
+                                    ">
+                                        ✅ Correct Decision
+                                    </button>
+                                    <button id="feedbackWrong" class="button danger small" style="
+                                        padding: 0.5rem 1rem;
+                                        font-size: 0.875rem;
+                                        font-weight: 600;
+                                    ">
+                                        ❌ Wrong Decision
+                                    </button>
+                                    <button id="feedbackNeutral" class="button secondary small" style="
+                                        padding: 0.5rem 1rem;
+                                        font-size: 0.875rem;
+                                        font-weight: 600;
+                                    ">
+                                        🤷 Not Sure
+                                    </button>
+                                </div>
+                                <div id="feedbackMessage" style="
+                                    margin-top: 0.75rem;
+                                    padding: 0.5rem;
+                                    border-radius: 4px;
+                                    font-size: 0.875rem;
+                                    display: none;
+                                "></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Performance Charts Section -->
+                    <div class="performance-charts-card" style="
+                        background: white;
+                        border: 1px solid var(--color-border);
+                        border-radius: 12px;
+                        padding: 2rem;
+                        box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+                    ">
+                        <h3 style="margin: 0 0 1.5rem 0; color: var(--color-text);">Performance Metrics</h3>
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2rem;">
+                            <div>
+                                <h4 style="margin: 0 0 1rem 0; color: var(--color-text);">Agreement vs Disagreement</h4>
+                                <div id="agreementChart" style="
+                                    height: 200px;
+                                    background: var(--color-background-secondary);
+                                    border: 1px solid var(--color-border);
+                                    border-radius: 8px;
+                                    display: flex;
+                                    align-items: center;
+                                    justify-content: center;
+                                    color: var(--color-text-light);
+                                ">
+                                    Loading chart...
+                                </div>
+                            </div>
+                            <div>
+                                <h4 style="margin: 0 0 1rem 0; color: var(--color-text);">Accuracy Over Time</h4>
+                                <div id="accuracyChart" style="
+                                    height: 200px;
+                                    background: var(--color-background-secondary);
+                                    border: 1px solid var(--color-border);
+                                    border-radius: 8px;
+                                    display: flex;
+                                    align-items: center;
+                                    justify-content: center;
+                                    color: var(--color-text-light);
+                                ">
+                                    Loading chart...
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </section>
 
                 <!-- User Management Section -->
@@ -932,7 +1238,396 @@
             return colors[action] || '#6b7280';
         }
 
+        // ML Model Performance Functions
+        async function loadMLModelPerformance() {
+            try {
+                const response = await fetch('/api/admin/ml-model-performance');
+
+                // Check if we got redirected to login (not authenticated)
+                if (response.redirected || response.url.includes('/login')) {
+                    updateModelStatus({ success: false, error: 'Authentication required' });
+                    return;
+                }
+
+                // Check if response is HTML (404 page) instead of JSON
+                const contentType = response.headers.get('content-type');
+                if (!contentType || !contentType.includes('application/json')) {
+                    updateModelStatus({ success: false, error: 'API endpoint not found' });
+                    return;
+                }
+
+                const data = await response.json();
+
+                if (data.success) {
+                    updateModelStatus(data);
+                    updateModelStats(data.performanceStats);
+                    updatePerformanceCharts(data.performanceStats);
+                } else {
+                    updateModelStatus({ success: false, error: data.error });
+                }
+            } catch (error) {
+                console.error('Error loading ML model performance:', error);
+                updateModelStatus({ success: false, error: 'Failed to load model data' });
+            }
+        }
+
+        function updateModelStatus(data) {
+            const statusIndicator = document.getElementById('modelStatusIndicator');
+            const statusText = document.getElementById('modelStatusText');
+
+            if (data.success) {
+                statusIndicator.style.background = '#10B981';
+                statusIndicator.textContent = '✅';
+                statusText.textContent = 'Model is ready and operational';
+                document.getElementById('modelStats').style.display = 'block';
+            } else {
+                statusIndicator.style.background = '#EF4444';
+                statusIndicator.textContent = '❌';
+                statusText.textContent = data.error || 'Model not available';
+            }
+        }
+
+        function updateModelStats(stats) {
+            document.getElementById('totalPredictions').textContent = stats.totalPredictions || 0;
+            document.getElementById('accuracy').textContent = `${(stats.accuracy || 0).toFixed(1)}%`;
+            document.getElementById('agreementRate').textContent = `${(stats.agreementRate || 0).toFixed(1)}%`;
+            document.getElementById('trainingExamples').textContent = stats.trainingExamples || 0;
+        }
+
+        function updatePerformanceCharts(stats) {
+            // Simple text-based charts for now
+            const agreementChart = document.getElementById('agreementChart');
+            const accuracyChart = document.getElementById('accuracyChart');
+
+            if (stats.totalPredictions > 0) {
+                const agreements = stats.ruleBasedAgreements || 0;
+                const disagreements = stats.ruleBasedDisagreements || 0;
+
+                agreementChart.innerHTML = `
+                    <div style="text-align: center; padding: 1rem;">
+                        <div style="font-size: 2rem; margin-bottom: 0.5rem;">📊</div>
+                        <div style="font-weight: 600; margin-bottom: 0.5rem;">Agreement: ${agreements}</div>
+                        <div style="font-weight: 600; color: #EF4444;">Disagreement: ${disagreements}</div>
+                        <div style="font-size: 0.8rem; color: #6B7280; margin-top: 0.5rem;">
+                            ${((agreements / (agreements + disagreements)) * 100).toFixed(1)}% Agreement Rate
+                        </div>
+                    </div>
+                `;
+
+                accuracyChart.innerHTML = `
+                    <div style="text-align: center; padding: 1rem;">
+                        <div style="font-size: 2rem; margin-bottom: 0.5rem;">📈</div>
+                        <div style="font-weight: 600; margin-bottom: 0.5rem;">Current Accuracy</div>
+                        <div style="font-size: 1.5rem; color: #10B981; font-weight: 700;">
+                            ${(stats.accuracy || 0).toFixed(1)}%
+                        </div>
+                        <div style="font-size: 0.8rem; color: #6B7280; margin-top: 0.5rem;">
+                            Based on ${stats.totalPredictions} predictions
+                        </div>
+                    </div>
+                `;
+            } else {
+                agreementChart.innerHTML = '<div style="text-align: center; color: #6B7280;">No data available yet</div>';
+                accuracyChart.innerHTML = '<div style="text-align: center; color: #6B7280;">No data available yet</div>';
+            }
+        }
+
+        // Model Testing Function
+        async function testMLModel(testText) {
+            try {
+                const response = await fetch('/api/admin/test-ml-model', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ testText })
+                });
+
+                // Check if we got redirected to login (not authenticated)
+                if (response.redirected || response.url.includes('/login')) {
+                    return { success: false, error: 'Authentication required' };
+                }
+
+                // Check if response is HTML (404 page) instead of JSON
+                const contentType = response.headers.get('content-type');
+                if (!contentType || !contentType.includes('application/json')) {
+                    return { success: false, error: 'API endpoint not found' };
+                }
+
+                const data = await response.json();
+                return data;
+            } catch (error) {
+                console.error('Error testing ML model:', error);
+                return { success: false, error: 'Failed to test model' };
+            }
+        }
+
+        // Store current test result for feedback
+        let currentTestResult = null;
+
+        function displayTestResults(result) {
+            const testResults = document.getElementById('testResults');
+            const testResultContent = document.getElementById('testResultContent');
+
+            if (result.success) {
+                currentTestResult = result.result;
+                const resultData = result.result;
+
+                // Reset feedback UI for new test
+                const feedbackMessage = document.getElementById('feedbackMessage');
+                feedbackMessage.style.display = 'none';
+                feedbackMessage.textContent = '';
+
+                // Re-enable feedback buttons
+                document.getElementById('feedbackCorrect').disabled = false;
+                document.getElementById('feedbackWrong').disabled = false;
+                document.getElementById('feedbackNeutral').disabled = false;
+                const output = `
+Test Text: "${resultData.text}"
+Final Decision: ${resultData.finalDecision ? '🚫 PROFANITY DETECTED' : '✅ CLEAN'}
+Method: ${resultData.method}
+Confidence: ${(resultData.confidence * 100).toFixed(1)}%
+
+ML Prediction: ${(resultData.mlPrediction * 100).toFixed(1)}%
+ML Decision: ${resultData.mlDecision ? 'Profanity' : 'Clean'}
+Rule-Based Result: ${resultData.ruleBasedResult.found ? 'Profanity' : 'Clean'}
+Agreement: ${resultData.agreement ? '✅ Yes' : '❌ No'}
+
+Learning Data:
+- ML Confidence: ${(resultData.learningData.mlConfidence * 100).toFixed(1)}%
+- Rule-Based Confidence: ${(resultData.learningData.ruleBasedConfidence * 100).toFixed(1)}%
+- Disagreement: ${resultData.learningData.disagreement ? 'Yes' : 'No'}
+                `.trim();
+
+                testResultContent.textContent = output;
+                testResults.style.display = 'block';
+            } else {
+                currentTestResult = null;
+                testResultContent.textContent = `Error: ${result.error}`;
+                testResults.style.display = 'block';
+            }
+        }
+
+        // Admin feedback functions
+        async function submitAdminFeedback(feedbackType) {
+            if (!currentTestResult) {
+                showNotification('No test result available for feedback', 'error');
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/admin/ml-model-feedback', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        testText: currentTestResult.text,
+                        modelDecision: currentTestResult.finalDecision,
+                        adminFeedback: feedbackType,
+                        mlPrediction: currentTestResult.mlPrediction,
+                        ruleBasedDecision: currentTestResult.ruleBasedResult.found,
+                        agreement: currentTestResult.agreement
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    const feedbackMessage = document.getElementById('feedbackMessage');
+                    feedbackMessage.style.display = 'block';
+                    feedbackMessage.style.background = '#10B981';
+                    feedbackMessage.style.color = 'white';
+                    feedbackMessage.textContent = '✅ Feedback recorded! This will help the model learn.';
+
+                    // Disable feedback buttons
+                    document.getElementById('feedbackCorrect').disabled = true;
+                    document.getElementById('feedbackWrong').disabled = true;
+                    document.getElementById('feedbackNeutral').disabled = true;
+
+                    showNotification('Feedback submitted successfully!', 'success');
+
+                    // Refresh model performance stats
+                    setTimeout(loadMLModelPerformance, 1000);
+                } else {
+                    showNotification('Error submitting feedback: ' + data.error, 'error');
+                }
+            } catch (error) {
+                console.error('Error submitting feedback:', error);
+                showNotification('Error submitting feedback', 'error');
+            }
+        }
+
+        // Load Reinforcement Learning Statistics
+        async function loadRLStats() {
+            try {
+                const response = await fetch('/api/admin/ml-learning-stats');
+
+                if (response.redirected || response.url.includes('/login')) {
+                    return;
+                }
+
+                const contentType = response.headers.get('content-type');
+                if (!contentType || !contentType.includes('application/json')) {
+                    return;
+                }
+
+                const data = await response.json();
+
+                if (data.success) {
+                    updateRLStats(data.learningStats);
+                }
+            } catch (error) {
+                console.error('Error loading RL stats:', error);
+            }
+        }
+
+        function updateRLStats(stats) {
+            const rlStats = document.getElementById('rlStats');
+            if (!rlStats) return;
+
+            // Update the stats display
+            document.getElementById('episodeCount').textContent = stats.episodeCount || 0;
+            document.getElementById('explorationRate').textContent = ((stats.explorationRate || 0) * 100).toFixed(1) + '%';
+            document.getElementById('successStreak').textContent = stats.successStreak || 0;
+            document.getElementById('avgReward').textContent = (stats.avgReward || 0).toFixed(3);
+            document.getElementById('successRate').textContent = ((stats.successRate || 0) * 100).toFixed(1) + '%';
+            document.getElementById('qTableSize').textContent = stats.qTableSize || 0;
+
+            // Show the stats section
+            rlStats.style.display = 'block';
+        }
+
         document.addEventListener('DOMContentLoaded', function () {
+        // Set active navigation link
+        const currentPath = window.location.pathname;
+        document.querySelectorAll('.nav-link').forEach(link => {
+            link.classList.remove('active');
+            if (link.getAttribute('href') === currentPath) {
+                link.classList.add('active');
+            }
+        });
+
+        // Load ML model performance on page load
+        loadMLModelPerformance();
+        loadRLStats();
+
+        // Auto-refresh ML model performance every 30 seconds
+        setInterval(loadMLModelPerformance, 30000);
+        setInterval(loadRLStats, 30000);
+
+            // Admin feedback button event listeners
+            document.getElementById('feedbackCorrect').addEventListener('click', () => submitAdminFeedback('correct'));
+            document.getElementById('feedbackWrong').addEventListener('click', () => submitAdminFeedback('wrong'));
+            document.getElementById('feedbackNeutral').addEventListener('click', () => submitAdminFeedback('neutral'));
+
+            // Clear conflicts button
+            document.getElementById('clearConflictsBtn').addEventListener('click', async () => {
+                const confirmed = await customConfirm(
+                    'Are you sure you want to clear conflicting training data? This will remove contradictory examples that are confusing the model.',
+                    'Clear Conflicting Data'
+                );
+                if (!confirmed) return;
+
+                const clearBtn = document.getElementById('clearConflictsBtn');
+                const originalText = clearBtn.textContent;
+                clearBtn.textContent = 'Clearing...';
+                clearBtn.disabled = true;
+
+                try {
+                    const response = await fetch('/api/admin/clear-ml-conflicts', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' }
+                    });
+
+                    const data = await response.json();
+
+                    if (data.success) {
+                        showNotification('Conflicting data cleared successfully!', 'success');
+                        // Refresh the model performance data
+                        setTimeout(loadMLModelPerformance, 1000);
+                    } else {
+                        showNotification('Error clearing conflicts: ' + data.error, 'error');
+                    }
+                } catch (error) {
+                    showNotification('Error clearing conflicts', 'error');
+                } finally {
+                    clearBtn.textContent = originalText;
+                    clearBtn.disabled = false;
+                }
+            });
+
+            // Model reset button
+            document.getElementById('resetModelBtn').addEventListener('click', async () => {
+                const confirmed = await customConfirm(
+                    'Are you sure you want to reset the ML model? This will reinitialize it with better weights and clear all training data.',
+                    'Reset ML Model'
+                );
+                if (!confirmed) return;
+
+                const resetBtn = document.getElementById('resetModelBtn');
+                const originalText = resetBtn.textContent;
+                resetBtn.textContent = 'Resetting...';
+                resetBtn.disabled = true;
+
+                try {
+                    const response = await fetch('/api/admin/reset-ml-model', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' }
+                    });
+
+                    const data = await response.json();
+
+                    if (data.success) {
+                        showNotification('Model reset successfully!', 'success');
+                        // Refresh the model performance data
+                        setTimeout(loadMLModelPerformance, 1000);
+                    } else {
+                        showNotification('Error resetting model: ' + data.error, 'error');
+                    }
+                } catch (error) {
+                    showNotification('Error resetting model', 'error');
+                } finally {
+                    resetBtn.textContent = originalText;
+                    resetBtn.disabled = false;
+                }
+            });
+
+            // Model test form submission
+            const modelTestForm = document.getElementById('modelTestForm');
+            if (modelTestForm) {
+                modelTestForm.addEventListener('submit', async (e) => {
+                    e.preventDefault();
+                    const testText = document.getElementById('testText').value;
+
+                    if (!testText.trim()) {
+                        showNotification('Please enter test text', 'error');
+                        return;
+                    }
+
+                    const testButton = modelTestForm.querySelector('button[type="submit"]');
+                    const originalText = testButton.textContent;
+                    testButton.textContent = 'Testing...';
+                    testButton.disabled = true;
+
+                    try {
+                        const result = await testMLModel(testText);
+                        displayTestResults(result);
+
+                        if (result.success) {
+                            showNotification('Model test completed!', 'success');
+                        } else {
+                            showNotification('Test failed: ' + result.error, 'error');
+                        }
+                    } catch (error) {
+                        showNotification('Error testing model', 'error');
+                    } finally {
+                        testButton.textContent = originalText;
+                        testButton.disabled = false;
+                    }
+                });
+            }
+
             // Check for narrow screens and show mobile switch button
             function checkScreenWidth() {
                 const narrowScreenSwitch = document.getElementById('narrowScreenMobileSwitch');
