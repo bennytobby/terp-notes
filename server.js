@@ -29,8 +29,7 @@ const userCollection = { db: process.env.MONGO_DB_NAME, collection: process.env.
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const client = new MongoClient(uri, { serverApi: ServerApiVersion.v1 });
 
-// Dashboard Configuration
-const dashboardConfig = require('./config/dashboard-config');
+// Dashboard Configuration (removed - using inline config)
 
 // Helper function to safely connect to MongoDB
 async function ensureConnection() {
@@ -170,15 +169,7 @@ const { validatePassword, getPasswordRequirements } = require('./utils/passwordV
 const { sessionTimeout } = require('./middleware/sessionTimeout');
 const app = express();
 
-// API endpoint to get dashboard configuration
-app.get('/api/dashboard-config', (req, res) => {
-    try {
-        res.json(dashboardConfig);
-    } catch (error) {
-        console.error('Error getting dashboard config:', error);
-        res.status(500).json({ error: 'Failed to get dashboard configuration' });
-    }
-});
+// Dashboard configuration endpoint (removed - no longer needed)
 
 // Trust proxy - required for Vercel/behind reverse proxy
 app.set('trust proxy', 1);
@@ -285,45 +276,18 @@ const LEGITIMATE_WORDS = new Set([
     'assess', 'assign', 'assist', 'assume', 'assure', 'asset', 'assets',
 ]);
 
-// AI/ML Profanity Filter (Self-Improving version)
-const SelfImprovingMLFilter = require('./models/self-improving-ml-filter');
-let aiFilter = null;
-
-// Load profanity list from file
-try {
-    const profanityData = require('./data/profanity-list.json');
-    PROFANITY_LIST = profanityData;
-    console.log(`✅ Loaded ${PROFANITY_LIST.length} profanity filter terms with severity levels`);
-    console.log(`✅ Loaded ${LEGITIMATE_WORDS.size} legitimate word exceptions`);
-} catch (error) {
-    console.warn('⚠️ Could not load profanity list, using basic fallback');
-    // Fallback to basic list if file loading fails
-    PROFANITY_LIST = [
-        {
-            id: 'basic-fallback',
-            match: 'fuck|shit|damn|bitch|asshole|bastard|stupid|idiot|moron|retard|gay|fag|nigger|nazi|hitler|kys|kill yourself|slut|whore|pussy|dick|cock',
-            tags: ['general'],
-            severity: 3
-        }
-    ];
-}
-
-// Initialize AI Filter on server start (lazy loading)
-initializeAIFilter();
-
-// Initialize AI Filter (lazy loading - no training on startup)
-async function initializeAIFilter() {
-    try {
-        aiFilter = new SelfImprovingMLFilter();
-        // Don't train immediately - let it happen on first use
-        console.log('🤖 Self-Improving ML Profanity Filter initialized (lazy loading enabled)');
-    } catch (error) {
-        console.error('❌ Failed to initialize AI filter:', error);
-        aiFilter = null;
+// Content filtering - rule-based only
+// Comprehensive profanity list for rule-based filtering
+PROFANITY_LIST = [
+    {
+        id: 'comprehensive-filter',
+        match: '1 man 1 jar|1m1j|1man1jar|2 girls 1 cup|2g1c|2girls1cup|acrotomophile|acrotomophilia|alabama hot pocket|alabama tuna melt|alaskan pipeline|algophile|algophilia|anal|anal assassin|anal astronaut|anilingus|anus|ape shit|ape-shit|apeshit|apotemnophile|apotemnophilia|arse|arse bandit|arsehole|ass|ass bandit|asshole|auto erotic|autoerotic|babeland|baby batter|baby gravy|baby juice|ball batter|ball gag|ball gravy|ball kicking|ball licking|ball sack|ball sucking|ball-gag|ball-kicking|ball-licking|ball-sucking|ballcuzi|ballgag|bang bros|bang bus|bangbros|bangbus|bareback|barely legal|bastard|bastinado|batty boi|batty boy|battyboi|battyboy|bdsm|bean flicker|bean queen|bean-flicker|beaner|beaners|beanflicker|beastiality|beaver cleaver|beaver lips|beestiality|bellend|bellesa|bestiality|bicon|big boobs|big breasts|big cock|big knockers|big tits|birdlock|bitch|bitches|black cock|bloody|blow job|blow your load|blow-job|blowjob|blue waffle|bluewaffle|blumpkin|bollocks|bone smuggler|bone-smuggler|boner|bonesmuggler|boob|booty buffer|booty call|booty-buffer|boston george|breasts|brown piper|brown shower|brown showers|brown-piper|brownie king|brownie queen|brownpiper|buddha head|buddha-head|buddhahead|bufter|bufty|bugger|bukkake|bull shit|bull-shit|bulldyke|bullet vibe|bullet vibrator|bullshit|bum boy|bum chum|bum driller|bum pilot|bum pirate|bum rider|bum robber|bum rustler|bum-boy|bum-chum|bum-driller|bum-pirate|bum-robber|bumboy|bumchum|bumdriller|bumhole engineer|bumrider|bumrobber|butt boy|butt pilot|butt pirate|butt rider|butt robber|butt rustler|butt-boy|butt-pirate|butt-robber|buttboy|butthole engineer|buttrider|buttrobber|camel jockey|camel jockies|camel toe|cameljockey|cameljockies|canadian porch swing|carpet muncher|carpetmuncher|cheese eating surrender monkey|cheese-eating surrender monkey|chi chi man|chi-chi man|chicken queen|china man|china men|chinaman|chinamen|ching chong|ching-chong|chink|chinks|chinky|chocolate rosebud|chocolate rosebuds|cholerophile|cholerophilia|christ|cialis|circle-jerk|circlejerk|cishet|cissie|cissy|claustrophile|claustrophilia|cleveland accordion|cleveland hot waffle|cleveland steamer|clit|clitoris|clover clamp|clover clamps|clunge|cluster fuck|cluster-fuck|clusterfuck|cock|cockpipe cosmonaut|cockstruction worker|coimetrophile|coimetrophilia|collared|collaring|coon|coons|coprolagnia|coprophile|coprophilia|cornhole|crafty butcher|crap|cream-pie|creampie|cum|cum shot|cum shots|cumming|cumshot|cumshots|cunnilingus|cunt|cunt boy|cunt-boy|cuntboy|cunts|curry muncher|curry-muncher|currymuncher|damn|darkey|darkie|darkies|darky|date rape|daterape|ddlg|deep throat|deep-throat|deepthroat|dendrophile|dendrophilia|dick|dick girl|dick-girl|dickgirl|dildo|dildos|dingleberries|dingleberry|dipsea|dirty pillows|dirty sanchez|dishabiliophile|dishabiliophilia|dog shit|dog style|dog-shit|doggie style|doggie-style|doggiestyle|doggy style|doggy-style|doggystyle|dogshit|dolcett|domination|dominatrix|domme|dommes|donkey punch|donut muncher|donut puncher|doon coon|dooncoon|double penetration|dp action|dry hump|dune coon|dune-coon|dutch rudder|dyke|dystychiphile|dystychiphilia|edge play|edgeplay|ejaculate|ejaculated|ejaculating|ejaculation|electro-play|electroplay|emetophile|emetophilia|enby|eskimo trebuchet|eye-tie|eyetie|fag|fag bomb|fag-bomb|fagbomb|faggot|fagot|felch|felching|fellating|fellatio|female squirting|figging|finger bang|fingerbang|fingerbanging|fingered|fingering|finocchio|finoccio|finochio|fisted|fisting|foot job|foot-job|footjob|french rudder|frog eater|frog-eater|frogeater|frolic me|frolicme|frottage|frotting|fuck|fuck-wit|fucken|fucker|fuckers|fuckhead|fuckheads|fuckin|fucking|fucks|fucktard|fucktards|fuckwad|fuckwads|fuckwhit|fuckwit|fuckwits|fudge packer|fudge-packer|fudgepacker|futanari|g-spot|gang bang|gangbang|gay sex|gaysian|genitals|genitorture|gerontophile|gerontophilia|giant cock|gin jockey|gin jocky|girl on top|go-kun|goatcx|goatse|god damn|god damned|god-damn|god-damned|goddamn|goddamned|gokkun|golden shower|golden showers|golliwog|gollywog|gook|gook-eye|gookie|gooks|gooky|goregasm|gray queen|greaseball|grey queen|grope|group sex|gym bunny|gymbunny|hadji|haji|hajji|hand job|hand-job|handjob|heimie|hell|hermie|hickory switch|hippophile|hippophilia|homoerotic|honkey|honkeys|honkies|honky|horny|horse shit|horse-shit|horseshit|hot carl|hot richard|huge cock|humping|hymie|impact play|impact-play|incest|intercourse|jack off|jack-off|jail bait|jailbait|jap|jelly donut|jerk mate|jerk off|jerk-off|jerkmate|jesus|jesus christ|jigaboo|jiggerboo|jizz|juggs|jungle bunny|junglebunny|kennebunkport surprise|kentucky klondike|kentucky tractor puller|kike|kinbaku|kitty puncher|kitty-puncher|kittypuncher|knobbing|kraut|krauts|kunt|kunts|kynophile|kynophilia|lady boy|lady-boy|ladyboy|leather restraint|leather straight jacket|lemon party|lemonparty|leningrad steamer|lesbo|leso|lezzie|lezzies|light in the fedora|light in the loafers|light in the pants|limp wristed|limp-wristed|literotica|lovemaking|male squirting|male-squirting|massive cock|masterb8|masterbate|masturb8|masturbate|masturbating|masturbation|mayonnaise monkey|mayonnaise monkies|mdlb|meat masseuse|meat spin|meatspin|menage a trois|menage-a-trois|menages a trois|menages-a-trois|menophile|menophilia|mexican pancake|milwaukee blizzard|missionary position|mississippi birdbath|mound of venus|mr hands|mr. hands|mrhands|muff diver|muff diver|muff diving|muff-diver|muffdiver|muffdiver|muffdiving|muscle mary|mvtube|nambla|necrophile|necrophilia|negro|neo nazi|neo-nazi|neonazi|nig nog|nigerian hurricane|nigga|nigger|niggs|nignog|nimpho|nimphomania|nimphomaniac|nipple|nipple clamp|nipple clamps|nipples|nude|nudity|nutten|nympho|nymphomania|nymphomaniac|octopussy|oklahomo|omorashi|one cup two girls|one jar one man|one man one jar|only fans|onlyfans|orgasm|orgasmic|orgasms|paedo bear|paedobear|paedophile|paedophilia|pain slut|painslut|paki|panamanian petting zoo|pansy|panties|parthenophile|parthenophilia|pedo bear|pedobear|pedophile|pedophilia|pegging|penis|peter puffer|peter-puffer|peterpuffer|petrol sniffer|petrol-sniffer|petrolsniffer|phagophile|phagophilia|piece of shit|pieces of shit|pikey|pikeys|piss off|piss pig|piss pig|pissed off|pissing|pisspig|pisspig|playboy|pleasure chest|pnigerophile|pnigerophilia|pnigophile|pnigophilia|poinephile|poinephilia|pony boy|pony girl|pony-boy|pony-girl|pony-play|ponyboy|ponygirl|ponyplay|poof|poon|poontang|poop chute|poopchute|porn|porn hub|pornhub|porno|pornographic|pornography|pornos|potato queen|prince albert piercing|proctophile|proctophilia|pubes|punani|punany|pussy|pussy puncher|pussy-puncher|pussypuncher|queaf|queef|quim|rag head|rag heads|raghead|ragheads|raging boner|ramen yarmulke|rape|raping|rapist|rectum|retard|retarded|reverse cowgirl|rhabdophile|rhabdophilia|rhypophile|rhypophilia|rice queen|rimjob|rimming|ring raider|ringraider|rusty trombone|sand nigger|sand-nigger|sandnigger|santorum|scatophile|scatophilia|schlong|scissoring|semen|seplophile|seplophilia|sex|shaved beaver|shaved pussy|she male|she-male|sheep shagger|sheepshagger|shemale|shibari|shit|shit head|shithead|shitty|shlong|shota|shrimping|sissy|skeet|skittle harvest|skittles harvest|slant eye|slant-eye|slanteye|snatch|snowballing|sod off|sodding|sodomise|sodomist|sodomize|sodomy|spastic|spearchucker|spic|spick|spicks|spics|spicy gringo|splooge|splooge moose|spooge|spunk|strap on|strap-on|strap-on|strapon|strappado|suastika|svastika|swamp guinea|swamp-guinea|swastika|switch hitter|t-girl|taphephile|taphephilia|tea bagged|tea bagging|tea-bagged|tea-bagging|tgirl|thanatophile|thanatophilia|threesome|throating|throbbing boner|throbbing cock|thumbzilla|timber nigger|timber-nigger|timbernigger|tits|titties|titty|topless|tosser|towel head|towel-head|towelhead|trannie|tranny|transbian|traumatophile|traumatophilia|tribadism|tribbing|tub girl|tubgirl|twat|twink|two girls one cup|urethra play|urophile|urophilia|vagina|venus mound|viagra|vibrator|violet wand|vorarephile|vorarephilia|voyeurweb|wagon burner|wagon-burner|wank|wanker|wax play|wax-play|wet back|wet dream|wet-back|wetback|whigger|white power|white-power|whitepower|whore|wigga|wigger|wiitwd|wog|wogs|wolfbagging|worldsex|wrapping men|wrinkled starfish|xhamster|xnxx|xtube|xvideos|xxx|xyrophile|xyrophilia|yellow shower|yellow showers|zipper head|zipper-head|zipperhead|zippo cat|zippo-cat|zippocat|zoophile|zoophilia',
+        tags: ['comprehensive'],
+        severity: 3
     }
-}
+];
 
-// Enhanced content filtering functions with AI/ML
+// Content filtering functions - rule-based only
 async function containsOffensiveContent(text) {
     if (!text || typeof text !== 'string') return { found: false, entry: null };
 
@@ -336,40 +300,10 @@ async function containsOffensiveContent(text) {
         return { found: false, entry: null };
     }
 
-    // Rule-based detection first (fast and accurate for known patterns)
+    // Rule-based detection
     const ruleBasedResult = ruleBasedDetection(text);
     if (ruleBasedResult.found) {
         return ruleBasedResult;
-    }
-
-    // Self-Improving ML detection for edge cases and context understanding
-    if (aiFilter) {
-        try {
-            await aiFilter.ensureModelReady(); // Lazy loading
-            const mlResult = await aiFilter.detectProfanity(text, 'content-filter');
-            if (mlResult.finalDecision) {
-                return {
-                    found: true,
-                    entry: {
-                        word: mlResult.text || 'ML-detected',
-                        severity: 'medium',
-                        tags: ['ml-detected'],
-                        match: mlResult.text || 'ML-detected'
-                    },
-                    method: mlResult.method || 'ml-guided',
-                    confidence: mlResult.confidence || 0.8,
-                    mlDetails: {
-                        mlPrediction: mlResult.mlPrediction,
-                        mlDecision: mlResult.mlDecision,
-                        ruleBasedResult: mlResult.ruleBasedResult,
-                        agreement: mlResult.agreement,
-                        learningData: mlResult.learningData
-                    }
-                };
-            }
-        } catch (error) {
-            console.error('❌ ML detection error:', error);
-        }
     }
 
     return { found: false, entry: null };
@@ -2596,276 +2530,10 @@ app.get('/api/admin/check-missing-files', async (req, res) => {
     }
 });
 
-// API: Get ML Model Performance Statistics
-app.get('/api/admin/ml-model-performance', async (req, res) => {
-    if (!req.session.user || req.session.user.role !== 'admin') {
-        return res.status(403).json({ error: 'Unauthorized' });
-    }
 
-    try {
-        if (!aiFilter) {
-            return res.json({
-                success: false,
-                error: 'ML Model not initialized',
-                modelReady: false
-            });
-        }
 
-        // Get performance statistics from the model
-        const performanceStats = await aiFilter.getPerformanceStats();
 
-        // Get model information
-        const modelInfo = {
-            isModelReady: aiFilter.isModelReady,
-            modelPath: aiFilter.modelPath,
-            trainingLogPath: aiFilter.trainingLogPath,
-            maxTrainingExamples: aiFilter.maxTrainingExamples
-        };
-
-        // Get training log if available
-        let trainingLog = null;
-        try {
-            const fs = require('fs').promises;
-            const trainingLogData = await fs.readFile(aiFilter.trainingLogPath, 'utf8');
-            trainingLog = JSON.parse(trainingLogData);
-        } catch (error) {
-            // Training log not available yet
-        }
-
-        res.json({
-            success: true,
-            modelInfo: modelInfo,
-            performanceStats: performanceStats,
-            trainingLog: trainingLog,
-            timestamp: new Date().toISOString()
-        });
-    } catch (error) {
-        console.error('Error getting ML model performance:', error);
-        res.status(500).json({
-            success: false,
-            error: 'Failed to get model performance statistics'
-        });
-    }
-});
-
-// API: Test ML Model with Sample Text
-app.post('/api/admin/test-ml-model', async (req, res) => {
-    if (!req.session.user || req.session.user.role !== 'admin') {
-        return res.status(403).json({ error: 'Unauthorized' });
-    }
-
-    try {
-        const { testText } = req.body;
-
-        if (!testText || typeof testText !== 'string') {
-            return res.status(400).json({
-                success: false,
-                error: 'Test text is required'
-            });
-        }
-
-        if (!aiFilter) {
-            return res.json({
-                success: false,
-                error: 'ML Model not initialized'
-            });
-        }
-
-        // Test the model with the provided text
-        const result = await aiFilter.detectProfanity(testText, 'admin-test');
-
-        res.json({
-            success: true,
-            testText: testText,
-            result: result,
-            timestamp: new Date().toISOString()
-        });
-    } catch (error) {
-        console.error('Error testing ML model:', error);
-        res.status(500).json({
-            success: false,
-            error: 'Failed to test ML model'
-        });
-    }
-});
-
-// API: Submit Admin Feedback for ML Model
-app.post('/api/admin/ml-model-feedback', async (req, res) => {
-    if (!req.session.user || req.session.user.role !== 'admin') {
-        return res.status(403).json({ error: 'Unauthorized' });
-    }
-
-    try {
-        const { testText, modelDecision, adminFeedback, mlPrediction, ruleBasedDecision, agreement } = req.body;
-
-        if (!testText || !adminFeedback) {
-            return res.status(400).json({
-                success: false,
-                error: 'Test text and feedback are required'
-            });
-        }
-
-        if (!aiFilter) {
-            return res.json({
-                success: false,
-                error: 'ML Model not initialized'
-            });
-        }
-
-        // Create feedback record
-        const feedbackRecord = {
-            testText: testText,
-            modelDecision: modelDecision,
-            adminFeedback: adminFeedback,
-            mlPrediction: mlPrediction,
-            ruleBasedDecision: ruleBasedDecision,
-            agreement: agreement,
-            adminId: req.session.user.userid,
-            timestamp: new Date().toISOString(),
-            feedbackType: 'admin_correction'
-        };
-
-        // Store feedback in database for analysis
-        await ensureConnection();
-        await client
-            .db(fileCollection.db)
-            .collection('ml_feedback')
-            .insertOne(feedbackRecord);
-
-        // If admin says the model was wrong, add this as a training example
-        if (adminFeedback === 'wrong') {
-            // Create a training example with the correct decision
-            const correctDecision = !modelDecision; // Flip the model's decision
-
-            console.log(`🔄 Admin feedback: Model was wrong. Correcting decision from ${modelDecision} to ${correctDecision}`);
-
-            // Add to model's training data
-            const features = aiFilter.extractFeatures(testText);
-            console.log(`🔍 Features extracted: ${features.filter(f => f > 0).length} active features`);
-
-            await aiFilter.addTrainingExample(testText, features, correctDecision, {
-                adminFeedback: adminFeedback,
-                originalModelDecision: modelDecision,
-                adminId: req.session.user.userid,
-                timestamp: new Date().toISOString(),
-                feedbackType: 'admin_correction'
-            });
-
-            console.log(`✅ Training example added. Total examples: ${aiFilter.trainingExamples.length}`);
-
-            // Only retrain if we have enough examples and it's been a while
-            if (aiFilter.trainingExamples.length >= 20 && aiFilter.trainingExamples.length % 10 === 0) {
-                console.log(`🔄 Triggering model retraining after ${aiFilter.trainingExamples.length} examples...`);
-                await aiFilter.retrainModel();
-            } else {
-                console.log(`📝 Training example added. Will retrain at ${Math.ceil(aiFilter.trainingExamples.length / 10) * 10} examples.`);
-            }
-        }
-
-        res.json({
-            success: true,
-            message: 'Feedback recorded successfully',
-            feedbackId: feedbackRecord._id,
-            timestamp: feedbackRecord.timestamp
-        });
-    } catch (error) {
-        console.error('Error submitting ML model feedback:', error);
-        res.status(500).json({
-            success: false,
-            error: 'Failed to submit feedback'
-        });
-    }
-});
-
-// API: Reset ML Model
-app.post('/api/admin/reset-ml-model', async (req, res) => {
-    if (!req.session.user || req.session.user.role !== 'admin') {
-        return res.status(403).json({ error: 'Unauthorized' });
-    }
-
-    try {
-        if (!aiFilter) {
-            return res.json({
-                success: false,
-                error: 'ML Model not initialized'
-            });
-        }
-
-        await aiFilter.resetModel();
-
-        res.json({
-            success: true,
-            message: 'ML Model reset successfully with improved initialization',
-            timestamp: new Date().toISOString()
-        });
-    } catch (error) {
-        console.error('Error resetting ML model:', error);
-        res.status(500).json({
-            success: false,
-            error: 'Failed to reset ML model'
-        });
-    }
-});
-
-// API: Clear Conflicting Training Data
-app.post('/api/admin/clear-ml-conflicts', async (req, res) => {
-    if (!req.session.user || req.session.user.role !== 'admin') {
-        return res.status(403).json({ error: 'Unauthorized' });
-    }
-
-    try {
-        if (!aiFilter) {
-            return res.json({
-                success: false,
-                error: 'ML Model not initialized'
-            });
-        }
-
-        await aiFilter.clearConflictingData();
-
-        res.json({
-            success: true,
-            message: 'Conflicting training data cleared successfully',
-            timestamp: new Date().toISOString()
-        });
-    } catch (error) {
-        console.error('Error clearing conflicting data:', error);
-        res.status(500).json({
-            success: false,
-            error: 'Failed to clear conflicting data'
-        });
-    }
-});
-
-// API: Get Reinforcement Learning Statistics
-app.get('/api/admin/ml-learning-stats', async (req, res) => {
-    if (!req.session.user || req.session.user.role !== 'admin') {
-        return res.status(403).json({ error: 'Unauthorized' });
-    }
-
-    try {
-        if (!aiFilter) {
-            return res.json({
-                success: false,
-                error: 'ML Model not initialized'
-            });
-        }
-
-        const learningStats = aiFilter.getLearningStats();
-
-        res.json({
-            success: true,
-            learningStats: learningStats,
-            timestamp: new Date().toISOString()
-        });
-    } catch (error) {
-        console.error('Error getting learning stats:', error);
-        res.status(500).json({
-            success: false,
-            error: 'Failed to get learning statistics'
-        });
-    }
-});
+// Python ML endpoints removed - using Python ML server directly
 
 app.get('/forgot-password', function (req, res) {
     res.render('forgot-password', { title: "Forgot Password - Terp Notes" });

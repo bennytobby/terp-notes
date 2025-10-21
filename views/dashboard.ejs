@@ -1391,57 +1391,37 @@
                     allFilesData = [];
                 }
 
-                // Dashboard configuration (loaded dynamically)
-                let dashboardConfig = null;
+                // Dashboard configuration (inline)
+                const dashboardConfig = {
+                    categories: {
+                        'Exam': { icon: '📝', displayName: 'Exam' },
+                        'Lecture Notes': { icon: '📚', displayName: 'Lecture Notes' },
+                        'Homework': { icon: '✏️', displayName: 'Homework' },
+                        'Study Guide': { icon: '📖', displayName: 'Study Guide' },
+                        'Cheat Sheet': { icon: '🗒️', displayName: 'Cheat Sheet' },
+                        'Project': { icon: '💻', displayName: 'Project' },
+                        'Lab': { icon: '🧪', displayName: 'Lab' },
+                        'Lab Report': { icon: '🔬', displayName: 'Lab Report' },
+                        'Textbook': { icon: '📕', displayName: 'Textbook' },
+                        'Practice Problems': { icon: '🔢', displayName: 'Practice Problems' },
+                        'Other': { icon: '📎', displayName: 'Other' }
+                    },
+                    statusBadges: {
+                        new: { enabled: true, thresholdDays: 7, text: 'New' },
+                        scanned: { enabled: true, text: 'Scanned' }
+                    },
+                    semesters: {
+                        colors: {
+                            'Fall': { background: 'linear-gradient(135deg, #FFD700 0%, #FFA500 100%)', textColor: '#000000' },
+                            'Spring': { background: 'linear-gradient(135deg, #DC143C 0%, #A50E2A 100%)', textColor: 'white' },
+                            'Summer': { background: 'linear-gradient(135deg, #000000 0%, #333333 100%)', textColor: 'white' },
+                            'Winter': { background: 'linear-gradient(135deg, #4A90E2 0%, #357ABD 100%)', textColor: 'white' }
+                        }
+                    }
+                };
 
                 // Current view mode
                 let currentView = localStorage.getItem('dashboardView') || 'grouped';
-
-                // Load dashboard configuration
-                async function loadDashboardConfig() {
-                    try {
-                        const response = await fetch('/api/dashboard-config');
-                        if (response.ok) {
-                            dashboardConfig = await response.json();
-                        } else {
-                            // Use fallback configuration if loading fails
-                            dashboardConfig = getFallbackConfig();
-                        }
-                    } catch (error) {
-                        dashboardConfig = getFallbackConfig();
-                    }
-                }
-
-                // Fallback configuration in case API fails
-                function getFallbackConfig() {
-                    return {
-                        categories: {
-                            'Exam': { icon: '📝', displayName: 'Exam' },
-                            'Lecture Notes': { icon: '📚', displayName: 'Lecture Notes' },
-                            'Homework': { icon: '✏️', displayName: 'Homework' },
-                            'Study Guide': { icon: '📖', displayName: 'Study Guide' },
-                            'Cheat Sheet': { icon: '🗒️', displayName: 'Cheat Sheet' },
-                            'Project': { icon: '💻', displayName: 'Project' },
-                            'Lab': { icon: '🧪', displayName: 'Lab' },
-                            'Lab Report': { icon: '🔬', displayName: 'Lab Report' },
-                            'Textbook': { icon: '📕', displayName: 'Textbook' },
-                            'Practice Problems': { icon: '🔢', displayName: 'Practice Problems' },
-                            'Other': { icon: '📎', displayName: 'Other' }
-                        },
-                        statusBadges: {
-                            new: { enabled: true, thresholdDays: 7, text: 'New' },
-                            scanned: { enabled: true, text: 'Scanned' }
-                        },
-                        semesters: {
-                            colors: {
-                                'Fall': { background: 'linear-gradient(135deg, #FFD700 0%, #FFA500 100%)', textColor: '#000000' },
-                                'Spring': { background: 'linear-gradient(135deg, #DC143C 0%, #A50E2A 100%)', textColor: 'white' },
-                                'Summer': { background: 'linear-gradient(135deg, #000000 0%, #333333 100%)', textColor: 'white' },
-                                'Winter': { background: 'linear-gradient(135deg, #4A90E2 0%, #357ABD 100%)', textColor: 'white' }
-                            }
-                        }
-                    };
-                }
 
                 // Initialize view on page load
                 document.addEventListener('DOMContentLoaded', async function () {
@@ -1454,8 +1434,7 @@
                         }
                     });
 
-                    // Load configuration first
-                    await loadDashboardConfig();
+                    // Configuration is now inline - no loading needed
 
                     // Always initialize the current view to ensure proper state
                     if (currentView === 'grouped') {
