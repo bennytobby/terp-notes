@@ -363,6 +363,15 @@
                                     <% if (file.classCode) { %>
                                         <span>📁 <%= file.classCode %></span>
                                     <% } %>
+                                    <% if (file.virusScanStatus) { %>
+                                        <% if (file.virusScanStatus === 'clean') { %>
+                                            <span style="background: #D1FAE5; color: #065F46; padding: 2px 6px; border-radius: 4px; font-size: 0.7rem; font-weight: 600;">🛡️ Scanned</span>
+                                        <% } else if (file.virusScanStatus === 'pending') { %>
+                                            <span style="background: #DBEAFE; color: #2563EB; padding: 2px 6px; border-radius: 4px; font-size: 0.7rem; font-weight: 600;">⏳ Scanning</span>
+                                        <% } else if (file.virusScanStatus === 'error') { %>
+                                            <span style="background: #FEE2E2; color: #991B1B; padding: 2px 6px; border-radius: 4px; font-size: 0.7rem; font-weight: 600;">⚠️ Scan Error</span>
+                                        <% } %>
+                                    <% } %>
                                 </div>
                             </div>
                         <% }); %>

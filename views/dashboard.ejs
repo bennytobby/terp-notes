@@ -1408,7 +1408,27 @@
                     },
                     statusBadges: {
                         new: { enabled: true, thresholdDays: 7, text: 'New' },
-                        scanned: { enabled: true, text: 'Scanned' }
+                        scanned: {
+                            enabled: true,
+                            text: 'Scanned',
+                            background: '#D1FAE5',
+                            color: '#065F46',
+                            icon: '/images/icons/security-shield-check.png'
+                        },
+                        pending: {
+                            enabled: true,
+                            text: 'Scanning',
+                            background: '#DBEAFE',
+                            color: '#2563EB',
+                            icon: '/images/icons/clock-warning.png'
+                        },
+                        error: {
+                            enabled: true,
+                            text: 'Scan Error',
+                            background: '#FEE2E2',
+                            color: '#991B1B',
+                            icon: '/images/icons/warning-triangle.png'
+                        }
                     },
                     semesters: {
                         colors: {
