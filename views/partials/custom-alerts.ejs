@@ -93,6 +93,9 @@
             this.cancelBtn = document.getElementById('alertCancel');
             this.confirmBtn = document.getElementById('alertConfirm');
 
+            // Add processing flag to prevent rapid calls
+            this.isProcessing = false;
+
             this.setupEventListeners();
         }
 
@@ -229,12 +232,21 @@
         }
 
         hide() {
-            console.log('🔴 Hiding custom alert - this might be the cause of the bug');
-            console.trace('Hide called from:'); // This will show the call stack
+            // Only hide if actually visible
+            if (this.overlay.style.display !== 'block') {
+                return;
+            }
+
+            console.log('🔴 Hiding custom alert');
             this.container.classList.add('alert-slide-out');
             setTimeout(() => {
                 this.overlay.style.display = 'none';
                 this.container.classList.remove('alert-slide-out');
+
+                // Clear any pending callbacks to prevent memory leaks
+                this.onConfirm = null;
+                this.onCancel = null;
+                this.requireExactInput = null;
 
                 // Process queued modals
                 if (window.customAlertQueue && window.customAlertQueue.length > 0) {
@@ -247,55 +259,64 @@
 
         // Event handlers
         handleConfirm() {
-            console.log('🔴 handleConfirm called - checking if this is auto-triggered');
-            console.log('🔴 Event target:', event?.target);
-            console.log('🔴 Event type:', event?.type);
-            console.log('🔴 Current time:', new Date().toISOString());
+            // Prevent multiple rapid calls
+            if (this.isProcessing) {
+                return;
+            }
+            this.isProcessing = true;
 
-            // Add a small delay to prevent auto-triggering
-            setTimeout(() => {
-                console.log('🔴 handleConfirm executing after delay');
-                if (this.inputContainer.style.display !== 'none') {
-                    const inputValue = this.input.value.trim();
+            console.log('🔴 handleConfirm called');
 
-                    if (this.requireExactInput && inputValue !== this.requireExactInput) {
-                        // Show error for incorrect input
-                        this.input.style.borderColor = '#EF4444';
-                        this.input.style.boxShadow = '0 0 0 3px rgba(239, 68, 68, 0.1)';
-                        setTimeout(() => {
-                            this.input.style.borderColor = '#D1D5DB';
-                            this.input.style.boxShadow = 'none';
-                        }, 2000);
-                        return;
-                    }
+            if (this.inputContainer.style.display !== 'none') {
+                const inputValue = this.input.value.trim();
 
-                    this.hide();
-                    if (this.onConfirm) {
-                        this.onConfirm(inputValue);
-                    }
-                } else {
-                    this.hide();
-                    if (this.onConfirm) {
-                        this.onConfirm(true);
-                    }
+                if (this.requireExactInput && inputValue !== this.requireExactInput) {
+                    // Show error for incorrect input
+                    this.input.style.borderColor = '#EF4444';
+                    this.input.style.boxShadow = '0 0 0 3px rgba(239, 68, 68, 0.1)';
+                    setTimeout(() => {
+                        this.input.style.borderColor = '#D1D5DB';
+                        this.input.style.boxShadow = 'none';
+                        this.isProcessing = false;
+                    }, 2000);
+                    return;
                 }
-            }, 100); // Increased delay to prevent auto-triggering
+
+                this.hide();
+                if (this.onConfirm) {
+                    this.onConfirm(inputValue);
+                }
+            } else {
+                this.hide();
+                if (this.onConfirm) {
+                    this.onConfirm(true);
+                }
+            }
+
+            // Reset processing flag after a short delay
+            setTimeout(() => {
+                this.isProcessing = false;
+            }, 500);
         }
 
         handleCancel() {
-            console.log('🔴 handleCancel called - checking if this is auto-triggered');
-            console.log('🔴 Event target:', event?.target);
-            console.log('🔴 Event type:', event?.type);
-            console.log('🔴 Current time:', new Date().toISOString());
+            // Prevent multiple rapid calls
+            if (this.isProcessing) {
+                return;
+            }
+            this.isProcessing = true;
 
-            // Add a small delay to prevent auto-triggering
+            console.log('🔴 handleCancel called');
+
+            this.hide();
+            if (this.onCancel) {
+                this.onCancel();
+            }
+
+            // Reset processing flag after a short delay
             setTimeout(() => {
-                console.log('🔴 handleCancel executing after delay');
-                this.hide();
-                if (this.onCancel) {
-                    this.onCancel();
-                }
-            }, 100); // Increased delay to prevent auto-triggering
+                this.isProcessing = false;
+            }, 500);
         }
     }
 
@@ -352,14 +373,21 @@
 
     window.customConfirm = (message, title = 'Confirm Action') => {
         return new Promise((resolve) => {
+            console.log('🔵 customConfirm called with:', title);
             customAlert.show({
                 title: title,
                 message: message,
                 type: 'warning',
                 confirmText: 'Yes',
                 cancelText: 'No',
-                onConfirm: () => resolve(true),
-                onCancel: () => resolve(false)
+                onConfirm: () => {
+                    console.log('🔵 customConfirm resolved to true');
+                    resolve(true);
+                },
+                onCancel: () => {
+                    console.log('🔵 customConfirm resolved to false');
+                    resolve(false);
+                }
             });
         });
     };

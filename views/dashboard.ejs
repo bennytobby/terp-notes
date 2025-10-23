@@ -7554,10 +7554,12 @@
 
                 // Download individual file directly (like bulk downloads)
                 async function downloadFile(filename) {
+                    let progressNotification = null;
+
                     try {
-                        // Show loading notification
+                        // Show persistent loading notification
                         const notificationId = `download_${Date.now()}`;
-                        showNotification('Preparing download...', 'info', 2000, notificationId);
+                        progressNotification = showNotification('Preparing download...', 'info', 0, notificationId);
 
                         // Create download URL
                         const downloadUrl = `/download/${encodeURIComponent(filename)}?force=download`;
@@ -7569,6 +7571,11 @@
 
                         if (!response.ok) {
                             throw new Error(`Download failed: ${response.statusText}`);
+                        }
+
+                        // Update notification to show download is in progress
+                        if (progressNotification) {
+                            progressNotification.update('Downloading file...', 'info');
                         }
 
                         // Get the blob from the response
@@ -7588,12 +7595,28 @@
                         document.body.removeChild(link);
                         window.URL.revokeObjectURL(blobUrl);
 
-                        // Show success notification
-                        showNotification('Download started!', 'success', 2000);
+                        // Update notification to show success and then remove it
+                        if (progressNotification) {
+                            progressNotification.update('Download completed!', 'success');
+                            setTimeout(() => {
+                                progressNotification.remove();
+                            }, 2000);
+                        } else {
+                            showNotification('Download completed!', 'success', 2000);
+                        }
 
                     } catch (error) {
                         console.error('Download error:', error);
-                        showNotification('Download failed. Please try again.', 'error', 3000);
+
+                        // Update notification to show error and then remove it
+                        if (progressNotification) {
+                            progressNotification.update('Download failed. Please try again.', 'error');
+                            setTimeout(() => {
+                                progressNotification.remove();
+                            }, 3000);
+                        } else {
+                            showNotification('Download failed. Please try again.', 'error', 3000);
+                        }
                     }
                 }
 

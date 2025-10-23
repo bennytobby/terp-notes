@@ -5,7 +5,7 @@
 
 // Timeout configurations (in milliseconds)
 const TIMEOUT_CONFIG = {
-    INACTIVITY_TIMEOUT: 30 * 60 * 1000,  // 30 minutes of inactivity
+    INACTIVITY_TIMEOUT: 60 * 60 * 1000,  // 60 minutes of inactivity (increased from 30)
     ABSOLUTE_TIMEOUT: 24 * 60 * 60 * 1000, // 24 hours absolute (even if active)
     REMEMBER_ME_DURATION: 30 * 24 * 60 * 60 * 1000 // 30 days for "Remember Me"
 };
@@ -22,7 +22,10 @@ function sessionTimeout(req, res, next) {
     // Skip for API routes (they handle their own authentication)
     const isApiRoute = req.path.startsWith('/api/');
 
-    if (isPublicRoute || isApiRoute) {
+    // Skip for download routes to avoid performance impact on file downloads
+    const isDownloadRoute = req.path.startsWith('/download/') || req.path.startsWith('/bulk-download');
+
+    if (isPublicRoute || isApiRoute || isDownloadRoute) {
         return next();
     }
 
@@ -55,15 +58,15 @@ function sessionTimeout(req, res, next) {
     const inactivityDuration = now - session.lastActivity;
 
     if (inactivityDuration > TIMEOUT_CONFIG.INACTIVITY_TIMEOUT) {
-        console.log(`🕐 Session expired (inactivity timeout) for user: ${req.session.user?.userid}`);
+        console.log(`🕐 Session expired (inactivity timeout) for user: ${req.session.user?.userid} after ${Math.round(inactivityDuration / 60000)} minutes`);
         return handleSessionExpiry(req, res, 'Your session expired due to inactivity. Please login again.');
     }
 
     // Session is still valid - update last activity timestamp
     session.lastActivity = now;
 
-    // Log remaining time for debugging (only in development)
-    if (process.env.NODE_ENV === 'development') {
+    // Log remaining time for debugging (only in development and only every 5 minutes)
+    if (process.env.NODE_ENV === 'development' && Math.random() < 0.1) { // Only log 10% of requests
         const remainingMinutes = Math.floor((TIMEOUT_CONFIG.INACTIVITY_TIMEOUT - inactivityDuration) / 60000);
         console.log(`  Session active for ${req.session.user?.userid} - ${remainingMinutes} minutes until timeout`);
     }

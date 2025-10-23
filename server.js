@@ -1764,10 +1764,12 @@ function isMobileDevice(req) {
 
 // Mobile redirect middleware
 function mobileRedirect(req, res, next) {
-    // Skip mobile redirect for API routes, static files, mobile routes, and auth routes
+    // Skip mobile redirect for API routes, static files, mobile routes, auth routes, and download routes
     if (req.path.startsWith('/api/') ||
         req.path.startsWith('/mobile/') ||
         req.path.startsWith('/static/') ||
+        req.path.startsWith('/download/') ||
+        req.path.startsWith('/bulk-download') ||
         req.path.startsWith('/login') ||
         req.path.startsWith('/register') ||
         req.path.startsWith('/logout') ||
@@ -1781,8 +1783,12 @@ function mobileRedirect(req, res, next) {
     // Check if user is on mobile and not already on mobile route
     if (isMobileDevice(req)) {
         // Only redirect main pages, not auth pages or root
+        // Add a small delay to prevent rapid redirects that might interfere with navigation
         if (req.path === '/dashboard' || req.path === '/admin' || req.path === '/profile') {
-            return res.redirect('/mobile' + req.path);
+            // Check if this is a direct navigation (not a redirect from another page)
+            if (!req.headers.referer || !req.headers.referer.includes('/mobile')) {
+                return res.redirect('/mobile' + req.path);
+            }
         }
     }
 
@@ -3831,15 +3837,6 @@ app.get("/download/:filename", async (req, res) => {
             });
         }
 
-        // Increment download count
-        await client
-            .db(fileCollection.db)
-            .collection(fileCollection.collection)
-            .updateOne(
-                { filename: filename },
-                { $inc: { downloadCount: 1 } }
-            );
-
         let downloadFilename = filename;
         if (fileDoc && fileDoc.originalName) {
             downloadFilename = fileDoc.originalName;
@@ -3873,7 +3870,23 @@ app.get("/download/:filename", async (req, res) => {
             res.setHeader("Content-Disposition", `attachment; filename="${sanitizedFilename}"`);
         }
 
+        // Send the file first for better performance
         res.send(data.Body);
+
+        // Increment download count after sending file (non-blocking)
+        setImmediate(async () => {
+            try {
+                await client
+                    .db(fileCollection.db)
+                    .collection(fileCollection.collection)
+                    .updateOne(
+                        { filename: filename },
+                        { $inc: { downloadCount: 1 } }
+                    );
+            } catch (err) {
+                console.error('Failed to increment download count:', err);
+            }
+        });
     } catch (err) {
         console.error("Download error:", err);
         res.status(500).render('error', {
