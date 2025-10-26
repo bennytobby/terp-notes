@@ -1,8 +1,8 @@
 {
   "metadata": {
-    "generated": "2025-10-20T20:03:01.106Z",
+    "generated": "2025-10-26T03:55:01.693Z",
     "type": "semester-year-lookup",
-    "yearFilter": "Only years 2021 and after",
+    "yearFilter": "Only years 2020 and after",
     "structure": "semesters and years available"
   },
   "semesters": [
@@ -17,7 +17,8 @@
     2024,
     2023,
     2022,
-    2021
+    2021,
+    2020
   ],
   "semesterYearCombinations": [
     {
@@ -119,6 +120,26 @@
       "semester": "Fall",
       "year": 2021,
       "semesterId": "202108"
+    },
+    {
+      "semester": "Spring",
+      "year": 2020,
+      "semesterId": "202001"
+    },
+    {
+      "semester": "Summer",
+      "year": 2020,
+      "semesterId": "202005"
+    },
+    {
+      "semester": "Fall",
+      "year": 2020,
+      "semesterId": "202008"
+    },
+    {
+      "semester": "Unknown",
+      "year": 2020,
+      "semesterId": "202012"
     }
   ]
 }
