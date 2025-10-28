@@ -5800,29 +5800,32 @@ app.get('/health', (req, res) => {
 // Export the app for testing
 module.exports = app;
 
+// Initialize integrations and register routes (for both direct and serverless)
+initializeIntegrations().then(() => {
+    console.log('✅ Integrations initialized');
+    // Register routes after model is initialized
+    registerIntegrationRoutes();
+}).catch(error => {
+    console.error('Failed to initialize integrations:', error);
+    // Don't exit in serverless environment
+    if (require.main === module) {
+        process.exit(1);
+    }
+});
+
 // Only start the server if this file is run directly
 if (require.main === module) {
     try {
-        // Initialize integrations and register routes before starting server
-        initializeIntegrations().then(() => {
-            console.log('✅ Integrations initialized');
-            // Register routes after model is initialized
-            registerIntegrationRoutes();
-
-            // 404 Handler - Must be last route (after all routes are registered)
-            app.use((req, res) => {
-                res.status(404).render('404', {
-                    title: "Page Not Found - Terp Notes"
-                });
+        // 404 Handler - Must be last route (after all routes are registered)
+        app.use((req, res) => {
+            res.status(404).render('404', {
+                title: "Page Not Found - Terp Notes"
             });
+        });
 
-            app.listen(portNumber, () => {
-                console.log(`Terp Notes Server running on port ${portNumber}`);
-                console.log(`Ready to share notes!`);
-            });
-        }).catch(error => {
-            console.error('Failed to initialize integrations:', error);
-            process.exit(1);
+        app.listen(portNumber, () => {
+            console.log(`Terp Notes Server running on port ${portNumber}`);
+            console.log(`Ready to share notes!`);
         });
     } catch (error) {
         console.error('Failed to start server:', error);
