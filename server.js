@@ -5855,6 +5855,7 @@ function registerIntegrationRoutes() {
         console.log('🔧 Microsoft configured:', oauthManager.isConfigured('microsoft'));
         console.log('🔧 Notion configured:', oauthManager.isConfigured('notion'));
         console.log('🔧 Environment variables check:');
+        console.log('🔧 BASE_URL:', process.env.BASE_URL || 'NOT SET');
         console.log('🔧 GOOGLE_CLIENT_ID:', process.env.GOOGLE_CLIENT_ID ? 'SET' : 'NOT SET');
         console.log('🔧 MICROSOFT_CLIENT_ID:', process.env.MICROSOFT_CLIENT_ID ? 'SET' : 'NOT SET');
         console.log('🔧 NOTION_CLIENT_ID:', process.env.NOTION_CLIENT_ID ? 'SET' : 'NOT SET');
