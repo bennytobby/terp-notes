@@ -12,8 +12,63 @@
     <meta name="msapplication-TileColor" content="#E21833" />
     <meta name="theme-color" content="#E21833" />
     <link rel="manifest" href="/site.webmanifest" />
-    <link rel="stylesheet" href="/styles/main.css">
-    <link rel="stylesheet" href="/stylesheets/integrations.css">
+    <link rel="stylesheet" href="/stylesheets/integrations.css?v=<%= Date.now() %>">
+    <link rel="stylesheet" href="/styles/main.css?v=<%= Date.now() %>">
+
+    <style>
+        /* Navigation Styles - copied from dashboard.ejs */
+        .main-nav {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .nav-link {
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            text-decoration: none;
+            color: rgba(255, 255, 255, 0.9);
+            font-weight: 500;
+            transition: all 0.2s ease;
+            border: 1px solid transparent;
+        }
+
+        .nav-link:hover {
+            background: rgba(255, 255, 255, 0.15);
+            color: white;
+            border-color: rgba(255, 255, 255, 0.3);
+        }
+
+        .nav-link.active {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border-color: rgba(255, 255, 255, 0.4);
+            font-weight: 600;
+        }
+
+        .welcome-text {
+            font-size: 0.9rem;
+            color: rgba(255, 255, 255, 0.9);
+        }
+
+        /* Active navigation highlighting */
+        .nav-integrations.active {
+            background: rgba(255, 255, 255, 0.25);
+        }
+
+        /* Fix navigation centering */
+        .topbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .main-nav {
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+    </style>
 </head>
 <body>
     <header class="topbar">
@@ -42,8 +97,10 @@
     </header>
 
     <main class="container">
-        <h1>📱 Integrations</h1>
-        <p>Connect your favorite note-taking apps to import and export notes seamlessly.</p>
+        <div class="page-header">
+            <h1>📱 Integrations</h1>
+            <p>Connect your favorite note-taking apps to import and export notes seamlessly.</p>
+        </div>
 
         <!-- Integration Cards -->
         <div class="integrations-grid" id="integrationsGrid">
@@ -157,5 +214,39 @@
             </button>
         </div>
     </div>
+
+    <script src="/javascripts/integrations.js"></script>
+
+    <!-- Force header styling with JavaScript -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Set active navigation link (copied from dashboard.ejs)
+            const currentPath = window.location.pathname;
+            document.querySelectorAll('.nav-link').forEach(link => {
+                link.classList.remove('active');
+                if (link.getAttribute('href') === currentPath) {
+                    link.classList.add('active');
+                }
+            });
+
+            // Force header gradient
+            const header = document.querySelector('header.topbar');
+            if (header) {
+                header.style.setProperty('background', 'linear-gradient(135deg, #E21833 0%, #C42F31 100%)', 'important');
+                header.style.setProperty('background-image', 'linear-gradient(135deg, #E21833 0%, #C42F31 100%)', 'important');
+                header.style.setProperty('background-color', '#E21833', 'important');
+            }
+        });
+
+        // Also run after a short delay to catch any late-loading styles
+        setTimeout(function() {
+            const header = document.querySelector('header.topbar');
+            if (header) {
+                header.style.setProperty('background', 'linear-gradient(135deg, #E21833 0%, #C42F31 100%)', 'important');
+                header.style.setProperty('background-image', 'linear-gradient(135deg, #E21833 0%, #C42F31 100%)', 'important');
+                header.style.setProperty('background-color', '#E21833', 'important');
+            }
+        }, 100);
+    </script>
 </body>
 </html>

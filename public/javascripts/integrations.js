@@ -65,9 +65,7 @@ class IntegrationsManager {
         // Show connected account info if available
         const connectedAccountInfo = integration.connectedAccount ?
             `<div class="connected-account">
-                <small style="color: #059669; font-weight: 600; background: #f0fdf4; padding: 0.25rem 0.75rem; border-radius: 12px; border: 1px solid #bbf7d0;">
-                    ✅ Connected as: ${integration.connectedAccount.email || integration.connectedAccount.name || 'Connected'}
-                </small>
+                <small>✅ Connected as: ${integration.connectedAccount.email || integration.connectedAccount.name || 'Connected'}</small>
             </div>` : '';
 
         card.innerHTML = `
@@ -211,9 +209,9 @@ class IntegrationsManager {
                 return `
                     <div class="form-group">
                         <label class="form-label" for="obsidianPath">Obsidian Vault Path</label>
-                        <div style="display: flex; gap: 0.5rem; align-items: center;">
-                            <input type="text" id="obsidianPath" class="form-input" placeholder="/path/to/your/obsidian/vault" style="flex: 1;">
-                            <button type="button" class="btn btn-secondary" onclick="integrationsManager.openFolderPicker()" style="white-space: nowrap;">
+                        <div class="form-input-group">
+                            <input type="text" id="obsidianPath" class="form-input" placeholder="/path/to/your/obsidian/vault">
+                            <button type="button" class="btn btn-secondary" onclick="integrationsManager.openFolderPicker()">
                                 📁 Browse
                             </button>
                         </div>
@@ -727,29 +725,4 @@ document.addEventListener('DOMContentLoaded', () => {
     window.integrationsManager = new IntegrationsManager();
 });
 
-// Add CSS animations
-const style = document.createElement('style');
-style.textContent = `
-    @keyframes slideInRight {
-        from {
-            transform: translateX(100%);
-            opacity: 0;
-        }
-        to {
-            transform: translateX(0);
-            opacity: 1;
-        }
-    }
-
-    @keyframes slideOutRight {
-        from {
-            transform: translateX(0);
-            opacity: 1;
-        }
-        to {
-            transform: translateX(100%);
-            opacity: 0;
-        }
-    }
-`;
-document.head.appendChild(style);
+// CSS animations are now handled in integrations.css
