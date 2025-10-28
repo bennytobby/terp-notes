@@ -561,7 +561,17 @@
         // Function to check session status and redirect if logged in
         async function checkSessionStatus() {
             try {
-                const response = await fetch('/api/session-status');
+                const response = await fetch('/api/session-status', {
+                    credentials: 'include', // Ensure cookies are sent
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+
                 const data = await response.json();
 
                 if (data.loggedIn) {
@@ -575,7 +585,7 @@
                 }
             } catch (error) {
                 console.error('Error checking session status:', error);
-                // If there's an error, just continue normally
+                // Don't redirect on error - let user stay on login page
             }
         }
     </script>

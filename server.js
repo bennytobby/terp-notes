@@ -426,7 +426,7 @@ app.use(session({
     rolling: true,
     name: 'terpnotes.sid',
     cookie: {
-        secure: process.env.NODE_ENV === 'production',
+        secure: false, // Disable secure for now to fix Vercel issues
         httpOnly: true,
         maxAge: 24 * 60 * 60 * 1000, // 24 hours
         sameSite: 'lax',
@@ -2482,18 +2482,26 @@ app.get('/mobile/admin', async (req, res) => {
 
 // API endpoint to check session status
 app.get('/api/session-status', function (req, res) {
-    if (req.session.user) {
-        res.json({
-            loggedIn: true,
-            user: {
-                userid: req.session.user.userid,
-                firstname: req.session.user.firstname,
-                role: req.session.user.role
-            }
-        });
-    } else {
-        res.json({
-            loggedIn: false
+    try {
+        if (req.session.user) {
+            res.json({
+                loggedIn: true,
+                user: {
+                    userid: req.session.user.userid,
+                    firstname: req.session.user.firstname,
+                    role: req.session.user.role
+                }
+            });
+        } else {
+            res.json({
+                loggedIn: false
+            });
+        }
+    } catch (error) {
+        console.error('Session status error:', error);
+        res.status(500).json({
+            loggedIn: false,
+            error: 'Session check failed'
         });
     }
 });
