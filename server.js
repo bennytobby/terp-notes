@@ -5850,6 +5850,15 @@ function registerIntegrationRoutes() {
     app.get('/api/integrations', async (req, res) => {
         console.log('🔧 /api/integrations route hit!');
         console.log('🔧 Session user:', req.session.user);
+        console.log('🔧 OAuth Manager configured check:');
+        console.log('🔧 Google configured:', oauthManager.isConfigured('google'));
+        console.log('🔧 Microsoft configured:', oauthManager.isConfigured('microsoft'));
+        console.log('🔧 Notion configured:', oauthManager.isConfigured('notion'));
+        console.log('🔧 Environment variables check:');
+        console.log('🔧 GOOGLE_CLIENT_ID:', process.env.GOOGLE_CLIENT_ID ? 'SET' : 'NOT SET');
+        console.log('🔧 MICROSOFT_CLIENT_ID:', process.env.MICROSOFT_CLIENT_ID ? 'SET' : 'NOT SET');
+        console.log('🔧 NOTION_CLIENT_ID:', process.env.NOTION_CLIENT_ID ? 'SET' : 'NOT SET');
+
         if (!req.session.user) {
             console.log('🔧 No session user, returning 401');
             return res.status(401).json({ error: 'Unauthorized' });

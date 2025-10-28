@@ -65,8 +65,8 @@ class IntegrationsManager {
         // Show connected account info if available
         const connectedAccountInfo = integration.connectedAccount ?
             `<div class="connected-account">
-                <small style="color: #059669; font-weight: 500;">
-                    Connected as: ${integration.connectedAccount.email || integration.connectedAccount.name || 'Connected'}
+                <small style="color: #059669; font-weight: 600; background: #f0fdf4; padding: 0.25rem 0.75rem; border-radius: 12px; border: 1px solid #bbf7d0;">
+                    ✅ Connected as: ${integration.connectedAccount.email || integration.connectedAccount.name || 'Connected'}
                 </small>
             </div>` : '';
 

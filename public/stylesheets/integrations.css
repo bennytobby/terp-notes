@@ -27,26 +27,28 @@
 .page-header {
     text-align: center;
     margin-bottom: 3rem;
+    padding: 2rem 0;
+    background: linear-gradient(135deg, #f8fafc 0%, #ffffff 100%);
+    border-radius: 16px;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
 }
 
-.page-header h1,
-.page-header h2 {
+.page-title {
     font-size: 2.5rem;
-    color: #1f2937 !important;
+    font-weight: 700;
+    color: #E21833 !important;
     margin-bottom: 0.5rem;
+    text-shadow: 0 2px 4px rgba(226, 24, 51, 0.1);
 }
 
-/* Force override any red styling */
-.integrations-container h1,
-.page-header h1 {
-    color: #1f2937 !important;
-}
-
-.page-header p {
+.page-subtitle {
     font-size: 1.1rem;
-    color: #6b7280;
+    color: #64748b;
     max-width: 600px;
     margin: 0 auto;
+    font-weight: 500;
+    line-height: 1.6;
 }
 
 /* Integration Grid */
@@ -214,8 +216,9 @@
 }
 
 .status-connected {
-    background: #dcfce7;
-    color: #166534;
+    background: #059669;
+    color: white;
+    font-weight: 600;
 }
 
 .status-disconnected {
