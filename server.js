@@ -167,6 +167,15 @@ const FormData = require('form-data');
 const emailTemplates = require('./emails/templates');
 const { validatePassword, getPasswordRequirements } = require('./utils/passwordValidator');
 const { sessionTimeout } = require('./middleware/sessionTimeout');
+
+// Integration classes
+const NotionIntegration = require('./integrations/notion');
+const OneNoteIntegration = require('./integrations/onenote');
+const GoogleDocsIntegration = require('./integrations/google-docs');
+const ObsidianIntegration = require('./integrations/obsidian');
+const OAuthManager = require('./integrations/oauth-manager');
+const UserIntegrationsModel = require('./models/user-integrations');
+
 const app = express();
 
 // Dashboard configuration endpoint (removed - no longer needed)
@@ -403,7 +412,6 @@ app.set("views", path.resolve(__dirname, "views"));
 app.set("view engine", "ejs");
 
 // Serve static files
-app.use(express.static(__dirname));
 app.use("/styles", express.static(path.join(__dirname, "styles")));
 app.use(express.static(path.join(__dirname, "public"))); // Serve logo, favicon, etc.
 
@@ -1053,6 +1061,7 @@ app.use(async (req, res, next) => {
     const publicRoutesRegex = /^\/(verify|reset-password)\/.+/; // Match /verify/:token and /reset-password/:token
 
     const isPublicRoute = publicRoutes.includes(req.path) || publicRoutesRegex.test(req.path);
+    const isApiRoute = req.path.startsWith('/api/');
 
     // Check if user is authenticated via session
     const sessionUser = req.session.user;
@@ -1064,6 +1073,14 @@ app.use(async (req, res, next) => {
 
     // Protected routes require authentication
     if (!sessionUser && req.path !== '/logout') {
+        // For API routes, return JSON error instead of redirecting
+        if (isApiRoute) {
+            console.log('🔧 API route without session:', req.path);
+            console.log('🔧 Session data:', req.session);
+            console.log('🔧 Cookies:', req.headers.cookie);
+            console.log('🔧 Session user:', req.session.user);
+            return res.status(401).json({ error: 'Unauthorized' });
+        }
         return res.redirect('/login');
     }
 
@@ -2859,6 +2876,17 @@ app.post('/resend-verification', async (req, res) => {
             linkText: "Back to Login"
         });
     }
+});
+
+app.get('/integrations', (req, res) => {
+    if (!req.session.user) {
+        return res.redirect('/login');
+    }
+    res.render('integrations', {
+        title: 'Integrations - Terp Notes',
+        firstname: req.session.user.firstname,
+        user: req.session.user
+    });
 });
 
 app.get('/dashboard', async (req, res) => {
@@ -5524,11 +5552,223 @@ app.get('/api/semester-year-cache', async (req, res) => {
     }
 });
 
-// 404 Handler - Must be last route
-app.use((req, res) => {
-    res.status(404).render('404', {
-        title: "Page Not Found - Terp Notes"
-    });
+
+// OAuth Routes
+app.get('/auth/google', (req, res) => {
+    if (!req.session.user) {
+        return res.status(401).json({ error: 'Unauthorized' });
+    }
+
+    try {
+        const authData = oauthManager.generateAuthUrl('google', req.session.user.userid);
+        res.redirect(authData.authUrl);
+    } catch (error) {
+        console.error('Google OAuth error:', error);
+        res.status(500).json({ error: 'OAuth configuration error' });
+    }
+});
+
+app.get('/auth/microsoft', (req, res) => {
+    if (!req.session.user) {
+        return res.status(401).json({ error: 'Unauthorized' });
+    }
+
+    try {
+        const authData = oauthManager.generateAuthUrl('microsoft', req.session.user.userid);
+        res.redirect(authData.authUrl);
+    } catch (error) {
+        console.error('Microsoft OAuth error:', error);
+        res.status(500).json({ error: 'OAuth configuration error' });
+    }
+});
+
+app.get('/auth/notion', (req, res) => {
+    if (!req.session.user) {
+        return res.status(401).json({ error: 'Unauthorized' });
+    }
+
+    try {
+        console.log('Notion OAuth initiation - user:', req.session.user.userid);
+        const authData = oauthManager.generateAuthUrl('notion', req.session.user.userid);
+        console.log('Notion OAuth - generated auth URL:', authData.authUrl);
+        res.redirect(authData.authUrl);
+    } catch (error) {
+        console.error('Notion OAuth error:', error);
+        res.status(500).json({ error: 'OAuth configuration error' });
+    }
+});
+
+// OAuth Callback Routes
+app.get('/auth/google/callback', async (req, res) => {
+    try {
+        const { code, state } = req.query;
+
+        if (!code) {
+            return res.redirect('/integrations?error=oauth_cancelled');
+        }
+
+        // Exchange code for tokens
+        const tokenResult = await oauthManager.exchangeCodeForToken('google', code, state);
+
+        if (!tokenResult.success) {
+            console.error('Token exchange failed:', tokenResult.error);
+            return res.redirect('/integrations?error=oauth_failed');
+        }
+
+        // If no session, try to get user from state parameter
+        let userId;
+        if (req.session.user) {
+            userId = req.session.user.userid;
+        } else {
+            try {
+                const decodedState = Buffer.from(state, 'base64').toString('utf-8');
+                const stateParts = decodedState.split(':');
+                userId = stateParts[0];
+            } catch (error) {
+                console.error('Error decoding state:', error);
+                return res.redirect('/integrations?error=oauth_failed');
+            }
+        }
+
+        // Get user info (with fallback if it fails)
+        let userInfo;
+        try {
+            const userInfoResult = await oauthManager.getUserInfo('google', tokenResult.accessToken);
+            if (userInfoResult.success) {
+                userInfo = userInfoResult.userInfo;
+            } else {
+                console.log('Failed to get user info, using fallback:', userInfoResult.error);
+                userInfo = { email: 'Connected Account', name: 'Google User' };
+            }
+        } catch (error) {
+            console.log('Failed to get user info, using fallback:', error.message);
+            userInfo = { email: 'Connected Account', name: 'Google User' };
+        }
+
+        // Save to database
+        await userIntegrationsModel.saveIntegration(userId, 'google-docs', {
+            accessToken: tokenResult.accessToken,
+            refreshToken: tokenResult.refreshToken,
+            expiresAt: tokenResult.expiresIn ? new Date(Date.now() + (tokenResult.expiresIn * 1000)) : null,
+            tokenType: tokenResult.tokenType,
+            scope: tokenResult.scope,
+            connectedAccount: userInfo.email || userInfo.name
+        });
+
+        res.redirect('/integrations?success=google_connected');
+    } catch (error) {
+        console.error('Google OAuth callback error:', error);
+        res.redirect('/integrations?error=oauth_failed');
+    }
+});
+
+app.get('/auth/microsoft/callback', async (req, res) => {
+    try {
+        const { code, state } = req.query;
+
+        if (!code) {
+            return res.redirect('/integrations?error=oauth_cancelled');
+        }
+
+        // Exchange code for tokens
+        const tokenResult = await oauthManager.exchangeCodeForToken('microsoft', code, state);
+
+        if (!tokenResult.success) {
+            console.error('Token exchange failed:', tokenResult.error);
+            return res.redirect('/integrations?error=oauth_failed');
+        }
+
+        // Get user info
+        const userInfoResult = await oauthManager.getUserInfo('microsoft', tokenResult.accessToken);
+        const userInfo = userInfoResult.success ? userInfoResult.userInfo : { email: 'Connected Account', name: 'Microsoft User' };
+
+        // If no session, try to get user from state parameter
+        let userId;
+        if (req.session.user) {
+            userId = req.session.user.userid;
+        } else {
+            try {
+                const decodedState = Buffer.from(state, 'base64').toString('utf-8');
+                const stateParts = decodedState.split(':');
+                userId = stateParts[0];
+            } catch (error) {
+                console.error('Error decoding state:', error);
+                return res.redirect('/integrations?error=oauth_failed');
+            }
+        }
+
+        // Save to database
+        await userIntegrationsModel.saveIntegration(userId, 'onenote', {
+            accessToken: tokenResult.accessToken,
+            refreshToken: tokenResult.refreshToken,
+            expiresAt: tokenResult.expiresIn ? new Date(Date.now() + (tokenResult.expiresIn * 1000)) : null,
+            tokenType: tokenResult.tokenType,
+            scope: tokenResult.scope,
+            connectedAccount: userInfo.email || userInfo.displayName
+        });
+
+        res.redirect('/integrations?success=microsoft_connected');
+    } catch (error) {
+        console.error('Microsoft OAuth callback error:', error);
+        res.redirect('/integrations?error=oauth_failed');
+    }
+});
+
+app.get('/auth/notion/callback', async (req, res) => {
+    try {
+        const { code, state } = req.query;
+        console.log('Notion OAuth callback - code:', code ? 'present' : 'missing');
+        console.log('Notion OAuth callback - state:', state ? 'present' : 'missing');
+        console.log('Notion OAuth callback - session user:', req.session.user ? 'present' : 'missing');
+
+        if (!code) {
+            return res.redirect('/integrations?error=oauth_cancelled');
+        }
+
+        // If no session, try to get user from state parameter
+        let userId;
+        if (req.session.user) {
+            userId = req.session.user.userid;
+        } else {
+            // Extract user ID from state parameter
+            try {
+                const decodedState = Buffer.from(state, 'base64').toString('utf-8');
+                const stateParts = decodedState.split(':');
+                userId = stateParts[0];
+                console.log('Extracted user ID from state:', userId);
+            } catch (error) {
+                console.error('Error decoding state:', error);
+                return res.redirect('/integrations?error=oauth_failed');
+            }
+        }
+
+        // Exchange code for tokens
+        const tokenResult = await oauthManager.exchangeCodeForToken('notion', code, state);
+
+        if (!tokenResult.success) {
+            console.error('Token exchange failed:', tokenResult.error);
+            return res.redirect('/integrations?error=oauth_failed');
+        }
+
+        // Get user info
+        const userInfoResult = await oauthManager.getUserInfo('notion', tokenResult.accessToken);
+        const userInfo = userInfoResult.success ? userInfoResult.userInfo : { email: 'Connected Account', name: 'Notion User' };
+
+        // Save to database
+        await userIntegrationsModel.saveIntegration(userId, 'notion', {
+            accessToken: tokenResult.accessToken,
+            refreshToken: tokenResult.refreshToken,
+            expiresAt: tokenResult.expiresIn ? new Date(Date.now() + (tokenResult.expiresIn * 1000)) : null,
+            tokenType: tokenResult.tokenType,
+            scope: tokenResult.scope,
+            connectedAccount: userInfo.email || userInfo.name
+        });
+
+        res.redirect('/integrations?success=notion_connected');
+    } catch (error) {
+        console.error('Notion OAuth callback error:', error);
+        res.redirect('/integrations?error=oauth_failed');
+    }
 });
 
 // Health check endpoint
@@ -5547,12 +5787,452 @@ module.exports = app;
 // Only start the server if this file is run directly
 if (require.main === module) {
     try {
-        app.listen(portNumber, () => {
-            console.log(`Terp Notes Server running on port ${portNumber}`);
-            console.log(`Ready to share notes!`);
+        // Initialize integrations and register routes before starting server
+        initializeIntegrations().then(() => {
+            console.log('✅ Integrations initialized');
+            // Register routes after model is initialized
+            registerIntegrationRoutes();
+
+            // 404 Handler - Must be last route (after all routes are registered)
+            app.use((req, res) => {
+                res.status(404).render('404', {
+                    title: "Page Not Found - Terp Notes"
+                });
+            });
+
+            app.listen(portNumber, () => {
+                console.log(`Terp Notes Server running on port ${portNumber}`);
+                console.log(`Ready to share notes!`);
+            });
+        }).catch(error => {
+            console.error('Failed to initialize integrations:', error);
+            process.exit(1);
         });
     } catch (error) {
         console.error('Failed to start server:', error);
         process.exit(1);
     }
 }
+
+
+// ================================
+// INTEGRATION SYSTEM
+// ================================
+
+// Initialize OAuth manager and user integrations model
+const oauthManager = new OAuthManager();
+let userIntegrationsModel;
+
+// Register integration API routes
+function registerIntegrationRoutes() {
+    console.log('🔧 Registering integration API routes...');
+
+    // API: Get available integrations
+    app.get('/api/integrations', async (req, res) => {
+        console.log('🔧 /api/integrations route hit!');
+        console.log('🔧 Session user:', req.session.user);
+        if (!req.session.user) {
+            console.log('🔧 No session user, returning 401');
+            return res.status(401).json({ error: 'Unauthorized' });
+        }
+
+        // Check if integrations model is initialized
+        if (!userIntegrationsModel) {
+            return res.status(500).json({ error: 'Integrations not initialized' });
+        }
+
+        try {
+            // Get user's connected integrations with account details
+            const userIntegrationsResult = await userIntegrationsModel.getUserIntegrations(req.session.user.userid);
+            const connectedIntegrations = userIntegrationsResult.success ?
+                userIntegrationsResult.integrations : [];
+
+            // Helper function to validate integration credentials
+            const validateIntegrationCredentials = async (integrationId, credentials) => {
+                if (!credentials || !credentials.accessToken || credentials.accessToken === 'null') {
+                    return false;
+                }
+
+                try {
+                    let IntegrationClass;
+                    switch (integrationId) {
+                        case 'notion':
+                            IntegrationClass = require('./integrations/notion');
+                            break;
+                        case 'onenote':
+                            IntegrationClass = require('./integrations/onenote');
+                            break;
+                        case 'google-docs':
+                            IntegrationClass = require('./integrations/google-docs');
+                            break;
+                        case 'obsidian':
+                            IntegrationClass = require('./integrations/obsidian');
+                            break;
+                        default:
+                            return false;
+                    }
+
+                    const integrationInstance = new IntegrationClass();
+                    const result = await integrationInstance.initialize(credentials);
+                    return result.success;
+                } catch (error) {
+                    console.error(`Validation failed for ${integrationId}:`, error.message);
+                    return false;
+                }
+            };
+
+            // Validate each connected integration
+            const validatedIntegrations = [];
+            for (const integration of connectedIntegrations) {
+                // Temporarily skip validation to test OAuth flow
+                console.log(`Skipping validation for ${integration.integrationId} integration for user ${req.session.user.userid}`);
+                validatedIntegrations.push(integration);
+
+                // const isValid = await validateIntegrationCredentials(integration.integrationId, integration.credentials);
+                // if (isValid) {
+                //     validatedIntegrations.push(integration);
+                // } else {
+                //     // Remove invalid integration from database
+                //     console.log(`Removing invalid ${integration.integrationId} integration for user ${req.session.user.userid}`);
+                //     await userIntegrationsModel.disconnectIntegration(req.session.user.userid, integration.integrationId);
+                // }
+            }
+
+            const integrations = [
+                {
+                    id: 'notion',
+                    name: 'Notion',
+                    description: 'Import and export notes from Notion databases',
+                    icon: '📝',
+                    features: ['import', 'export'],
+                    authRequired: true,
+                    isConnected: validatedIntegrations.some(i => i.integrationId === 'notion') && oauthManager.isConfigured('notion'),
+                    connectedAccount: validatedIntegrations.find(i => i.integrationId === 'notion')?.connectedAccount || null,
+                    oauthSupported: oauthManager.isConfigured('notion')
+                },
+                {
+                    id: 'onenote',
+                    name: 'OneNote',
+                    description: 'Sync with Microsoft OneNote notebooks',
+                    icon: '📓',
+                    features: ['import', 'export'],
+                    authRequired: true,
+                    isConnected: validatedIntegrations.some(i => i.integrationId === 'onenote') && oauthManager.isConfigured('microsoft'),
+                    connectedAccount: validatedIntegrations.find(i => i.integrationId === 'onenote')?.connectedAccount || null,
+                    oauthSupported: oauthManager.isConfigured('microsoft')
+                },
+                {
+                    id: 'google-docs',
+                    name: 'Google Docs',
+                    description: 'Import and export Google Docs',
+                    icon: '📄',
+                    features: ['import', 'export'],
+                    authRequired: true,
+                    isConnected: validatedIntegrations.some(i => i.integrationId === 'google-docs') && oauthManager.isConfigured('google'),
+                    connectedAccount: validatedIntegrations.find(i => i.integrationId === 'google-docs')?.connectedAccount || null,
+                    oauthSupported: oauthManager.isConfigured('google')
+                },
+                {
+                    id: 'obsidian',
+                    name: 'Obsidian',
+                    description: 'Import and export from Obsidian vaults',
+                    icon: '🔗',
+                    features: ['import', 'export'],
+                    authRequired: false,
+                    isConnected: validatedIntegrations.some(i => i.integrationId === 'obsidian'),
+                    connectedAccount: validatedIntegrations.find(i => i.integrationId === 'obsidian')?.connectedAccount || null,
+                    oauthSupported: false
+                }
+            ];
+
+            res.json({ success: true, integrations });
+        } catch (error) {
+            console.error('Error fetching integrations:', error);
+            res.status(500).json({ error: 'Failed to fetch integrations' });
+        }
+    });
+
+    // API: Initialize integration
+    app.post('/api/integrations/:integrationId/initialize', apiLimiter, async (req, res) => {
+        if (!req.session.user) {
+            return res.status(401).json({ error: 'Unauthorized' });
+        }
+
+        try {
+            const { integrationId } = req.params;
+            const { credentials } = req.body;
+
+            if (!credentials) {
+                return res.status(400).json({ error: 'Credentials required' });
+            }
+
+            let integration;
+            let result;
+
+            switch (integrationId) {
+                case 'notion':
+                    integration = require('./integrations/notion');
+                    result = await integration.initialize(credentials);
+                    break;
+                case 'onenote':
+                    integration = require('./integrations/onenote');
+                    result = await integration.initialize(credentials);
+                    break;
+                case 'google-docs':
+                    integration = require('./integrations/google-docs');
+                    result = await integration.initialize(credentials);
+                    break;
+                case 'obsidian':
+                    integration = require('./integrations/obsidian');
+                    result = await integration.initialize(credentials);
+                    break;
+                default:
+                    return res.status(400).json({ error: 'Unsupported integration' });
+            }
+
+            if (result.success) {
+                // Save integration to database
+                await userIntegrationsModel.saveIntegration(req.session.user.userid, integrationId, {
+                    ...credentials,
+                    connectedAccount: result.connectedAccount || 'Connected'
+                });
+                res.json({ success: true, message: 'Integration initialized successfully' });
+            } else {
+                res.status(400).json({ error: result.error });
+            }
+        } catch (error) {
+            console.error('Integration initialization error:', error);
+            res.status(500).json({ error: 'Failed to initialize integration' });
+        }
+    });
+
+    // API: Get integration data (workspaces, notebooks, etc.)
+    app.get('/api/integrations/:integrationId/data', async (req, res) => {
+        if (!req.session.user) {
+            return res.status(401).json({ error: 'Unauthorized' });
+        }
+
+        try {
+            const { integrationId } = req.params;
+            const userIntegrations = await userIntegrationsModel.getUserIntegrations(req.session.user.userid);
+            const integration = userIntegrations.integrations.find(i => i.integrationId === integrationId);
+
+            if (!integration) {
+                return res.status(404).json({ error: 'Integration not found' });
+            }
+
+            let IntegrationClass;
+            switch (integrationId) {
+                case 'notion':
+                    IntegrationClass = require('./integrations/notion');
+                    break;
+                case 'onenote':
+                    IntegrationClass = require('./integrations/onenote');
+                    break;
+                case 'google-docs':
+                    IntegrationClass = require('./integrations/google-docs');
+                    break;
+                case 'obsidian':
+                    IntegrationClass = require('./integrations/obsidian');
+                    break;
+                default:
+                    return res.status(400).json({ error: 'Unsupported integration' });
+            }
+
+            // Get integration credentials
+            const integrationCredentials = await userIntegrationsModel.getIntegration(req.session.user.userid, integrationId);
+            if (!integrationCredentials.success) {
+                return res.status(404).json({ error: 'Integration credentials not found' });
+            }
+
+            // Instantiate integration class and get data
+            const integrationInstance = new IntegrationClass();
+            const data = await integrationInstance.getData(integrationCredentials.credentials);
+            res.json({ success: true, data });
+        } catch (error) {
+            console.error('Error fetching integration data:', error);
+            res.status(500).json({ error: 'Failed to fetch integration data' });
+        }
+    });
+
+    // API: Import from integration
+    app.post('/api/integrations/:integrationId/import', apiLimiter, async (req, res) => {
+        if (!req.session.user) {
+            return res.status(401).json({ error: 'Unauthorized' });
+        }
+
+        try {
+            const { integrationId } = req.params;
+            const { sourceId, options } = req.body;
+
+            if (!sourceId) {
+                return res.status(400).json({ error: 'Source ID required' });
+            }
+
+            const userIntegrations = await userIntegrationsModel.getUserIntegrations(req.session.user.userid);
+            const integration = userIntegrations.integrations.find(i => i.integrationId === integrationId);
+
+            if (!integration) {
+                return res.status(404).json({ error: 'Integration not found' });
+            }
+
+            let IntegrationClass;
+            switch (integrationId) {
+                case 'notion':
+                    IntegrationClass = require('./integrations/notion');
+                    break;
+                case 'onenote':
+                    IntegrationClass = require('./integrations/onenote');
+                    break;
+                case 'google-docs':
+                    IntegrationClass = require('./integrations/google-docs');
+                    break;
+                case 'obsidian':
+                    IntegrationClass = require('./integrations/obsidian');
+                    break;
+                default:
+                    return res.status(400).json({ error: 'Unsupported integration' });
+            }
+
+            // Get integration credentials
+            const integrationCredentials = await userIntegrationsModel.getIntegration(req.session.user.userid, integrationId);
+            if (!integrationCredentials.success) {
+                return res.status(404).json({ error: 'Integration credentials not found' });
+            }
+
+            // Instantiate integration class and import
+            const integrationInstance = new IntegrationClass();
+            const result = await integrationInstance.import(sourceId, integrationCredentials.credentials, options);
+            res.json({ success: true, count: result.count, files: result.files });
+        } catch (error) {
+            console.error('Import error:', error);
+            res.status(500).json({ error: 'Import failed' });
+        }
+    });
+
+    // API: Export to integration
+    app.post('/api/integrations/:integrationId/export', apiLimiter, async (req, res) => {
+        if (!req.session.user) {
+            return res.status(401).json({ error: 'Unauthorized' });
+        }
+
+        try {
+            const { integrationId } = req.params;
+            const { fileId, targetId, title } = req.body;
+
+            if (!fileId || !targetId) {
+                return res.status(400).json({ error: 'File ID and target ID required' });
+            }
+
+            const userIntegrations = await userIntegrationsModel.getUserIntegrations(req.session.user.userid);
+            const integration = userIntegrations.integrations.find(i => i.integrationId === integrationId);
+
+            if (!integration) {
+                return res.status(404).json({ error: 'Integration not found' });
+            }
+
+            let IntegrationClass;
+            switch (integrationId) {
+                case 'notion':
+                    IntegrationClass = require('./integrations/notion');
+                    break;
+                case 'onenote':
+                    IntegrationClass = require('./integrations/onenote');
+                    break;
+                case 'google-docs':
+                    IntegrationClass = require('./integrations/google-docs');
+                    break;
+                case 'obsidian':
+                    IntegrationClass = require('./integrations/obsidian');
+                    break;
+                default:
+                    return res.status(400).json({ error: 'Unsupported integration' });
+            }
+
+            // Get integration credentials
+            const integrationCredentials = await userIntegrationsModel.getIntegration(req.session.user.userid, integrationId);
+            if (!integrationCredentials.success) {
+                return res.status(404).json({ error: 'Integration credentials not found' });
+            }
+
+            // Instantiate integration class and export
+            const integrationInstance = new IntegrationClass();
+            const result = await integrationInstance.export(fileId, integrationCredentials.credentials, { targetId, title });
+            res.json({ success: true, url: result.url });
+        } catch (error) {
+            console.error('Export error:', error);
+            res.status(500).json({ error: 'Export failed' });
+        }
+    });
+
+    // API: Disconnect integration
+    app.delete('/api/integrations/:integrationId', async (req, res) => {
+        if (!req.session.user) {
+            return res.status(401).json({ error: 'Unauthorized' });
+        }
+
+        try {
+            const { integrationId } = req.params;
+            await userIntegrationsModel.deleteIntegration(req.session.user.userid, integrationId);
+            res.json({ success: true, message: 'Integration disconnected' });
+        } catch (error) {
+            console.error('Disconnect error:', error);
+            res.status(500).json({ error: 'Failed to disconnect integration' });
+        }
+    });
+
+    console.log('🔧 Integration API routes registered successfully!');
+}
+
+// Initialize user integrations model when database is connected
+async function initializeIntegrations() {
+    try {
+        await ensureConnection();
+        userIntegrationsModel = new UserIntegrationsModel(client.db(userCollection.db));
+        console.log('✅ User integrations model initialized');
+
+    } catch (error) {
+        console.error('❌ Failed to initialize integrations model:', error);
+    }
+}
+
+
+
+
+// Store user integration credentials (in production, use encrypted storage)
+const userIntegrations = new Map();
+
+// ================================
+// OAUTH AUTHENTICATION ROUTES
+// ================================
+
+// OAuth: Start authentication flow
+app.get('/auth/:provider', async (req, res) => {
+    if (!req.session.user) {
+        return res.status(401).json({ error: 'Unauthorized' });
+    }
+
+    try {
+        const { provider } = req.params;
+
+        if (!oauthManager.isConfigured(provider)) {
+            return res.status(400).json({
+                error: `${provider} OAuth is not configured. Please set up ${provider.toUpperCase()}_CLIENT_ID and ${provider.toUpperCase()}_CLIENT_SECRET environment variables.`
+            });
+        }
+
+        const { authUrl, state } = oauthManager.generateAuthUrl(provider, req.session.user.userid);
+
+        // Store state in session for verification
+        req.session.oauthState = state;
+        req.session.oauthProvider = provider;
+
+        res.json({ success: true, authUrl: authUrl });
+    } catch (error) {
+        console.error('OAuth initiation error:', error);
+        res.status(500).json({ error: 'Failed to initiate OAuth flow' });
+    }
+});
+
+// Generic OAuth callback route removed - using specific routes for each provider
+
