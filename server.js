@@ -419,12 +419,20 @@ app.use(express.static(path.join(__dirname, "public"))); // Serve logo, favicon,
 const session = require("express-session");
 const jwt = require('jsonwebtoken');
 
+// Configure session store for Vercel compatibility
+const MongoStore = require('connect-mongo');
+
 app.use(session({
     secret: process.env.SECRET_KEY,
     resave: false,
     saveUninitialized: false,
     rolling: true,
     name: 'terpnotes.sid',
+    store: MongoStore.create({
+        mongoUrl: process.env.MONGO_CONNECTION_STRING,
+        touchAfter: 24 * 3600, // lazy session update
+        ttl: 24 * 60 * 60 // 24 hours
+    }),
     cookie: {
         secure: false, // Disable secure for now to fix Vercel issues
         httpOnly: true,
