@@ -5800,11 +5800,22 @@ app.get('/health', (req, res) => {
 // Export the app for testing
 module.exports = app;
 
-// Initialize integrations and register routes (for both direct and serverless)
+// Initialize integrations and register routes
 initializeIntegrations().then(() => {
     console.log('✅ Integrations initialized');
     // Register routes after model is initialized
     registerIntegrationRoutes();
+
+    // For localhost: Register 404 handler after integration routes
+    if (require.main === module) {
+        // 404 Handler - Must be last route (after all routes are registered)
+        app.use((req, res) => {
+            res.status(404).render('404', {
+                title: "Page Not Found - Terp Notes"
+            });
+        });
+        console.log('🔧 All routes registered successfully!');
+    }
 }).catch(error => {
     console.error('Failed to initialize integrations:', error);
     // Don't exit in serverless environment
@@ -5813,16 +5824,20 @@ initializeIntegrations().then(() => {
     }
 });
 
+// For Vercel: Register 404 handler immediately (serverless environment)
+if (require.main !== module) {
+    // 404 Handler - Must be last route (after all routes are registered)
+    app.use((req, res) => {
+        res.status(404).render('404', {
+            title: "Page Not Found - Terp Notes"
+        });
+    });
+    console.log('🔧 Vercel: 404 handler registered');
+}
+
 // Only start the server if this file is run directly
 if (require.main === module) {
     try {
-        // 404 Handler - Must be last route (after all routes are registered)
-        app.use((req, res) => {
-            res.status(404).render('404', {
-                title: "Page Not Found - Terp Notes"
-            });
-        });
-
         app.listen(portNumber, () => {
             console.log(`Terp Notes Server running on port ${portNumber}`);
             console.log(`Ready to share notes!`);
