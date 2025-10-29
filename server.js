@@ -2901,7 +2901,8 @@ app.get('/integrations', (req, res) => {
     res.render('integrations', {
         title: 'Integrations - Terp Notes',
         firstname: req.session.user.firstname,
-        user: req.session.user
+        user: req.session.user,
+        baseUrl: process.env.BASE_URL || 'http://localhost:3000'
     });
 });
 
@@ -5810,6 +5811,10 @@ initializeIntegrations().then(() => {
     if (require.main === module) {
         // 404 Handler - Must be last route (after all routes are registered)
         app.use((req, res) => {
+            // If it's an API route, return JSON instead of HTML
+            if (req.path.startsWith('/api/')) {
+                return res.status(404).json({ error: 'API endpoint not found' });
+            }
             res.status(404).render('404', {
                 title: "Page Not Found - Terp Notes"
             });
@@ -5828,6 +5833,10 @@ initializeIntegrations().then(() => {
 if (require.main !== module) {
     // 404 Handler - Must be last route (after all routes are registered)
     app.use((req, res) => {
+        // If it's an API route, return JSON instead of HTML
+        if (req.path.startsWith('/api/')) {
+            return res.status(404).json({ error: 'API endpoint not found' });
+        }
         res.status(404).render('404', {
             title: "Page Not Found - Terp Notes"
         });

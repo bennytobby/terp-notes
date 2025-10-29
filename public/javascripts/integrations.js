@@ -1,5 +1,19 @@
 // Integrations Management JavaScript
 
+// Helper function to get API base URL
+function getApiUrl(path) {
+    // Remove leading slash from path if present
+    const cleanPath = path.startsWith('/') ? path.slice(1) : path;
+
+    // Use BASE_URL if available (from server environment), otherwise use relative path
+    if (typeof window !== 'undefined' && window.BASE_URL) {
+        return `${window.BASE_URL}/${cleanPath}`;
+    }
+
+    // Fallback to relative path (works for same-origin requests)
+    return `/${cleanPath}`;
+}
+
 class IntegrationsManager {
     constructor() {
         this.integrations = [];
@@ -32,9 +46,30 @@ class IntegrationsManager {
 
     async loadIntegrations() {
         try {
-            const response = await fetch('/api/integrations', {
-                credentials: 'include'
+            const apiUrl = getApiUrl('api/integrations');
+            const response = await fetch(apiUrl, {
+                credentials: 'include',
+                headers: {
+                    'Accept': 'application/json'
+                }
             });
+
+            // Check if response is actually JSON
+            const contentType = response.headers.get('content-type');
+            if (!contentType || !contentType.includes('application/json')) {
+                const text = await response.text();
+                console.error('API returned non-JSON response:', text.substring(0, 200));
+                this.showNotification('Failed to load integrations: Server returned HTML instead of JSON', 'error');
+                return;
+            }
+
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({ error: `HTTP ${response.status}` }));
+                console.error('API error:', errorData);
+                this.showNotification(`Failed to load integrations: ${errorData.error || `HTTP ${response.status}`}`, 'error');
+                return;
+            }
+
             const data = await response.json();
 
             if (data.success) {
@@ -44,7 +79,7 @@ class IntegrationsManager {
             }
         } catch (error) {
             console.error('Error loading integrations:', error);
-            this.showNotification('Error loading integrations', 'error');
+            this.showNotification(`Error loading integrations: ${error.message}`, 'error');
         }
     }
 
@@ -248,8 +283,9 @@ class IntegrationsManager {
                 return;
             }
 
-            // Direct redirect to OAuth provider (no fetch needed)
-            window.location.href = `/auth/${provider}`;
+            // Direct redirect to OAuth provider (use BASE_URL if available)
+            const authUrl = getApiUrl(`auth/${provider}`);
+            window.location.href = authUrl;
         } catch (error) {
             console.error('Error starting OAuth flow:', error);
             this.showNotification('Error starting OAuth flow', 'error');
@@ -303,10 +339,12 @@ class IntegrationsManager {
         }
 
         try {
-            const response = await fetch(`/api/integrations/${integrationId}/initialize`, {
+            const apiUrl = getApiUrl(`api/integrations/${integrationId}/initialize`);
+            const response = await fetch(apiUrl, {
                 method: 'POST',
                 headers: {
-                    'Content-Type': 'application/json'
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
                 },
                 credentials: 'include',
                 body: JSON.stringify({ credentials })
@@ -343,9 +381,27 @@ class IntegrationsManager {
 
     async getActionFormHTML(integrationId, action) {
         try {
-            const response = await fetch(`/api/integrations/${integrationId}/data`, {
-                credentials: 'include'
+            const apiUrl = getApiUrl(`api/integrations/${integrationId}/data`);
+            const response = await fetch(apiUrl, {
+                credentials: 'include',
+                headers: {
+                    'Accept': 'application/json'
+                }
             });
+
+            // Check if response is actually JSON
+            const contentType = response.headers.get('content-type');
+            if (!contentType || !contentType.includes('application/json')) {
+                const text = await response.text();
+                console.error('API returned non-JSON response:', text.substring(0, 200));
+                return `<p class="form-error">Failed to load ${integrationId} data: Server returned HTML instead of JSON</p>`;
+            }
+
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({ error: `HTTP ${response.status}` }));
+                return `<p class="form-error">Failed to load ${integrationId} data: ${errorData.error || `HTTP ${response.status}`}</p>`;
+            }
+
             const data = await response.json();
 
             if (!data.success) {
@@ -499,10 +555,12 @@ class IntegrationsManager {
         };
 
         try {
-            const response = await fetch(`/api/integrations/${integrationId}/import`, {
+            const apiUrl = getApiUrl(`api/integrations/${integrationId}/import`);
+            const response = await fetch(apiUrl, {
                 method: 'POST',
                 headers: {
-                    'Content-Type': 'application/json'
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
                 },
                 credentials: 'include',
                 body: JSON.stringify({ sourceId, options })
@@ -538,10 +596,12 @@ class IntegrationsManager {
         }
 
         try {
-            const response = await fetch(`/api/integrations/${integrationId}/export`, {
+            const apiUrl = getApiUrl(`api/integrations/${integrationId}/export`);
+            const response = await fetch(apiUrl, {
                 method: 'POST',
                 headers: {
-                    'Content-Type': 'application/json'
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
                 },
                 credentials: 'include',
                 body: JSON.stringify({ fileId, targetId, title })
@@ -567,9 +627,13 @@ class IntegrationsManager {
         }
 
         try {
-            const response = await fetch(`/api/integrations/${integrationId}`, {
+            const apiUrl = getApiUrl(`api/integrations/${integrationId}`);
+            const response = await fetch(apiUrl, {
                 method: 'DELETE',
-                credentials: 'include'
+                credentials: 'include',
+                headers: {
+                    'Accept': 'application/json'
+                }
             });
 
             const result = await response.json();

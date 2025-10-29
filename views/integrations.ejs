@@ -135,8 +135,6 @@
     </main>
 
     <!-- Scripts -->
-    <script src="/javascripts/integrations.js"></script>
-
     <script>
         // Quick logout modal functions
         function showQuickLogout() {
@@ -215,6 +213,10 @@
         </div>
     </div>
 
+    <script>
+        // Set BASE_URL before loading integrations.js
+        window.BASE_URL = '<%= baseUrl %>';
+    </script>
     <script src="/javascripts/integrations.js"></script>
 
     <!-- Force header styling with JavaScript -->
