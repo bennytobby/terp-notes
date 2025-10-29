@@ -434,11 +434,19 @@ app.use(session({
         ttl: 24 * 60 * 60 // 24 hours
     }),
     cookie: {
-        secure: false, // Disable secure for now to fix Vercel issues
+        // Secure flag: true for HTTPS (Vercel always uses HTTPS), false for HTTP (localhost)
+        // Vercel sets VERCEL env var, or we can check if BASE_URL is HTTPS
+        // Note: On Vercel preview domains, cookies MUST use secure=true because they're HTTPS
+        secure: process.env.VERCEL === '1' ||
+                (process.env.BASE_URL && process.env.BASE_URL.startsWith('https')) ||
+                process.env.NODE_ENV === 'production' ||
+                false,
         httpOnly: true,
         maxAge: 24 * 60 * 60 * 1000, // 24 hours
         sameSite: 'lax',
         path: '/'
+        // Don't set domain - let it default to the request host
+        // This ensures cookies work on both preview and production Vercel domains
     },
     // Force new session for each login to prevent conflicts
     genid: function(req) {

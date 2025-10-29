@@ -1,17 +1,17 @@
 // Integrations Management JavaScript
 
-// Helper function to get API base URL
+// Helper function to get API URL
+// Always use relative URLs for API calls to ensure same-origin requests
+// This fixes CORS issues and ensures session cookies work correctly
 function getApiUrl(path) {
-    // Remove leading slash from path if present
-    const cleanPath = path.startsWith('/') ? path.slice(1) : path;
+    // Remove leading slash from path if present, then add it back for relative URL
+    const cleanPath = path.startsWith('/') ? path : `/${path}`;
 
-    // Use BASE_URL if available (from server environment), otherwise use relative path
-    if (typeof window !== 'undefined' && window.BASE_URL) {
-        return `${window.BASE_URL}/${cleanPath}`;
-    }
-
-    // Fallback to relative path (works for same-origin requests)
-    return `/${cleanPath}`;
+    // Always use relative URLs for API calls - this ensures:
+    // 1. Same-origin requests (no CORS issues)
+    // 2. Session cookies work correctly
+    // 3. Works on localhost, Vercel preview, and production
+    return cleanPath;
 }
 
 class IntegrationsManager {
@@ -283,9 +283,9 @@ class IntegrationsManager {
                 return;
             }
 
-            // Direct redirect to OAuth provider (use BASE_URL if available)
-            const authUrl = getApiUrl(`auth/${provider}`);
-            window.location.href = authUrl;
+            // OAuth redirect - use relative URL (same as API calls)
+            // The server will handle the full URL construction for OAuth redirects
+            window.location.href = `/auth/${provider}`;
         } catch (error) {
             console.error('Error starting OAuth flow:', error);
             this.showNotification('Error starting OAuth flow', 'error');
