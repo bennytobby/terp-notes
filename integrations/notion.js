@@ -347,8 +347,8 @@ class NotionIntegration {
             const result = await this.importFromDatabase(sourceId, options);
             return {
                 success: true,
-                count: result.pages ? result.pages.length : 0,
-                files: result.pages || []
+                count: result.count || 0,
+                files: result.files || []
             };
         } catch (error) {
             console.error('Error importing from Notion:', error);
@@ -374,8 +374,8 @@ class NotionIntegration {
             const result = await this.exportToDatabase(fileData, options.databaseId);
             return {
                 success: true,
-                pageId: result.pageId,
-                url: result.url
+                pageId: result.notionPageId,
+                url: result.notionUrl
             };
         } catch (error) {
             console.error('Error exporting to Notion:', error);

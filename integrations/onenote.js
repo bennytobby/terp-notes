@@ -330,8 +330,8 @@ class OneNoteIntegration {
             const result = await this.importFromSection(sourceId, options);
             return {
                 success: true,
-                count: result.pages ? result.pages.length : 0,
-                files: result.pages || []
+                count: result.count || 0,
+                files: result.files || []
             };
         } catch (error) {
             console.error('Error importing from OneNote:', error);
@@ -357,8 +357,8 @@ class OneNoteIntegration {
             const result = await this.exportToSection(fileData, options.sectionId);
             return {
                 success: true,
-                pageId: result.pageId,
-                url: result.url
+                pageId: result.oneNotePageId,
+                url: result.oneNoteUrl
             };
         } catch (error) {
             console.error('Error exporting to OneNote:', error);

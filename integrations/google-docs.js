@@ -415,7 +415,7 @@ class GoogleDocsIntegration {
             return {
                 success: true,
                 count: 1,
-                files: [result]
+                files: [result.file]
             };
         } catch (error) {
             console.error('Error importing from Google Docs:', error);
@@ -441,8 +441,8 @@ class GoogleDocsIntegration {
             const result = await this.exportToDocument(fileData, options.title || 'Terp Notes Export');
             return {
                 success: true,
-                documentId: result.documentId,
-                url: result.url
+                documentId: result.googleDocId,
+                url: result.googleDocUrl
             };
         } catch (error) {
             console.error('Error exporting to Google Docs:', error);
