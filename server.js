@@ -5809,48 +5809,39 @@ app.get('/health', (req, res) => {
 // Export the app for testing
 module.exports = app;
 
-// Initialize integrations and register routes
+// Register integration routes immediately (synchronously) to avoid race conditions on serverless
+// Routes will check if model is initialized when requests arrive
+registerIntegrationRoutes();
+
+// Register 404 handler AFTER all routes are registered
+// This ensures integration routes are available before the 404 handler catches unmatched routes
+// 404 Handler - Must be last route (after all routes are registered)
+app.use((req, res) => {
+    // If it's an API route, return JSON instead of HTML
+    if (req.path.startsWith('/api/')) {
+        return res.status(404).json({ error: 'API endpoint not found' });
+    }
+    res.status(404).render('404', {
+        title: "Page Not Found - Terp Notes"
+    });
+});
+
+if (require.main === module) {
+    console.log('🔧 All routes registered successfully!');
+} else {
+    console.log('🔧 Vercel: All routes and 404 handler registered successfully!');
+}
+
+// Initialize integrations model (async, but routes are already registered)
 initializeIntegrations().then(() => {
     console.log('✅ Integrations initialized');
-    // Register routes after model is initialized
-    registerIntegrationRoutes();
-
-    // For localhost: Register 404 handler after integration routes
-    if (require.main === module) {
-        // 404 Handler - Must be last route (after all routes are registered)
-        app.use((req, res) => {
-            // If it's an API route, return JSON instead of HTML
-            if (req.path.startsWith('/api/')) {
-                return res.status(404).json({ error: 'API endpoint not found' });
-            }
-            res.status(404).render('404', {
-                title: "Page Not Found - Terp Notes"
-            });
-        });
-        console.log('🔧 All routes registered successfully!');
-    }
 }).catch(error => {
     console.error('Failed to initialize integrations:', error);
-    // Don't exit in serverless environment
+    // Don't exit in serverless environment - routes are already registered
     if (require.main === module) {
         process.exit(1);
     }
 });
-
-// For Vercel: Register 404 handler immediately (serverless environment)
-if (require.main !== module) {
-    // 404 Handler - Must be last route (after all routes are registered)
-    app.use((req, res) => {
-        // If it's an API route, return JSON instead of HTML
-        if (req.path.startsWith('/api/')) {
-            return res.status(404).json({ error: 'API endpoint not found' });
-        }
-        res.status(404).render('404', {
-            title: "Page Not Found - Terp Notes"
-        });
-    });
-    console.log('🔧 Vercel: 404 handler registered');
-}
 
 // Only start the server if this file is run directly
 if (require.main === module) {
