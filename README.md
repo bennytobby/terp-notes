@@ -40,6 +40,8 @@ This platform is **built for students, by a student** (now alum), with zero prof
 - **Email Notifications** - Confirmations for uploads, deletions, and account changes
 - **Category System** - Organize files by type (Exam, Lecture Notes, Homework, etc.)
 - **File Metadata** - Rich information including size, upload date, and contributor
+- **UMD.io Course Data** - Real-time course and professor information powered by UMD.io API
+- **Optimized Cache System** - Fast autocomplete with 5,000+ courses and 7,000+ professors cached locally
 
 ### **Security & Safety**
 - **UMD Email Required** - Only verified `@umd.edu` / `@terpmail.umd.edu` emails can join
@@ -57,6 +59,15 @@ This platform is **built for students, by a student** (now alum), with zero prof
 - **Duplicate Detection** - System prevents re-uploading the same file
 - **File Categories** - Organized by academic content type with emoji indicators
 
+### **Note-Taking App Integrations** *(NEW)*
+- **Google Docs Integration** - Connect your Google Drive to import/export notes seamlessly
+- **Notion Integration** - Sync your Notion workspace with Terp Notes
+- **Microsoft OneNote Integration** - Link your OneNote notebooks for easy access
+- **Obsidian Integration** - Connect your Obsidian vault (coming soon)
+- **OAuth 2.0 Security** - Secure authentication with encrypted token storage
+- **One-Click Connect** - Simple OAuth flow to authorize your accounts
+- **Real-Time Status** - See connection status and connected account information
+
 ### **For Admins**
 - **Moderation Dashboard** - Review reported files with one-click actions
 - **User Management** - Change roles, set view-only mode, or remove accounts
@@ -67,16 +78,22 @@ This platform is **built for students, by a student** (now alum), with zero prof
 - **File Reporting System** - Community-driven moderation with admin oversight
 
 ### **Technical Excellence**
-- **Client-Side Filtering** - Instant results without server roundtrips
+- **Client-Side Filtering** - Instant results without server roundtrips using in-memory cache
 - **File Deduplication** - SHA-256 hashing saves storage costs
 - **Database Indexing** - Fast queries even with thousands of files
-- **Session Persistence** - Stay logged in across pages with JWT + cookies
+- **Session Persistence** - MongoDB-backed sessions with JWT + cookies for reliable auth
+- **OAuth 2.0 Integration** - Secure token management for Google, Microsoft, and Notion APIs
+- **Encrypted Token Storage** - Integration credentials encrypted with AES-256-CBC
 - **Vercel Analytics** - Real-time traffic monitoring and performance insights
 - **Cron Jobs** - Automated background tasks (virus scanning, cleanup)
-- **Serverless Architecture** - Scales automatically with demand
+- **Serverless Architecture** - Scales automatically with demand (works on Vercel and localhost)
 - **No File Size Limits** - Direct S3 uploads support files up to 5GB
 - **Professional Icon System** - Custom SVG icons with transparent backgrounds
 - **UMD Color Scheme** - Consistent branding with university colors
+- **UMD.io API Integration** - Real-time course and professor data with intelligent caching
+- **Optimized Cache System** - 5,000+ courses and 7,000+ professors cached for instant filtering
+- **Environment-Aware Routing** - Smart route registration for both Vercel and localhost
+- **Resend Email Service** - Reliable email delivery for verifications and notifications
 
 ---
 
@@ -110,12 +127,14 @@ This platform is **built for students, by a student** (now alum), with zero prof
 | Layer | Technology | Purpose |
 |-------|-----------|---------|
 | **Backend** | Node.js + Express | Serverless API & routing |
-| **Database** | MongoDB Atlas | File metadata & user management |
+| **Database** | MongoDB Atlas | File metadata, user management & session storage |
 | **Storage** | AWS S3 | Scalable file storage with direct uploads |
-| **Auth** | JWT + Sessions + bcrypt | Secure authentication & password hashing |
+| **Auth** | JWT + Sessions (MongoStore) + bcrypt | Secure authentication & password hashing |
 | **Frontend** | EJS + Vanilla JS + CSS | Server-side rendering with no build step |
 | **Security** | VirusTotal API | 70+ antivirus engines scan every file |
-| **Email** | Nodemailer + Gmail | Verification & notifications |
+| **Email** | Resend API | Modern email delivery for verifications & notifications |
+| **Integrations** | OAuth 2.0 (Google, Microsoft, Notion) | Secure note-taking app connections |
+| **Course Data** | UMD.io API | Real-time course & professor information |
 | **Deployment** | Vercel | Serverless functions, cron jobs, analytics |
 | **Monitoring** | Vercel Analytics & Speed Insights | Performance tracking |
 | **Icons** | Custom SVG/PNG | Professional icon system with transparency |
@@ -133,7 +152,10 @@ Filter by major (CMSC, MATH, etc.) → Select class (CMSC330) → Search by prof
 ### **3. Upload & Share**
 Drag & drop your notes → Add class info & description → Choose category → Upload directly to S3 → Files are virus scanned automatically
 
-### **4. Download & Study**
+### **4. Connect Integrations** *(NEW)*
+Navigate to Integrations → Connect Google Docs, Notion, OneNote, or Obsidian → Import notes from external apps or export Terp Notes to your preferred tools
+
+### **5. Download & Study**
 Click any file → Preview PDFs inline or download → Help others by uploading your own materials
 
 ---
@@ -169,6 +191,15 @@ Color scheme and styling that reflects University of Maryland branding and pride
 **Role-Based Moderation**
 Instead of banning violators, revoke upload privileges ("Viewer" mode). Encourages rehabilitation over punishment.
 
+**OAuth Integration System**
+Secure OAuth 2.0 flow for connecting note-taking apps. Tokens encrypted with AES-256-CBC and stored in MongoDB. Supports Google Drive, Microsoft OneNote, Notion, and Obsidian.
+
+**Optimized Course Cache**
+Intelligent caching system for UMD.io course data. 5,000+ courses and 7,000+ professors cached locally for instant autocomplete and filtering. Cache updates automatically when stale.
+
+**Environment-Aware Routing**
+Smart route registration that works seamlessly on both Vercel (serverless) and localhost (traditional Node.js). Ensures reliability across all deployment environments.
+
 ---
 
 ## Security & Privacy
@@ -194,7 +225,7 @@ Instead of banning violators, revoke upload privileges ("Viewer" mode). Encourag
 - File virus scanning with auto-deletion
 - Download warnings for potentially risky file types
 
-**Full details:** [Privacy Policy](https://terp-notes.vercel.app/privacy)
+**Full details:** [Privacy Policy](https://terp-notes.org/privacy)
 
 ---
 
@@ -208,6 +239,9 @@ User management, file moderation, usage statistics, dynamic announcement system
 
 **Mobile Responsive:**
 Works perfectly on phones, tablets, and desktops with UMD-themed design
+
+**Integrations Page:**
+Connect Google Docs, Notion, OneNote, or Obsidian with secure OAuth 2.0 authentication
 
 ---
 
@@ -235,19 +269,24 @@ Works perfectly on phones, tablets, and desktops with UMD-themed design
 
 ## Deployment
 
-**Live Production:** [terp-notes.vercel.app](https://terp-notes.vercel.app/)
+**Live Production:** [terp-notes.org](https://terp-notes.org/)
 
 **Hosting:** Vercel (Serverless functions, auto-scaling, free tier)
 **Storage:** AWS S3 (Direct client uploads, no file size limits)
 **Database:** MongoDB Atlas (Free tier supports 512MB storage)
 
 **Deployment Requirements:**
-- MongoDB connection string
+- MongoDB connection string (with session storage support)
 - AWS S3 bucket with CORS configured
-- Gmail app password for email notifications
+- Resend API key for email notifications
 - (Optional) VirusTotal API key for scanning
-
-**Full deployment guide:** See [ARCHITECTURE.md](ARCHITECTURE.md)
+- (Optional) OAuth credentials for integrations:
+  - Google OAuth (Client ID & Secret)
+  - Microsoft OAuth (Client ID & Secret)
+  - Notion OAuth (Client ID & Secret)
+- OAuth State Secret (for secure OAuth flow)
+- Integration Encryption Key (for token encryption)
+- BASE_URL environment variable (for OAuth redirects)
 
 ---
 
@@ -271,10 +310,10 @@ This platform is **community-driven**. Here's how you can help:
 
 ## Contact & Support
 
-**Need help?** Visit [Contact & Support](https://terp-notes.vercel.app/contact)
+**Need help?** Visit [Contact & Support](https://terp-notes.org/contact)
 
 **Questions about:**
-- Account issues → [Contact Form](https://terp-notes.vercel.app/contact)
+- Account issues → [Contact Form](https://terp-notes.org/contact)
 - Bugs or errors → GitHub Issues
 - Feature requests → GitHub Discussions
 - Direct support → Via contact form (we respond within 24-48 hours)
@@ -283,8 +322,8 @@ This platform is **community-driven**. Here's how you can help:
 
 ## Legal
 
-- **Privacy Policy:** [terp-notes.vercel.app/privacy](https://terp-notes.vercel.app/privacy)
-- **Terms of Service:** [terp-notes.vercel.app/terms](https://terp-notes.vercel.app/terms)
+- **Privacy Policy:** [terp-notes.vercel.app/privacy](https://terp-notes.org/privacy)
+- **Terms of Service:** [terp-notes.vercel.app/terms](https://terp-notes.org/terms)
 - **License:** MIT (see LICENSE file)
 
 **Disclaimer:** Terp Notes is an independent, student-run platform. We are not affiliated with, endorsed by, or officially connected to the University of Maryland or any educational institution.
@@ -308,8 +347,8 @@ UMD Alum | Full-Stack Developer | Building tools to help students succeed
 
 **Ready to access thousands of study materials?**
 
-**[Join Terp Notes Now](https://terp-notes.vercel.app/)**
-
+**[Join Terp Notes Now](https://terp-notes.org/)**
+now updat
 1. **Sign up** with your UMD email
 2. **Verify** your account (check inbox/spam)
 3. **Browse** thousands of notes, guides, and resources
@@ -320,4 +359,4 @@ UMD Alum | Full-Stack Developer | Building tools to help students succeed
 
 **Fear the Turtle!** 🐢
 
-*Questions? Feature ideas? Reach out via the [contact form](https://terp-notes.vercel.app/contact).*
+*Questions? Feature ideas? Reach out via the [contact form](https://terp-notes.org/contact).*
