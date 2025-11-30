@@ -1,8 +1,8 @@
 {
   "metadata": {
-    "generated": "2025-11-23T04:12:51.613Z",
+    "generated": "2025-11-30T04:12:27.518Z",
     "type": "professor-indexed",
-    "professorsCount": 7098,
+    "professorsCount": 7099,
     "yearFilter": "Only years 2020 and after",
     "structure": "professor -> courses -> semesters"
   },
@@ -42258,6 +42258,11 @@
           "semester": "Spring",
           "year": 2026,
           "semesterId": "202601"
+        },
+        {
+          "semester": "Unknown",
+          "year": 2025,
+          "semesterId": "202512"
         }
       ]
     },
@@ -63674,6 +63679,13 @@
           "semesterId": "202601"
         }
       ],
+      "BMGT838M": [
+        {
+          "semester": "Spring",
+          "year": 2026,
+          "semesterId": "202601"
+        }
+      ],
       "BUSM761": [
         {
           "semester": "Spring",
@@ -66272,6 +66284,73 @@
       ],
       "BUSI759": []
     },
+    "Stephen Sclafani": {
+      "BMGT483": [
+        {
+          "semester": "Spring",
+          "year": 2026,
+          "semesterId": "202601"
+        }
+      ],
+      "BMGT758D": [
+        {
+          "semester": "Spring",
+          "year": 2024,
+          "semesterId": "202401"
+        },
+        {
+          "semester": "Spring",
+          "year": 2025,
+          "semesterId": "202501"
+        },
+        {
+          "semester": "Spring",
+          "year": 2026,
+          "semesterId": "202601"
+        }
+      ],
+      "BMGT758G": [
+        {
+          "semester": "Spring",
+          "year": 2024,
+          "semesterId": "202401"
+        },
+        {
+          "semester": "Spring",
+          "year": 2025,
+          "semesterId": "202501"
+        },
+        {
+          "semester": "Spring",
+          "year": 2026,
+          "semesterId": "202601"
+        }
+      ],
+      "BMGT758M": [
+        {
+          "semester": "Spring",
+          "year": 2025,
+          "semesterId": "202501"
+        },
+        {
+          "semester": "Spring",
+          "year": 2026,
+          "semesterId": "202601"
+        }
+      ],
+      "BMSO778R": [
+        {
+          "semester": "Spring",
+          "year": 2025,
+          "semesterId": "202501"
+        },
+        {
+          "semester": "Spring",
+          "year": 2026,
+          "semesterId": "202601"
+        }
+      ]
+    },
     "Sue Sherburne": {
       "BMGT483": [
         {
@@ -67232,66 +67311,6 @@
         }
       ],
       "HBUS205": [
-        {
-          "semester": "Spring",
-          "year": 2026,
-          "semesterId": "202601"
-        }
-      ]
-    },
-    "Stephen Sclafani": {
-      "BMGT758D": [
-        {
-          "semester": "Spring",
-          "year": 2024,
-          "semesterId": "202401"
-        },
-        {
-          "semester": "Spring",
-          "year": 2025,
-          "semesterId": "202501"
-        },
-        {
-          "semester": "Spring",
-          "year": 2026,
-          "semesterId": "202601"
-        }
-      ],
-      "BMGT758G": [
-        {
-          "semester": "Spring",
-          "year": 2024,
-          "semesterId": "202401"
-        },
-        {
-          "semester": "Spring",
-          "year": 2025,
-          "semesterId": "202501"
-        },
-        {
-          "semester": "Spring",
-          "year": 2026,
-          "semesterId": "202601"
-        }
-      ],
-      "BMGT758M": [
-        {
-          "semester": "Spring",
-          "year": 2025,
-          "semesterId": "202501"
-        },
-        {
-          "semester": "Spring",
-          "year": 2026,
-          "semesterId": "202601"
-        }
-      ],
-      "BMSO778R": [
-        {
-          "semester": "Spring",
-          "year": 2025,
-          "semesterId": "202501"
-        },
         {
           "semester": "Spring",
           "year": 2026,
@@ -101304,6 +101323,11 @@
           "semester": "Fall",
           "year": 2025,
           "semesterId": "202508"
+        },
+        {
+          "semester": "Spring",
+          "year": 2026,
+          "semesterId": "202601"
         }
       ]
     },
@@ -101476,6 +101500,11 @@
           "semester": "Fall",
           "year": 2025,
           "semesterId": "202508"
+        },
+        {
+          "semester": "Spring",
+          "year": 2026,
+          "semesterId": "202601"
         }
       ],
       "COMM306": [
@@ -101517,6 +101546,13 @@
           "semester": "Unknown",
           "year": 2025,
           "semesterId": "202512"
+        }
+      ],
+      "COMM353": [
+        {
+          "semester": "Spring",
+          "year": 2026,
+          "semesterId": "202601"
         }
       ]
     },
@@ -102238,6 +102274,11 @@
           "semester": "Fall",
           "year": 2025,
           "semesterId": "202508"
+        },
+        {
+          "semester": "Spring",
+          "year": 2026,
+          "semesterId": "202601"
         }
       ],
       "COMM488I": [
@@ -102255,6 +102296,11 @@
           "semester": "Fall",
           "year": 2025,
           "semesterId": "202508"
+        },
+        {
+          "semester": "Spring",
+          "year": 2026,
+          "semesterId": "202601"
         }
       ]
     },
@@ -103070,6 +103116,11 @@
           "semester": "Fall",
           "year": 2025,
           "semesterId": "202508"
+        },
+        {
+          "semester": "Spring",
+          "year": 2026,
+          "semesterId": "202601"
         }
       ]
     },
@@ -103202,6 +103253,13 @@
           "year": 2026,
           "semesterId": "202601"
         }
+      ],
+      "COMM445": [
+        {
+          "semester": "Spring",
+          "year": 2026,
+          "semesterId": "202601"
+        }
       ]
     },
     "Randall Fowler": {
@@ -103241,6 +103299,11 @@
           "semester": "Fall",
           "year": 2025,
           "semesterId": "202508"
+        },
+        {
+          "semester": "Spring",
+          "year": 2026,
+          "semesterId": "202601"
         }
       ]
     },
@@ -103809,6 +103872,11 @@
           "semester": "Fall",
           "year": 2025,
           "semesterId": "202508"
+        },
+        {
+          "semester": "Spring",
+          "year": 2026,
+          "semesterId": "202601"
         }
       ]
     },
@@ -106436,6 +106504,11 @@
           "semester": "Fall",
           "year": 2025,
           "semesterId": "202508"
+        },
+        {
+          "semester": "Spring",
+          "year": 2026,
+          "semesterId": "202601"
         }
       ]
     },
@@ -106483,12 +106556,26 @@
         }
       ]
     },
+    "Kate Smitherman": {
+      "COMM324": [
+        {
+          "semester": "Spring",
+          "year": 2026,
+          "semesterId": "202601"
+        }
+      ]
+    },
     "Katie O'Malley": {
       "COMM324": [
         {
           "semester": "Fall",
           "year": 2025,
           "semesterId": "202508"
+        },
+        {
+          "semester": "Spring",
+          "year": 2026,
+          "semesterId": "202601"
         }
       ]
     },
@@ -106664,6 +106751,11 @@
           "semester": "Spring",
           "year": 2020,
           "semesterId": "202001"
+        },
+        {
+          "semester": "Spring",
+          "year": 2026,
+          "semesterId": "202601"
         }
       ],
       "COMM351": [
@@ -106772,6 +106864,11 @@
           "semester": "Fall",
           "year": 2025,
           "semesterId": "202508"
+        },
+        {
+          "semester": "Spring",
+          "year": 2026,
+          "semesterId": "202601"
         }
       ]
     },
@@ -106941,6 +107038,11 @@
           "semester": "Fall",
           "year": 2025,
           "semesterId": "202508"
+        },
+        {
+          "semester": "Spring",
+          "year": 2026,
+          "semesterId": "202601"
         }
       ]
     },
@@ -107095,6 +107197,11 @@
           "semester": "Unknown",
           "year": 2025,
           "semesterId": "202512"
+        },
+        {
+          "semester": "Spring",
+          "year": 2026,
+          "semesterId": "202601"
         }
       ]
     },
@@ -107132,6 +107239,11 @@
           "semester": "Unknown",
           "year": 2025,
           "semesterId": "202512"
+        },
+        {
+          "semester": "Spring",
+          "year": 2026,
+          "semesterId": "202601"
         }
       ],
       "COMM398L": [
@@ -107399,6 +107511,11 @@
           "semester": "Unknown",
           "year": 2025,
           "semesterId": "202512"
+        },
+        {
+          "semester": "Spring",
+          "year": 2026,
+          "semesterId": "202601"
         }
       ]
     },
@@ -148962,6 +149079,11 @@
           "semester": "Fall",
           "year": 2025,
           "semesterId": "202508"
+        },
+        {
+          "semester": "Spring",
+          "year": 2026,
+          "semesterId": "202601"
         }
       ],
       "ENEE488": [
@@ -158871,6 +158993,108 @@
           "semester": "Spring",
           "year": 2022,
           "semesterId": "202201"
+        }
+      ]
+    },
+    "Robert DiLutis": {
+      "ENES434": [
+        {
+          "semester": "Fall",
+          "year": 2024,
+          "semesterId": "202408"
+        },
+        {
+          "semester": "Spring",
+          "year": 2026,
+          "semesterId": "202601"
+        }
+      ],
+      "MUSC434": [
+        {
+          "semester": "Fall",
+          "year": 2024,
+          "semesterId": "202408"
+        },
+        {
+          "semester": "Spring",
+          "year": 2026,
+          "semesterId": "202601"
+        }
+      ],
+      "MUSC464": [
+        {
+          "semester": "Spring",
+          "year": 2026,
+          "semesterId": "202601"
+        }
+      ],
+      "MUSC801W": [
+        {
+          "semester": "Spring",
+          "year": 2020,
+          "semesterId": "202001"
+        },
+        {
+          "semester": "Spring",
+          "year": 2021,
+          "semesterId": "202101"
+        },
+        {
+          "semester": "Spring",
+          "year": 2022,
+          "semesterId": "202201"
+        },
+        {
+          "semester": "Spring",
+          "year": 2023,
+          "semesterId": "202301"
+        },
+        {
+          "semester": "Spring",
+          "year": 2024,
+          "semesterId": "202401"
+        },
+        {
+          "semester": "Spring",
+          "year": 2025,
+          "semesterId": "202501"
+        },
+        {
+          "semester": "Spring",
+          "year": 2026,
+          "semesterId": "202601"
+        }
+      ],
+      "MUSC831W": [
+        {
+          "semester": "Spring",
+          "year": 2020,
+          "semesterId": "202001"
+        },
+        {
+          "semester": "Spring",
+          "year": 2021,
+          "semesterId": "202101"
+        },
+        {
+          "semester": "Spring",
+          "year": 2022,
+          "semesterId": "202201"
+        },
+        {
+          "semester": "Spring",
+          "year": 2023,
+          "semesterId": "202301"
+        },
+        {
+          "semester": "Spring",
+          "year": 2024,
+          "semesterId": "202401"
+        },
+        {
+          "semester": "Spring",
+          "year": 2025,
+          "semesterId": "202501"
         }
       ]
     },
@@ -181302,6 +181526,13 @@
     },
     "Akash Koppa": {
       "ENST321": [
+        {
+          "semester": "Spring",
+          "year": 2026,
+          "semesterId": "202601"
+        }
+      ],
+      "ENST431": [
         {
           "semester": "Spring",
           "year": 2026,
@@ -207939,6 +208170,11 @@
           "semester": "Fall",
           "year": 2024,
           "semesterId": "202408"
+        },
+        {
+          "semester": "Fall",
+          "year": 2025,
+          "semesterId": "202508"
         }
       ],
       "HACS318A": [
@@ -232847,6 +233083,13 @@
           "year": 2026,
           "semesterId": "202601"
         }
+      ],
+      "INST366": [
+        {
+          "semester": "Spring",
+          "year": 2026,
+          "semesterId": "202601"
+        }
       ]
     },
     "Samantha McDonald": {
@@ -235885,6 +236128,129 @@
           "semester": "Fall",
           "year": 2025,
           "semesterId": "202508"
+        },
+        {
+          "semester": "Spring",
+          "year": 2026,
+          "semesterId": "202601"
+        }
+      ]
+    },
+    "Tamara Clegg": {
+      "INST161": [
+        {
+          "semester": "Spring",
+          "year": 2026,
+          "semesterId": "202601"
+        }
+      ],
+      "INST352": [
+        {
+          "semester": "Fall",
+          "year": 2022,
+          "semesterId": "202208"
+        }
+      ],
+      "INST362": [
+        {
+          "semester": "Fall",
+          "year": 2020,
+          "semesterId": "202008"
+        },
+        {
+          "semester": "Fall",
+          "year": 2021,
+          "semesterId": "202108"
+        },
+        {
+          "semester": "Fall",
+          "year": 2023,
+          "semesterId": "202308"
+        }
+      ],
+      "INST367": [
+        {
+          "semester": "Spring",
+          "year": 2023,
+          "semesterId": "202301"
+        },
+        {
+          "semester": "Fall",
+          "year": 2023,
+          "semesterId": "202308"
+        }
+      ],
+      "INST490": [
+        {
+          "semester": "Spring",
+          "year": 2022,
+          "semesterId": "202201"
+        },
+        {
+          "semester": "Spring",
+          "year": 2024,
+          "semesterId": "202401"
+        },
+        {
+          "semester": "Spring",
+          "year": 2025,
+          "semesterId": "202501"
+        },
+        {
+          "semester": "Fall",
+          "year": 2025,
+          "semesterId": "202508"
+        },
+        {
+          "semester": "Spring",
+          "year": 2026,
+          "semesterId": "202601"
+        }
+      ],
+      "INST710": [
+        {
+          "semester": "Fall",
+          "year": 2024,
+          "semesterId": "202408"
+        },
+        {
+          "semester": "Spring",
+          "year": 2025,
+          "semesterId": "202501"
+        },
+        {
+          "semester": "Fall",
+          "year": 2025,
+          "semesterId": "202508"
+        }
+      ],
+      "INST899": [
+        {
+          "semester": "Summer",
+          "year": 2020,
+          "semesterId": "202005"
+        },
+        {
+          "semester": "Summer",
+          "year": 2021,
+          "semesterId": "202105"
+        },
+        {
+          "semester": "Summer",
+          "year": 2023,
+          "semesterId": "202305"
+        }
+      ],
+      "TLPL899": [
+        {
+          "semester": "Summer",
+          "year": 2024,
+          "semesterId": "202405"
+        },
+        {
+          "semester": "Summer",
+          "year": 2025,
+          "semesterId": "202505"
         }
       ]
     },
@@ -240846,117 +241212,6 @@
           "semester": "Spring",
           "year": 2022,
           "semesterId": "202201"
-        }
-      ]
-    },
-    "Tamara Clegg": {
-      "INST352": [
-        {
-          "semester": "Fall",
-          "year": 2022,
-          "semesterId": "202208"
-        }
-      ],
-      "INST362": [
-        {
-          "semester": "Fall",
-          "year": 2020,
-          "semesterId": "202008"
-        },
-        {
-          "semester": "Fall",
-          "year": 2021,
-          "semesterId": "202108"
-        },
-        {
-          "semester": "Fall",
-          "year": 2023,
-          "semesterId": "202308"
-        }
-      ],
-      "INST367": [
-        {
-          "semester": "Spring",
-          "year": 2023,
-          "semesterId": "202301"
-        },
-        {
-          "semester": "Fall",
-          "year": 2023,
-          "semesterId": "202308"
-        }
-      ],
-      "INST490": [
-        {
-          "semester": "Spring",
-          "year": 2022,
-          "semesterId": "202201"
-        },
-        {
-          "semester": "Spring",
-          "year": 2024,
-          "semesterId": "202401"
-        },
-        {
-          "semester": "Spring",
-          "year": 2025,
-          "semesterId": "202501"
-        },
-        {
-          "semester": "Fall",
-          "year": 2025,
-          "semesterId": "202508"
-        },
-        {
-          "semester": "Spring",
-          "year": 2026,
-          "semesterId": "202601"
-        }
-      ],
-      "INST710": [
-        {
-          "semester": "Fall",
-          "year": 2024,
-          "semesterId": "202408"
-        },
-        {
-          "semester": "Spring",
-          "year": 2025,
-          "semesterId": "202501"
-        },
-        {
-          "semester": "Fall",
-          "year": 2025,
-          "semesterId": "202508"
-        }
-      ],
-      "INST899": [
-        {
-          "semester": "Summer",
-          "year": 2020,
-          "semesterId": "202005"
-        },
-        {
-          "semester": "Summer",
-          "year": 2021,
-          "semesterId": "202105"
-        },
-        {
-          "semester": "Summer",
-          "year": 2023,
-          "semesterId": "202305"
-        }
-      ],
-      "TLPL899": [
-        {
-          "semester": "Summer",
-          "year": 2024,
-          "semesterId": "202405"
-        },
-        {
-          "semester": "Summer",
-          "year": 2025,
-          "semesterId": "202505"
         }
       ]
     },
@@ -258591,6 +258846,20 @@
           "year": 2025,
           "semesterId": "202508"
         },
+        {
+          "semester": "Spring",
+          "year": 2026,
+          "semesterId": "202601"
+        }
+      ],
+      "UMEI012": [
+        {
+          "semester": "Spring",
+          "year": 2026,
+          "semesterId": "202601"
+        }
+      ],
+      "UMEI013": [
         {
           "semester": "Spring",
           "year": 2026,
@@ -277292,6 +277561,13 @@
           "year": 2026,
           "semesterId": "202601"
         }
+      ],
+      "MUSC831W": [
+        {
+          "semester": "Spring",
+          "year": 2026,
+          "semesterId": "202601"
+        }
       ]
     },
     "Paul Gekker": {
@@ -281945,84 +282221,6 @@
           "semester": "Fall",
           "year": 2022,
           "semesterId": "202208"
-        }
-      ]
-    },
-    "Robert DiLutis": {
-      "MUSC464": [
-        {
-          "semester": "Spring",
-          "year": 2026,
-          "semesterId": "202601"
-        }
-      ],
-      "MUSC801W": [
-        {
-          "semester": "Spring",
-          "year": 2020,
-          "semesterId": "202001"
-        },
-        {
-          "semester": "Spring",
-          "year": 2021,
-          "semesterId": "202101"
-        },
-        {
-          "semester": "Spring",
-          "year": 2022,
-          "semesterId": "202201"
-        },
-        {
-          "semester": "Spring",
-          "year": 2023,
-          "semesterId": "202301"
-        },
-        {
-          "semester": "Spring",
-          "year": 2024,
-          "semesterId": "202401"
-        },
-        {
-          "semester": "Spring",
-          "year": 2025,
-          "semesterId": "202501"
-        },
-        {
-          "semester": "Spring",
-          "year": 2026,
-          "semesterId": "202601"
-        }
-      ],
-      "MUSC831W": [
-        {
-          "semester": "Spring",
-          "year": 2020,
-          "semesterId": "202001"
-        },
-        {
-          "semester": "Spring",
-          "year": 2021,
-          "semesterId": "202101"
-        },
-        {
-          "semester": "Spring",
-          "year": 2022,
-          "semesterId": "202201"
-        },
-        {
-          "semester": "Spring",
-          "year": 2023,
-          "semesterId": "202301"
-        },
-        {
-          "semester": "Spring",
-          "year": 2024,
-          "semesterId": "202401"
-        },
-        {
-          "semester": "Spring",
-          "year": 2025,
-          "semesterId": "202501"
         }
       ]
     },
@@ -322715,6 +322913,11 @@
           "semester": "Fall",
           "year": 2025,
           "semesterId": "202508"
+        },
+        {
+          "semester": "Spring",
+          "year": 2026,
+          "semesterId": "202601"
         }
       ]
     },
@@ -326970,6 +327173,13 @@
           "year": 2026,
           "semesterId": "202601"
         }
+      ],
+      "UMEI507": [
+        {
+          "semester": "Spring",
+          "year": 2026,
+          "semesterId": "202601"
+        }
       ]
     },
     "Louise Godley": {
@@ -326983,6 +327193,11 @@
           "semester": "Spring",
           "year": 2025,
           "semesterId": "202501"
+        },
+        {
+          "semester": "Spring",
+          "year": 2026,
+          "semesterId": "202601"
         }
       ],
       "UMEI012": [
