@@ -1,8 +1,8 @@
 {
   "metadata": {
-    "generated": "2025-12-07T04:12:19.876Z",
+    "generated": "2025-12-14T04:23:31.421Z",
     "type": "course-indexed",
-    "coursesCount": 4912,
+    "coursesCount": 4924,
     "yearFilter": "Only years 2020 and after",
     "structure": "course -> professors -> semesters"
   },
@@ -4562,6 +4562,29 @@
             "semester": "Spring",
             "year": 2026,
             "semesterId": "202601"
+          }
+        ]
+      }
+    },
+    "AMST328T": {
+      "courseInfo": {
+        "id": "AMST328T",
+        "name": "Perspectives on Identity and Culture; Maryland's Ethnic Foodways"
+      },
+      "professors": {
+        "La Marr Bruce": [],
+        "Madeline Hsu": [
+          {
+            "semester": "Spring",
+            "year": 2025,
+            "semesterId": "202501"
+          }
+        ],
+        "Psyche Williams-Forson": [
+          {
+            "semester": "Spring",
+            "year": 2025,
+            "semesterId": "202501"
           }
         ]
       }
@@ -50577,6 +50600,21 @@
         ]
       }
     },
+    "BMGT758P": {
+      "courseInfo": {
+        "id": "BMGT758P",
+        "name": "Special Topics in Business and Management; Strategy Beyond Markets; A Space Commerce Perspective"
+      },
+      "professors": {
+        "Rachelle Sampson": [
+          {
+            "semester": "Unknown",
+            "year": 2023,
+            "semesterId": "202312"
+          }
+        ]
+      }
+    },
     "BMGT758Q": {
       "courseInfo": {
         "id": "BMGT758Q",
@@ -55836,6 +55874,15 @@
             "semesterId": "202601"
           }
         ]
+      }
+    },
+    "BSCI238A": {
+      "courseInfo": {
+        "id": "BSCI238A",
+        "name": "Special Topics in Biology Student Initiated Courses; Ornithology"
+      },
+      "professors": {
+        "Thomas Holtz": []
       }
     },
     "BSCI238I": {
@@ -82879,6 +82926,78 @@
         ]
       }
     },
+    "CMSC389E": {
+      "courseInfo": {
+        "id": "CMSC389E",
+        "name": "Special Topics in Computer Science; Digital Logic Design through Minecraft"
+      },
+      "professors": {
+        "Alexander Brassel": [
+          {
+            "semester": "Spring",
+            "year": 2020,
+            "semesterId": "202001"
+          }
+        ],
+        "Anwar Mamat": [
+          {
+            "semester": "Fall",
+            "year": 2020,
+            "semesterId": "202008"
+          }
+        ],
+        "Cliff Bakalian": [
+          {
+            "semester": "Spring",
+            "year": 2025,
+            "semesterId": "202501"
+          },
+          {
+            "semester": "Fall",
+            "year": 2025,
+            "semesterId": "202508"
+          }
+        ],
+        "Clifford Bakalian": [
+          {
+            "semester": "Spring",
+            "year": 2025,
+            "semesterId": "202501"
+          }
+        ],
+        "Iason Filippou": [
+          {
+            "semester": "Fall",
+            "year": 2020,
+            "semesterId": "202008"
+          }
+        ],
+        "Jason Filippou": [
+          {
+            "semester": "Fall",
+            "year": 2020,
+            "semesterId": "202008"
+          }
+        ],
+        "Roger Eastman": [
+          {
+            "semester": "Spring",
+            "year": 2021,
+            "semesterId": "202101"
+          },
+          {
+            "semester": "Fall",
+            "year": 2021,
+            "semesterId": "202108"
+          },
+          {
+            "semester": "Spring",
+            "year": 2022,
+            "semesterId": "202201"
+          }
+        ]
+      }
+    },
     "CMSC389O": {
       "courseInfo": {
         "id": "CMSC389O",
@@ -82960,6 +83079,82 @@
           }
         ]
       }
+    },
+    "CMSC389P": {
+      "courseInfo": {
+        "id": "CMSC389P",
+        "name": "Special Topics in Computer Science; Mastering the PM Interview"
+      },
+      "professors": {
+        "Huaishu Peng": [
+          {
+            "semester": "Fall",
+            "year": 2022,
+            "semesterId": "202208"
+          },
+          {
+            "semester": "Spring",
+            "year": 2023,
+            "semesterId": "202301"
+          },
+          {
+            "semester": "Fall",
+            "year": 2023,
+            "semesterId": "202308"
+          },
+          {
+            "semester": "Spring",
+            "year": 2024,
+            "semesterId": "202401"
+          },
+          {
+            "semester": "Fall",
+            "year": 2024,
+            "semesterId": "202408"
+          },
+          {
+            "semester": "Spring",
+            "year": 2025,
+            "semesterId": "202501"
+          },
+          {
+            "semester": "Fall",
+            "year": 2025,
+            "semesterId": "202508"
+          }
+        ],
+        "Michelle Mazurek": [
+          {
+            "semester": "Fall",
+            "year": 2020,
+            "semesterId": "202008"
+          },
+          {
+            "semester": "Spring",
+            "year": 2021,
+            "semesterId": "202101"
+          },
+          {
+            "semester": "Spring",
+            "year": 2022,
+            "semesterId": "202201"
+          }
+        ]
+      }
+    },
+    "CMSC389X": {
+      "courseInfo": {
+        "id": "CMSC389X",
+        "name": "Special Topics in Computer Science; Advanced Type Systems"
+      },
+      "professors": {}
+    },
+    "CMSC389Y": {
+      "courseInfo": {
+        "id": "CMSC389Y",
+        "name": "Special Topics in Computer Science; Open Source Intelligence (OSINT)"
+      },
+      "professors": {}
     },
     "CMSC396H": {
       "courseInfo": {
@@ -83052,6 +83247,41 @@
         ]
       }
     },
+    "CMSC398L": {
+      "courseInfo": {
+        "id": "CMSC398L",
+        "name": "Special Topics in Computer Science; Introduction to Competitive Programming"
+      },
+      "professors": {
+        "Laxman Dhulipala": [
+          {
+            "semester": "Fall",
+            "year": 2023,
+            "semesterId": "202308"
+          },
+          {
+            "semester": "Spring",
+            "year": 2024,
+            "semesterId": "202401"
+          },
+          {
+            "semester": "Fall",
+            "year": 2024,
+            "semesterId": "202408"
+          },
+          {
+            "semester": "Spring",
+            "year": 2025,
+            "semesterId": "202501"
+          },
+          {
+            "semester": "Fall",
+            "year": 2025,
+            "semesterId": "202508"
+          }
+        ]
+      }
+    },
     "CMSC398M": {
       "courseInfo": {
         "id": "CMSC398M",
@@ -83100,6 +83330,41 @@
             "semester": "Spring",
             "year": 2025,
             "semesterId": "202501"
+          }
+        ]
+      }
+    },
+    "CMSC398P": {
+      "courseInfo": {
+        "id": "CMSC398P",
+        "name": "Special Topics in Computer Science; Practical Cloud Computing with AWS"
+      },
+      "professors": {
+        "Maksym Morawski": [
+          {
+            "semester": "Fall",
+            "year": 2025,
+            "semesterId": "202508"
+          }
+        ]
+      }
+    },
+    "CMSC398W": {
+      "courseInfo": {
+        "id": "CMSC398W",
+        "name": "Special Topics in Computer Science; Practical Tools for Efficient Development"
+      },
+      "professors": {
+        "Christopher Kauffman": [
+          {
+            "semester": "Spring",
+            "year": 2025,
+            "semesterId": "202501"
+          },
+          {
+            "semester": "Fall",
+            "year": 2025,
+            "semesterId": "202508"
           }
         ]
       }
@@ -98609,6 +98874,13 @@
           }
         ]
       }
+    },
+    "CPSP259I": {
+      "courseInfo": {
+        "id": "CPSP259I",
+        "name": "Practicum: Research"
+      },
+      "professors": {}
     },
     "CPSP259J": {
       "courseInfo": {
@@ -122992,6 +123264,21 @@
           }
         ],
         "Tori Page-Voth": [
+          {
+            "semester": "Spring",
+            "year": 2025,
+            "semesterId": "202501"
+          }
+        ]
+      }
+    },
+    "EDSP870": {
+      "courseInfo": {
+        "id": "EDSP870",
+        "name": "Advanced Single-Case Research Designs in Special Education"
+      },
+      "professors": {
+        "Gulnoza Yakubova": [
           {
             "semester": "Spring",
             "year": 2025,
