@@ -1,8 +1,8 @@
 {
   "metadata": {
-    "generated": "2025-12-21T04:16:13.372Z",
+    "generated": "2025-12-28T04:27:59.740Z",
     "type": "course-indexed",
-    "coursesCount": 4940,
+    "coursesCount": 4949,
     "yearFilter": "Only years 2020 and after",
     "structure": "course -> professors -> semesters"
   },
@@ -56760,6 +56760,21 @@
         ]
       }
     },
+    "BSCI328C": {
+      "courseInfo": {
+        "id": "BSCI328C",
+        "name": "Special Topics in Entomology; Insect Collection: Experience the Process of Curation and   Public Display"
+      },
+      "professors": {
+        "Bill Lamp": [
+          {
+            "semester": "Spring",
+            "year": 2026,
+            "semesterId": "202601"
+          }
+        ]
+      }
+    },
     "BSCI329": {
       "courseInfo": {
         "id": "BSCI329",
@@ -61700,7 +61715,15 @@
         "id": "BSST638G",
         "name": "Special Topics in Terrorism Studies"
       },
-      "professors": {}
+      "professors": {
+        "Richard Chasdi": [
+          {
+            "semester": "Spring",
+            "year": 2026,
+            "semesterId": "202601"
+          }
+        ]
+      }
     },
     "BSST641": {
       "courseInfo": {
@@ -95774,6 +95797,72 @@
         ]
       }
     },
+    "CPDJ230": {
+      "courseInfo": {
+        "id": "CPDJ230",
+        "name": "College Park Scholars: Data Justice Internship Practicum"
+      },
+      "professors": {
+        "Andrew Fellows": [
+          {
+            "semester": "Spring",
+            "year": 2026,
+            "semesterId": "202601"
+          }
+        ],
+        "Jess Feltner": [
+          {
+            "semester": "Spring",
+            "year": 2026,
+            "semesterId": "202601"
+          }
+        ]
+      }
+    },
+    "CPDJ240": {
+      "courseInfo": {
+        "id": "CPDJ240",
+        "name": "College Park Scholars: Data Justice Service-Learning Practicum"
+      },
+      "professors": {
+        "Andrew Fellows": [
+          {
+            "semester": "Spring",
+            "year": 2026,
+            "semesterId": "202601"
+          }
+        ],
+        "Jess Feltner": [
+          {
+            "semester": "Spring",
+            "year": 2026,
+            "semesterId": "202601"
+          }
+        ]
+      }
+    },
+    "CPDJ250": {
+      "courseInfo": {
+        "id": "CPDJ250",
+        "name": "College Park Scholars: Data Justice Research Practicum"
+      },
+      "professors": {
+        "Andrew Fellows": [
+          {
+            "semester": "Spring",
+            "year": 2026,
+            "semesterId": "202601"
+          }
+        ],
+        "Jess Feltner": [
+          {
+            "semester": "Spring",
+            "year": 2026,
+            "semesterId": "202601"
+          }
+        ]
+      }
+    },
     "CPET101": {
       "courseInfo": {
         "id": "CPET101",
@@ -118115,6 +118204,11 @@
             "semester": "Unknown",
             "year": 2025,
             "semesterId": "202512"
+          },
+          {
+            "semester": "Spring",
+            "year": 2026,
+            "semesterId": "202601"
           }
         ],
         "Min Wang": [
@@ -137386,6 +137480,13 @@
         "name": "Doctoral Dissertation Research"
       },
       "professors": {
+        "Cunxi Yu": [
+          {
+            "semester": "Unknown",
+            "year": 2025,
+            "semesterId": "202512"
+          }
+        ],
         "David Jacobs": [
           {
             "semester": "Unknown",
@@ -180313,6 +180414,13 @@
             "semesterId": "202005"
           }
         ],
+        "Julie Donney": [
+          {
+            "semester": "Fall",
+            "year": 2025,
+            "semesterId": "202508"
+          }
+        ],
         "Kendyl Oliver": [
           {
             "semester": "Fall",
@@ -182562,6 +182670,38 @@
         ]
       }
     },
+    "FREN242": {
+      "courseInfo": {
+        "id": "FREN242",
+        "name": "Francophone Writers of Africa and the African Diaspora"
+      },
+      "professors": {
+        "Cecile Accilien": [
+          {
+            "semester": "Fall",
+            "year": 2025,
+            "semesterId": "202508"
+          },
+          {
+            "semester": "Spring",
+            "year": 2026,
+            "semesterId": "202601"
+          }
+        ],
+        "Valerie Orlando": [
+          {
+            "semester": "Spring",
+            "year": 2022,
+            "semesterId": "202201"
+          },
+          {
+            "semester": "Fall",
+            "year": 2023,
+            "semesterId": "202308"
+          }
+        ]
+      }
+    },
     "FREN250": {
       "courseInfo": {
         "id": "FREN250",
@@ -183212,6 +183352,21 @@
           }
         ],
         "Valerie Orlando": [
+          {
+            "semester": "Spring",
+            "year": 2026,
+            "semesterId": "202601"
+          }
+        ]
+      }
+    },
+    "FREN379A": {
+      "courseInfo": {
+        "id": "FREN379A",
+        "name": "Microcourse in French Studies; Microcourse in French Theatre."
+      },
+      "professors": {
+        "Madeline Muravchik": [
           {
             "semester": "Spring",
             "year": 2026,
@@ -191526,6 +191681,11 @@
             "semester": "Spring",
             "year": 2025,
             "semesterId": "202501"
+          },
+          {
+            "semester": "Spring",
+            "year": 2026,
+            "semesterId": "202601"
           }
         ]
       }
@@ -198006,6 +198166,28 @@
             "year": 2025,
             "semesterId": "202501"
           },
+          {
+            "semester": "Spring",
+            "year": 2026,
+            "semesterId": "202601"
+          }
+        ]
+      }
+    },
+    "HEBR488": {
+      "courseInfo": {
+        "id": "HEBR488",
+        "name": "Advanced Language Module for Hebrew Studies"
+      },
+      "professors": {
+        "Aner Tal": [
+          {
+            "semester": "Spring",
+            "year": 2026,
+            "semesterId": "202601"
+          }
+        ],
+        "Bernard Cooperman": [
           {
             "semester": "Spring",
             "year": 2026,
@@ -238713,6 +238895,11 @@
             "semester": "Spring",
             "year": 2026,
             "semesterId": "202601"
+          },
+          {
+            "semester": "Fall",
+            "year": 2025,
+            "semesterId": "202508"
           }
         ],
         "Gea Ujcic": [
@@ -321895,6 +322082,13 @@
         ]
       }
     },
+    "SLLC319U": {
+      "courseInfo": {
+        "id": "SLLC319U",
+        "name": "Advanced Less Commonly Taught Language II; Independent Readings in Ukrainian"
+      },
+      "professors": {}
+    },
     "SLLC329": {
       "courseInfo": {
         "id": "SLLC329",
@@ -326737,6 +326931,11 @@
             "semester": "Spring",
             "year": 2025,
             "semesterId": "202501"
+          },
+          {
+            "semester": "Spring",
+            "year": 2026,
+            "semesterId": "202601"
           }
         ],
         "Daniela Bulansky": [
@@ -327754,6 +327953,11 @@
             "semester": "Spring",
             "year": 2025,
             "semesterId": "202501"
+          },
+          {
+            "semester": "Spring",
+            "year": 2026,
+            "semesterId": "202601"
           }
         ],
         "Saul Sosnowski": [
@@ -327922,6 +328126,13 @@
         "name": "Latin American Literatures and Cultures III: From Modernism  to Neo-Liberalism"
       },
       "professors": {
+        "Andrea Torres Armas": [
+          {
+            "semester": "Spring",
+            "year": 2026,
+            "semesterId": "202601"
+          }
+        ],
         "Juan Carlos Quintero-Herencia": [
           {
             "semester": "Spring",
@@ -340207,6 +340418,13 @@
             "semesterId": "202312"
           }
         ],
+        "Ivania Stack": [
+          {
+            "semester": "Unknown",
+            "year": 2025,
+            "semesterId": "202512"
+          }
+        ],
         "James Harding": [
           {
             "semester": "Spring",
@@ -340461,6 +340679,11 @@
             "semester": "Unknown",
             "year": 2023,
             "semesterId": "202312"
+          },
+          {
+            "semester": "Unknown",
+            "year": 2025,
+            "semesterId": "202512"
           }
         ],
         "Andrew Cissna": [
@@ -344709,6 +344932,36 @@
         "Perla Blejer": []
       }
     },
+    "TLPL478L": {
+      "courseInfo": {
+        "id": "TLPL478L",
+        "name": "Professional Seminar in Education; Agriculture"
+      },
+      "professors": {
+        "Melissa Welsh": [
+          {
+            "semester": "Spring",
+            "year": 2022,
+            "semesterId": "202201"
+          },
+          {
+            "semester": "Spring",
+            "year": 2023,
+            "semesterId": "202301"
+          },
+          {
+            "semester": "Spring",
+            "year": 2024,
+            "semesterId": "202401"
+          },
+          {
+            "semester": "Spring",
+            "year": 2026,
+            "semesterId": "202601"
+          }
+        ]
+      }
+    },
     "TLPL479V": {
       "courseInfo": {
         "id": "TLPL479V",
@@ -346056,6 +346309,13 @@
         "name": "Methods for Teaching Multilingual Learners"
       },
       "professors": {
+        "Amanda Cataneo": [
+          {
+            "semester": "Spring",
+            "year": 2026,
+            "semesterId": "202601"
+          }
+        ],
         "Jessica Crawford": [
           {
             "semester": "Fall",
