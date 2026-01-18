@@ -1,8 +1,8 @@
 {
   "metadata": {
-    "generated": "2026-01-11T04:23:52.852Z",
+    "generated": "2026-01-18T04:24:32.619Z",
     "type": "course-indexed",
-    "coursesCount": 4961,
+    "coursesCount": 4985,
     "yearFilter": "Only years 2021 and after",
     "structure": "course -> professors -> semesters"
   },
@@ -1482,7 +1482,15 @@
         "id": "AAST398P",
         "name": "Selected Topics in Asian American Studies; Introduction to Health and Mental Health Policy Issues (AANHPI Communities)"
       },
-      "professors": {}
+      "professors": {
+        "Tuyet Duong": [
+          {
+            "semester": "Spring",
+            "year": 2026,
+            "semesterId": "202601"
+          }
+        ]
+      }
     },
     "AAST398T": {
       "courseInfo": {
@@ -1526,6 +1534,13 @@
             "year": 2025,
             "semesterId": "202501"
           },
+          {
+            "semester": "Spring",
+            "year": 2026,
+            "semesterId": "202601"
+          }
+        ],
+        "Tuyet Duong": [
           {
             "semester": "Spring",
             "year": 2026,
@@ -1986,6 +2001,13 @@
             "year": 2025,
             "semesterId": "202508"
           },
+          {
+            "semester": "Spring",
+            "year": 2026,
+            "semesterId": "202601"
+          }
+        ],
+        "Olumide Daramola": [
           {
             "semester": "Spring",
             "year": 2026,
@@ -4416,6 +4438,13 @@
             "year": 2025,
             "semesterId": "202501"
           },
+          {
+            "semester": "Spring",
+            "year": 2026,
+            "semesterId": "202601"
+          }
+        ],
+        "Tuyet Duong": [
           {
             "semester": "Spring",
             "year": 2026,
@@ -20741,6 +20770,13 @@
         "name": "Advanced Military Leadership II"
       },
       "professors": {
+        "Andrew Bischoff": [
+          {
+            "semester": "Spring",
+            "year": 2026,
+            "semesterId": "202601"
+          }
+        ],
         "Ashley Miller": [
           {
             "semester": "Spring",
@@ -22080,6 +22116,11 @@
             "semester": "Fall",
             "year": 2025,
             "semesterId": "202508"
+          },
+          {
+            "semester": "Spring",
+            "year": 2026,
+            "semesterId": "202601"
           }
         ],
         "Emily Egan": [
@@ -22165,6 +22206,11 @@
             "semester": "Spring",
             "year": 2025,
             "semesterId": "202501"
+          },
+          {
+            "semester": "Spring",
+            "year": 2026,
+            "semesterId": "202601"
           }
         ],
         "Maryl Gensheimer": [
@@ -22177,6 +22223,11 @@
             "semester": "Fall",
             "year": 2025,
             "semesterId": "202508"
+          },
+          {
+            "semester": "Spring",
+            "year": 2026,
+            "semesterId": "202601"
           }
         ],
         "Tess Korobkin": [
@@ -22189,6 +22240,11 @@
             "semester": "Spring",
             "year": 2025,
             "semesterId": "202501"
+          },
+          {
+            "semester": "Spring",
+            "year": 2026,
+            "semesterId": "202601"
           }
         ]
       }
@@ -29103,6 +29159,13 @@
             "year": 2025,
             "semesterId": "202501"
           }
+        ],
+        "Il-Horn Hann": [
+          {
+            "semester": "Spring",
+            "year": 2026,
+            "semesterId": "202601"
+          }
         ]
       }
     },
@@ -29118,6 +29181,58 @@
             "year": 2025,
             "semesterId": "202501"
           },
+          {
+            "semester": "Spring",
+            "year": 2026,
+            "semesterId": "202601"
+          }
+        ]
+      }
+    },
+    "BDBA808T": {
+      "courseInfo": {
+        "id": "BDBA808T",
+        "name": "Special Topics in Information Systems; Data, Models, and Decisions"
+      },
+      "professors": {
+        "Maria Bardossy": [
+          {
+            "semester": "Spring",
+            "year": 2026,
+            "semesterId": "202601"
+          }
+        ]
+      }
+    },
+    "BDBA808V": {
+      "courseInfo": {
+        "id": "BDBA808V",
+        "name": "Special Topics in Information Systems; Decision Analyctics"
+      },
+      "professors": {
+        "Robert Hoffman": [
+          {
+            "semester": "Spring",
+            "year": 2026,
+            "semesterId": "202601"
+          }
+        ]
+      }
+    },
+    "BDBA808W": {
+      "courseInfo": {
+        "id": "BDBA808W",
+        "name": "Special Topics in Information Systems; Harnessing AI for Business"
+      },
+      "professors": {
+        "James McCoy": [
+          {
+            "semester": "Spring",
+            "year": 2026,
+            "semesterId": "202601"
+          }
+        ],
+        "Tejwansh Anand": [
           {
             "semester": "Spring",
             "year": 2026,
@@ -29185,6 +29300,50 @@
         ]
       }
     },
+    "BDBA848C": {
+      "courseInfo": {
+        "id": "BDBA848C",
+        "name": "Special Topics in Finance; Portfolio Analysis, Investment Strategies and Climate"
+      },
+      "professors": {
+        "Ruoke Yang": [
+          {
+            "semester": "Spring",
+            "year": 2026,
+            "semesterId": "202601"
+          }
+        ],
+        "Russell Wermers": [
+          {
+            "semester": "Spring",
+            "year": 2026,
+            "semesterId": "202601"
+          }
+        ]
+      }
+    },
+    "BDBA858C": {
+      "courseInfo": {
+        "id": "BDBA858C",
+        "name": "Special Topics in Marketing; Consumer Behavior"
+      },
+      "professors": {
+        "Amna Kirmani": [
+          {
+            "semester": "Fall",
+            "year": 2023,
+            "semesterId": "202308"
+          }
+        ],
+        "Mary Beth Furst": [
+          {
+            "semester": "Spring",
+            "year": 2026,
+            "semesterId": "202601"
+          }
+        ]
+      }
+    },
     "BDBA858D": {
       "courseInfo": {
         "id": "BDBA858D",
@@ -29206,6 +29365,50 @@
             "semester": "Spring",
             "year": 2026,
             "semesterId": "202601"
+          }
+        ]
+      }
+    },
+    "BDBA858I": {
+      "courseInfo": {
+        "id": "BDBA858I",
+        "name": "Special Topics in Marketing; Customer Lifetime Valuation"
+      },
+      "professors": {
+        "Daniel McCarthy": [
+          {
+            "semester": "Spring",
+            "year": 2026,
+            "semesterId": "202601"
+          }
+        ]
+      }
+    },
+    "BDBA858N": {
+      "courseInfo": {
+        "id": "BDBA858N",
+        "name": "Special Topics in Marketing; Marketing in the Age of AI"
+      },
+      "professors": {
+        "Ali Faraji-Rad": [
+          {
+            "semester": "Spring",
+            "year": 2026,
+            "semesterId": "202601"
+          }
+        ],
+        "Liye Ma": [
+          {
+            "semester": "Spring",
+            "year": 2025,
+            "semesterId": "202501"
+          }
+        ],
+        "Wendy Moe": [
+          {
+            "semester": "Fall",
+            "year": 2024,
+            "semesterId": "202408"
           }
         ]
       }
@@ -55289,6 +55492,13 @@
             "year": 2026,
             "semesterId": "202601"
           }
+        ],
+        "Madeline Romm": [
+          {
+            "semester": "Spring",
+            "year": 2026,
+            "semesterId": "202601"
+          }
         ]
       }
     },
@@ -66715,6 +66925,13 @@
       },
       "professors": {
         "Christiana Guest": [],
+        "Daniel Falvey": [
+          {
+            "semester": "Spring",
+            "year": 2026,
+            "semesterId": "202601"
+          }
+        ],
         "Natalia White": [
           {
             "semester": "Fall",
@@ -77180,6 +77397,13 @@
         "name": "Elementary Theory of Computation"
       },
       "professors": {
+        "Binghui Peng": [
+          {
+            "semester": "Spring",
+            "year": 2026,
+            "semesterId": "202601"
+          }
+        ],
         "Clyde Kruskal": [
           {
             "semester": "Spring",
@@ -81871,6 +82095,11 @@
             "semester": "Unknown",
             "year": 2025,
             "semesterId": "202512"
+          },
+          {
+            "semester": "Spring",
+            "year": 2026,
+            "semesterId": "202601"
           }
         ],
         "Elizabeth Phipps": [
@@ -82892,6 +83121,13 @@
         "name": "Social Media & Digital Culture"
       },
       "professors": {
+        "Andrew Lowe Mohammed": [
+          {
+            "semester": "Spring",
+            "year": 2026,
+            "semesterId": "202601"
+          }
+        ],
         "Josue Porras-Fernandez": [
           {
             "semester": "Fall",
@@ -86119,6 +86355,13 @@
             "year": 2026,
             "semesterId": "202601"
           }
+        ],
+        "Jess Feltner": [
+          {
+            "semester": "Spring",
+            "year": 2026,
+            "semesterId": "202601"
+          }
         ]
       }
     },
@@ -87473,6 +87716,13 @@
         "name": "College Park Scholars: Public Leadership First-Year Colloquium II"
       },
       "professors": {
+        "Kelly Brower": [
+          {
+            "semester": "Spring",
+            "year": 2026,
+            "semesterId": "202601"
+          }
+        ],
         "Susannah Washburn": [
           {
             "semester": "Spring",
@@ -88485,6 +88735,13 @@
       "professors": {
         "Annie Rappeport": [],
         "Autumn Perkey": [],
+        "Ellin Chung": [
+          {
+            "semester": "Spring",
+            "year": 2026,
+            "semesterId": "202601"
+          }
+        ],
         "James Glass": [
           {
             "semester": "Fall",
@@ -88606,6 +88863,13 @@
         ],
         "Annie Rappeport": [],
         "Autumn Perkey": [],
+        "Ellin Chung": [
+          {
+            "semester": "Spring",
+            "year": 2026,
+            "semesterId": "202601"
+          }
+        ],
         "James Glass": [],
         "Margaret McWeeney": [],
         "Patrick O'Brien": [],
@@ -88709,6 +88973,13 @@
       "professors": {
         "Annie Rappeport": [],
         "Autumn Perkey": [],
+        "Hansol Kwak": [
+          {
+            "semester": "Spring",
+            "year": 2026,
+            "semesterId": "202601"
+          }
+        ],
         "James Glass": [],
         "John Derks": [
           {
@@ -89100,6 +89371,13 @@
         "name": "Practicum: Study Abroad"
       },
       "professors": {
+        "Ellin Chung": [
+          {
+            "semester": "Spring",
+            "year": 2026,
+            "semesterId": "202601"
+          }
+        ],
         "Sarah Kilmer": [
           {
             "semester": "Spring",
@@ -90028,6 +90306,13 @@
         "name": "Global Dance Forms; Pop Culture Dances & TikTok"
       },
       "professors": {
+        "Angela Smith": [
+          {
+            "semester": "Spring",
+            "year": 2026,
+            "semesterId": "202601"
+          }
+        ],
         "Connor Voss": [
           {
             "semester": "Spring",
@@ -90384,6 +90669,13 @@
             "semesterId": "202501"
           }
         ],
+        "Breeanah Breeden": [
+          {
+            "semester": "Spring",
+            "year": 2026,
+            "semesterId": "202601"
+          }
+        ],
         "Britney Falcon": [
           {
             "semester": "Fall",
@@ -90619,13 +90911,6 @@
             "semester": "Summer",
             "year": 2024,
             "semesterId": "202405"
-          }
-        ],
-        "Mher Kandoyan": [
-          {
-            "semester": "Spring",
-            "year": 2024,
-            "semesterId": "202401"
           }
         ]
       }
@@ -102776,6 +103061,13 @@
         "name": "Diagnostic Appraisal of Children I"
       },
       "professors": {
+        "Gabriella Estevez": [
+          {
+            "semester": "Spring",
+            "year": 2026,
+            "semesterId": "202601"
+          }
+        ],
         "Hedwig Teglasi": [
           {
             "semester": "Spring",
@@ -103779,6 +104071,13 @@
         "name": "Professional Issues Seminar"
       },
       "professors": {
+        "Aishwarya Nambiar": [
+          {
+            "semester": "Spring",
+            "year": 2026,
+            "semesterId": "202601"
+          }
+        ],
         "Candace Moore": [
           {
             "semester": "Fall",
@@ -111589,6 +111888,33 @@
         ]
       }
     },
+    "EDUC702": {
+      "courseInfo": {
+        "id": "EDUC702",
+        "name": "Applied Research Design for Education Leaders"
+      },
+      "professors": {
+        "Christine Neumerski": [
+          {
+            "semester": "Fall",
+            "year": 2024,
+            "semesterId": "202408"
+          }
+        ],
+        "Drew Fagan": [
+          {
+            "semester": "Summer",
+            "year": 2024,
+            "semesterId": "202405"
+          },
+          {
+            "semester": "Spring",
+            "year": 2026,
+            "semesterId": "202601"
+          }
+        ]
+      }
+    },
     "EDUC740": {
       "courseInfo": {
         "id": "EDUC740",
@@ -111910,6 +112236,13 @@
             "semester": "Spring",
             "year": 2024,
             "semesterId": "202401"
+          }
+        ],
+        "Lucas Pratt": [
+          {
+            "semester": "Spring",
+            "year": 2026,
+            "semesterId": "202601"
           }
         ],
         "Norman Wereley": [
@@ -124632,6 +124965,13 @@
             "semesterId": "202501"
           }
         ],
+        "Veronica Perrigan": [
+          {
+            "semester": "Spring",
+            "year": 2026,
+            "semesterId": "202601"
+          }
+        ],
         "Zabrina Anzyl": []
       }
     },
@@ -124734,6 +125074,11 @@
             "semester": "Fall",
             "year": 2023,
             "semesterId": "202308"
+          },
+          {
+            "semester": "Spring",
+            "year": 2026,
+            "semesterId": "202601"
           }
         ],
         "Akua Asa-Awuku": [
@@ -124741,6 +125086,11 @@
             "semester": "Fall",
             "year": 2025,
             "semesterId": "202508"
+          },
+          {
+            "semester": "Spring",
+            "year": 2026,
+            "semesterId": "202601"
           }
         ],
         "Alexis Herbert": [
@@ -124837,6 +125187,11 @@
             "semester": "Spring",
             "year": 2025,
             "semesterId": "202501"
+          },
+          {
+            "semester": "Spring",
+            "year": 2026,
+            "semesterId": "202601"
           }
         ],
         "Elizaveta Solovey": [
@@ -124861,6 +125216,11 @@
             "semester": "Fall",
             "year": 2025,
             "semesterId": "202508"
+          },
+          {
+            "semester": "Spring",
+            "year": 2026,
+            "semesterId": "202601"
           }
         ],
         "Freddie Dufresne": [
@@ -124868,6 +125228,13 @@
             "semester": "Fall",
             "year": 2024,
             "semesterId": "202408"
+          }
+        ],
+        "Joakina Stone": [
+          {
+            "semester": "Spring",
+            "year": 2026,
+            "semesterId": "202601"
           }
         ],
         "Kelly McNulty": [
@@ -124967,6 +125334,11 @@
             "semester": "Fall",
             "year": 2025,
             "semesterId": "202508"
+          },
+          {
+            "semester": "Spring",
+            "year": 2026,
+            "semesterId": "202601"
           }
         ],
         "Nicole Mogul": [
@@ -125005,6 +125377,11 @@
             "semester": "Spring",
             "year": 2024,
             "semesterId": "202401"
+          },
+          {
+            "semester": "Spring",
+            "year": 2026,
+            "semesterId": "202601"
           }
         ],
         "Timothy Farrell": [
@@ -125017,6 +125394,11 @@
             "semester": "Fall",
             "year": 2025,
             "semesterId": "202508"
+          },
+          {
+            "semester": "Spring",
+            "year": 2026,
+            "semesterId": "202601"
           }
         ]
       }
@@ -135507,7 +135889,13 @@
       },
       "professors": {
         "Anne-Marie Carstens": [],
-        "Brandee Pettus": [],
+        "Brandee Pettus": [
+          {
+            "semester": "Spring",
+            "year": 2026,
+            "semesterId": "202601"
+          }
+        ],
         "Erica Smith": [],
         "Esthus Amos": [
           {
@@ -146502,6 +146890,146 @@
       },
       "professors": {}
     },
+    "ENMT313": {
+      "courseInfo": {
+        "id": "ENMT313",
+        "name": "Real Time Software Systems and Microprocessors"
+      },
+      "professors": {
+        "Nicholas Limparis": [
+          {
+            "semester": "Spring",
+            "year": 2025,
+            "semesterId": "202501"
+          },
+          {
+            "semester": "Spring",
+            "year": 2026,
+            "semesterId": "202601"
+          }
+        ]
+      }
+    },
+    "ENMT332": {
+      "courseInfo": {
+        "id": "ENMT332",
+        "name": "Classical Control Theory"
+      },
+      "professors": {
+        "Norman Wereley": [
+          {
+            "semester": "Spring",
+            "year": 2025,
+            "semesterId": "202501"
+          },
+          {
+            "semester": "Spring",
+            "year": 2026,
+            "semesterId": "202601"
+          }
+        ]
+      }
+    },
+    "ENMT362": {
+      "courseInfo": {
+        "id": "ENMT362",
+        "name": "Mechatronics and Controls Lab II"
+      },
+      "professors": {
+        "Young Choi": [
+          {
+            "semester": "Spring",
+            "year": 2025,
+            "semesterId": "202501"
+          },
+          {
+            "semester": "Spring",
+            "year": 2026,
+            "semesterId": "202601"
+          }
+        ]
+      }
+    },
+    "ENMT372": {
+      "courseInfo": {
+        "id": "ENMT372",
+        "name": "Robotic Systems"
+      },
+      "professors": {
+        "Gurtajbir Herr": [
+          {
+            "semester": "Spring",
+            "year": 2025,
+            "semesterId": "202501"
+          },
+          {
+            "semester": "Spring",
+            "year": 2026,
+            "semesterId": "202601"
+          }
+        ]
+      }
+    },
+    "ENMT477": {
+      "courseInfo": {
+        "id": "ENMT477",
+        "name": "Machine Learning in Mechatronics Engineering"
+      },
+      "professors": {
+        "Gurtajbir Herr": [
+          {
+            "semester": "Spring",
+            "year": 2026,
+            "semesterId": "202601"
+          }
+        ]
+      }
+    },
+    "ENMT488C": {
+      "courseInfo": {
+        "id": "ENMT488C",
+        "name": "Topics in Mechatronics Engineering"
+      },
+      "professors": {
+        "Colleen Murray": [
+          {
+            "semester": "Spring",
+            "year": 2026,
+            "semesterId": "202601"
+          }
+        ]
+      }
+    },
+    "ENMT488P": {
+      "courseInfo": {
+        "id": "ENMT488P",
+        "name": "Topics in Mechatronics Engineering"
+      },
+      "professors": {
+        "Colleen Murray": [
+          {
+            "semester": "Spring",
+            "year": 2026,
+            "semesterId": "202601"
+          }
+        ]
+      }
+    },
+    "ENMT488Z": {
+      "courseInfo": {
+        "id": "ENMT488Z",
+        "name": "Topics in Mechatronics Engineering"
+      },
+      "professors": {
+        "Nicholas Limparis": [
+          {
+            "semester": "Spring",
+            "year": 2026,
+            "semesterId": "202601"
+          }
+        ]
+      }
+    },
     "ENPM604": {
       "courseInfo": {
         "id": "ENPM604",
@@ -151675,6 +152203,11 @@
             "semester": "Fall",
             "year": 2025,
             "semesterId": "202508"
+          },
+          {
+            "semester": "Spring",
+            "year": 2026,
+            "semesterId": "202601"
           }
         ],
         "Kate Tully": [
@@ -154606,6 +155139,46 @@
             "semester": "Fall",
             "year": 2025,
             "semesterId": "202508"
+          },
+          {
+            "semester": "Spring",
+            "year": 2026,
+            "semesterId": "202601"
+          }
+        ]
+      }
+    },
+    "ENST689A": {
+      "courseInfo": {
+        "id": "ENST689A",
+        "name": "Special Topics; Applied Artificial Intelligence for Environmental Good."
+      },
+      "professors": {
+        "David Tilley": [
+          {
+            "semester": "Spring",
+            "year": 2026,
+            "semesterId": "202601"
+          }
+        ]
+      }
+    },
+    "ENST689L": {
+      "courseInfo": {
+        "id": "ENST689L",
+        "name": "Special Topics; Applied Hierarchical Modeling in Environmental Science"
+      },
+      "professors": {
+        "Henry Gallo": [
+          {
+            "semester": "Spring",
+            "year": 2024,
+            "semesterId": "202401"
+          },
+          {
+            "semester": "Spring",
+            "year": 2025,
+            "semesterId": "202501"
           },
           {
             "semester": "Spring",
@@ -170561,6 +171134,130 @@
             "semester": "Fall",
             "year": 2025,
             "semesterId": "202508"
+          }
+        ]
+      }
+    },
+    "GEOL123": {
+      "courseInfo": {
+        "id": "GEOL123",
+        "name": "Causes and Consequences of Global Change"
+      },
+      "professors": {
+        "Jeffrey Henrikson": [
+          {
+            "semester": "Fall",
+            "year": 2021,
+            "semesterId": "202108"
+          },
+          {
+            "semester": "Summer",
+            "year": 2021,
+            "semesterId": "202105"
+          },
+          {
+            "semester": "Fall",
+            "year": 2022,
+            "semesterId": "202208"
+          },
+          {
+            "semester": "Fall",
+            "year": 2023,
+            "semesterId": "202308"
+          },
+          {
+            "semester": "Fall",
+            "year": 2024,
+            "semesterId": "202408"
+          },
+          {
+            "semester": "Fall",
+            "year": 2025,
+            "semesterId": "202508"
+          },
+          {
+            "semester": "Spring",
+            "year": 2026,
+            "semesterId": "202601"
+          }
+        ],
+        "Laura McBride": [],
+        "Michael Evans": [
+          {
+            "semester": "Spring",
+            "year": 2021,
+            "semesterId": "202101"
+          },
+          {
+            "semester": "Spring",
+            "year": 2025,
+            "semesterId": "202501"
+          }
+        ],
+        "Rachel Pinker": [
+          {
+            "semester": "Spring",
+            "year": 2022,
+            "semesterId": "202201"
+          },
+          {
+            "semester": "Spring",
+            "year": 2024,
+            "semesterId": "202401"
+          }
+        ],
+        "Samantha Kemper": [
+          {
+            "semester": "Summer",
+            "year": 2021,
+            "semesterId": "202105"
+          },
+          {
+            "semester": "Summer",
+            "year": 2022,
+            "semesterId": "202205"
+          },
+          {
+            "semester": "Unknown",
+            "year": 2022,
+            "semesterId": "202212"
+          },
+          {
+            "semester": "Summer",
+            "year": 2023,
+            "semesterId": "202305"
+          },
+          {
+            "semester": "Unknown",
+            "year": 2023,
+            "semesterId": "202312"
+          },
+          {
+            "semester": "Summer",
+            "year": 2024,
+            "semesterId": "202405"
+          },
+          {
+            "semester": "Unknown",
+            "year": 2024,
+            "semesterId": "202412"
+          },
+          {
+            "semester": "Summer",
+            "year": 2025,
+            "semesterId": "202505"
+          },
+          {
+            "semester": "Unknown",
+            "year": 2025,
+            "semesterId": "202512"
+          }
+        ],
+        "Tracey Centorbi": [
+          {
+            "semester": "Spring",
+            "year": 2023,
+            "semesterId": "202301"
           }
         ]
       }
@@ -189252,6 +189949,13 @@
             "year": 2023,
             "semesterId": "202308"
           }
+        ],
+        "Yael Harris": [
+          {
+            "semester": "Spring",
+            "year": 2026,
+            "semesterId": "202601"
+          }
         ]
       }
     },
@@ -192143,6 +192847,13 @@
         "name": "Methods of Community Health Assessment"
       },
       "professors": {
+        "Abigail Pollock": [
+          {
+            "semester": "Spring",
+            "year": 2026,
+            "semesterId": "202601"
+          }
+        ],
         "Kirsten Stoebenau": [
           {
             "semester": "Fall",
@@ -197417,6 +198128,13 @@
         "name": "Kickstart your career with improv"
       },
       "professors": {
+        "Meredith Kaunitz": [
+          {
+            "semester": "Spring",
+            "year": 2026,
+            "semesterId": "202601"
+          }
+        ],
         "Mira Azarm": [
           {
             "semester": "Spring",
@@ -200693,6 +201411,13 @@
           }
         ],
         "Taverekere Srikantaiah": [],
+        "Vera Rhoads": [
+          {
+            "semester": "Spring",
+            "year": 2026,
+            "semesterId": "202601"
+          }
+        ],
         "Vikas Sahasrabudhe": [],
         "Waqas Shah": [
           {
@@ -202449,6 +203174,11 @@
             "semester": "Fall",
             "year": 2025,
             "semesterId": "202508"
+          },
+          {
+            "semester": "Spring",
+            "year": 2026,
+            "semesterId": "202601"
           }
         ],
         "Galina Reitz": [
@@ -202537,6 +203267,11 @@
             "semester": "Fall",
             "year": 2025,
             "semesterId": "202508"
+          },
+          {
+            "semester": "Spring",
+            "year": 2026,
+            "semesterId": "202601"
           }
         ],
         "Nicole Miller": [
@@ -202601,6 +203336,11 @@
             "semester": "Fall",
             "year": 2025,
             "semesterId": "202508"
+          },
+          {
+            "semester": "Spring",
+            "year": 2026,
+            "semesterId": "202601"
           }
         ],
         "P Kshetry": [
@@ -202639,28 +203379,18 @@
             "semester": "Fall",
             "year": 2025,
             "semesterId": "202508"
+          },
+          {
+            "semester": "Spring",
+            "year": 2026,
+            "semesterId": "202601"
           }
         ],
-        "Scott Jackson": [
+        "Sarah Lee": [
           {
             "semester": "Spring",
-            "year": 2024,
-            "semesterId": "202401"
-          },
-          {
-            "semester": "Fall",
-            "year": 2024,
-            "semesterId": "202408"
-          },
-          {
-            "semester": "Spring",
-            "year": 2025,
-            "semesterId": "202501"
-          },
-          {
-            "semester": "Fall",
-            "year": 2025,
-            "semesterId": "202508"
+            "year": 2026,
+            "semesterId": "202601"
           }
         ]
       }
@@ -209476,6 +210206,13 @@
             "semester": "Spring",
             "year": 2022,
             "semesterId": "202201"
+          }
+        ],
+        "LaRia Conley": [
+          {
+            "semester": "Spring",
+            "year": 2026,
+            "semesterId": "202601"
           }
         ],
         "LaRia Rogers": [
@@ -227789,6 +228526,13 @@
         "name": "Computer Visualization I"
       },
       "professors": {
+        "Jonathan Gemmell": [
+          {
+            "semester": "Spring",
+            "year": 2026,
+            "semesterId": "202601"
+          }
+        ],
         "Sherry Russell": [
           {
             "semester": "Spring",
@@ -228021,6 +228765,13 @@
         "name": "Site Planning and Design Studio"
       },
       "professors": {
+        "Jonathan Gemmell": [
+          {
+            "semester": "Spring",
+            "year": 2026,
+            "semesterId": "202601"
+          }
+        ],
         "Naomi Sachs": [
           {
             "semester": "Spring",
@@ -228081,6 +228832,13 @@
         "name": "Regional Design and GIS Studio"
       },
       "professors": {
+        "Boyoung Park": [
+          {
+            "semester": "Spring",
+            "year": 2026,
+            "semesterId": "202601"
+          }
+        ],
         "Christopher Ellis": [
           {
             "semester": "Spring",
@@ -228101,6 +228859,13 @@
         "name": "Construction Technology I: Principles of Site Engineering"
       },
       "professors": {
+        "Deni Ruggeri": [
+          {
+            "semester": "Spring",
+            "year": 2026,
+            "semesterId": "202601"
+          }
+        ],
         "Shihua Wang": [
           {
             "semester": "Spring",
@@ -228183,6 +228948,11 @@
             "semester": "Spring",
             "year": 2024,
             "semesterId": "202401"
+          },
+          {
+            "semester": "Spring",
+            "year": 2026,
+            "semesterId": "202601"
           }
         ],
         "Kelly Fleming": [
@@ -228195,6 +228965,13 @@
             "semester": "Spring",
             "year": 2025,
             "semesterId": "202501"
+          }
+        ],
+        "Mary Christensen": [
+          {
+            "semester": "Spring",
+            "year": 2026,
+            "semesterId": "202601"
           }
         ],
         "Victoria Chanse": []
@@ -228348,6 +229125,13 @@
             "year": 2025,
             "semesterId": "202501"
           },
+          {
+            "semester": "Spring",
+            "year": 2026,
+            "semesterId": "202601"
+          }
+        ],
+        "Sherry Russell": [
           {
             "semester": "Spring",
             "year": 2026,
@@ -231454,6 +232238,13 @@
             "year": 2022,
             "semesterId": "202201"
           }
+        ],
+        "Penelope Daniel": [
+          {
+            "semester": "Spring",
+            "year": 2026,
+            "semesterId": "202601"
+          }
         ]
       }
     },
@@ -233116,6 +233907,11 @@
             "semester": "Fall",
             "year": 2025,
             "semesterId": "202508"
+          },
+          {
+            "semester": "Spring",
+            "year": 2026,
+            "semesterId": "202601"
           }
         ],
         "Amandeep Chanda": [
@@ -233169,6 +233965,11 @@
             "semester": "Fall",
             "year": 2025,
             "semesterId": "202508"
+          },
+          {
+            "semester": "Spring",
+            "year": 2026,
+            "semesterId": "202601"
           }
         ],
         "Bilal Aytekin": [
@@ -233296,6 +234097,11 @@
             "semester": "Fall",
             "year": 2025,
             "semesterId": "202508"
+          },
+          {
+            "semester": "Spring",
+            "year": 2026,
+            "semesterId": "202601"
           }
         ],
         "Khalil Guy": [
@@ -237110,6 +237916,30 @@
         ]
       }
     },
+    "MATH299T": {
+      "courseInfo": {
+        "id": "MATH299T",
+        "name": "Selected Topics in Mathematics; STIC: Proofs from the Book"
+      },
+      "professors": {
+        "Kelin Zhu": [
+          {
+            "semester": "Spring",
+            "year": 2026,
+            "semesterId": "202601"
+          }
+        ],
+        "Sarah Yeakel": [],
+        "Wiseley Wong": [],
+        "Yuval Amit": [
+          {
+            "semester": "Spring",
+            "year": 2026,
+            "semesterId": "202601"
+          }
+        ]
+      }
+    },
     "MATH310": {
       "courseInfo": {
         "id": "MATH310",
@@ -239039,6 +239869,13 @@
       "professors": {
         "Charles Levermore": [],
         "Junren Chen": [
+          {
+            "semester": "Spring",
+            "year": 2026,
+            "semesterId": "202601"
+          }
+        ],
+        "Meenakshi Krishnan": [
           {
             "semester": "Spring",
             "year": 2026,
@@ -252125,6 +252962,13 @@
             "year": 2021,
             "semesterId": "202101"
           }
+        ],
+        "Michael Votta": [
+          {
+            "semester": "Spring",
+            "year": 2026,
+            "semesterId": "202601"
+          }
         ]
       }
     },
@@ -254829,6 +255673,13 @@
             "semesterId": "202201"
           }
         ],
+        "Erick Vonsas": [
+          {
+            "semester": "Spring",
+            "year": 2026,
+            "semesterId": "202601"
+          }
+        ],
         "James Gates": [
           {
             "semester": "Spring",
@@ -255664,7 +256515,13 @@
             "semesterId": "202601"
           }
         ],
-        "Michael Votta": []
+        "Michael Votta": [
+          {
+            "semester": "Spring",
+            "year": 2026,
+            "semesterId": "202601"
+          }
+        ]
       }
     },
     "MUSC629D": {
@@ -260249,6 +261106,13 @@
         "name": "Navigation"
       },
       "professors": {
+        "Austin Cranfill": [
+          {
+            "semester": "Spring",
+            "year": 2026,
+            "semesterId": "202601"
+          }
+        ],
         "Barry Feinstein": [
           {
             "semester": "Spring",
@@ -260387,6 +261251,13 @@
             "year": 2025,
             "semesterId": "202501"
           },
+          {
+            "semester": "Spring",
+            "year": 2026,
+            "semesterId": "202601"
+          }
+        ],
+        "John Gonser": [
           {
             "semester": "Spring",
             "year": 2026,
@@ -262191,6 +263062,31 @@
             "semester": "Spring",
             "year": 2025,
             "semesterId": "202501"
+          },
+          {
+            "semester": "Spring",
+            "year": 2026,
+            "semesterId": "202601"
+          }
+        ]
+      }
+    },
+    "NFSC679E": {
+      "courseInfo": {
+        "id": "NFSC679E",
+        "name": "Selected Topics in Food Science"
+      },
+      "professors": {
+        "Rohan Tikekar": [
+          {
+            "semester": "Spring",
+            "year": 2022,
+            "semesterId": "202201"
+          },
+          {
+            "semester": "Spring",
+            "year": 2024,
+            "semesterId": "202401"
           },
           {
             "semester": "Spring",
@@ -264332,6 +265228,13 @@
         "name": "Philosophy of Law"
       },
       "professors": {
+        "Kenneth Glazer": [
+          {
+            "semester": "Spring",
+            "year": 2026,
+            "semesterId": "202601"
+          }
+        ],
         "Leisa Schwab": [
           {
             "semester": "Spring",
@@ -265066,7 +265969,15 @@
         "id": "PHPE308Q",
         "name": "Special Topics in Philosophy, Politics, and Economics; Philosophy of Law"
       },
-      "professors": {}
+      "professors": {
+        "Kenneth Glazer": [
+          {
+            "semester": "Spring",
+            "year": 2026,
+            "semesterId": "202601"
+          }
+        ]
+      }
     },
     "PHPE308U": {
       "courseInfo": {
@@ -288286,6 +289197,31 @@
       },
       "professors": {}
     },
+    "RUSS798": {
+      "courseInfo": {
+        "id": "RUSS798",
+        "name": "Independent Study"
+      },
+      "professors": {
+        "Michael Lavery": [
+          {
+            "semester": "Spring",
+            "year": 2024,
+            "semesterId": "202401"
+          },
+          {
+            "semester": "Spring",
+            "year": 2025,
+            "semesterId": "202501"
+          },
+          {
+            "semester": "Fall",
+            "year": 2025,
+            "semesterId": "202508"
+          }
+        ]
+      }
+    },
     "SDSB123": {
       "courseInfo": {
         "id": "SDSB123",
@@ -297804,6 +298740,13 @@
           }
         ],
         "Corry Bedwell": [],
+        "Dmitrii Gudin": [
+          {
+            "semester": "Spring",
+            "year": 2026,
+            "semesterId": "202601"
+          }
+        ],
         "Emily Francis": [
           {
             "semester": "Spring",
@@ -299216,6 +300159,13 @@
           }
         ]
       }
+    },
+    "SURV605": {
+      "courseInfo": {
+        "id": "SURV605",
+        "name": "AI Assisted Surveys"
+      },
+      "professors": {}
     },
     "SURV613": {
       "courseInfo": {
@@ -303375,6 +304325,11 @@
             "semester": "Fall",
             "year": 2025,
             "semesterId": "202508"
+          },
+          {
+            "semester": "Spring",
+            "year": 2026,
+            "semesterId": "202601"
           }
         ],
         "James Harding": [
@@ -304045,6 +305000,13 @@
         "name": "History of Fashion for the Theatre"
       },
       "professors": {
+        "Emma McClendon": [
+          {
+            "semester": "Spring",
+            "year": 2026,
+            "semesterId": "202601"
+          }
+        ],
         "Mikhail Kachman": [
           {
             "semester": "Spring",
@@ -304111,6 +305073,13 @@
             "semester": "Fall",
             "year": 2025,
             "semesterId": "202508"
+          }
+        ],
+        "Paige Hathaway": [
+          {
+            "semester": "Spring",
+            "year": 2026,
+            "semesterId": "202601"
           }
         ]
       }
@@ -304227,6 +305196,13 @@
         "name": "Theatrical Rendering Using Photoshop"
       },
       "professors": {
+        "Brandon Roak": [
+          {
+            "semester": "Spring",
+            "year": 2026,
+            "semesterId": "202601"
+          }
+        ],
         "Daniel Conway": [
           {
             "semester": "Unknown",
@@ -304378,6 +305354,13 @@
         "name": "Photoshop for Theatrical Rendering"
       },
       "professors": {
+        "Brandon Roak": [
+          {
+            "semester": "Spring",
+            "year": 2026,
+            "semesterId": "202601"
+          }
+        ],
         "Sarah Hall": [
           {
             "semester": "Spring",
@@ -304441,6 +305424,13 @@
             "semester": "Fall",
             "year": 2025,
             "semesterId": "202508"
+          }
+        ],
+        "Paige Hathaway": [
+          {
+            "semester": "Spring",
+            "year": 2026,
+            "semesterId": "202601"
           }
         ]
       }
@@ -304888,6 +305878,13 @@
         "name": "History of Fashion for Theatre"
       },
       "professors": {
+        "Emma McClendon": [
+          {
+            "semester": "Spring",
+            "year": 2026,
+            "semesterId": "202601"
+          }
+        ],
         "Misha Kachman": [
           {
             "semester": "Fall",
@@ -306686,6 +307683,13 @@
             "semesterId": "202201"
           }
         ],
+        "Chunru Dong": [
+          {
+            "semester": "Spring",
+            "year": 2026,
+            "semesterId": "202601"
+          }
+        ],
         "Ebony Shockley": [],
         "Justice Walker": [
           {
@@ -306709,6 +307713,13 @@
             "semester": "Spring",
             "year": 2025,
             "semesterId": "202501"
+          }
+        ],
+        "Tracee Matthias": [
+          {
+            "semester": "Spring",
+            "year": 2026,
+            "semesterId": "202601"
           }
         ]
       }
@@ -306752,6 +307763,13 @@
         ],
         "Dale Placek": [],
         "Gianna Fogelbach": [
+          {
+            "semester": "Spring",
+            "year": 2026,
+            "semesterId": "202601"
+          }
+        ],
+        "Jennifer Ridgway": [
           {
             "semester": "Spring",
             "year": 2026,
@@ -307669,6 +308687,11 @@
             "semester": "Fall",
             "year": 2025,
             "semesterId": "202508"
+          },
+          {
+            "semester": "Spring",
+            "year": 2026,
+            "semesterId": "202601"
           }
         ],
         "Sara Kirschner": [
@@ -308263,6 +309286,64 @@
             "semester": "Spring",
             "year": 2026,
             "semesterId": "202601"
+          }
+        ]
+      }
+    },
+    "TLPL460": {
+      "courseInfo": {
+        "id": "TLPL460",
+        "name": "Materials and Instruction for Creating Skilled and Motivated Readers, Part I"
+      },
+      "professors": {
+        "Ayanna Baccus": [
+          {
+            "semester": "Fall",
+            "year": 2024,
+            "semesterId": "202408"
+          }
+        ],
+        "Jennifer Himmel": [
+          {
+            "semester": "Fall",
+            "year": 2023,
+            "semesterId": "202308"
+          }
+        ],
+        "Kerry Alexander": [
+          {
+            "semester": "Summer",
+            "year": 2025,
+            "semesterId": "202505"
+          }
+        ],
+        "Shannon Kane": [
+          {
+            "semester": "Spring",
+            "year": 2025,
+            "semesterId": "202501"
+          },
+          {
+            "semester": "Summer",
+            "year": 2025,
+            "semesterId": "202505"
+          },
+          {
+            "semester": "Fall",
+            "year": 2025,
+            "semesterId": "202508"
+          },
+          {
+            "semester": "Spring",
+            "year": 2026,
+            "semesterId": "202601"
+          }
+        ],
+        "Theresa Robinson": [
+          {
+            "semester": "Fall",
+            "year": 2023,
+            "semesterId": "202308"
           }
         ]
       }
@@ -310387,6 +311468,11 @@
             "semester": "Fall",
             "year": 2025,
             "semesterId": "202508"
+          },
+          {
+            "semester": "Spring",
+            "year": 2026,
+            "semesterId": "202601"
           }
         ],
         "Tranae Johnson": []
@@ -312684,6 +313770,13 @@
             "year": 2026,
             "semesterId": "202601"
           }
+        ],
+        "Sarah Kistner": [
+          {
+            "semester": "Spring",
+            "year": 2026,
+            "semesterId": "202601"
+          }
         ]
       }
     },
@@ -312904,6 +313997,13 @@
             "year": 2025,
             "semesterId": "202508"
           },
+          {
+            "semester": "Spring",
+            "year": 2026,
+            "semesterId": "202601"
+          }
+        ],
+        "Sarah Kistner": [
           {
             "semester": "Spring",
             "year": 2026,
@@ -319115,6 +320215,11 @@
             "semester": "Fall",
             "year": 2025,
             "semesterId": "202508"
+          },
+          {
+            "semester": "Spring",
+            "year": 2026,
+            "semesterId": "202601"
           }
         ],
         "Jaekeun Park": [
