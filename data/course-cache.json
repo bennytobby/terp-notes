@@ -1,8 +1,8 @@
 {
   "metadata": {
-    "generated": "2026-01-25T04:29:21.838Z",
+    "generated": "2026-02-01T05:39:38.084Z",
     "type": "course-indexed",
-    "coursesCount": 4992,
+    "coursesCount": 4979,
     "yearFilter": "Only years 2021 and after",
     "structure": "course -> professors -> semesters"
   },
@@ -14254,6 +14254,11 @@
             "semester": "Spring",
             "year": 2023,
             "semesterId": "202301"
+          },
+          {
+            "semester": "Spring",
+            "year": 2026,
+            "semesterId": "202601"
           }
         ],
         "Madlen Simon": [
@@ -48646,2260 +48651,6 @@
             "semester": "Spring",
             "year": 2022,
             "semesterId": "202201"
-          }
-        ]
-      }
-    },
-    "BSCI160": {
-      "courseInfo": {
-        "id": "BSCI160",
-        "name": "Principles of Ecology and Evolution"
-      },
-      "professors": {
-        "Bill Fagan": [
-          {
-            "semester": "Fall",
-            "year": 2022,
-            "semesterId": "202208"
-          },
-          {
-            "semester": "Fall",
-            "year": 2024,
-            "semesterId": "202408"
-          }
-        ],
-        "Chloe Garfinkel": [
-          {
-            "semester": "Summer",
-            "year": 2025,
-            "semesterId": "202505"
-          },
-          {
-            "semester": "Fall",
-            "year": 2025,
-            "semesterId": "202508"
-          },
-          {
-            "semester": "Spring",
-            "year": 2025,
-            "semesterId": "202501"
-          },
-          {
-            "semester": "Spring",
-            "year": 2026,
-            "semesterId": "202601"
-          }
-        ],
-        "Daniel Gruner": [
-          {
-            "semester": "Fall",
-            "year": 2021,
-            "semesterId": "202108"
-          }
-        ],
-        "Danielle Adams": [],
-        "Emily Bruns": [
-          {
-            "semester": "Fall",
-            "year": 2021,
-            "semesterId": "202108"
-          },
-          {
-            "semester": "Fall",
-            "year": 2022,
-            "semesterId": "202208"
-          },
-          {
-            "semester": "Fall",
-            "year": 2023,
-            "semesterId": "202308"
-          },
-          {
-            "semester": "Fall",
-            "year": 2024,
-            "semesterId": "202408"
-          }
-        ],
-        "Francisca Saavedra": [
-          {
-            "semester": "Fall",
-            "year": 2021,
-            "semesterId": "202108"
-          }
-        ],
-        "Jessica Mutz": [
-          {
-            "semester": "Fall",
-            "year": 2025,
-            "semesterId": "202508"
-          }
-        ],
-        "Jessie Mutz": [
-          {
-            "semester": "Fall",
-            "year": 2025,
-            "semesterId": "202508"
-          }
-        ],
-        "Karen Lips": [
-          {
-            "semester": "Fall",
-            "year": 2025,
-            "semesterId": "202508"
-          }
-        ],
-        "Kiersten Newtoff": [],
-        "Lena Ngeve": [
-          {
-            "semester": "Fall",
-            "year": 2023,
-            "semesterId": "202308"
-          },
-          {
-            "semester": "Spring",
-            "year": 2024,
-            "semesterId": "202401"
-          }
-        ],
-        "Leo Shapiro": [
-          {
-            "semester": "Fall",
-            "year": 2021,
-            "semesterId": "202108"
-          },
-          {
-            "semester": "Spring",
-            "year": 2021,
-            "semesterId": "202101"
-          },
-          {
-            "semester": "Spring",
-            "year": 2022,
-            "semesterId": "202201"
-          },
-          {
-            "semester": "Fall",
-            "year": 2022,
-            "semesterId": "202208"
-          },
-          {
-            "semester": "Spring",
-            "year": 2023,
-            "semesterId": "202301"
-          },
-          {
-            "semester": "Fall",
-            "year": 2023,
-            "semesterId": "202308"
-          },
-          {
-            "semester": "Spring",
-            "year": 2024,
-            "semesterId": "202401"
-          },
-          {
-            "semester": "Fall",
-            "year": 2024,
-            "semesterId": "202408"
-          },
-          {
-            "semester": "Fall",
-            "year": 2025,
-            "semesterId": "202508"
-          },
-          {
-            "semester": "Spring",
-            "year": 2025,
-            "semesterId": "202501"
-          },
-          {
-            "semester": "Spring",
-            "year": 2026,
-            "semesterId": "202601"
-          }
-        ],
-        "Magdalene Ngeve": [
-          {
-            "semester": "Spring",
-            "year": 2022,
-            "semesterId": "202201"
-          },
-          {
-            "semester": "Fall",
-            "year": 2021,
-            "semesterId": "202108"
-          },
-          {
-            "semester": "Fall",
-            "year": 2022,
-            "semesterId": "202208"
-          },
-          {
-            "semester": "Fall",
-            "year": 2023,
-            "semesterId": "202308"
-          },
-          {
-            "semester": "Spring",
-            "year": 2024,
-            "semesterId": "202401"
-          },
-          {
-            "semester": "Fall",
-            "year": 2024,
-            "semesterId": "202408"
-          }
-        ],
-        "Marcia Shofner": [
-          {
-            "semester": "Fall",
-            "year": 2021,
-            "semesterId": "202108"
-          },
-          {
-            "semester": "Summer",
-            "year": 2021,
-            "semesterId": "202105"
-          },
-          {
-            "semester": "Fall",
-            "year": 2022,
-            "semesterId": "202208"
-          },
-          {
-            "semester": "Summer",
-            "year": 2022,
-            "semesterId": "202205"
-          },
-          {
-            "semester": "Spring",
-            "year": 2023,
-            "semesterId": "202301"
-          },
-          {
-            "semester": "Summer",
-            "year": 2023,
-            "semesterId": "202305"
-          },
-          {
-            "semester": "Fall",
-            "year": 2023,
-            "semesterId": "202308"
-          },
-          {
-            "semester": "Summer",
-            "year": 2024,
-            "semesterId": "202405"
-          },
-          {
-            "semester": "Fall",
-            "year": 2024,
-            "semesterId": "202408"
-          }
-        ],
-        "Marjorie Reaka": [
-          {
-            "semester": "Spring",
-            "year": 2021,
-            "semesterId": "202101"
-          },
-          {
-            "semester": "Spring",
-            "year": 2022,
-            "semesterId": "202201"
-          },
-          {
-            "semester": "Spring",
-            "year": 2023,
-            "semesterId": "202301"
-          }
-        ],
-        "Mary Ann Rankin": [
-          {
-            "semester": "Spring",
-            "year": 2023,
-            "semesterId": "202301"
-          },
-          {
-            "semester": "Fall",
-            "year": 2025,
-            "semesterId": "202508"
-          }
-        ],
-        "Sarah Lee": [
-          {
-            "semester": "Spring",
-            "year": 2023,
-            "semesterId": "202301"
-          },
-          {
-            "semester": "Spring",
-            "year": 2024,
-            "semesterId": "202401"
-          }
-        ],
-        "Vadim Karatayev": [
-          {
-            "semester": "Spring",
-            "year": 2025,
-            "semesterId": "202501"
-          },
-          {
-            "semester": "Spring",
-            "year": 2026,
-            "semesterId": "202601"
-          }
-        ]
-      }
-    },
-    "BSCI161": {
-      "courseInfo": {
-        "id": "BSCI161",
-        "name": "Principles of Ecology and Evolution Lab"
-      },
-      "professors": {
-        "Francisca Saavedra": [
-          {
-            "semester": "Fall",
-            "year": 2021,
-            "semesterId": "202108"
-          },
-          {
-            "semester": "Spring",
-            "year": 2021,
-            "semesterId": "202101"
-          },
-          {
-            "semester": "Summer",
-            "year": 2021,
-            "semesterId": "202105"
-          },
-          {
-            "semester": "Spring",
-            "year": 2022,
-            "semesterId": "202201"
-          },
-          {
-            "semester": "Fall",
-            "year": 2022,
-            "semesterId": "202208"
-          }
-        ],
-        "Hans Lemke": [
-          {
-            "semester": "Summer",
-            "year": 2021,
-            "semesterId": "202105"
-          },
-          {
-            "semester": "Spring",
-            "year": 2022,
-            "semesterId": "202201"
-          },
-          {
-            "semester": "Fall",
-            "year": 2021,
-            "semesterId": "202108"
-          },
-          {
-            "semester": "Fall",
-            "year": 2022,
-            "semesterId": "202208"
-          },
-          {
-            "semester": "Spring",
-            "year": 2023,
-            "semesterId": "202301"
-          },
-          {
-            "semester": "Fall",
-            "year": 2023,
-            "semesterId": "202308"
-          },
-          {
-            "semester": "Spring",
-            "year": 2024,
-            "semesterId": "202401"
-          },
-          {
-            "semester": "Summer",
-            "year": 2024,
-            "semesterId": "202405"
-          },
-          {
-            "semester": "Fall",
-            "year": 2024,
-            "semesterId": "202408"
-          },
-          {
-            "semester": "Summer",
-            "year": 2025,
-            "semesterId": "202505"
-          },
-          {
-            "semester": "Fall",
-            "year": 2025,
-            "semesterId": "202508"
-          },
-          {
-            "semester": "Spring",
-            "year": 2025,
-            "semesterId": "202501"
-          },
-          {
-            "semester": "Spring",
-            "year": 2026,
-            "semesterId": "202601"
-          }
-        ],
-        "Leo Shapiro": [],
-        "Michael Keller": [
-          {
-            "semester": "Fall",
-            "year": 2023,
-            "semesterId": "202308"
-          },
-          {
-            "semester": "Spring",
-            "year": 2024,
-            "semesterId": "202401"
-          },
-          {
-            "semester": "Fall",
-            "year": 2024,
-            "semesterId": "202408"
-          },
-          {
-            "semester": "Fall",
-            "year": 2025,
-            "semesterId": "202508"
-          },
-          {
-            "semester": "Spring",
-            "year": 2025,
-            "semesterId": "202501"
-          },
-          {
-            "semester": "Spring",
-            "year": 2026,
-            "semesterId": "202601"
-          }
-        ]
-      }
-    },
-    "BSCI170": {
-      "courseInfo": {
-        "id": "BSCI170",
-        "name": "Principles of Molecular & Cellular Biology"
-      },
-      "professors": {
-        "Anne Simon": [
-          {
-            "semester": "Spring",
-            "year": 2022,
-            "semesterId": "202201"
-          },
-          {
-            "semester": "Spring",
-            "year": 2023,
-            "semesterId": "202301"
-          }
-        ],
-        "Chan Lin": [
-          {
-            "semester": "Fall",
-            "year": 2024,
-            "semesterId": "202408"
-          }
-        ],
-        "Cordelia Weiss": [
-          {
-            "semester": "Fall",
-            "year": 2025,
-            "semesterId": "202508"
-          },
-          {
-            "semester": "Spring",
-            "year": 2026,
-            "semesterId": "202601"
-          }
-        ],
-        "Cornelia Van der Weele": [
-          {
-            "semester": "Spring",
-            "year": 2023,
-            "semesterId": "202301"
-          }
-        ],
-        "Eric Haag": [
-          {
-            "semester": "Spring",
-            "year": 2023,
-            "semesterId": "202301"
-          },
-          {
-            "semester": "Spring",
-            "year": 2024,
-            "semesterId": "202401"
-          },
-          {
-            "semester": "Fall",
-            "year": 2025,
-            "semesterId": "202508"
-          },
-          {
-            "semester": "Spring",
-            "year": 2025,
-            "semesterId": "202501"
-          }
-        ],
-        "James Sniezek": [
-          {
-            "semester": "Fall",
-            "year": 2021,
-            "semesterId": "202108"
-          },
-          {
-            "semester": "Spring",
-            "year": 2021,
-            "semesterId": "202101"
-          },
-          {
-            "semester": "Spring",
-            "year": 2022,
-            "semesterId": "202201"
-          },
-          {
-            "semester": "Fall",
-            "year": 2022,
-            "semesterId": "202208"
-          },
-          {
-            "semester": "Spring",
-            "year": 2023,
-            "semesterId": "202301"
-          },
-          {
-            "semester": "Fall",
-            "year": 2023,
-            "semesterId": "202308"
-          },
-          {
-            "semester": "Spring",
-            "year": 2024,
-            "semesterId": "202401"
-          },
-          {
-            "semester": "Fall",
-            "year": 2024,
-            "semesterId": "202408"
-          },
-          {
-            "semester": "Fall",
-            "year": 2025,
-            "semesterId": "202508"
-          },
-          {
-            "semester": "Spring",
-            "year": 2025,
-            "semesterId": "202501"
-          },
-          {
-            "semester": "Spring",
-            "year": 2026,
-            "semesterId": "202601"
-          }
-        ],
-        "Ji Choi": [
-          {
-            "semester": "Spring",
-            "year": 2025,
-            "semesterId": "202501"
-          },
-          {
-            "semester": "Unknown",
-            "year": 2025,
-            "semesterId": "202512"
-          },
-          {
-            "semester": "Spring",
-            "year": 2026,
-            "semesterId": "202601"
-          }
-        ],
-        "Ji Young Choi": [
-          {
-            "semester": "Fall",
-            "year": 2024,
-            "semesterId": "202408"
-          }
-        ],
-        "Michael Keller": [
-          {
-            "semester": "Fall",
-            "year": 2021,
-            "semesterId": "202108"
-          },
-          {
-            "semester": "Spring",
-            "year": 2021,
-            "semesterId": "202101"
-          },
-          {
-            "semester": "Summer",
-            "year": 2021,
-            "semesterId": "202105"
-          },
-          {
-            "semester": "Spring",
-            "year": 2022,
-            "semesterId": "202201"
-          },
-          {
-            "semester": "Fall",
-            "year": 2022,
-            "semesterId": "202208"
-          },
-          {
-            "semester": "Summer",
-            "year": 2022,
-            "semesterId": "202205"
-          },
-          {
-            "semester": "Spring",
-            "year": 2023,
-            "semesterId": "202301"
-          },
-          {
-            "semester": "Summer",
-            "year": 2023,
-            "semesterId": "202305"
-          },
-          {
-            "semester": "Fall",
-            "year": 2023,
-            "semesterId": "202308"
-          },
-          {
-            "semester": "Spring",
-            "year": 2024,
-            "semesterId": "202401"
-          },
-          {
-            "semester": "Summer",
-            "year": 2024,
-            "semesterId": "202405"
-          },
-          {
-            "semester": "Fall",
-            "year": 2024,
-            "semesterId": "202408"
-          },
-          {
-            "semester": "Summer",
-            "year": 2025,
-            "semesterId": "202505"
-          },
-          {
-            "semester": "Fall",
-            "year": 2025,
-            "semesterId": "202508"
-          },
-          {
-            "semester": "Spring",
-            "year": 2025,
-            "semesterId": "202501"
-          }
-        ],
-        "Nicholas Fletcher": [
-          {
-            "semester": "Spring",
-            "year": 2021,
-            "semesterId": "202101"
-          },
-          {
-            "semester": "Spring",
-            "year": 2022,
-            "semesterId": "202201"
-          },
-          {
-            "semester": "Spring",
-            "year": 2023,
-            "semesterId": "202301"
-          },
-          {
-            "semester": "Spring",
-            "year": 2024,
-            "semesterId": "202401"
-          },
-          {
-            "semester": "Fall",
-            "year": 2024,
-            "semesterId": "202408"
-          },
-          {
-            "semester": "Spring",
-            "year": 2025,
-            "semesterId": "202501"
-          },
-          {
-            "semester": "Spring",
-            "year": 2026,
-            "semesterId": "202601"
-          }
-        ],
-        "Niranjana Krishnan": [
-          {
-            "semester": "Spring",
-            "year": 2024,
-            "semesterId": "202401"
-          },
-          {
-            "semester": "Spring",
-            "year": 2026,
-            "semesterId": "202601"
-          }
-        ],
-        "Patricia Shields": [],
-        "Reid Compton": [
-          {
-            "semester": "Fall",
-            "year": 2021,
-            "semesterId": "202108"
-          },
-          {
-            "semester": "Spring",
-            "year": 2021,
-            "semesterId": "202101"
-          },
-          {
-            "semester": "Spring",
-            "year": 2022,
-            "semesterId": "202201"
-          },
-          {
-            "semester": "Fall",
-            "year": 2022,
-            "semesterId": "202208"
-          },
-          {
-            "semester": "Fall",
-            "year": 2023,
-            "semesterId": "202308"
-          }
-        ],
-        "Ricardo Araneda": [
-          {
-            "semester": "Spring",
-            "year": 2026,
-            "semesterId": "202601"
-          }
-        ],
-        "Swarna Mohan": [
-          {
-            "semester": "Fall",
-            "year": 2021,
-            "semesterId": "202108"
-          },
-          {
-            "semester": "Fall",
-            "year": 2022,
-            "semesterId": "202208"
-          },
-          {
-            "semester": "Fall",
-            "year": 2023,
-            "semesterId": "202308"
-          },
-          {
-            "semester": "Fall",
-            "year": 2024,
-            "semesterId": "202408"
-          },
-          {
-            "semester": "Fall",
-            "year": 2025,
-            "semesterId": "202508"
-          }
-        ],
-        "William Jeffery": [
-          {
-            "semester": "Spring",
-            "year": 2026,
-            "semesterId": "202601"
-          }
-        ]
-      }
-    },
-    "BSCI171": {
-      "courseInfo": {
-        "id": "BSCI171",
-        "name": "Principles of Molecular & Cellular Biology Laboratory"
-      },
-      "professors": {
-        "David Kirschtel": [],
-        "Donald Costello": [
-          {
-            "semester": "Fall",
-            "year": 2025,
-            "semesterId": "202508"
-          }
-        ],
-        "Ronald Clark": [
-          {
-            "semester": "Spring",
-            "year": 2024,
-            "semesterId": "202401"
-          },
-          {
-            "semester": "Spring",
-            "year": 2025,
-            "semesterId": "202501"
-          }
-        ],
-        "Swarna Mohan": [
-          {
-            "semester": "Fall",
-            "year": 2021,
-            "semesterId": "202108"
-          },
-          {
-            "semester": "Spring",
-            "year": 2021,
-            "semesterId": "202101"
-          },
-          {
-            "semester": "Summer",
-            "year": 2021,
-            "semesterId": "202105"
-          },
-          {
-            "semester": "Spring",
-            "year": 2022,
-            "semesterId": "202201"
-          },
-          {
-            "semester": "Fall",
-            "year": 2022,
-            "semesterId": "202208"
-          },
-          {
-            "semester": "Summer",
-            "year": 2022,
-            "semesterId": "202205"
-          },
-          {
-            "semester": "Spring",
-            "year": 2023,
-            "semesterId": "202301"
-          },
-          {
-            "semester": "Summer",
-            "year": 2023,
-            "semesterId": "202305"
-          },
-          {
-            "semester": "Fall",
-            "year": 2023,
-            "semesterId": "202308"
-          },
-          {
-            "semester": "Spring",
-            "year": 2024,
-            "semesterId": "202401"
-          },
-          {
-            "semester": "Summer",
-            "year": 2024,
-            "semesterId": "202405"
-          },
-          {
-            "semester": "Fall",
-            "year": 2024,
-            "semesterId": "202408"
-          },
-          {
-            "semester": "Spring",
-            "year": 2025,
-            "semesterId": "202501"
-          },
-          {
-            "semester": "Summer",
-            "year": 2025,
-            "semesterId": "202505"
-          },
-          {
-            "semester": "Fall",
-            "year": 2025,
-            "semesterId": "202508"
-          },
-          {
-            "semester": "Spring",
-            "year": 2026,
-            "semesterId": "202601"
-          }
-        ]
-      }
-    },
-    "BSCI171S": {
-      "courseInfo": {
-        "id": "BSCI171S",
-        "name": "Principles of Molecular & Cellular Biology Laboratory"
-      },
-      "professors": {
-        "David Kirschtel": [],
-        "Swarna Mohan": [
-          {
-            "semester": "Spring",
-            "year": 2021,
-            "semesterId": "202101"
-          },
-          {
-            "semester": "Spring",
-            "year": 2022,
-            "semesterId": "202201"
-          },
-          {
-            "semester": "Spring",
-            "year": 2023,
-            "semesterId": "202301"
-          },
-          {
-            "semester": "Spring",
-            "year": 2024,
-            "semesterId": "202401"
-          },
-          {
-            "semester": "Spring",
-            "year": 2025,
-            "semesterId": "202501"
-          },
-          {
-            "semester": "Spring",
-            "year": 2026,
-            "semesterId": "202601"
-          }
-        ]
-      }
-    },
-    "BSCI201": {
-      "courseInfo": {
-        "id": "BSCI201",
-        "name": "Human Anatomy and Physiology I"
-      },
-      "professors": {
-        "Caitlin Fox": [
-          {
-            "semester": "Fall",
-            "year": 2021,
-            "semesterId": "202108"
-          },
-          {
-            "semester": "Spring",
-            "year": 2021,
-            "semesterId": "202101"
-          },
-          {
-            "semester": "Summer",
-            "year": 2021,
-            "semesterId": "202105"
-          },
-          {
-            "semester": "Spring",
-            "year": 2022,
-            "semesterId": "202201"
-          },
-          {
-            "semester": "Fall",
-            "year": 2022,
-            "semesterId": "202208"
-          },
-          {
-            "semester": "Summer",
-            "year": 2022,
-            "semesterId": "202205"
-          },
-          {
-            "semester": "Spring",
-            "year": 2023,
-            "semesterId": "202301"
-          },
-          {
-            "semester": "Summer",
-            "year": 2023,
-            "semesterId": "202305"
-          },
-          {
-            "semester": "Fall",
-            "year": 2023,
-            "semesterId": "202308"
-          },
-          {
-            "semester": "Spring",
-            "year": 2024,
-            "semesterId": "202401"
-          },
-          {
-            "semester": "Summer",
-            "year": 2024,
-            "semesterId": "202405"
-          },
-          {
-            "semester": "Fall",
-            "year": 2024,
-            "semesterId": "202408"
-          },
-          {
-            "semester": "Spring",
-            "year": 2025,
-            "semesterId": "202501"
-          },
-          {
-            "semester": "Summer",
-            "year": 2025,
-            "semesterId": "202505"
-          },
-          {
-            "semester": "Fall",
-            "year": 2025,
-            "semesterId": "202508"
-          },
-          {
-            "semester": "Spring",
-            "year": 2026,
-            "semesterId": "202601"
-          }
-        ],
-        "Edward Orlando": [
-          {
-            "semester": "Fall",
-            "year": 2024,
-            "semesterId": "202408"
-          },
-          {
-            "semester": "Fall",
-            "year": 2025,
-            "semesterId": "202508"
-          }
-        ],
-        "Justicia Opoku-Edusei": [
-          {
-            "semester": "Fall",
-            "year": 2021,
-            "semesterId": "202108"
-          },
-          {
-            "semester": "Spring",
-            "year": 2021,
-            "semesterId": "202101"
-          },
-          {
-            "semester": "Summer",
-            "year": 2021,
-            "semesterId": "202105"
-          },
-          {
-            "semester": "Spring",
-            "year": 2022,
-            "semesterId": "202201"
-          },
-          {
-            "semester": "Fall",
-            "year": 2022,
-            "semesterId": "202208"
-          },
-          {
-            "semester": "Spring",
-            "year": 2023,
-            "semesterId": "202301"
-          },
-          {
-            "semester": "Summer",
-            "year": 2023,
-            "semesterId": "202305"
-          },
-          {
-            "semester": "Fall",
-            "year": 2023,
-            "semesterId": "202308"
-          },
-          {
-            "semester": "Spring",
-            "year": 2024,
-            "semesterId": "202401"
-          },
-          {
-            "semester": "Fall",
-            "year": 2024,
-            "semesterId": "202408"
-          },
-          {
-            "semester": "Spring",
-            "year": 2025,
-            "semesterId": "202501"
-          },
-          {
-            "semester": "Fall",
-            "year": 2025,
-            "semesterId": "202508"
-          },
-          {
-            "semester": "Spring",
-            "year": 2026,
-            "semesterId": "202601"
-          }
-        ],
-        "Maira Goytia": [
-          {
-            "semester": "Fall",
-            "year": 2023,
-            "semesterId": "202308"
-          },
-          {
-            "semester": "Spring",
-            "year": 2024,
-            "semesterId": "202401"
-          },
-          {
-            "semester": "Summer",
-            "year": 2024,
-            "semesterId": "202405"
-          },
-          {
-            "semester": "Fall",
-            "year": 2024,
-            "semesterId": "202408"
-          },
-          {
-            "semester": "Spring",
-            "year": 2025,
-            "semesterId": "202501"
-          },
-          {
-            "semester": "Summer",
-            "year": 2025,
-            "semesterId": "202505"
-          },
-          {
-            "semester": "Fall",
-            "year": 2025,
-            "semesterId": "202508"
-          },
-          {
-            "semester": "Spring",
-            "year": 2026,
-            "semesterId": "202601"
-          }
-        ],
-        "Meredith Bohannon": [],
-        "Nelson Bennett": [
-          {
-            "semester": "Spring",
-            "year": 2021,
-            "semesterId": "202101"
-          },
-          {
-            "semester": "Spring",
-            "year": 2022,
-            "semesterId": "202201"
-          },
-          {
-            "semester": "Fall",
-            "year": 2022,
-            "semesterId": "202208"
-          },
-          {
-            "semester": "Spring",
-            "year": 2023,
-            "semesterId": "202301"
-          },
-          {
-            "semester": "Fall",
-            "year": 2023,
-            "semesterId": "202308"
-          },
-          {
-            "semester": "Fall",
-            "year": 2024,
-            "semesterId": "202408"
-          }
-        ],
-        "Sara Lombardi": [
-          {
-            "semester": "Fall",
-            "year": 2021,
-            "semesterId": "202108"
-          },
-          {
-            "semester": "Spring",
-            "year": 2021,
-            "semesterId": "202101"
-          },
-          {
-            "semester": "Spring",
-            "year": 2022,
-            "semesterId": "202201"
-          },
-          {
-            "semester": "Fall",
-            "year": 2022,
-            "semesterId": "202208"
-          },
-          {
-            "semester": "Summer",
-            "year": 2022,
-            "semesterId": "202205"
-          }
-        ]
-      }
-    },
-    "BSCI202": {
-      "courseInfo": {
-        "id": "BSCI202",
-        "name": "Human Anatomy and Physiology II"
-      },
-      "professors": {
-        "Caitlin Fox": [
-          {
-            "semester": "Fall",
-            "year": 2021,
-            "semesterId": "202108"
-          },
-          {
-            "semester": "Spring",
-            "year": 2021,
-            "semesterId": "202101"
-          },
-          {
-            "semester": "Summer",
-            "year": 2021,
-            "semesterId": "202105"
-          },
-          {
-            "semester": "Spring",
-            "year": 2022,
-            "semesterId": "202201"
-          },
-          {
-            "semester": "Fall",
-            "year": 2022,
-            "semesterId": "202208"
-          },
-          {
-            "semester": "Summer",
-            "year": 2022,
-            "semesterId": "202205"
-          },
-          {
-            "semester": "Spring",
-            "year": 2023,
-            "semesterId": "202301"
-          },
-          {
-            "semester": "Summer",
-            "year": 2023,
-            "semesterId": "202305"
-          },
-          {
-            "semester": "Fall",
-            "year": 2023,
-            "semesterId": "202308"
-          },
-          {
-            "semester": "Spring",
-            "year": 2024,
-            "semesterId": "202401"
-          },
-          {
-            "semester": "Summer",
-            "year": 2024,
-            "semesterId": "202405"
-          },
-          {
-            "semester": "Fall",
-            "year": 2024,
-            "semesterId": "202408"
-          },
-          {
-            "semester": "Spring",
-            "year": 2025,
-            "semesterId": "202501"
-          },
-          {
-            "semester": "Summer",
-            "year": 2025,
-            "semesterId": "202505"
-          },
-          {
-            "semester": "Fall",
-            "year": 2025,
-            "semesterId": "202508"
-          },
-          {
-            "semester": "Spring",
-            "year": 2026,
-            "semesterId": "202601"
-          }
-        ],
-        "Edward Orlando": [
-          {
-            "semester": "Spring",
-            "year": 2024,
-            "semesterId": "202401"
-          },
-          {
-            "semester": "Spring",
-            "year": 2025,
-            "semesterId": "202501"
-          },
-          {
-            "semester": "Spring",
-            "year": 2026,
-            "semesterId": "202601"
-          }
-        ],
-        "Justicia Opoku-Edusei": [
-          {
-            "semester": "Fall",
-            "year": 2021,
-            "semesterId": "202108"
-          },
-          {
-            "semester": "Summer",
-            "year": 2023,
-            "semesterId": "202305"
-          },
-          {
-            "semester": "Summer",
-            "year": 2024,
-            "semesterId": "202405"
-          },
-          {
-            "semester": "Spring",
-            "year": 2025,
-            "semesterId": "202501"
-          },
-          {
-            "semester": "Summer",
-            "year": 2025,
-            "semesterId": "202505"
-          },
-          {
-            "semester": "Spring",
-            "year": 2026,
-            "semesterId": "202601"
-          }
-        ],
-        "Maira Goytia": [
-          {
-            "semester": "Fall",
-            "year": 2024,
-            "semesterId": "202408"
-          },
-          {
-            "semester": "Spring",
-            "year": 2025,
-            "semesterId": "202501"
-          },
-          {
-            "semester": "Fall",
-            "year": 2025,
-            "semesterId": "202508"
-          },
-          {
-            "semester": "Spring",
-            "year": 2026,
-            "semesterId": "202601"
-          }
-        ],
-        "Nelson Bennett": [
-          {
-            "semester": "Fall",
-            "year": 2021,
-            "semesterId": "202108"
-          },
-          {
-            "semester": "Fall",
-            "year": 2022,
-            "semesterId": "202208"
-          },
-          {
-            "semester": "Spring",
-            "year": 2023,
-            "semesterId": "202301"
-          },
-          {
-            "semester": "Spring",
-            "year": 2024,
-            "semesterId": "202401"
-          },
-          {
-            "semester": "Spring",
-            "year": 2025,
-            "semesterId": "202501"
-          }
-        ],
-        "Sara Lombardi": [
-          {
-            "semester": "Fall",
-            "year": 2021,
-            "semesterId": "202108"
-          },
-          {
-            "semester": "Spring",
-            "year": 2021,
-            "semesterId": "202101"
-          },
-          {
-            "semester": "Spring",
-            "year": 2022,
-            "semesterId": "202201"
-          },
-          {
-            "semester": "Fall",
-            "year": 2022,
-            "semesterId": "202208"
-          },
-          {
-            "semester": "Spring",
-            "year": 2023,
-            "semesterId": "202301"
-          },
-          {
-            "semester": "Fall",
-            "year": 2023,
-            "semesterId": "202308"
-          },
-          {
-            "semester": "Spring",
-            "year": 2024,
-            "semesterId": "202401"
-          },
-          {
-            "semester": "Fall",
-            "year": 2024,
-            "semesterId": "202408"
-          },
-          {
-            "semester": "Fall",
-            "year": 2025,
-            "semesterId": "202508"
-          }
-        ],
-        "Tammatha O'Brien": [
-          {
-            "semester": "Fall",
-            "year": 2021,
-            "semesterId": "202108"
-          },
-          {
-            "semester": "Spring",
-            "year": 2021,
-            "semesterId": "202101"
-          },
-          {
-            "semester": "Summer",
-            "year": 2021,
-            "semesterId": "202105"
-          },
-          {
-            "semester": "Spring",
-            "year": 2022,
-            "semesterId": "202201"
-          },
-          {
-            "semester": "Fall",
-            "year": 2022,
-            "semesterId": "202208"
-          },
-          {
-            "semester": "Summer",
-            "year": 2022,
-            "semesterId": "202205"
-          },
-          {
-            "semester": "Spring",
-            "year": 2023,
-            "semesterId": "202301"
-          },
-          {
-            "semester": "Summer",
-            "year": 2023,
-            "semesterId": "202305"
-          },
-          {
-            "semester": "Fall",
-            "year": 2023,
-            "semesterId": "202308"
-          },
-          {
-            "semester": "Spring",
-            "year": 2024,
-            "semesterId": "202401"
-          }
-        ]
-      }
-    },
-    "BSCI207": {
-      "courseInfo": {
-        "id": "BSCI207",
-        "name": "Principles of Biology III - Organismal Biology"
-      },
-      "professors": {
-        "Bretton Kent": [],
-        "Chloe Garfinkel": [
-          {
-            "semester": "Spring",
-            "year": 2025,
-            "semesterId": "202501"
-          },
-          {
-            "semester": "Spring",
-            "year": 2026,
-            "semesterId": "202601"
-          }
-        ],
-        "Corine Van der Weele": [
-          {
-            "semester": "Summer",
-            "year": 2025,
-            "semesterId": "202505"
-          }
-        ],
-        "David Hawthorne": [
-          {
-            "semester": "Spring",
-            "year": 2025,
-            "semesterId": "202501"
-          }
-        ],
-        "Eric Haag": [
-          {
-            "semester": "Fall",
-            "year": 2021,
-            "semesterId": "202108"
-          }
-        ],
-        "Karen Carleton": [
-          {
-            "semester": "Fall",
-            "year": 2022,
-            "semesterId": "202208"
-          },
-          {
-            "semester": "Fall",
-            "year": 2023,
-            "semesterId": "202308"
-          },
-          {
-            "semester": "Spring",
-            "year": 2024,
-            "semesterId": "202401"
-          },
-          {
-            "semester": "Fall",
-            "year": 2024,
-            "semesterId": "202408"
-          },
-          {
-            "semester": "Spring",
-            "year": 2025,
-            "semesterId": "202501"
-          },
-          {
-            "semester": "Fall",
-            "year": 2025,
-            "semesterId": "202508"
-          },
-          {
-            "semester": "Spring",
-            "year": 2026,
-            "semesterId": "202601"
-          }
-        ],
-        "Leo Shapiro": [
-          {
-            "semester": "Spring",
-            "year": 2023,
-            "semesterId": "202301"
-          }
-        ],
-        "Marcia Shofner": [
-          {
-            "semester": "Spring",
-            "year": 2021,
-            "semesterId": "202101"
-          },
-          {
-            "semester": "Spring",
-            "year": 2023,
-            "semesterId": "202301"
-          },
-          {
-            "semester": "Spring",
-            "year": 2024,
-            "semesterId": "202401"
-          },
-          {
-            "semester": "Spring",
-            "year": 2025,
-            "semesterId": "202501"
-          }
-        ],
-        "Nicholas Fletcher": [
-          {
-            "semester": "Fall",
-            "year": 2021,
-            "semesterId": "202108"
-          },
-          {
-            "semester": "Summer",
-            "year": 2021,
-            "semesterId": "202105"
-          },
-          {
-            "semester": "Spring",
-            "year": 2022,
-            "semesterId": "202201"
-          },
-          {
-            "semester": "Fall",
-            "year": 2022,
-            "semesterId": "202208"
-          },
-          {
-            "semester": "Summer",
-            "year": 2022,
-            "semesterId": "202205"
-          },
-          {
-            "semester": "Fall",
-            "year": 2023,
-            "semesterId": "202308"
-          },
-          {
-            "semester": "Fall",
-            "year": 2024,
-            "semesterId": "202408"
-          },
-          {
-            "semester": "Fall",
-            "year": 2025,
-            "semesterId": "202508"
-          }
-        ]
-      }
-    },
-    "BSCI213": {
-      "courseInfo": {
-        "id": "BSCI213",
-        "name": "The Public Microbe"
-      },
-      "professors": {
-        "Cordelia Weiss": [
-          {
-            "semester": "Spring",
-            "year": 2025,
-            "semesterId": "202501"
-          },
-          {
-            "semester": "Summer",
-            "year": 2025,
-            "semesterId": "202505"
-          },
-          {
-            "semester": "Unknown",
-            "year": 2025,
-            "semesterId": "202512"
-          },
-          {
-            "semester": "Spring",
-            "year": 2026,
-            "semesterId": "202601"
-          }
-        ],
-        "Daniel Stein": [
-          {
-            "semester": "Fall",
-            "year": 2024,
-            "semesterId": "202408"
-          },
-          {
-            "semester": "Spring",
-            "year": 2025,
-            "semesterId": "202501"
-          },
-          {
-            "semester": "Fall",
-            "year": 2025,
-            "semesterId": "202508"
-          }
-        ]
-      }
-    },
-    "BSCI222": {
-      "courseInfo": {
-        "id": "BSCI222",
-        "name": "Principles of Genetics"
-      },
-      "professors": {
-        "Claudia Silva Aldana": [
-          {
-            "semester": "Fall",
-            "year": 2024,
-            "semesterId": "202408"
-          }
-        ],
-        "David Hawthorne": [
-          {
-            "semester": "Spring",
-            "year": 2025,
-            "semesterId": "202501"
-          }
-        ],
-        "David Straney": [
-          {
-            "semester": "Spring",
-            "year": 2021,
-            "semesterId": "202101"
-          },
-          {
-            "semester": "Spring",
-            "year": 2022,
-            "semesterId": "202201"
-          },
-          {
-            "semester": "Spring",
-            "year": 2023,
-            "semesterId": "202301"
-          },
-          {
-            "semester": "Spring",
-            "year": 2024,
-            "semesterId": "202401"
-          },
-          {
-            "semester": "Fall",
-            "year": 2024,
-            "semesterId": "202408"
-          },
-          {
-            "semester": "Spring",
-            "year": 2025,
-            "semesterId": "202501"
-          }
-        ],
-        "Jessica Mutz": [
-          {
-            "semester": "Spring",
-            "year": 2025,
-            "semesterId": "202501"
-          },
-          {
-            "semester": "Fall",
-            "year": 2025,
-            "semesterId": "202508"
-          }
-        ],
-        "Jessie Mutz": [
-          {
-            "semester": "Spring",
-            "year": 2025,
-            "semesterId": "202501"
-          },
-          {
-            "semester": "Fall",
-            "year": 2025,
-            "semesterId": "202508"
-          }
-        ],
-        "Keith Lampel": [
-          {
-            "semester": "Spring",
-            "year": 2021,
-            "semesterId": "202101"
-          },
-          {
-            "semester": "Spring",
-            "year": 2022,
-            "semesterId": "202201"
-          },
-          {
-            "semester": "Spring",
-            "year": 2023,
-            "semesterId": "202301"
-          },
-          {
-            "semester": "Spring",
-            "year": 2024,
-            "semesterId": "202401"
-          },
-          {
-            "semester": "Spring",
-            "year": 2025,
-            "semesterId": "202501"
-          },
-          {
-            "semester": "Spring",
-            "year": 2026,
-            "semesterId": "202601"
-          }
-        ],
-        "Kimberly Paczolt": [
-          {
-            "semester": "Fall",
-            "year": 2021,
-            "semesterId": "202108"
-          },
-          {
-            "semester": "Spring",
-            "year": 2021,
-            "semesterId": "202101"
-          },
-          {
-            "semester": "Summer",
-            "year": 2021,
-            "semesterId": "202105"
-          },
-          {
-            "semester": "Spring",
-            "year": 2022,
-            "semesterId": "202201"
-          },
-          {
-            "semester": "Fall",
-            "year": 2022,
-            "semesterId": "202208"
-          },
-          {
-            "semester": "Summer",
-            "year": 2022,
-            "semesterId": "202205"
-          },
-          {
-            "semester": "Spring",
-            "year": 2023,
-            "semesterId": "202301"
-          },
-          {
-            "semester": "Summer",
-            "year": 2023,
-            "semesterId": "202305"
-          },
-          {
-            "semester": "Fall",
-            "year": 2023,
-            "semesterId": "202308"
-          },
-          {
-            "semester": "Spring",
-            "year": 2024,
-            "semesterId": "202401"
-          },
-          {
-            "semester": "Summer",
-            "year": 2024,
-            "semesterId": "202405"
-          },
-          {
-            "semester": "Fall",
-            "year": 2024,
-            "semesterId": "202408"
-          },
-          {
-            "semester": "Summer",
-            "year": 2025,
-            "semesterId": "202505"
-          }
-        ],
-        "Michael Keller": [
-          {
-            "semester": "Spring",
-            "year": 2026,
-            "semesterId": "202601"
-          }
-        ],
-        "Raymond StLeger": [
-          {
-            "semester": "Spring",
-            "year": 2021,
-            "semesterId": "202101"
-          },
-          {
-            "semester": "Spring",
-            "year": 2022,
-            "semesterId": "202201"
-          },
-          {
-            "semester": "Spring",
-            "year": 2023,
-            "semesterId": "202301"
-          },
-          {
-            "semester": "Spring",
-            "year": 2024,
-            "semesterId": "202401"
-          },
-          {
-            "semester": "Spring",
-            "year": 2025,
-            "semesterId": "202501"
-          },
-          {
-            "semester": "Spring",
-            "year": 2026,
-            "semesterId": "202601"
-          }
-        ],
-        "Robert Moss": [
-          {
-            "semester": "Unknown",
-            "year": 2024,
-            "semesterId": "202412"
-          }
-        ],
-        "Tammatha OBrien": [
-          {
-            "semester": "Fall",
-            "year": 2024,
-            "semesterId": "202408"
-          }
-        ],
-        "Tammatha O'Brien": [
-          {
-            "semester": "Spring",
-            "year": 2021,
-            "semesterId": "202101"
-          },
-          {
-            "semester": "Unknown",
-            "year": 2022,
-            "semesterId": "202212"
-          },
-          {
-            "semester": "Fall",
-            "year": 2024,
-            "semesterId": "202408"
-          }
-        ],
-        "Thomas Kocher": [
-          {
-            "semester": "Fall",
-            "year": 2021,
-            "semesterId": "202108"
-          },
-          {
-            "semester": "Fall",
-            "year": 2022,
-            "semesterId": "202208"
-          },
-          {
-            "semester": "Fall",
-            "year": 2023,
-            "semesterId": "202308"
-          },
-          {
-            "semester": "Fall",
-            "year": 2025,
-            "semesterId": "202508"
-          },
-          {
-            "semester": "Spring",
-            "year": 2026,
-            "semesterId": "202601"
-          }
-        ]
-      }
-    },
-    "BSCI223": {
-      "courseInfo": {
-        "id": "BSCI223",
-        "name": "General Microbiology"
-      },
-      "professors": {
-        "Cherisse Hall": [
-          {
-            "semester": "Spring",
-            "year": 2023,
-            "semesterId": "202301"
-          },
-          {
-            "semester": "Fall",
-            "year": 2023,
-            "semesterId": "202308"
-          },
-          {
-            "semester": "Spring",
-            "year": 2024,
-            "semesterId": "202401"
-          },
-          {
-            "semester": "Fall",
-            "year": 2024,
-            "semesterId": "202408"
-          },
-          {
-            "semester": "Fall",
-            "year": 2025,
-            "semesterId": "202508"
-          },
-          {
-            "semester": "Spring",
-            "year": 2025,
-            "semesterId": "202501"
-          },
-          {
-            "semester": "Spring",
-            "year": 2026,
-            "semesterId": "202601"
-          }
-        ],
-        "Elizabeth Emmert": [
-          {
-            "semester": "Spring",
-            "year": 2024,
-            "semesterId": "202401"
-          }
-        ],
-        "Erin Tran": [
-          {
-            "semester": "Spring",
-            "year": 2021,
-            "semesterId": "202101"
-          },
-          {
-            "semester": "Summer",
-            "year": 2021,
-            "semesterId": "202105"
-          },
-          {
-            "semester": "Spring",
-            "year": 2022,
-            "semesterId": "202201"
-          },
-          {
-            "semester": "Fall",
-            "year": 2021,
-            "semesterId": "202108"
-          },
-          {
-            "semester": "Fall",
-            "year": 2022,
-            "semesterId": "202208"
-          },
-          {
-            "semester": "Summer",
-            "year": 2022,
-            "semesterId": "202205"
-          },
-          {
-            "semester": "Spring",
-            "year": 2023,
-            "semesterId": "202301"
-          },
-          {
-            "semester": "Summer",
-            "year": 2023,
-            "semesterId": "202305"
-          },
-          {
-            "semester": "Fall",
-            "year": 2023,
-            "semesterId": "202308"
-          },
-          {
-            "semester": "Spring",
-            "year": 2024,
-            "semesterId": "202401"
-          },
-          {
-            "semester": "Summer",
-            "year": 2024,
-            "semesterId": "202405"
-          },
-          {
-            "semester": "Fall",
-            "year": 2024,
-            "semesterId": "202408"
-          },
-          {
-            "semester": "Summer",
-            "year": 2025,
-            "semesterId": "202505"
-          },
-          {
-            "semester": "Fall",
-            "year": 2025,
-            "semesterId": "202508"
-          }
-        ],
-        "John Buchner": [
-          {
-            "semester": "Fall",
-            "year": 2021,
-            "semesterId": "202108"
-          },
-          {
-            "semester": "Spring",
-            "year": 2021,
-            "semesterId": "202101"
-          },
-          {
-            "semester": "Spring",
-            "year": 2022,
-            "semesterId": "202201"
-          },
-          {
-            "semester": "Fall",
-            "year": 2022,
-            "semesterId": "202208"
-          },
-          {
-            "semester": "Spring",
-            "year": 2023,
-            "semesterId": "202301"
-          },
-          {
-            "semester": "Fall",
-            "year": 2023,
-            "semesterId": "202308"
-          },
-          {
-            "semester": "Spring",
-            "year": 2024,
-            "semesterId": "202401"
-          },
-          {
-            "semester": "Spring",
-            "year": 2025,
-            "semesterId": "202501"
-          },
-          {
-            "semester": "Spring",
-            "year": 2026,
-            "semesterId": "202601"
-          }
-        ]
-      }
-    },
-    "BSCI238A": {
-      "courseInfo": {
-        "id": "BSCI238A",
-        "name": "Special Topics in Biology Student Initiated Courses; Ornithology"
-      },
-      "professors": {
-        "Joshua Johnson": [
-          {
-            "semester": "Spring",
-            "year": 2026,
-            "semesterId": "202601"
-          }
-        ],
-        "Thomas Holtz": []
-      }
-    },
-    "BSCI238I": {
-      "courseInfo": {
-        "id": "BSCI238I",
-        "name": "Special Topics in Biology Student Initiated Courses"
-      },
-      "professors": {
-        "Aditri Gadigi": [
-          {
-            "semester": "Fall",
-            "year": 2025,
-            "semesterId": "202508"
-          },
-          {
-            "semester": "Spring",
-            "year": 2026,
-            "semesterId": "202601"
-          }
-        ],
-        "Anushka Poddar": [
-          {
-            "semester": "Fall",
-            "year": 2025,
-            "semesterId": "202508"
-          },
-          {
-            "semester": "Spring",
-            "year": 2026,
-            "semesterId": "202601"
-          }
-        ]
-      }
-    },
-    "BSCI258A": {
-      "courseInfo": {
-        "id": "BSCI258A",
-        "name": "College Park Scholars Internship"
-      },
-      "professors": {
-        "Erin Thomson": [
-          {
-            "semester": "Spring",
-            "year": 2024,
-            "semesterId": "202401"
-          },
-          {
-            "semester": "Spring",
-            "year": 2025,
-            "semesterId": "202501"
-          },
-          {
-            "semester": "Spring",
-            "year": 2026,
-            "semesterId": "202601"
-          }
-        ],
-        "Nicholas Fletcher": [
-          {
-            "semester": "Spring",
-            "year": 2025,
-            "semesterId": "202501"
-          },
-          {
-            "semester": "Spring",
-            "year": 2026,
-            "semesterId": "202601"
-          }
-        ]
-      }
-    },
-    "BSCI258B": {
-      "courseInfo": {
-        "id": "BSCI258B",
-        "name": "College Park Scholars Internship"
-      },
-      "professors": {
-        "Erin Thomson": [
-          {
-            "semester": "Spring",
-            "year": 2024,
-            "semesterId": "202401"
-          },
-          {
-            "semester": "Spring",
-            "year": 2025,
-            "semesterId": "202501"
-          },
-          {
-            "semester": "Spring",
-            "year": 2026,
-            "semesterId": "202601"
-          }
-        ],
-        "Nicholas Fletcher": [
-          {
-            "semester": "Spring",
-            "year": 2025,
-            "semesterId": "202501"
-          },
-          {
-            "semester": "Spring",
-            "year": 2026,
-            "semesterId": "202601"
           }
         ]
       }
@@ -88387,6 +86138,13 @@
             "semesterId": "202601"
           }
         ],
+        "Irene Park": [
+          {
+            "semester": "Spring",
+            "year": 2026,
+            "semesterId": "202601"
+          }
+        ],
         "Kenna Hernly": []
       }
     },
@@ -125688,6 +123446,13 @@
             "semesterId": "202601"
           }
         ],
+        "Tabatha Cuadra Rodriguez": [
+          {
+            "semester": "Spring",
+            "year": 2026,
+            "semesterId": "202601"
+          }
+        ],
         "Timothy Farrell": [
           {
             "semester": "Spring",
@@ -148581,6 +146346,13 @@
         "Kevin Shivers": [],
         "Manoj Franklin": [],
         "Mikael Lindvall": [],
+        "Mohammad Fazelpour": [
+          {
+            "semester": "Spring",
+            "year": 2026,
+            "semesterId": "202601"
+          }
+        ],
         "Qingbin Cui": [],
         "Sasan Haghani": [
           {
@@ -154097,6 +151869,21 @@
             "year": 2025,
             "semesterId": "202501"
           },
+          {
+            "semester": "Spring",
+            "year": 2026,
+            "semesterId": "202601"
+          }
+        ]
+      }
+    },
+    "ENST631": {
+      "courseInfo": {
+        "id": "ENST631",
+        "name": "Environmental Data Science"
+      },
+      "professors": {
+        "Akash Koppa": [
           {
             "semester": "Spring",
             "year": 2026,
@@ -169672,6 +167459,13 @@
             "year": 2026,
             "semesterId": "202601"
           }
+        ],
+        "Keith Yearwood": [
+          {
+            "semester": "Spring",
+            "year": 2026,
+            "semesterId": "202601"
+          }
         ]
       }
     },
@@ -176598,6 +174392,13 @@
             "semester": "Fall",
             "year": 2025,
             "semesterId": "202508"
+          }
+        ],
+        "Srijeeta Mitra": [
+          {
+            "semester": "Spring",
+            "year": 2026,
+            "semesterId": "202601"
           }
         ]
       }
@@ -189798,7 +187599,13 @@
             "semesterId": "202508"
           }
         ],
-        "Negin Fouladi": [],
+        "Negin Fouladi": [
+          {
+            "semester": "Spring",
+            "year": 2026,
+            "semesterId": "202601"
+          }
+        ],
         "Nina Omeaku": [
           {
             "semester": "Fall",
@@ -192209,6 +190016,13 @@
             "year": 2024,
             "semesterId": "202401"
           },
+          {
+            "semester": "Spring",
+            "year": 2026,
+            "semesterId": "202601"
+          }
+        ],
+        "Sabrina Kramer": [
           {
             "semester": "Spring",
             "year": 2026,
@@ -198548,6 +196362,21 @@
             "year": 2025,
             "semesterId": "202501"
           },
+          {
+            "semester": "Spring",
+            "year": 2026,
+            "semesterId": "202601"
+          }
+        ]
+      }
+    },
+    "IDEA389": {
+      "courseInfo": {
+        "id": "IDEA389",
+        "name": " Independent Study: Beginning Experiments in Design and Innovation"
+      },
+      "professors": {
+        "Mira Azarm": [
           {
             "semester": "Spring",
             "year": 2026,
@@ -215095,6 +212924,13 @@
             "semesterId": "202105"
           }
         ],
+        "Susan Moeller": [
+          {
+            "semester": "Spring",
+            "year": 2026,
+            "semesterId": "202601"
+          }
+        ],
         "Wei-Ping Li": [
           {
             "semester": "Fall",
@@ -215117,6 +212953,13 @@
       "professors": {
         "Adam Marton": [],
         "Alexander Pyles": [],
+        "Md Haque": [
+          {
+            "semester": "Spring",
+            "year": 2026,
+            "semesterId": "202601"
+          }
+        ],
         "Md Mahfuzul Haque": [
           {
             "semester": "Spring",
@@ -225120,6 +222963,11 @@
             "semester": "Summer",
             "year": 2025,
             "semesterId": "202505"
+          },
+          {
+            "semester": "Spring",
+            "year": 2026,
+            "semesterId": "202601"
           }
         ]
       }
@@ -280286,6 +278134,13 @@
             "semesterId": "202501"
           }
         ],
+        "Parker Brookie": [
+          {
+            "semester": "Spring",
+            "year": 2026,
+            "semesterId": "202601"
+          }
+        ],
         "Thayse Leal Lima": [
           {
             "semester": "Spring",
@@ -280313,6 +278168,13 @@
             "semester": "Spring",
             "year": 2025,
             "semesterId": "202501"
+          }
+        ],
+        "Parker Brookie": [
+          {
+            "semester": "Spring",
+            "year": 2026,
+            "semesterId": "202601"
           }
         ],
         "Regina Igel": [],
@@ -280382,6 +278244,13 @@
             "semester": "Spring",
             "year": 2024,
             "semesterId": "202401"
+          }
+        ],
+        "Parker Brookie": [
+          {
+            "semester": "Spring",
+            "year": 2026,
+            "semesterId": "202601"
           }
         ],
         "Thayse Leal Lima": [
@@ -284527,7 +282396,13 @@
             "semesterId": "202208"
           }
         ],
-        "Michael Dougherty": [],
+        "Michael Dougherty": [
+          {
+            "semester": "Spring",
+            "year": 2026,
+            "semesterId": "202601"
+          }
+        ],
         "Michele Gelfand": [
           {
             "semester": "Fall",
@@ -292733,6 +290608,13 @@
             "semesterId": "202208"
           }
         ],
+        "Julie Park": [
+          {
+            "semester": "Spring",
+            "year": 2026,
+            "semesterId": "202601"
+          }
+        ],
         "Liana Sayer": [
           {
             "semester": "Spring",
@@ -292750,6 +290632,25 @@
             "semester": "Spring",
             "year": 2025,
             "semesterId": "202501"
+          },
+          {
+            "semester": "Spring",
+            "year": 2026,
+            "semesterId": "202601"
+          }
+        ],
+        "Monica Caudillo": [
+          {
+            "semester": "Spring",
+            "year": 2026,
+            "semesterId": "202601"
+          }
+        ],
+        "Sangeetha Madhavan": [
+          {
+            "semester": "Spring",
+            "year": 2026,
+            "semesterId": "202601"
           }
         ]
       }
@@ -310078,6 +307979,13 @@
             "semester": "Spring",
             "year": 2024,
             "semesterId": "202401"
+          }
+        ],
+        "Sandra Gutierrez": [
+          {
+            "semester": "Spring",
+            "year": 2026,
+            "semesterId": "202601"
           }
         ],
         "Stuti Gupta": [
