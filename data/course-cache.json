@@ -1,8 +1,8 @@
 {
   "metadata": {
-    "generated": "2026-02-08T05:20:26.642Z",
+    "generated": "2026-02-15T05:16:42.186Z",
     "type": "course-indexed",
-    "coursesCount": 5003,
+    "coursesCount": 5007,
     "yearFilter": "Only years 2021 and after",
     "structure": "course -> professors -> semesters"
   },
@@ -29319,6 +29319,21 @@
         ]
       }
     },
+    "BDBA808O": {
+      "courseInfo": {
+        "id": "BDBA808O",
+        "name": "Special Topics in Information Systems; Strategic Information Systems"
+      },
+      "professors": {
+        "Tejwansh Anand": [
+          {
+            "semester": "Spring",
+            "year": 2026,
+            "semesterId": "202601"
+          }
+        ]
+      }
+    },
     "BDBA808T": {
       "courseInfo": {
         "id": "BDBA808T",
@@ -29570,6 +29585,26 @@
       },
       "professors": {
         "Jie Zhang": [
+          {
+            "semester": "Spring",
+            "year": 2025,
+            "semesterId": "202501"
+          },
+          {
+            "semester": "Spring",
+            "year": 2026,
+            "semesterId": "202601"
+          }
+        ]
+      }
+    },
+    "BDBA868C": {
+      "courseInfo": {
+        "id": "BDBA868C",
+        "name": "Special Topics in Management; Strategic Management"
+      },
+      "professors": {
+        "Paulo Prochno": [
           {
             "semester": "Spring",
             "year": 2025,
@@ -39136,6 +39171,13 @@
             "semesterId": "202208"
           }
         ],
+        "Steve Freishtat": [
+          {
+            "semester": "Spring",
+            "year": 2026,
+            "semesterId": "202601"
+          }
+        ],
         "Steven Freishtat": [
           {
             "semester": "Fall",
@@ -39681,6 +39723,13 @@
             "semesterId": "202601"
           }
         ],
+        "Vincent Mayor": [
+          {
+            "semester": "Spring",
+            "year": 2026,
+            "semesterId": "202601"
+          }
+        ],
         "William Swaim": [
           {
             "semester": "Spring",
@@ -39895,6 +39944,13 @@
           }
         ],
         "Haley Snyder": [],
+        "Jacob Marks": [
+          {
+            "semester": "Spring",
+            "year": 2026,
+            "semesterId": "202601"
+          }
+        ],
         "Jessica Ruday": [
           {
             "semester": "Spring",
@@ -40013,13 +40069,6 @@
             "semester": "Spring",
             "year": 2026,
             "semesterId": "202601"
-          }
-        ],
-        "Michael Poerksen": [
-          {
-            "semester": "Spring",
-            "year": 2021,
-            "semesterId": "202101"
           }
         ]
       }
@@ -47343,6 +47392,11 @@
             "semester": "Fall",
             "year": 2025,
             "semesterId": "202508"
+          },
+          {
+            "semester": "Spring",
+            "year": 2026,
+            "semesterId": "202601"
           }
         ],
         "Rajshree Agarwal": [],
@@ -55739,6 +55793,13 @@
             "year": 2026,
             "semesterId": "202601"
           }
+        ],
+        "Tom Guarrieri": [
+          {
+            "semester": "Spring",
+            "year": 2026,
+            "semesterId": "202601"
+          }
         ]
       }
     },
@@ -56221,6 +56282,13 @@
             "year": 2025,
             "semesterId": "202508"
           },
+          {
+            "semester": "Spring",
+            "year": 2026,
+            "semesterId": "202601"
+          }
+        ],
+        "Tom Guarrieri": [
           {
             "semester": "Spring",
             "year": 2026,
@@ -69818,6 +69886,11 @@
             "semester": "Spring",
             "year": 2021,
             "semesterId": "202101"
+          },
+          {
+            "semester": "Spring",
+            "year": 2026,
+            "semesterId": "202601"
           }
         ],
         "Efrain Rodriguez": [
@@ -69902,6 +69975,11 @@
             "semester": "Spring",
             "year": 2021,
             "semesterId": "202101"
+          },
+          {
+            "semester": "Spring",
+            "year": 2026,
+            "semesterId": "202601"
           }
         ],
         "Efrain Rodriguez": [
@@ -128474,6 +128552,11 @@
             "semester": "Spring",
             "year": 2023,
             "semesterId": "202301"
+          },
+          {
+            "semester": "Spring",
+            "year": 2026,
+            "semesterId": "202601"
           }
         ]
       }
@@ -128784,6 +128867,13 @@
         "name": "Building and Leading Innovative Organizations"
       },
       "professors": {
+        "John Johnson": [
+          {
+            "semester": "Spring",
+            "year": 2026,
+            "semesterId": "202601"
+          }
+        ],
         "Tushar Rathod": [
           {
             "semester": "Fall",
@@ -172518,6 +172608,13 @@
           }
         ],
         "Ann Wylie": [
+          {
+            "semester": "Spring",
+            "year": 2026,
+            "semesterId": "202601"
+          }
+        ],
+        "Cecilia Sanders": [
           {
             "semester": "Spring",
             "year": 2026,
@@ -250199,6 +250296,13 @@
         ]
       }
     },
+    "MSQC699": {
+      "courseInfo": {
+        "id": "MSQC699",
+        "name": "Independent Research in Quantum Computing"
+      },
+      "professors": {}
+    },
     "MUED187": {
       "courseInfo": {
         "id": "MUED187",
@@ -258207,6 +258311,13 @@
         "name": "Ensemble; Campus Band"
       },
       "professors": {
+        "Craig Potter": [
+          {
+            "semester": "Spring",
+            "year": 2026,
+            "semesterId": "202601"
+          }
+        ],
         "Michael Votta": [
           {
             "semester": "Spring",
@@ -297393,6 +297504,28 @@
         ]
       }
     },
+    "SPHL318": {
+      "courseInfo": {
+        "id": "SPHL318",
+        "name": "SPH Dean's Undergraduate Advisory Council- Part 2"
+      },
+      "professors": {
+        "Beth Cohen": [
+          {
+            "semester": "Spring",
+            "year": 2026,
+            "semesterId": "202601"
+          }
+        ],
+        "Nicole Cousin-Gossett": [
+          {
+            "semester": "Spring",
+            "year": 2025,
+            "semesterId": "202501"
+          }
+        ]
+      }
+    },
     "SPHL321": {
       "courseInfo": {
         "id": "SPHL321",
@@ -301834,6 +301967,13 @@
         "name": "An Introduction to Small Area Estimation Methods"
       },
       "professors": {
+        "Namit Shrivastava": [
+          {
+            "semester": "Spring",
+            "year": 2026,
+            "semesterId": "202601"
+          }
+        ],
         "Nestor Michael Tiglao": [
           {
             "semester": "Spring",
