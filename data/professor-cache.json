@@ -1,8 +1,8 @@
 {
   "metadata": {
-    "generated": "2026-02-15T05:16:42.186Z",
+    "generated": "2026-02-22T05:09:12.338Z",
     "type": "professor-indexed",
-    "professorsCount": 7254,
+    "professorsCount": 7255,
     "yearFilter": "Only years 2021 and after",
     "structure": "professor -> courses -> semesters"
   },
@@ -55716,6 +55716,15 @@
         }
       ]
     },
+    "Quiana Dawson": {
+      "BMGT367": [
+        {
+          "semester": "Spring",
+          "year": 2026,
+          "semesterId": "202601"
+        }
+      ]
+    },
     "Rachel Cotton": {
       "BMGT367": [
         {
@@ -76811,6 +76820,11 @@
           "semester": "Fall",
           "year": 2025,
           "semesterId": "202508"
+        },
+        {
+          "semester": "Spring",
+          "year": 2026,
+          "semesterId": "202601"
         }
       ]
     },
@@ -79021,6 +79035,11 @@
           "semester": "Fall",
           "year": 2025,
           "semesterId": "202508"
+        },
+        {
+          "semester": "Spring",
+          "year": 2026,
+          "semesterId": "202601"
         }
       ],
       "CHEM889F": [
@@ -79033,6 +79052,18 @@
           "semester": "Fall",
           "year": 2025,
           "semesterId": "202508"
+        },
+        {
+          "semester": "Spring",
+          "year": 2026,
+          "semesterId": "202601"
+        }
+      ],
+      "CHEM889G": [
+        {
+          "semester": "Spring",
+          "year": 2026,
+          "semesterId": "202601"
         }
       ],
       "CHPH709A": [
@@ -79045,6 +79076,11 @@
           "semester": "Fall",
           "year": 2025,
           "semesterId": "202508"
+        },
+        {
+          "semester": "Spring",
+          "year": 2026,
+          "semesterId": "202601"
         }
       ]
     },
