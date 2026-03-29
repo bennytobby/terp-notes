@@ -1,8 +1,8 @@
 {
   "metadata": {
-    "generated": "2026-03-22T05:16:16.661Z",
+    "generated": "2026-03-29T05:36:04.679Z",
     "type": "course-indexed",
-    "coursesCount": 4734,
+    "coursesCount": 4745,
     "yearFilter": "Only years 2021 and after",
     "structure": "course -> professors -> semesters"
   },
@@ -28125,6 +28125,13 @@
             "year": 2026,
             "semesterId": "202608"
           }
+        ],
+        "Jowita Wyszomirska": [
+          {
+            "semester": "Fall",
+            "year": 2026,
+            "semesterId": "202608"
+          }
         ]
       }
     },
@@ -29152,6 +29159,13 @@
             "semester": "Fall",
             "year": 2025,
             "semesterId": "202508"
+          }
+        ],
+        "Jessica Gatlin": [
+          {
+            "semester": "Fall",
+            "year": 2026,
+            "semesterId": "202608"
           }
         ],
         "Shannon Collis": []
@@ -33933,7 +33947,15 @@
         "id": "BIOE489N",
         "name": "Special Topics in Bioengineering; Network Neuroscience and Dynamic Analysis"
       },
-      "professors": {}
+      "professors": {
+        "Nan Xu": [
+          {
+            "semester": "Fall",
+            "year": 2026,
+            "semesterId": "202608"
+          }
+        ]
+      }
     },
     "BIOE605": {
       "courseInfo": {
@@ -35336,6 +35358,11 @@
             "semester": "Fall",
             "year": 2024,
             "semesterId": "202408"
+          },
+          {
+            "semester": "Fall",
+            "year": 2026,
+            "semesterId": "202608"
           }
         ],
         "Karen Carleton": [
@@ -45329,6 +45356,43 @@
         ]
       }
     },
+    "BMGT438N": {
+      "courseInfo": {
+        "id": "BMGT438N",
+        "name": "Special Topics in Operations Management; Product Management"
+      },
+      "professors": {
+        "Jessica Alves De Sa": [
+          {
+            "semester": "Spring",
+            "year": 2023,
+            "semesterId": "202301"
+          },
+          {
+            "semester": "Spring",
+            "year": 2024,
+            "semesterId": "202401"
+          },
+          {
+            "semester": "Spring",
+            "year": 2025,
+            "semesterId": "202501"
+          }
+        ],
+        "Pamela Armstrong": [
+          {
+            "semester": "Spring",
+            "year": 2022,
+            "semesterId": "202201"
+          },
+          {
+            "semester": "Spring",
+            "year": 2023,
+            "semesterId": "202301"
+          }
+        ]
+      }
+    },
     "BMGT440": {
       "courseInfo": {
         "id": "BMGT440",
@@ -49296,6 +49360,53 @@
         "name": "Independent Study in Business and Management"
       },
       "professors": {}
+    },
+    "BMGT834": {
+      "courseInfo": {
+        "id": "BMGT834",
+        "name": "Operations Research: Probabilistic Models"
+      },
+      "professors": {
+        "Ilya Ryzhov": [
+          {
+            "semester": "Fall",
+            "year": 2021,
+            "semesterId": "202108"
+          },
+          {
+            "semester": "Fall",
+            "year": 2022,
+            "semesterId": "202208"
+          },
+          {
+            "semester": "Fall",
+            "year": 2023,
+            "semesterId": "202308"
+          },
+          {
+            "semester": "Fall",
+            "year": 2024,
+            "semesterId": "202408"
+          }
+        ],
+        "Michael Fu": [
+          {
+            "semester": "Fall",
+            "year": 2022,
+            "semesterId": "202208"
+          },
+          {
+            "semester": "Fall",
+            "year": 2024,
+            "semesterId": "202408"
+          },
+          {
+            "semester": "Fall",
+            "year": 2025,
+            "semesterId": "202508"
+          }
+        ]
+      }
     },
     "BMGT835": {
       "courseInfo": {
@@ -61138,6 +61249,11 @@
             "semester": "Spring",
             "year": 2026,
             "semesterId": "202601"
+          },
+          {
+            "semester": "Fall",
+            "year": 2026,
+            "semesterId": "202608"
           }
         ]
       }
@@ -81293,6 +81409,13 @@
         ]
       }
     },
+    "CMSC431": {
+      "courseInfo": {
+        "id": "CMSC431",
+        "name": "Privacy Engineering"
+      },
+      "professors": {}
+    },
     "CMSC433": {
       "courseInfo": {
         "id": "CMSC433",
@@ -83412,6 +83535,31 @@
             "semester": "Fall",
             "year": 2026,
             "semesterId": "202608"
+          }
+        ]
+      }
+    },
+    "CMSC828F": {
+      "courseInfo": {
+        "id": "CMSC828F",
+        "name": "Advanced Topics in Information Processing; Computational Psycholinguistics"
+      },
+      "professors": {
+        "Naomi Feldman": [
+          {
+            "semester": "Spring",
+            "year": 2021,
+            "semesterId": "202101"
+          },
+          {
+            "semester": "Fall",
+            "year": 2022,
+            "semesterId": "202208"
+          },
+          {
+            "semester": "Spring",
+            "year": 2025,
+            "semesterId": "202501"
           }
         ]
       }
@@ -85954,6 +86102,11 @@
             "semester": "Summer",
             "year": 2026,
             "semesterId": "202605"
+          },
+          {
+            "semester": "Fall",
+            "year": 2026,
+            "semesterId": "202608"
           }
         ],
         "Catherine Steele": [
@@ -86095,6 +86248,11 @@
             "semester": "Summer",
             "year": 2026,
             "semesterId": "202605"
+          },
+          {
+            "semester": "Fall",
+            "year": 2026,
+            "semesterId": "202608"
           }
         ],
         "Drew Ashby-King": [
@@ -86336,6 +86494,11 @@
             "semester": "Spring",
             "year": 2026,
             "semesterId": "202601"
+          },
+          {
+            "semester": "Fall",
+            "year": 2026,
+            "semesterId": "202608"
           }
         ],
         "Fielding Montgomery": [
@@ -87762,6 +87925,11 @@
             "semester": "Spring",
             "year": 2025,
             "semesterId": "202501"
+          },
+          {
+            "semester": "Fall",
+            "year": 2026,
+            "semesterId": "202608"
           }
         ],
         "Ayodeji Dapherede-Otusanya": [
@@ -88341,6 +88509,11 @@
             "semester": "Spring",
             "year": 2026,
             "semesterId": "202601"
+          },
+          {
+            "semester": "Fall",
+            "year": 2026,
+            "semesterId": "202608"
           }
         ],
         "Soyoung Bae": [
@@ -89399,6 +89572,11 @@
             "semester": "Spring",
             "year": 2026,
             "semesterId": "202601"
+          },
+          {
+            "semester": "Fall",
+            "year": 2026,
+            "semesterId": "202608"
           }
         ],
         "Dionne Clemons": [
@@ -110555,6 +110733,13 @@
             "semesterId": "202601"
           }
         ],
+        "Megan Hurley": [
+          {
+            "semester": "Fall",
+            "year": 2026,
+            "semesterId": "202608"
+          }
+        ],
         "Natasha Cabrera": [
           {
             "semester": "Fall",
@@ -115666,6 +115851,11 @@
             "semester": "Summer",
             "year": 2026,
             "semesterId": "202605"
+          },
+          {
+            "semester": "Fall",
+            "year": 2026,
+            "semesterId": "202608"
           }
         ],
         "Segun Eubanks": [
@@ -115678,6 +115868,11 @@
             "semester": "Summer",
             "year": 2026,
             "semesterId": "202605"
+          },
+          {
+            "semester": "Fall",
+            "year": 2026,
+            "semesterId": "202608"
           }
         ]
       }
@@ -155482,6 +155677,13 @@
           }
         ]
       }
+    },
+    "ENST231": {
+      "courseInfo": {
+        "id": "ENST231",
+        "name": "Artificial Intelligence: Transforming Food, Agricultural, and Environmental Systems"
+      },
+      "professors": {}
     },
     "ENST233": {
       "courseInfo": {
@@ -201267,6 +201469,111 @@
         ]
       }
     },
+    "HLTH434": {
+      "courseInfo": {
+        "id": "HLTH434",
+        "name": "Introduction to Public Health Informatics"
+      },
+      "professors": {
+        "Sandra Saperstein": [
+          {
+            "semester": "Fall",
+            "year": 2021,
+            "semesterId": "202108"
+          },
+          {
+            "semester": "Spring",
+            "year": 2021,
+            "semesterId": "202101"
+          },
+          {
+            "semester": "Spring",
+            "year": 2022,
+            "semesterId": "202201"
+          },
+          {
+            "semester": "Fall",
+            "year": 2022,
+            "semesterId": "202208"
+          },
+          {
+            "semester": "Spring",
+            "year": 2023,
+            "semesterId": "202301"
+          },
+          {
+            "semester": "Fall",
+            "year": 2023,
+            "semesterId": "202308"
+          },
+          {
+            "semester": "Spring",
+            "year": 2024,
+            "semesterId": "202401"
+          },
+          {
+            "semester": "Fall",
+            "year": 2024,
+            "semesterId": "202408"
+          },
+          {
+            "semester": "Spring",
+            "year": 2025,
+            "semesterId": "202501"
+          },
+          {
+            "semester": "Fall",
+            "year": 2025,
+            "semesterId": "202508"
+          },
+          {
+            "semester": "Spring",
+            "year": 2026,
+            "semesterId": "202601"
+          }
+        ]
+      }
+    },
+    "HLTH434H": {
+      "courseInfo": {
+        "id": "HLTH434H",
+        "name": "Introduction to Public Health Informatics"
+      },
+      "professors": {
+        "Sandra Saperstein": [
+          {
+            "semester": "Fall",
+            "year": 2021,
+            "semesterId": "202108"
+          },
+          {
+            "semester": "Fall",
+            "year": 2022,
+            "semesterId": "202208"
+          },
+          {
+            "semester": "Fall",
+            "year": 2023,
+            "semesterId": "202308"
+          },
+          {
+            "semester": "Fall",
+            "year": 2024,
+            "semesterId": "202408"
+          },
+          {
+            "semester": "Fall",
+            "year": 2025,
+            "semesterId": "202508"
+          },
+          {
+            "semester": "Spring",
+            "year": 2026,
+            "semesterId": "202601"
+          }
+        ]
+      }
+    },
     "HLTH460": {
       "courseInfo": {
         "id": "HLTH460",
@@ -202368,6 +202675,36 @@
             "semester": "Fall",
             "year": 2026,
             "semesterId": "202608"
+          }
+        ]
+      }
+    },
+    "HLTH701": {
+      "courseInfo": {
+        "id": "HLTH701",
+        "name": "Mixed Methods in Behavioral and Community Health Research"
+      },
+      "professors": {
+        "Elizabeth Aparicio": [
+          {
+            "semester": "Fall",
+            "year": 2022,
+            "semesterId": "202208"
+          },
+          {
+            "semester": "Fall",
+            "year": 2024,
+            "semesterId": "202408"
+          },
+          {
+            "semester": "Summer",
+            "year": 2025,
+            "semesterId": "202505"
+          },
+          {
+            "semester": "Fall",
+            "year": 2025,
+            "semesterId": "202508"
           }
         ]
       }
@@ -220522,6 +220859,20 @@
         ]
       }
     },
+    "INST820": {
+      "courseInfo": {
+        "id": "INST820",
+        "name": "Literacies for Leadership"
+      },
+      "professors": {}
+    },
+    "INST821": {
+      "courseInfo": {
+        "id": "INST821",
+        "name": "Practice-Based Research"
+      },
+      "professors": {}
+    },
     "INST828": {
       "courseInfo": {
         "id": "INST828",
@@ -233918,6 +234269,11 @@
             "semester": "Fall",
             "year": 2025,
             "semesterId": "202508"
+          },
+          {
+            "semester": "Fall",
+            "year": 2026,
+            "semesterId": "202608"
           }
         ]
       }
@@ -235259,7 +235615,15 @@
         "id": "KNES441",
         "name": "The Kinesiological and Scientific Basis of Human Movement and Sport: Golf"
       },
-      "professors": {}
+      "professors": {
+        "Seppo Iso-Ahola": [
+          {
+            "semester": "Fall",
+            "year": 2026,
+            "semesterId": "202608"
+          }
+        ]
+      }
     },
     "KNES450": {
       "courseInfo": {
@@ -235563,6 +235927,11 @@
             "semester": "Spring",
             "year": 2026,
             "semesterId": "202601"
+          },
+          {
+            "semester": "Fall",
+            "year": 2026,
+            "semesterId": "202608"
           }
         ]
       }
@@ -235609,6 +235978,11 @@
             "semester": "Spring",
             "year": 2026,
             "semesterId": "202601"
+          },
+          {
+            "semester": "Fall",
+            "year": 2026,
+            "semesterId": "202608"
           }
         ]
       }
@@ -235644,6 +236018,11 @@
             "semester": "Summer",
             "year": 2026,
             "semesterId": "202605"
+          },
+          {
+            "semester": "Fall",
+            "year": 2026,
+            "semesterId": "202608"
           }
         ]
       }
@@ -235674,6 +236053,11 @@
             "semester": "Spring",
             "year": 2025,
             "semesterId": "202501"
+          },
+          {
+            "semester": "Fall",
+            "year": 2026,
+            "semesterId": "202608"
           }
         ]
       }
@@ -236182,6 +236566,11 @@
             "semester": "Spring",
             "year": 2023,
             "semesterId": "202301"
+          },
+          {
+            "semester": "Fall",
+            "year": 2026,
+            "semesterId": "202608"
           }
         ]
       }
@@ -244244,6 +244633,11 @@
             "semester": "Spring",
             "year": 2026,
             "semesterId": "202601"
+          },
+          {
+            "semester": "Fall",
+            "year": 2026,
+            "semesterId": "202608"
           }
         ],
         "Kayla Davie": [
@@ -248442,6 +248836,13 @@
         "name": "Advanced Calculus I"
       },
       "professors": {
+        "Aditya Kumar": [
+          {
+            "semester": "Fall",
+            "year": 2026,
+            "semesterId": "202608"
+          }
+        ],
         "Andrew Lawrie": [
           {
             "semester": "Fall",
@@ -248691,38 +249092,6 @@
         ],
         "Justin Wyss-Gallifent": [],
         "Kaitlyn Loyd": [
-          {
-            "semester": "Fall",
-            "year": 2026,
-            "semesterId": "202608"
-          }
-        ],
-        "Kendall Williams": [
-          {
-            "semester": "Spring",
-            "year": 2021,
-            "semesterId": "202101"
-          },
-          {
-            "semester": "Spring",
-            "year": 2022,
-            "semesterId": "202201"
-          },
-          {
-            "semester": "Spring",
-            "year": 2025,
-            "semesterId": "202501"
-          },
-          {
-            "semester": "Fall",
-            "year": 2025,
-            "semesterId": "202508"
-          },
-          {
-            "semester": "Spring",
-            "year": 2026,
-            "semesterId": "202601"
-          },
           {
             "semester": "Fall",
             "year": 2026,
@@ -251432,6 +251801,11 @@
             "semester": "Fall",
             "year": 2025,
             "semesterId": "202508"
+          },
+          {
+            "semester": "Fall",
+            "year": 2026,
+            "semesterId": "202608"
           }
         ]
       }
@@ -251958,6 +252332,13 @@
             "semesterId": "202608"
           }
         ],
+        "Magdalene Ngeve": [
+          {
+            "semester": "Fall",
+            "year": 2026,
+            "semesterId": "202608"
+          }
+        ],
         "Mark Cochrane": [
           {
             "semester": "Fall",
@@ -252233,6 +252614,11 @@
             "semester": "Fall",
             "year": 2025,
             "semesterId": "202508"
+          },
+          {
+            "semester": "Fall",
+            "year": 2026,
+            "semesterId": "202608"
           }
         ],
         "Michael Wilberg": [
@@ -252260,6 +252646,11 @@
             "semester": "Fall",
             "year": 2025,
             "semesterId": "202508"
+          },
+          {
+            "semester": "Fall",
+            "year": 2026,
+            "semesterId": "202608"
           }
         ]
       }
@@ -252465,6 +252856,11 @@
             "semester": "Fall",
             "year": 2024,
             "semesterId": "202408"
+          },
+          {
+            "semester": "Fall",
+            "year": 2026,
+            "semesterId": "202608"
           }
         ],
         "Mark Castro": [
@@ -272503,6 +272899,13 @@
             "year": 2021,
             "semesterId": "202108"
           }
+        ],
+        "Rebecca Rosenstein": [
+          {
+            "semester": "Fall",
+            "year": 2026,
+            "semesterId": "202608"
+          }
         ]
       }
     },
@@ -274698,6 +275101,13 @@
           }
         ]
       }
+    },
+    "PHIL101": {
+      "courseInfo": {
+        "id": "PHIL101",
+        "name": " AI and the Human Experience"
+      },
+      "professors": {}
     },
     "PHIL140": {
       "courseInfo": {
@@ -286863,6 +287273,11 @@
             "semester": "Spring",
             "year": 2026,
             "semesterId": "202601"
+          },
+          {
+            "semester": "Fall",
+            "year": 2026,
+            "semesterId": "202608"
           }
         ],
         "Patrina Clark": [
@@ -287732,6 +288147,11 @@
             "semester": "Spring",
             "year": 2026,
             "semesterId": "202601"
+          },
+          {
+            "semester": "Fall",
+            "year": 2026,
+            "semesterId": "202608"
           }
         ],
         "Uri Dadush": [
@@ -296118,6 +296538,13 @@
             "semesterId": "202608"
           }
         ],
+        "Cristina Risco": [
+          {
+            "semester": "Fall",
+            "year": 2026,
+            "semesterId": "202608"
+          }
+        ],
         "Jack Blanchard": [
           {
             "semester": "Fall",
@@ -297968,6 +298395,13 @@
             "semester": "Spring",
             "year": 2026,
             "semesterId": "202601"
+          }
+        ],
+        "Peter Steiner": [
+          {
+            "semester": "Fall",
+            "year": 2026,
+            "semesterId": "202608"
           }
         ],
         "Yang Liu": [
@@ -306978,7 +307412,15 @@
         "id": "SPAN478D",
         "name": "Special Topics in United States Latino Cultures; Language, Technology, and Power: Spanish in the Digital World"
       },
-      "professors": {}
+      "professors": {
+        "Elisa Gironzetti": [
+          {
+            "semester": "Fall",
+            "year": 2026,
+            "semesterId": "202608"
+          }
+        ]
+      }
     },
     "SPAN479": {
       "courseInfo": {
@@ -334073,7 +334515,15 @@
         "id": "WGSS698U",
         "name": "Special Topics in Women, Gender, and Sexuality Studies; Ungendering Blackness"
       },
-      "professors": {}
+      "professors": {
+        "Will Mosley": [
+          {
+            "semester": "Fall",
+            "year": 2026,
+            "semesterId": "202608"
+          }
+        ]
+      }
     },
     "WGSS699": {
       "courseInfo": {
