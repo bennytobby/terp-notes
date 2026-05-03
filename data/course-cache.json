@@ -1,8 +1,8 @@
 {
   "metadata": {
-    "generated": "2026-04-26T05:48:06.827Z",
+    "generated": "2026-05-03T06:12:12.943Z",
     "type": "course-indexed",
-    "coursesCount": 4931,
+    "coursesCount": 4943,
     "yearFilter": "Only years 2021 and after",
     "structure": "course -> professors -> semesters"
   },
@@ -4145,6 +4145,11 @@
             "semester": "Spring",
             "year": 2026,
             "semesterId": "202601"
+          },
+          {
+            "semester": "Summer",
+            "year": 2026,
+            "semesterId": "202605"
           }
         ]
       }
@@ -13573,6 +13578,13 @@
       },
       "professors": {}
     },
+    "ARAB499E": {
+      "courseInfo": {
+        "id": "ARAB499E",
+        "name": "Special Topics in Arabic Studies"
+      },
+      "professors": {}
+    },
     "ARAB499O": {
       "courseInfo": {
         "id": "ARAB499O",
@@ -16692,6 +16704,11 @@
             "semester": "Unknown",
             "year": 2025,
             "semesterId": "202512"
+          },
+          {
+            "semester": "Summer",
+            "year": 2026,
+            "semesterId": "202605"
           }
         ],
         "Luna Bratti Lobato": [
@@ -25233,6 +25250,11 @@
             "semester": "Fall",
             "year": 2025,
             "semesterId": "202508"
+          },
+          {
+            "semester": "Fall",
+            "year": 2026,
+            "semesterId": "202608"
           }
         ]
       }
@@ -29451,6 +29473,66 @@
             "semesterId": "202401"
           }
         ]
+      }
+    },
+    "ARTT448E": {
+      "courseInfo": {
+        "id": "ARTT448E",
+        "name": "Advanced Printmaking Studio; Worldbuilding Through Printmedia"
+      },
+      "professors": {
+        "Jessica Gatlin": [
+          {
+            "semester": "Spring",
+            "year": 2024,
+            "semesterId": "202401"
+          },
+          {
+            "semester": "Spring",
+            "year": 2025,
+            "semesterId": "202501"
+          },
+          {
+            "semester": "Spring",
+            "year": 2026,
+            "semesterId": "202601"
+          }
+        ],
+        "Justin Strom": [
+          {
+            "semester": "Spring",
+            "year": 2023,
+            "semesterId": "202301"
+          }
+        ],
+        "Lauren Koch": [],
+        "Matthew McLaughlin": []
+      }
+    },
+    "ARTT448H": {
+      "courseInfo": {
+        "id": "ARTT448H",
+        "name": "Advanced Printmaking Studio; Worldbuilding Through Printmedia"
+      },
+      "professors": {
+        "Jessica Gatlin": [
+          {
+            "semester": "Spring",
+            "year": 2024,
+            "semesterId": "202401"
+          },
+          {
+            "semester": "Spring",
+            "year": 2025,
+            "semesterId": "202501"
+          },
+          {
+            "semester": "Spring",
+            "year": 2026,
+            "semesterId": "202601"
+          }
+        ],
+        "Justin Strom": []
       }
     },
     "ARTT454": {
@@ -76564,6 +76646,13 @@
         ]
       }
     },
+    "CHIN219A": {
+      "courseInfo": {
+        "id": "CHIN219A",
+        "name": "Special Topics in Chinese Studies; Why Taiwan Matters"
+      },
+      "professors": {}
+    },
     "CHIN301": {
       "courseInfo": {
         "id": "CHIN301",
@@ -78438,6 +78527,13 @@
           }
         ]
       }
+    },
+    "CINE369B": {
+      "courseInfo": {
+        "id": "CINE369B",
+        "name": "Special Topics in Film Theories; Race, Gender, and Reality TV"
+      },
+      "professors": {}
     },
     "CINE369K": {
       "courseInfo": {
@@ -82640,6 +82736,26 @@
             "semester": "Spring",
             "year": 2025,
             "semesterId": "202501"
+          }
+        ]
+      }
+    },
+    "CMSC398P": {
+      "courseInfo": {
+        "id": "CMSC398P",
+        "name": "Special Topics in Computer Science; Practical Cloud Computing with AWS"
+      },
+      "professors": {
+        "Maksym Morawski": [
+          {
+            "semester": "Fall",
+            "year": 2025,
+            "semesterId": "202508"
+          },
+          {
+            "semester": "Spring",
+            "year": 2026,
+            "semesterId": "202601"
           }
         ]
       }
@@ -101723,6 +101839,20 @@
             "semesterId": "202601"
           }
         ],
+        "Lang Song": [
+          {
+            "semester": "Summer",
+            "year": 2026,
+            "semesterId": "202605"
+          }
+        ],
+        "Maeve Wildes": [
+          {
+            "semester": "Summer",
+            "year": 2026,
+            "semesterId": "202605"
+          }
+        ],
         "Matthew Griffin": [
           {
             "semester": "Fall",
@@ -101794,6 +101924,13 @@
             "semester": "Summer",
             "year": 2025,
             "semesterId": "202505"
+          }
+        ],
+        "Yu-Chi Hou": [
+          {
+            "semester": "Summer",
+            "year": 2026,
+            "semesterId": "202605"
           }
         ]
       }
@@ -102075,6 +102212,11 @@
             "semester": "Fall",
             "year": 2026,
             "semesterId": "202608"
+          },
+          {
+            "semester": "Summer",
+            "year": 2026,
+            "semesterId": "202605"
           }
         ],
         "John Dickerson": [
@@ -109878,6 +110020,13 @@
             "semesterId": "202501"
           }
         ],
+        "Caterina Patriarca": [
+          {
+            "semester": "Summer",
+            "year": 2026,
+            "semesterId": "202605"
+          }
+        ],
         "Daniel Moore": [
           {
             "semester": "Fall",
@@ -110016,6 +110165,13 @@
         "Justin Hillman": [],
         "Kathryn Sullivan": [],
         "Kelsey McCurdy": [],
+        "Kobi Miller": [
+          {
+            "semester": "Summer",
+            "year": 2026,
+            "semesterId": "202605"
+          }
+        ],
         "Kristin Meyering": [],
         "Laura Kelly": [
           {
@@ -110091,44 +110247,11 @@
             "semesterId": "202101"
           }
         ],
-        "Priya Bansal": [],
-        "Rabia Brown": [
+        "Pearl Sun": [
           {
-            "semester": "Fall",
-            "year": 2022,
-            "semesterId": "202208"
-          },
-          {
-            "semester": "Spring",
-            "year": 2023,
-            "semesterId": "202301"
-          },
-          {
-            "semester": "Fall",
-            "year": 2023,
-            "semesterId": "202308"
-          }
-        ],
-        "Romy Stancofski": [
-          {
-            "semester": "Fall",
-            "year": 2023,
-            "semesterId": "202308"
-          },
-          {
-            "semester": "Spring",
-            "year": 2024,
-            "semesterId": "202401"
-          },
-          {
-            "semester": "Fall",
-            "year": 2024,
-            "semesterId": "202408"
-          },
-          {
-            "semester": "Spring",
-            "year": 2025,
-            "semesterId": "202501"
+            "semester": "Summer",
+            "year": 2026,
+            "semesterId": "202605"
           }
         ]
       }
@@ -121942,6 +122065,11 @@
             "semester": "Summer",
             "year": 2025,
             "semesterId": "202505"
+          },
+          {
+            "semester": "Summer",
+            "year": 2026,
+            "semesterId": "202605"
           }
         ],
         "Raymond Sedwick": [],
@@ -132360,6 +132488,26 @@
         "Wesley Lawson": [],
         "William Levine": [],
         "Yasser Shoukry": []
+      }
+    },
+    "ENEE489R": {
+      "courseInfo": {
+        "id": "ENEE489R",
+        "name": "Topics in Electrophysics; Design of Passive and Low Power Microwave Devices"
+      },
+      "professors": {
+        "Wesley Lawson": [
+          {
+            "semester": "Fall",
+            "year": 2024,
+            "semesterId": "202408"
+          },
+          {
+            "semester": "Fall",
+            "year": 2025,
+            "semesterId": "202508"
+          }
+        ]
       }
     },
     "ENEE489W": {
@@ -166982,6 +167130,13 @@
         "Rafael Barreto de Andrade": []
       }
     },
+    "ENTM788F": {
+      "courseInfo": {
+        "id": "ENTM788F",
+        "name": "Entomological Topics; Broadening Experience"
+      },
+      "professors": {}
+    },
     "ENTM798E": {
       "courseInfo": {
         "id": "ENTM798E",
@@ -180466,6 +180621,11 @@
             "semester": "Fall",
             "year": 2026,
             "semesterId": "202608"
+          },
+          {
+            "semester": "Summer",
+            "year": 2026,
+            "semesterId": "202605"
           }
         ],
         "Matthew Hansen": [
@@ -186980,6 +187140,11 @@
             "semester": "Unknown",
             "year": 2025,
             "semesterId": "202512"
+          },
+          {
+            "semester": "Summer",
+            "year": 2026,
+            "semesterId": "202605"
           }
         ],
         "Hyunki Kim": [
@@ -187208,6 +187373,13 @@
           }
         ],
         "Pavel Coronado-Castellanos": [],
+        "Reginald Pulley": [
+          {
+            "semester": "Summer",
+            "year": 2026,
+            "semesterId": "202605"
+          }
+        ],
         "Rithvik Yarlagadda": [
           {
             "semester": "Summer",
@@ -213406,6 +213578,28 @@
             "semester": "Fall",
             "year": 2026,
             "semesterId": "202608"
+          }
+        ]
+      }
+    },
+    "IDEA312": {
+      "courseInfo": {
+        "id": "IDEA312",
+        "name": "Kickstart Your Career with Improv"
+      },
+      "professors": {
+        "Meredith Kaunitz": [
+          {
+            "semester": "Spring",
+            "year": 2026,
+            "semesterId": "202601"
+          }
+        ],
+        "Mira Azarm": [
+          {
+            "semester": "Spring",
+            "year": 2026,
+            "semesterId": "202601"
           }
         ]
       }
@@ -246023,6 +246217,21 @@
         ]
       }
     },
+    "LACS348P": {
+      "courseInfo": {
+        "id": "LACS348P",
+        "name": "Special Topics in Latin American and Caribbean Studies"
+      },
+      "professors": {
+        "Michelle Rowley": [
+          {
+            "semester": "Fall",
+            "year": 2024,
+            "semesterId": "202408"
+          }
+        ]
+      }
+    },
     "LACS458": {
       "courseInfo": {
         "id": "LACS458",
@@ -246842,6 +247051,11 @@
             "semester": "Fall",
             "year": 2025,
             "semesterId": "202508"
+          },
+          {
+            "semester": "Summer",
+            "year": 2026,
+            "semesterId": "202605"
           }
         ]
       }
@@ -252962,6 +253176,13 @@
         "Kayla Davie": [],
         "Kevin Dunlap": [],
         "Kung-Ching Lin": [],
+        "Leanna Breland": [
+          {
+            "semester": "Summer",
+            "year": 2026,
+            "semesterId": "202605"
+          }
+        ],
         "Mansur Shakipov": [
           {
             "semester": "Spring",
@@ -252975,13 +253196,6 @@
           }
         ],
         "Matthew Salinger": [
-          {
-            "semester": "Spring",
-            "year": 2022,
-            "semesterId": "202201"
-          }
-        ],
-        "Max Auer": [
           {
             "semester": "Spring",
             "year": 2022,
@@ -253199,6 +253413,11 @@
             "semester": "Summer",
             "year": 2025,
             "semesterId": "202505"
+          },
+          {
+            "semester": "Summer",
+            "year": 2026,
+            "semesterId": "202605"
           }
         ],
         "Timothy Pilachowski": [
@@ -253316,6 +253535,13 @@
             "semesterId": "202205"
           }
         ],
+        "Christian Adams": [
+          {
+            "semester": "Summer",
+            "year": 2026,
+            "semesterId": "202605"
+          }
+        ],
         "Clarke Safsten": [
           {
             "semester": "Fall",
@@ -253343,6 +253569,13 @@
             "semester": "Fall",
             "year": 2021,
             "semesterId": "202108"
+          }
+        ],
+        "Gabriel Vilarrubi": [
+          {
+            "semester": "Summer",
+            "year": 2026,
+            "semesterId": "202605"
           }
         ],
         "Haeyun Seo": [
@@ -253494,25 +253727,6 @@
             "semester": "Summer",
             "year": 2022,
             "semesterId": "202205"
-          }
-        ],
-        "Margaret Doucette": [
-          {
-            "semester": "Spring",
-            "year": 2026,
-            "semesterId": "202601"
-          }
-        ],
-        "Melanka Wedige": [
-          {
-            "semester": "Summer",
-            "year": 2021,
-            "semesterId": "202105"
-          },
-          {
-            "semester": "Summer",
-            "year": 2023,
-            "semesterId": "202305"
           }
         ]
       }
@@ -253941,6 +254155,11 @@
             "semester": "Summer",
             "year": 2025,
             "semesterId": "202505"
+          },
+          {
+            "semester": "Summer",
+            "year": 2026,
+            "semesterId": "202605"
           }
         ],
         "Boyu Zhang": [
@@ -254323,6 +254542,13 @@
             "semesterId": "202201"
           }
         ],
+        "Dmitrii Gudin": [
+          {
+            "semester": "Summer",
+            "year": 2026,
+            "semesterId": "202605"
+          }
+        ],
         "Eoin Mackall": [
           {
             "semester": "Spring",
@@ -254481,13 +254707,6 @@
             "semester": "Fall",
             "year": 2021,
             "semesterId": "202108"
-          }
-        ],
-        "Jonathan DeWitt": [
-          {
-            "semester": "Spring",
-            "year": 2024,
-            "semesterId": "202401"
           }
         ]
       }
@@ -255498,6 +255717,11 @@
             "semester": "Summer",
             "year": 2025,
             "semesterId": "202505"
+          },
+          {
+            "semester": "Summer",
+            "year": 2026,
+            "semesterId": "202605"
           }
         ],
         "Panagiotis Dimakis": [
@@ -255576,6 +255800,13 @@
             "semester": "Fall",
             "year": 2026,
             "semesterId": "202608"
+          }
+        ],
+        "Leah White": [
+          {
+            "semester": "Summer",
+            "year": 2026,
+            "semesterId": "202605"
           }
         ],
         "Stefan Doboszczak": [
@@ -255680,6 +255911,13 @@
             "semester": "Fall",
             "year": 2024,
             "semesterId": "202408"
+          }
+        ],
+        "Ben Goldschlager": [
+          {
+            "semester": "Summer",
+            "year": 2026,
+            "semesterId": "202605"
           }
         ],
         "Brandon Alexander": [],
@@ -255951,6 +256189,13 @@
             "semesterId": "202401"
           }
         ],
+        "Noah Waldman": [
+          {
+            "semester": "Summer",
+            "year": 2026,
+            "semesterId": "202605"
+          }
+        ],
         "Revati Jadhav": [
           {
             "semester": "Summer",
@@ -255989,15 +256234,7 @@
             "year": 2026,
             "semesterId": "202601"
           }
-        ],
-        "Roohollah Ebrahimian": [
-          {
-            "semester": "Spring",
-            "year": 2021,
-            "semesterId": "202101"
-          }
-        ],
-        "Ruiwen Shu": []
+        ]
       }
     },
     "MATH274": {
@@ -258950,6 +259187,13 @@
         "name": "Linear Algebra for Scientists and Engineers"
       },
       "professors": {
+        "Aayan Pathan": [
+          {
+            "semester": "Summer",
+            "year": 2026,
+            "semesterId": "202605"
+          }
+        ],
         "Allan Yashinski": [
           {
             "semester": "Spring",
@@ -259036,6 +259280,13 @@
           }
         ],
         "Jermain McDermott": [],
+        "Jialu Zhou": [
+          {
+            "semester": "Summer",
+            "year": 2026,
+            "semesterId": "202605"
+          }
+        ],
         "Jonathan Fernandes": [
           {
             "semester": "Summer",
@@ -280750,6 +281001,11 @@
             "semester": "Unknown",
             "year": 2024,
             "semesterId": "202412"
+          },
+          {
+            "semester": "Summer",
+            "year": 2026,
+            "semesterId": "202605"
           }
         ],
         "Kevin Dunbar": [],
@@ -280836,6 +281092,13 @@
             "year": 2025,
             "semesterId": "202512"
           },
+          {
+            "semester": "Summer",
+            "year": 2026,
+            "semesterId": "202605"
+          }
+        ],
+        "Daniel Butts": [
           {
             "semester": "Summer",
             "year": 2026,
@@ -299472,6 +299735,13 @@
         ]
       }
     },
+    "PLCY798W": {
+      "courseInfo": {
+        "id": "PLCY798W",
+        "name": "Readings in Public Policy; Internship"
+      },
+      "professors": {}
+    },
     "PLCY798Y": {
       "courseInfo": {
         "id": "PLCY798Y",
@@ -300141,6 +300411,11 @@
             "semester": "Fall",
             "year": 2025,
             "semesterId": "202508"
+          },
+          {
+            "semester": "Summer",
+            "year": 2026,
+            "semesterId": "202605"
           }
         ]
       }
@@ -319022,6 +319297,20 @@
             "semesterId": "202601"
           }
         ],
+        "Lang Song": [
+          {
+            "semester": "Summer",
+            "year": 2026,
+            "semesterId": "202605"
+          }
+        ],
+        "Maeve Wildes": [
+          {
+            "semester": "Summer",
+            "year": 2026,
+            "semesterId": "202605"
+          }
+        ],
         "Matthew Griffin": [
           {
             "semester": "Fall",
@@ -319170,6 +319459,13 @@
             "semester": "Summer",
             "year": 2023,
             "semesterId": "202305"
+          }
+        ],
+        "Yu-Chi Hou": [
+          {
+            "semester": "Summer",
+            "year": 2026,
+            "semesterId": "202605"
           }
         ],
         "Yue Dong": [
@@ -334783,6 +335079,13 @@
           }
         ]
       }
+    },
+    "TLPL708G": {
+      "courseInfo": {
+        "id": "TLPL708G",
+        "name": "Special Topics in Technology, Learning & Leadership; Designing Technologies for Teaching & Learning"
+      },
+      "professors": {}
     },
     "TLPL708X": {
       "courseInfo": {
