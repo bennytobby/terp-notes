@@ -1,8 +1,8 @@
 {
   "metadata": {
-    "generated": "2026-05-17T06:46:16.226Z",
+    "generated": "2026-05-24T06:59:16.566Z",
     "type": "course-indexed",
-    "coursesCount": 4975,
+    "coursesCount": 4982,
     "yearFilter": "Only years 2021 and after",
     "structure": "course -> professors -> semesters"
   },
@@ -3658,6 +3658,11 @@
             "semester": "Summer",
             "year": 2025,
             "semesterId": "202505"
+          },
+          {
+            "semester": "Summer",
+            "year": 2026,
+            "semesterId": "202605"
           }
         ],
         "Eva Hageman": [
@@ -10083,6 +10088,13 @@
             "year": 2025,
             "semesterId": "202505"
           },
+          {
+            "semester": "Summer",
+            "year": 2026,
+            "semesterId": "202605"
+          }
+        ],
+        "Paul Shackel": [
           {
             "semester": "Summer",
             "year": 2026,
@@ -24662,6 +24674,11 @@
             "semester": "Unknown",
             "year": 2022,
             "semesterId": "202212"
+          },
+          {
+            "semester": "Summer",
+            "year": 2026,
+            "semesterId": "202605"
           }
         ]
       }
@@ -73047,6 +73064,31 @@
         ]
       }
     },
+    "CHBE693": {
+      "courseInfo": {
+        "id": "CHBE693",
+        "name": "Chemical Processes in Beer Brewing"
+      },
+      "professors": {
+        "Taylor Woehl": [
+          {
+            "semester": "Fall",
+            "year": 2023,
+            "semesterId": "202308"
+          },
+          {
+            "semester": "Fall",
+            "year": 2024,
+            "semesterId": "202408"
+          },
+          {
+            "semester": "Fall",
+            "year": 2026,
+            "semesterId": "202608"
+          }
+        ]
+      }
+    },
     "CHBE694": {
       "courseInfo": {
         "id": "CHBE694",
@@ -82917,6 +82959,13 @@
         "name": "Special Topics in Computer Science; Mastering the PM Interview"
       },
       "professors": {
+        "Herve Franceschi": [
+          {
+            "semester": "Fall",
+            "year": 2026,
+            "semesterId": "202608"
+          }
+        ],
         "Huaishu Peng": [
           {
             "semester": "Fall",
@@ -86781,6 +86830,33 @@
             "semester": "Fall",
             "year": 2026,
             "semesterId": "202608"
+          }
+        ]
+      }
+    },
+    "CMSC828G": {
+      "courseInfo": {
+        "id": "CMSC828G",
+        "name": "Advanced Topics in Information Processing; Systems for Machine Learning"
+      },
+      "professors": {
+        "Abhinav Bhatele": [
+          {
+            "semester": "Spring",
+            "year": 2025,
+            "semesterId": "202501"
+          },
+          {
+            "semester": "Spring",
+            "year": 2026,
+            "semesterId": "202601"
+          }
+        ],
+        "Daniel Nichols": [
+          {
+            "semester": "Spring",
+            "year": 2025,
+            "semesterId": "202501"
           }
         ]
       }
@@ -93263,6 +93339,13 @@
             "year": 2026,
             "semesterId": "202608"
           }
+        ],
+        "Sahar Khamis": [
+          {
+            "semester": "Summer",
+            "year": 2026,
+            "semesterId": "202605"
+          }
         ]
       }
     },
@@ -98199,6 +98282,11 @@
             "semester": "Spring",
             "year": 2026,
             "semesterId": "202601"
+          },
+          {
+            "semester": "Fall",
+            "year": 2026,
+            "semesterId": "202608"
           }
         ],
         "Ephrat Asherie": [
@@ -110480,6 +110568,13 @@
             "semesterId": "202608"
           }
         ],
+        "Melanie Glover": [
+          {
+            "semester": "Fall",
+            "year": 2026,
+            "semesterId": "202608"
+          }
+        ],
         "Natalie Sullivan": [],
         "Olivia Rosenburg": [
           {
@@ -110618,23 +110713,6 @@
             "year": 2026,
             "semesterId": "202608"
           }
-        ],
-        "Xiaotong Lu": [
-          {
-            "semester": "Fall",
-            "year": 2025,
-            "semesterId": "202508"
-          },
-          {
-            "semester": "Spring",
-            "year": 2026,
-            "semesterId": "202601"
-          },
-          {
-            "semester": "Fall",
-            "year": 2026,
-            "semesterId": "202608"
-          }
         ]
       }
     },
@@ -110746,6 +110824,11 @@
             "semester": "Summer",
             "year": 2026,
             "semesterId": "202605"
+          },
+          {
+            "semester": "Fall",
+            "year": 2026,
+            "semesterId": "202608"
           }
         ],
         "Daniel Moore": [
@@ -112716,6 +112799,44 @@
             "semester": "Fall",
             "year": 2022,
             "semesterId": "202208"
+          }
+        ]
+      }
+    },
+    "EDCP775": {
+      "courseInfo": {
+        "id": "EDCP775",
+        "name": "Facilitating Student Learning in Higher Education"
+      },
+      "professors": {
+        "Candace Moore": [
+          {
+            "semester": "Fall",
+            "year": 2022,
+            "semesterId": "202208"
+          },
+          {
+            "semester": "Fall",
+            "year": 2023,
+            "semesterId": "202308"
+          },
+          {
+            "semester": "Fall",
+            "year": 2024,
+            "semesterId": "202408"
+          },
+          {
+            "semester": "Fall",
+            "year": 2025,
+            "semesterId": "202508"
+          }
+        ],
+        "Michael Goodman": [],
+        "Terra Hall": [
+          {
+            "semester": "Fall",
+            "year": 2026,
+            "semesterId": "202608"
           }
         ]
       }
@@ -118478,6 +118599,13 @@
             "semester": "Fall",
             "year": 2026,
             "semesterId": "202608"
+          }
+        ],
+        "Luanjiao Hu": [
+          {
+            "semester": "Summer",
+            "year": 2026,
+            "semesterId": "202605"
           }
         ],
         "Yewon Lee": [
@@ -140063,6 +140191,13 @@
             "semesterId": "202608"
           }
         ],
+        "Alyson Favilla": [
+          {
+            "semester": "Fall",
+            "year": 2026,
+            "semesterId": "202608"
+          }
+        ],
         "Amanda Allen": [
           {
             "semester": "Fall",
@@ -140441,29 +140576,7 @@
             "semesterId": "202501"
           }
         ],
-        "Ayesha Shibli": [],
-        "Benjamin Baker": [
-          {
-            "semester": "Fall",
-            "year": 2021,
-            "semesterId": "202108"
-          },
-          {
-            "semester": "Spring",
-            "year": 2021,
-            "semesterId": "202101"
-          },
-          {
-            "semester": "Summer",
-            "year": 2022,
-            "semesterId": "202205"
-          },
-          {
-            "semester": "Spring",
-            "year": 2023,
-            "semesterId": "202301"
-          }
-        ]
+        "Ayesha Shibli": []
       }
     },
     "ENGL101A": {
@@ -143939,6 +144052,13 @@
             "semester": "Fall",
             "year": 2025,
             "semesterId": "202508"
+          }
+        ],
+        "Michael Israel": [
+          {
+            "semester": "Fall",
+            "year": 2026,
+            "semesterId": "202608"
           }
         ],
         "Morgan Robinson": [
@@ -181996,6 +182116,11 @@
             "semester": "Summer",
             "year": 2024,
             "semesterId": "202405"
+          },
+          {
+            "semester": "Fall",
+            "year": 2026,
+            "semesterId": "202608"
           }
         ],
         "Iman Smith": [
@@ -182089,6 +182214,11 @@
             "semester": "Spring",
             "year": 2026,
             "semesterId": "202601"
+          },
+          {
+            "semester": "Fall",
+            "year": 2026,
+            "semesterId": "202608"
           }
         ],
         "Tavis Mansfield": [
@@ -191440,6 +191570,11 @@
             "semester": "Fall",
             "year": 2025,
             "semesterId": "202508"
+          },
+          {
+            "semester": "Fall",
+            "year": 2026,
+            "semesterId": "202608"
           }
         ]
       }
@@ -194154,6 +194289,13 @@
           }
         ],
         "Melissa Licata": [],
+        "Monica Allgauer": [
+          {
+            "semester": "Fall",
+            "year": 2026,
+            "semesterId": "202608"
+          }
+        ],
         "Norah Aljunaidi": [
           {
             "semester": "Spring",
@@ -198508,6 +198650,13 @@
         "name": "Honors Humanities: Introduction to the Arts and Humanities"
       },
       "professors": {
+        "Carla Della Gatta": [
+          {
+            "semester": "Fall",
+            "year": 2026,
+            "semesterId": "202608"
+          }
+        ],
         "Gregory Staley": [],
         "Randy Ontiveros": [
           {
@@ -198837,6 +198986,13 @@
         "name": "Undergraduate Teaching Assistantship"
       },
       "professors": {
+        "Carla Della Gatta": [
+          {
+            "semester": "Fall",
+            "year": 2026,
+            "semesterId": "202608"
+          }
+        ],
         "Gregory Staley": [],
         "Randy Ontiveros": [
           {
@@ -211197,6 +211353,13 @@
             "year": 2026,
             "semesterId": "202608"
           }
+        ],
+        "Min Wang": [
+          {
+            "semester": "Fall",
+            "year": 2026,
+            "semesterId": "202608"
+          }
         ]
       }
     },
@@ -213369,6 +213532,11 @@
             "semester": "Spring",
             "year": 2025,
             "semesterId": "202501"
+          },
+          {
+            "semester": "Fall",
+            "year": 2026,
+            "semesterId": "202608"
           }
         ],
         "Samuel Holley-Kline": [
@@ -223572,6 +223740,21 @@
         ]
       }
     },
+    "INST372": {
+      "courseInfo": {
+        "id": "INST372",
+        "name": "Peer Learning in Computing"
+      },
+      "professors": {
+        "Angela Boley": [
+          {
+            "semester": "Fall",
+            "year": 2026,
+            "semesterId": "202608"
+          }
+        ]
+      }
+    },
     "INST377": {
       "courseInfo": {
         "id": "INST377",
@@ -223936,6 +224119,28 @@
             "year": 2025,
             "semesterId": "202508"
           },
+          {
+            "semester": "Fall",
+            "year": 2026,
+            "semesterId": "202608"
+          }
+        ]
+      }
+    },
+    "INST388V": {
+      "courseInfo": {
+        "id": "INST388V",
+        "name": "\"Maker Movement\" Approach to Computing; Interfaces as Art and Artifice"
+      },
+      "professors": {
+        "Francesca Polito": [
+          {
+            "semester": "Fall",
+            "year": 2025,
+            "semesterId": "202508"
+          }
+        ],
+        "Katherine Izsak": [
           {
             "semester": "Fall",
             "year": 2026,
@@ -226292,6 +226497,13 @@
             "semesterId": "202505"
           }
         ],
+        "Connie Siebold": [
+          {
+            "semester": "Fall",
+            "year": 2026,
+            "semesterId": "202608"
+          }
+        ],
         "C Rytting": [],
         "Elizabeth Bonsignore": [],
         "Jesse Klein": [
@@ -226707,6 +226919,13 @@
         "name": "Integrated Capstone for Technology and Information Design"
       },
       "professors": {
+        "Connie Siebold": [
+          {
+            "semester": "Fall",
+            "year": 2026,
+            "semesterId": "202608"
+          }
+        ],
         "Jesse Klein": [
           {
             "semester": "Fall",
@@ -230843,6 +231062,21 @@
         ]
       }
     },
+    "INST832": {
+      "courseInfo": {
+        "id": "INST832",
+        "name": "Information and Human Rights"
+      },
+      "professors": {
+        "Paul Jaeger": [
+          {
+            "semester": "Fall",
+            "year": 2026,
+            "semesterId": "202608"
+          }
+        ]
+      }
+    },
     "INST878": {
       "courseInfo": {
         "id": "INST878",
@@ -231316,6 +231550,13 @@
           }
         ]
       }
+    },
+    "ISRL349K": {
+      "courseInfo": {
+        "id": "ISRL349K",
+        "name": "Investigating Topics in Israel Studies; The Origins of Modern Israeli Political Thought"
+      },
+      "professors": {}
     },
     "ISRL349T": {
       "courseInfo": {
@@ -269471,6 +269712,11 @@
             "semester": "Fall",
             "year": 2025,
             "semesterId": "202508"
+          },
+          {
+            "semester": "Fall",
+            "year": 2026,
+            "semesterId": "202608"
           }
         ]
       }
@@ -296064,7 +296310,15 @@
         "id": "PHYS859B",
         "name": "Special Topics in Elementary Particles and Quantum Field Theory; Advanced Topics in Particle Physics"
       },
-      "professors": {}
+      "professors": {
+        "Raman Sundrum": [
+          {
+            "semester": "Fall",
+            "year": 2026,
+            "semesterId": "202608"
+          }
+        ]
+      }
     },
     "PHYS879G": {
       "courseInfo": {
@@ -312323,6 +312577,13 @@
         "name": "Integrated Capstone for Social Data Science"
       },
       "professors": {
+        "Connie Siebold": [
+          {
+            "semester": "Fall",
+            "year": 2026,
+            "semesterId": "202608"
+          }
+        ],
         "Jesse Klein": [
           {
             "semester": "Fall",
@@ -340311,6 +340572,11 @@
             "semester": "Spring",
             "year": 2026,
             "semesterId": "202601"
+          },
+          {
+            "semester": "Fall",
+            "year": 2026,
+            "semesterId": "202608"
           }
         ],
         "Lambert Aryee": [
