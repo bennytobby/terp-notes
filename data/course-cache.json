@@ -1,8 +1,8 @@
 {
   "metadata": {
-    "generated": "2026-08-30T09:06:16.526Z",
+    "generated": "2026-09-06T07:48:54.239Z",
     "type": "course-indexed",
-    "coursesCount": 5098,
+    "coursesCount": 5110,
     "yearFilter": "Only years 2021 and after",
     "structure": "course -> professors -> semesters"
   },
@@ -3428,6 +3428,68 @@
             "semester": "Fall",
             "year": 2026,
             "semesterId": "202608"
+          }
+        ]
+      }
+    },
+    "AMSC760": {
+      "courseInfo": {
+        "id": "AMSC760",
+        "name": "Applied Statistics Practicum"
+      },
+      "professors": {
+        "Howard Elman": [
+          {
+            "semester": "Fall",
+            "year": 2021,
+            "semesterId": "202108"
+          },
+          {
+            "semester": "Spring",
+            "year": 2021,
+            "semesterId": "202101"
+          },
+          {
+            "semester": "Fall",
+            "year": 2022,
+            "semesterId": "202208"
+          },
+          {
+            "semester": "Fall",
+            "year": 2023,
+            "semesterId": "202308"
+          },
+          {
+            "semester": "Spring",
+            "year": 2024,
+            "semesterId": "202401"
+          },
+          {
+            "semester": "Spring",
+            "year": 2025,
+            "semesterId": "202501"
+          }
+        ],
+        "Radu Balan": [
+          {
+            "semester": "Spring",
+            "year": 2025,
+            "semesterId": "202501"
+          },
+          {
+            "semester": "Fall",
+            "year": 2025,
+            "semesterId": "202508"
+          },
+          {
+            "semester": "Spring",
+            "year": 2026,
+            "semesterId": "202601"
+          },
+          {
+            "semester": "Summer",
+            "year": 2026,
+            "semesterId": "202605"
           }
         ]
       }
@@ -33818,6 +33880,13 @@
         ]
       }
     },
+    "BDBA818D": {
+      "courseInfo": {
+        "id": "BDBA818D",
+        "name": "Special Topics in Accounting; Financial Statement Analysis for Accountants and Auditors"
+      },
+      "professors": {}
+    },
     "BDBA820": {
       "courseInfo": {
         "id": "BDBA820",
@@ -52861,6 +52930,20 @@
         ]
       }
     },
+    "BMGT848C": {
+      "courseInfo": {
+        "id": "BMGT848C",
+        "name": "Special Topics in Finance; Capital Markets"
+      },
+      "professors": {}
+    },
+    "BMGT848D": {
+      "courseInfo": {
+        "id": "BMGT848D",
+        "name": "Special Topics in Finance; Corporate Finance 1"
+      },
+      "professors": {}
+    },
     "BMGT848F": {
       "courseInfo": {
         "id": "BMGT848F",
@@ -70997,6 +71080,13 @@
           }
         ]
       }
+    },
+    "CCJS233": {
+      "courseInfo": {
+        "id": "CCJS233",
+        "name": "Data Science for Social Science"
+      },
+      "professors": {}
     },
     "CCJS278B": {
       "courseInfo": {
@@ -163560,6 +163650,13 @@
         ]
       }
     },
+    "ENMT499": {
+      "courseInfo": {
+        "id": "ENMT499",
+        "name": "Elective Research"
+      },
+      "professors": {}
+    },
     "ENPM611": {
       "courseInfo": {
         "id": "ENPM611",
@@ -173510,6 +173607,13 @@
           }
         ]
       }
+    },
+    "ENTS699A": {
+      "courseInfo": {
+        "id": "ENTS699A",
+        "name": "Independent Study in Telecommunications; Open-Source 5G System"
+      },
+      "professors": {}
     },
     "ENTS699B": {
       "courseInfo": {
@@ -192654,6 +192758,13 @@
       },
       "professors": {}
     },
+    "GERS798": {
+      "courseInfo": {
+        "id": "GERS798",
+        "name": "Master's Independent Study"
+      },
+      "professors": {}
+    },
     "GERS799": {
       "courseInfo": {
         "id": "GERS799",
@@ -194989,6 +195100,13 @@
           }
         ]
       }
+    },
+    "GVPT368Y": {
+      "courseInfo": {
+        "id": "GVPT368Y",
+        "name": "Special Topics in Government and Politics; The Origins of Modern Israeli Political Thought"
+      },
+      "professors": {}
     },
     "GVPT368Z": {
       "courseInfo": {
@@ -253343,6 +253461,36 @@
         "name": "Special Problems in Kinesiology"
       },
       "professors": {}
+    },
+    "KNES689Q": {
+      "courseInfo": {
+        "id": "KNES689Q",
+        "name": "Special Problems in Kinesiology; Clinical Biomechanics: Musculoskeletal Injury"
+      },
+      "professors": {
+        "Jae Kun Shim": [
+          {
+            "semester": "Spring",
+            "year": 2021,
+            "semesterId": "202101"
+          },
+          {
+            "semester": "Spring",
+            "year": 2022,
+            "semesterId": "202201"
+          },
+          {
+            "semester": "Fall",
+            "year": 2023,
+            "semesterId": "202308"
+          },
+          {
+            "semester": "Fall",
+            "year": 2024,
+            "semesterId": "202408"
+          }
+        ]
+      }
     },
     "KNES691": {
       "courseInfo": {
@@ -327248,6 +327396,53 @@
             "semester": "Fall",
             "year": 2023,
             "semesterId": "202308"
+          }
+        ]
+      }
+    },
+    "SPHL276": {
+      "courseInfo": {
+        "id": "SPHL276",
+        "name": "Decolonizing Medicine: Steps to Actionable Change"
+      },
+      "professors": {
+        "Dina Borzekowski": [
+          {
+            "semester": "Spring",
+            "year": 2025,
+            "semesterId": "202501"
+          },
+          {
+            "semester": "Spring",
+            "year": 2026,
+            "semesterId": "202601"
+          }
+        ]
+      }
+    },
+    "SPHL308": {
+      "courseInfo": {
+        "id": "SPHL308",
+        "name": "SPH Dean's Undergraduate Advisory Council"
+      },
+      "professors": {
+        "Beth Cohen": [
+          {
+            "semester": "Fall",
+            "year": 2025,
+            "semesterId": "202508"
+          }
+        ],
+        "Nicole Cousin-Gossett": [
+          {
+            "semester": "Fall",
+            "year": 2024,
+            "semesterId": "202408"
+          },
+          {
+            "semester": "Fall",
+            "year": 2025,
+            "semesterId": "202508"
           }
         ]
       }
