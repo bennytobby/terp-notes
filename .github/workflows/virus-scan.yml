@@ -1,10 +1,12 @@
 name: Virus Scan Cron
 
 on:
-  schedule:
-    # Run every 5 minutes for faster virus scanning
-    - cron: '*/5 * * * *'
-  # Allow manual triggering
+  # Scheduled runs disabled: this workflow was failing continuously
+  # (missing CRON_SECRET/VERCEL_URL or non-200 from the scan endpoint).
+  # Vercel Cron still hits /api/cron/scan-pending-files (see vercel.json).
+  # Re-enable the schedule below once secrets and the endpoint are healthy.
+  # schedule:
+  #   - cron: '*/5 * * * *'
   workflow_dispatch:
 
 jobs:
