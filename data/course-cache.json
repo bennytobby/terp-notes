@@ -1,8 +1,8 @@
 {
   "metadata": {
-    "generated": "2026-09-20T09:16:23.740Z",
+    "generated": "2026-09-27T10:01:48.496Z",
     "type": "course-indexed",
-    "coursesCount": 5111,
+    "coursesCount": 5104,
     "yearFilter": "Only years 2021 and after",
     "structure": "course -> professors -> semesters"
   },
@@ -163954,108 +163954,6 @@
       },
       "professors": {}
     },
-    "ENPM611": {
-      "courseInfo": {
-        "id": "ENPM611",
-        "name": "Software Engineering"
-      },
-      "professors": {
-        "Christopher Ackermann": [
-          {
-            "semester": "Fall",
-            "year": 2021,
-            "semesterId": "202108"
-          },
-          {
-            "semester": "Spring",
-            "year": 2021,
-            "semesterId": "202101"
-          },
-          {
-            "semester": "Spring",
-            "year": 2022,
-            "semesterId": "202201"
-          },
-          {
-            "semester": "Fall",
-            "year": 2022,
-            "semesterId": "202208"
-          },
-          {
-            "semester": "Spring",
-            "year": 2023,
-            "semesterId": "202301"
-          },
-          {
-            "semester": "Fall",
-            "year": 2023,
-            "semesterId": "202308"
-          },
-          {
-            "semester": "Spring",
-            "year": 2024,
-            "semesterId": "202401"
-          },
-          {
-            "semester": "Fall",
-            "year": 2024,
-            "semesterId": "202408"
-          },
-          {
-            "semester": "Spring",
-            "year": 2025,
-            "semesterId": "202501"
-          },
-          {
-            "semester": "Fall",
-            "year": 2025,
-            "semesterId": "202508"
-          },
-          {
-            "semester": "Spring",
-            "year": 2026,
-            "semesterId": "202601"
-          },
-          {
-            "semester": "Fall",
-            "year": 2026,
-            "semesterId": "202608"
-          }
-        ],
-        "Karthikeyan Chandrashekar": [
-          {
-            "semester": "Spring",
-            "year": 2024,
-            "semesterId": "202401"
-          },
-          {
-            "semester": "Fall",
-            "year": 2024,
-            "semesterId": "202408"
-          },
-          {
-            "semester": "Spring",
-            "year": 2025,
-            "semesterId": "202501"
-          },
-          {
-            "semester": "Fall",
-            "year": 2025,
-            "semesterId": "202508"
-          },
-          {
-            "semester": "Spring",
-            "year": 2026,
-            "semesterId": "202601"
-          },
-          {
-            "semester": "Fall",
-            "year": 2026,
-            "semesterId": "202608"
-          }
-        ]
-      }
-    },
     "ENPM613": {
       "courseInfo": {
         "id": "ENPM613",
@@ -244524,38 +244422,6 @@
         ]
       }
     },
-    "JOUR384": {
-      "courseInfo": {
-        "id": "JOUR384",
-        "name": "Social Media Content Creation, Audience Engagement and Analytics"
-      },
-      "professors": {
-        "Alexander Pyles": [
-          {
-            "semester": "Spring",
-            "year": 2025,
-            "semesterId": "202501"
-          },
-          {
-            "semester": "Spring",
-            "year": 2026,
-            "semesterId": "202601"
-          }
-        ],
-        "Shuning Lu": [
-          {
-            "semester": "Fall",
-            "year": 2025,
-            "semesterId": "202508"
-          },
-          {
-            "semester": "Fall",
-            "year": 2026,
-            "semesterId": "202608"
-          }
-        ]
-      }
-    },
     "JOUR389I": {
       "courseInfo": {
         "id": "JOUR389I",
@@ -252113,51 +251979,6 @@
         ]
       }
     },
-    "KNES401H": {
-      "courseInfo": {
-        "id": "KNES401H",
-        "name": "Zip Code: Prediction of Physical Activity & Health"
-      },
-      "professors": {
-        "Jennifer Roberts": [
-          {
-            "semester": "Spring",
-            "year": 2022,
-            "semesterId": "202201"
-          },
-          {
-            "semester": "Spring",
-            "year": 2023,
-            "semesterId": "202301"
-          },
-          {
-            "semester": "Fall",
-            "year": 2023,
-            "semesterId": "202308"
-          },
-          {
-            "semester": "Fall",
-            "year": 2024,
-            "semesterId": "202408"
-          },
-          {
-            "semester": "Fall",
-            "year": 2025,
-            "semesterId": "202508"
-          },
-          {
-            "semester": "Spring",
-            "year": 2026,
-            "semesterId": "202601"
-          },
-          {
-            "semester": "Fall",
-            "year": 2026,
-            "semesterId": "202608"
-          }
-        ]
-      }
-    },
     "KNES405": {
       "courseInfo": {
         "id": "KNES405",
@@ -259114,58 +258935,6 @@
         "name": "Independent Study"
       },
       "professors": {}
-    },
-    "LING698": {
-      "courseInfo": {
-        "id": "LING698",
-        "name": "Directed Study; Seminar"
-      },
-      "professors": {
-        "Howard Lasnik": [
-          {
-            "semester": "Fall",
-            "year": 2021,
-            "semesterId": "202108"
-          },
-          {
-            "semester": "Spring",
-            "year": 2021,
-            "semesterId": "202101"
-          },
-          {
-            "semester": "Spring",
-            "year": 2022,
-            "semesterId": "202201"
-          },
-          {
-            "semester": "Fall",
-            "year": 2022,
-            "semesterId": "202208"
-          },
-          {
-            "semester": "Fall",
-            "year": 2023,
-            "semesterId": "202308"
-          }
-        ],
-        "William Idsardi": [
-          {
-            "semester": "Fall",
-            "year": 2024,
-            "semesterId": "202408"
-          },
-          {
-            "semester": "Fall",
-            "year": 2025,
-            "semesterId": "202508"
-          },
-          {
-            "semester": "Fall",
-            "year": 2026,
-            "semesterId": "202608"
-          }
-        ]
-      }
     },
     "LING698C": {
       "courseInfo": {
@@ -266544,181 +266313,6 @@
         ]
       }
     },
-    "MATH411": {
-      "courseInfo": {
-        "id": "MATH411",
-        "name": "Advanced Calculus II"
-      },
-      "professors": {
-        "Antoine Mellet": [
-          {
-            "semester": "Fall",
-            "year": 2022,
-            "semesterId": "202208"
-          },
-          {
-            "semester": "Fall",
-            "year": 2025,
-            "semesterId": "202508"
-          },
-          {
-            "semester": "Spring",
-            "year": 2026,
-            "semesterId": "202601"
-          },
-          {
-            "semester": "Fall",
-            "year": 2026,
-            "semesterId": "202608"
-          }
-        ],
-        "Christian Rosendal": [
-          {
-            "semester": "Fall",
-            "year": 2026,
-            "semesterId": "202608"
-          }
-        ],
-        "Clarke Safsten": [
-          {
-            "semester": "Fall",
-            "year": 2025,
-            "semesterId": "202508"
-          }
-        ],
-        "Giovanni Forni": [
-          {
-            "semester": "Fall",
-            "year": 2021,
-            "semesterId": "202108"
-          }
-        ],
-        "Huy Nguyen": [
-          {
-            "semester": "Spring",
-            "year": 2022,
-            "semesterId": "202201"
-          },
-          {
-            "semester": "Spring",
-            "year": 2026,
-            "semesterId": "202601"
-          }
-        ],
-        "Justin Wyss-Gallifent": [
-          {
-            "semester": "Spring",
-            "year": 2021,
-            "semesterId": "202101"
-          }
-        ],
-        "Kendall Williams": [
-          {
-            "semester": "Fall",
-            "year": 2022,
-            "semesterId": "202208"
-          },
-          {
-            "semester": "Spring",
-            "year": 2023,
-            "semesterId": "202301"
-          },
-          {
-            "semester": "Fall",
-            "year": 2023,
-            "semesterId": "202308"
-          }
-        ],
-        "Lei Chen": [
-          {
-            "semester": "Spring",
-            "year": 2024,
-            "semesterId": "202401"
-          }
-        ],
-        "Leonid Koralov": [
-          {
-            "semester": "Fall",
-            "year": 2022,
-            "semesterId": "202208"
-          },
-          {
-            "semester": "Spring",
-            "year": 2025,
-            "semesterId": "202501"
-          }
-        ],
-        "Manoussos Grillakis": [],
-        "Matei Machedon": [
-          {
-            "semester": "Fall",
-            "year": 2021,
-            "semesterId": "202108"
-          },
-          {
-            "semester": "Spring",
-            "year": 2021,
-            "semesterId": "202101"
-          },
-          {
-            "semester": "Spring",
-            "year": 2023,
-            "semesterId": "202301"
-          },
-          {
-            "semester": "Fall",
-            "year": 2023,
-            "semesterId": "202308"
-          },
-          {
-            "semester": "Fall",
-            "year": 2024,
-            "semesterId": "202408"
-          },
-          {
-            "semester": "Fall",
-            "year": 2025,
-            "semesterId": "202508"
-          }
-        ],
-        "Ricardo Nochetto": [
-          {
-            "semester": "Spring",
-            "year": 2022,
-            "semesterId": "202201"
-          },
-          {
-            "semester": "Fall",
-            "year": 2024,
-            "semesterId": "202408"
-          },
-          {
-            "semester": "Fall",
-            "year": 2025,
-            "semesterId": "202508"
-          }
-        ],
-        "Richard Wentworth": [
-          {
-            "semester": "Spring",
-            "year": 2024,
-            "semesterId": "202401"
-          }
-        ],
-        "Shiferaw Berhanu": [
-          {
-            "semester": "Spring",
-            "year": 2025,
-            "semesterId": "202501"
-          },
-          {
-            "semester": "Fall",
-            "year": 2025,
-            "semesterId": "202508"
-          }
-        ]
-      }
-    },
     "MATH416": {
       "courseInfo": {
         "id": "MATH416",
@@ -268674,13 +268268,6 @@
           }
         ]
       }
-    },
-    "MATH689": {
-      "courseInfo": {
-        "id": "MATH689",
-        "name": "Research Interactions in Mathematics"
-      },
-      "professors": {}
     },
     "MATH695": {
       "courseInfo": {
@@ -277023,148 +276610,6 @@
         ]
       }
     },
-    "MSML602": {
-      "courseInfo": {
-        "id": "MSML602",
-        "name": "Principles of Data Science"
-      },
-      "professors": {
-        "Anna Evtushenko": [
-          {
-            "semester": "Fall",
-            "year": 2025,
-            "semesterId": "202508"
-          },
-          {
-            "semester": "Fall",
-            "year": 2026,
-            "semesterId": "202608"
-          }
-        ],
-        "Arefeh Nasri": [
-          {
-            "semester": "Fall",
-            "year": 2022,
-            "semesterId": "202208"
-          },
-          {
-            "semester": "Fall",
-            "year": 2023,
-            "semesterId": "202308"
-          }
-        ],
-        "Charles Forgy": [
-          {
-            "semester": "Fall",
-            "year": 2024,
-            "semesterId": "202408"
-          }
-        ],
-        "Fardina Alam": [
-          {
-            "semester": "Fall",
-            "year": 2024,
-            "semesterId": "202408"
-          },
-          {
-            "semester": "Fall",
-            "year": 2025,
-            "semesterId": "202508"
-          },
-          {
-            "semester": "Fall",
-            "year": 2026,
-            "semesterId": "202608"
-          }
-        ],
-        "Heng Huang": [
-          {
-            "semester": "Fall",
-            "year": 2024,
-            "semesterId": "202408"
-          }
-        ],
-        "Maksym Morawski": [
-          {
-            "semester": "Fall",
-            "year": 2024,
-            "semesterId": "202408"
-          }
-        ],
-        "Marco Macias Sevde": [
-          {
-            "semester": "Spring",
-            "year": 2025,
-            "semesterId": "202501"
-          }
-        ],
-        "Mohammad Hajiaghayi": [
-          {
-            "semester": "Fall",
-            "year": 2022,
-            "semesterId": "202208"
-          },
-          {
-            "semester": "Fall",
-            "year": 2023,
-            "semesterId": "202308"
-          }
-        ],
-        "Mohammad Nayeem Teli": [
-          {
-            "semester": "Fall",
-            "year": 2024,
-            "semesterId": "202408"
-          },
-          {
-            "semester": "Fall",
-            "year": 2025,
-            "semesterId": "202508"
-          },
-          {
-            "semester": "Fall",
-            "year": 2026,
-            "semesterId": "202608"
-          }
-        ],
-        "Prem Saggar": [
-          {
-            "semester": "Fall",
-            "year": 2021,
-            "semesterId": "202108"
-          }
-        ],
-        "Sujeong Kim": [
-          {
-            "semester": "Fall",
-            "year": 2026,
-            "semesterId": "202608"
-          }
-        ],
-        "Tammy Perrin": [
-          {
-            "semester": "Fall",
-            "year": 2024,
-            "semesterId": "202408"
-          },
-          {
-            "semester": "Fall",
-            "year": 2025,
-            "semesterId": "202508"
-          },
-          {
-            "semester": "Spring",
-            "year": 2026,
-            "semesterId": "202601"
-          },
-          {
-            "semester": "Fall",
-            "year": 2026,
-            "semesterId": "202608"
-          }
-        ]
-      }
-    },
     "MSML603": {
       "courseInfo": {
         "id": "MSML603",
@@ -277381,55 +276826,6 @@
       },
       "professors": {
         "Samet Ayhan": [
-          {
-            "semester": "Fall",
-            "year": 2026,
-            "semesterId": "202608"
-          }
-        ]
-      }
-    },
-    "MSML640": {
-      "courseInfo": {
-        "id": "MSML640",
-        "name": "Computer Vision"
-      },
-      "professors": {
-        "Jerry Wu": [
-          {
-            "semester": "Spring",
-            "year": 2024,
-            "semesterId": "202401"
-          },
-          {
-            "semester": "Spring",
-            "year": 2025,
-            "semesterId": "202501"
-          },
-          {
-            "semester": "Spring",
-            "year": 2026,
-            "semesterId": "202601"
-          }
-        ],
-        "Kyungjin Yoo": [
-          {
-            "semester": "Fall",
-            "year": 2022,
-            "semesterId": "202208"
-          }
-        ],
-        "Sujeong Kim": [
-          {
-            "semester": "Fall",
-            "year": 2025,
-            "semesterId": "202508"
-          },
-          {
-            "semester": "Spring",
-            "year": 2026,
-            "semesterId": "202601"
-          },
           {
             "semester": "Fall",
             "year": 2026,
@@ -288442,31 +287838,6 @@
       },
       "professors": {
         "Brendan Kibbee": [
-          {
-            "semester": "Fall",
-            "year": 2026,
-            "semesterId": "202608"
-          }
-        ]
-      }
-    },
-    "MUSC679S": {
-      "courseInfo": {
-        "id": "MUSC679S",
-        "name": "Seminar in Ethnomusicology; Music, Language, and Signs"
-      },
-      "professors": {
-        "Siv Lie": [
-          {
-            "semester": "Fall",
-            "year": 2021,
-            "semesterId": "202108"
-          },
-          {
-            "semester": "Fall",
-            "year": 2022,
-            "semesterId": "202208"
-          },
           {
             "semester": "Fall",
             "year": 2026,
@@ -301210,6 +300581,164 @@
         ]
       }
     },
+    "PHYS275": {
+      "courseInfo": {
+        "id": "PHYS275",
+        "name": "Experimental Physics I: Mechanics and Waves"
+      },
+      "professors": {
+        "Abolhassan Jawahery": [],
+        "Alberto Belloni": [],
+        "Anwar Bhatti": [
+          {
+            "semester": "Fall",
+            "year": 2021,
+            "semesterId": "202108"
+          },
+          {
+            "semester": "Fall",
+            "year": 2022,
+            "semesterId": "202208"
+          },
+          {
+            "semester": "Fall",
+            "year": 2023,
+            "semesterId": "202308"
+          },
+          {
+            "semester": "Fall",
+            "year": 2024,
+            "semesterId": "202408"
+          },
+          {
+            "semester": "Fall",
+            "year": 2025,
+            "semesterId": "202508"
+          },
+          {
+            "semester": "Spring",
+            "year": 2026,
+            "semesterId": "202601"
+          }
+        ],
+        "Arpita Upadhyaya": [
+          {
+            "semester": "Spring",
+            "year": 2022,
+            "semesterId": "202201"
+          },
+          {
+            "semester": "Spring",
+            "year": 2023,
+            "semesterId": "202301"
+          },
+          {
+            "semester": "Spring",
+            "year": 2024,
+            "semesterId": "202401"
+          }
+        ],
+        "Carter Hall": [
+          {
+            "semester": "Spring",
+            "year": 2025,
+            "semesterId": "202501"
+          },
+          {
+            "semester": "Fall",
+            "year": 2026,
+            "semesterId": "202608"
+          }
+        ],
+        "Daniel Lathrop": [
+          {
+            "semester": "Fall",
+            "year": 2022,
+            "semesterId": "202208"
+          }
+        ],
+        "Frederick Wellstood": [
+          {
+            "semester": "Spring",
+            "year": 2021,
+            "semesterId": "202101"
+          }
+        ],
+        "Kara Hoffman": [
+          {
+            "semester": "Fall",
+            "year": 2021,
+            "semesterId": "202108"
+          }
+        ],
+        "Ki-Yong Kim": [],
+        "Maria Mukhina": [
+          {
+            "semester": "Spring",
+            "year": 2024,
+            "semesterId": "202401"
+          },
+          {
+            "semester": "Spring",
+            "year": 2025,
+            "semesterId": "202501"
+          },
+          {
+            "semester": "Spring",
+            "year": 2026,
+            "semesterId": "202601"
+          }
+        ],
+        "Min Ouyang": [
+          {
+            "semester": "Fall",
+            "year": 2025,
+            "semesterId": "202508"
+          }
+        ],
+        "Rajarshi Roy": [
+          {
+            "semester": "Spring",
+            "year": 2022,
+            "semesterId": "202201"
+          }
+        ],
+        "Simone-Gunde Kulin": [
+          {
+            "semester": "Spring",
+            "year": 2023,
+            "semesterId": "202301"
+          },
+          {
+            "semester": "Fall",
+            "year": 2023,
+            "semesterId": "202308"
+          },
+          {
+            "semester": "Fall",
+            "year": 2026,
+            "semesterId": "202608"
+          }
+        ],
+        "Wendell Hill": [
+          {
+            "semester": "Fall",
+            "year": 2021,
+            "semesterId": "202108"
+          },
+          {
+            "semester": "Spring",
+            "year": 2021,
+            "semesterId": "202101"
+          },
+          {
+            "semester": "Fall",
+            "year": 2022,
+            "semesterId": "202208"
+          }
+        ]
+      }
+    },
     "PHYS276": {
       "courseInfo": {
         "id": "PHYS276",
@@ -302510,6 +302039,77 @@
             "semesterId": "202608"
           }
         ]
+      }
+    },
+    "PHYS407": {
+      "courseInfo": {
+        "id": "PHYS407",
+        "name": "Undergraduate Experimental Research"
+      },
+      "professors": {
+        "Carter Hall": [
+          {
+            "semester": "Fall",
+            "year": 2021,
+            "semesterId": "202108"
+          },
+          {
+            "semester": "Spring",
+            "year": 2021,
+            "semesterId": "202101"
+          },
+          {
+            "semester": "Spring",
+            "year": 2022,
+            "semesterId": "202201"
+          },
+          {
+            "semester": "Fall",
+            "year": 2022,
+            "semesterId": "202208"
+          },
+          {
+            "semester": "Spring",
+            "year": 2023,
+            "semesterId": "202301"
+          },
+          {
+            "semester": "Fall",
+            "year": 2023,
+            "semesterId": "202308"
+          },
+          {
+            "semester": "Spring",
+            "year": 2024,
+            "semesterId": "202401"
+          },
+          {
+            "semester": "Fall",
+            "year": 2024,
+            "semesterId": "202408"
+          },
+          {
+            "semester": "Spring",
+            "year": 2025,
+            "semesterId": "202501"
+          },
+          {
+            "semester": "Fall",
+            "year": 2025,
+            "semesterId": "202508"
+          },
+          {
+            "semester": "Spring",
+            "year": 2026,
+            "semesterId": "202601"
+          },
+          {
+            "semester": "Fall",
+            "year": 2026,
+            "semesterId": "202608"
+          }
+        ],
+        "Kara Hoffman": []
       }
     },
     "PHYS410": {
@@ -304524,21 +304124,6 @@
         ]
       }
     },
-    "PHYS859B": {
-      "courseInfo": {
-        "id": "PHYS859B",
-        "name": "Special Topics in Elementary Particles and Quantum Field Theory; Advanced Topics in Particle Physics"
-      },
-      "professors": {
-        "Raman Sundrum": [
-          {
-            "semester": "Fall",
-            "year": 2026,
-            "semesterId": "202608"
-          }
-        ]
-      }
-    },
     "PHYS879G": {
       "courseInfo": {
         "id": "PHYS879G",
@@ -305805,21 +305390,6 @@
             "semester": "Summer",
             "year": 2026,
             "semesterId": "202605"
-          }
-        ]
-      }
-    },
-    "PLCY288K": {
-      "courseInfo": {
-        "id": "PLCY288K",
-        "name": "Introduction to Public Policy Topics; Back to the Future: History and Public Policy"
-      },
-      "professors": {
-        "CHRISTIAN OSTERMANN": [
-          {
-            "semester": "Fall",
-            "year": 2026,
-            "semesterId": "202608"
           }
         ]
       }
@@ -310708,6 +310278,13 @@
           }
         ]
       }
+    },
+    "PLSC799": {
+      "courseInfo": {
+        "id": "PLSC799",
+        "name": "Master's Thesis Research"
+      },
+      "professors": {}
     },
     "PLSC898": {
       "courseInfo": {
@@ -320920,6 +320497,58 @@
             "semester": "Fall",
             "year": 2026,
             "semesterId": "202608"
+          }
+        ]
+      }
+    },
+    "SLAA620": {
+      "courseInfo": {
+        "id": "SLAA620",
+        "name": "Second Language Research Methodologies"
+      },
+      "professors": {
+        "Bronson Hui": [
+          {
+            "semester": "Fall",
+            "year": 2023,
+            "semesterId": "202308"
+          },
+          {
+            "semester": "Fall",
+            "year": 2024,
+            "semesterId": "202408"
+          },
+          {
+            "semester": "Fall",
+            "year": 2025,
+            "semesterId": "202508"
+          }
+        ],
+        "Ekaterina Sudina": [
+          {
+            "semester": "Fall",
+            "year": 2026,
+            "semesterId": "202608"
+          }
+        ],
+        "Martyn Clark": [
+          {
+            "semester": "Spring",
+            "year": 2022,
+            "semesterId": "202201"
+          },
+          {
+            "semester": "Spring",
+            "year": 2023,
+            "semesterId": "202301"
+          }
+        ],
+        "Robert De Keyser": [],
+        "Steven Ross": [
+          {
+            "semester": "Spring",
+            "year": 2022,
+            "semesterId": "202201"
           }
         ]
       }
