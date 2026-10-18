@@ -1,8 +1,8 @@
 {
   "metadata": {
-    "generated": "2026-10-11T10:39:43.583Z",
+    "generated": "2026-10-18T07:56:49.861Z",
     "type": "course-indexed",
-    "coursesCount": 5108,
+    "coursesCount": 5117,
     "yearFilter": "Only years 2021 and after",
     "structure": "course -> professors -> semesters"
   },
@@ -276852,6 +276852,26 @@
         ]
       }
     },
+    "MSAI641": {
+      "courseInfo": {
+        "id": "MSAI641",
+        "name": "Natural Language Processing"
+      },
+      "professors": {
+        "Armin Mehrabian": [
+          {
+            "semester": "Summer",
+            "year": 2026,
+            "semesterId": "202605"
+          },
+          {
+            "semester": "Fall",
+            "year": 2026,
+            "semesterId": "202608"
+          }
+        ]
+      }
+    },
     "MSML601": {
       "courseInfo": {
         "id": "MSML601",
@@ -301720,6 +301740,40 @@
         ]
       }
     },
+    "PHYS360": {
+      "courseInfo": {
+        "id": "PHYS360",
+        "name": "Introduction to Quantum Mechanics: a Linear Algebra Approach"
+      },
+      "professors": {
+        "Chandra Turpen": [
+          {
+            "semester": "Fall",
+            "year": 2025,
+            "semesterId": "202508"
+          },
+          {
+            "semester": "Fall",
+            "year": 2026,
+            "semesterId": "202608"
+          }
+        ],
+        "Robert Hilborn": [
+          {
+            "semester": "Fall",
+            "year": 2024,
+            "semesterId": "202408"
+          }
+        ],
+        "Theodore Jacobson": [
+          {
+            "semester": "Fall",
+            "year": 2026,
+            "semesterId": "202608"
+          }
+        ]
+      }
+    },
     "PHYS371": {
       "courseInfo": {
         "id": "PHYS371",
@@ -314433,6 +314487,149 @@
         ]
       }
     },
+    "PSYC433": {
+      "courseInfo": {
+        "id": "PSYC433",
+        "name": "Basic Helping Skills: Research and Practice"
+      },
+      "professors": {
+        "Alexa Euceda": [
+          {
+            "semester": "Summer",
+            "year": 2026,
+            "semesterId": "202605"
+          }
+        ],
+        "Beth Richie": [],
+        "Beth Sperber Richie": [],
+        "Heather Ganginis DelPino": [
+          {
+            "semester": "Spring",
+            "year": 2023,
+            "semesterId": "202301"
+          },
+          {
+            "semester": "Spring",
+            "year": 2024,
+            "semesterId": "202401"
+          },
+          {
+            "semester": "Spring",
+            "year": 2025,
+            "semesterId": "202501"
+          },
+          {
+            "semester": "Fall",
+            "year": 2025,
+            "semesterId": "202508"
+          }
+        ],
+        "Jonathan Mohr": [
+          {
+            "semester": "Spring",
+            "year": 2021,
+            "semesterId": "202101"
+          },
+          {
+            "semester": "Spring",
+            "year": 2022,
+            "semesterId": "202201"
+          },
+          {
+            "semester": "Spring",
+            "year": 2023,
+            "semesterId": "202301"
+          },
+          {
+            "semester": "Spring",
+            "year": 2024,
+            "semesterId": "202401"
+          },
+          {
+            "semester": "Spring",
+            "year": 2025,
+            "semesterId": "202501"
+          },
+          {
+            "semester": "Spring",
+            "year": 2026,
+            "semesterId": "202601"
+          }
+        ],
+        "Judith Gerstenblith": [
+          {
+            "semester": "Summer",
+            "year": 2021,
+            "semesterId": "202105"
+          },
+          {
+            "semester": "Spring",
+            "year": 2022,
+            "semesterId": "202201"
+          }
+        ],
+        "Katie Rim": [
+          {
+            "semester": "Summer",
+            "year": 2023,
+            "semesterId": "202305"
+          }
+        ],
+        "Monica Kearney": [
+          {
+            "semester": "Fall",
+            "year": 2021,
+            "semesterId": "202108"
+          },
+          {
+            "semester": "Fall",
+            "year": 2022,
+            "semesterId": "202208"
+          },
+          {
+            "semester": "Fall",
+            "year": 2023,
+            "semesterId": "202308"
+          }
+        ],
+        "M Pease": [
+          {
+            "semester": "Summer",
+            "year": 2025,
+            "semesterId": "202505"
+          }
+        ],
+        "Stephanie Yee": [
+          {
+            "semester": "Summer",
+            "year": 2022,
+            "semesterId": "202205"
+          },
+          {
+            "semester": "Summer",
+            "year": 2024,
+            "semesterId": "202405"
+          }
+        ],
+        "Terrill Taylor": [
+          {
+            "semester": "Fall",
+            "year": 2023,
+            "semesterId": "202308"
+          },
+          {
+            "semester": "Fall",
+            "year": 2024,
+            "semesterId": "202408"
+          },
+          {
+            "semester": "Fall",
+            "year": 2026,
+            "semesterId": "202608"
+          }
+        ]
+      }
+    },
     "PSYC436": {
       "courseInfo": {
         "id": "PSYC436",
@@ -319765,6 +319962,43 @@
         ]
       }
     },
+    "RDEV688C": {
+      "courseInfo": {
+        "id": "RDEV688C",
+        "name": "Selected Topics in Real Estate Development; Real Estate Case Study Competition"
+      },
+      "professors": {
+        "Jesse Saginor": [
+          {
+            "semester": "Fall",
+            "year": 2024,
+            "semesterId": "202408"
+          },
+          {
+            "semester": "Fall",
+            "year": 2025,
+            "semesterId": "202508"
+          },
+          {
+            "semester": "Fall",
+            "year": 2026,
+            "semesterId": "202608"
+          }
+        ],
+        "Tanya Bansal": [
+          {
+            "semester": "Fall",
+            "year": 2023,
+            "semesterId": "202308"
+          },
+          {
+            "semester": "Fall",
+            "year": 2024,
+            "semesterId": "202408"
+          }
+        ]
+      }
+    },
     "RDEV689D": {
       "courseInfo": {
         "id": "RDEV689D",
@@ -320713,6 +320947,21 @@
       },
       "professors": {}
     },
+    "RUSS404": {
+      "courseInfo": {
+        "id": "RUSS404",
+        "name": "Practicum in Spoken Russian"
+      },
+      "professors": {
+        "Izolda Savenkova": [
+          {
+            "semester": "Fall",
+            "year": 2026,
+            "semesterId": "202608"
+          }
+        ]
+      }
+    },
     "RUSS499": {
       "courseInfo": {
         "id": "RUSS499",
@@ -321196,6 +321445,13 @@
           }
         ]
       }
+    },
+    "SLAA888": {
+      "courseInfo": {
+        "id": "SLAA888",
+        "name": "Doctoral Independent Study"
+      },
+      "professors": {}
     },
     "SLAA898": {
       "courseInfo": {
@@ -328937,6 +329193,13 @@
         ]
       }
     },
+    "SPHL478A": {
+      "courseInfo": {
+        "id": "SPHL478A",
+        "name": "Special Topics in Public Health"
+      },
+      "professors": {}
+    },
     "SPHL600": {
       "courseInfo": {
         "id": "SPHL600",
@@ -329006,6 +329269,50 @@
           }
         ],
         "Zahra Saboori": []
+      }
+    },
+    "SPHL601": {
+      "courseInfo": {
+        "id": "SPHL601",
+        "name": "Core Concepts in Public Health"
+      },
+      "professors": {
+        "Adele Robinson": [],
+        "Alex Blumenthal": [],
+        "Alison Jovanovic": [],
+        "Allison Hedges": [],
+        "Alvin Mayes": [],
+        "Amy Green": [],
+        "Andrew Cissna": [],
+        "Andrew Cohen": [],
+        "Anita Sanyal": [],
+        "Archana Khurana": [],
+        "Ashley Amaya": [],
+        "Azieb Kidanu": [
+          {
+            "semester": "Fall",
+            "year": 2021,
+            "semesterId": "202108"
+          }
+        ],
+        "Barbara Curbow": [],
+        "Barbara CurbowBarbara Curbow": [],
+        "Benjamin Kedem": [],
+        "Bobby Hunter": [],
+        "Brady West": [],
+        "Brian Kim": [],
+        "Brian MacDevitt": [],
+        "Brian Smithling": [],
+        "Brooke Dalesio": [],
+        "Caitlin Marshall": [],
+        "Carolina Casas-Cordero": [],
+        "Casey Cremins": [],
+        "Christine Nickel": [],
+        "Christopher Antoun": [],
+        "Christoph Kern": [],
+        "Christoph Theil": [],
+        "Dana Grosser-Clarkson": [],
+        "Daniel Conway": []
       }
     },
     "SPHL602": {
@@ -329275,6 +329582,290 @@
             "semesterId": "202608"
           }
         ]
+      }
+    },
+    "STAT100": {
+      "courseInfo": {
+        "id": "STAT100",
+        "name": "Elementary Statistics and Probability"
+      },
+      "professors": {
+        "Amandeep Chanda": [
+          {
+            "semester": "Summer",
+            "year": 2022,
+            "semesterId": "202205"
+          },
+          {
+            "semester": "Summer",
+            "year": 2023,
+            "semesterId": "202305"
+          },
+          {
+            "semester": "Summer",
+            "year": 2025,
+            "semesterId": "202505"
+          }
+        ],
+        "Archana Khurana": [
+          {
+            "semester": "Fall",
+            "year": 2022,
+            "semesterId": "202208"
+          },
+          {
+            "semester": "Spring",
+            "year": 2023,
+            "semesterId": "202301"
+          },
+          {
+            "semester": "Fall",
+            "year": 2023,
+            "semesterId": "202308"
+          },
+          {
+            "semester": "Fall",
+            "year": 2024,
+            "semesterId": "202408"
+          },
+          {
+            "semester": "Fall",
+            "year": 2025,
+            "semesterId": "202508"
+          },
+          {
+            "semester": "Fall",
+            "year": 2026,
+            "semesterId": "202608"
+          }
+        ],
+        "Clarke Safsten": [
+          {
+            "semester": "Spring",
+            "year": 2025,
+            "semesterId": "202501"
+          }
+        ],
+        "Ergun Kacar": [
+          {
+            "semester": "Summer",
+            "year": 2023,
+            "semesterId": "202305"
+          }
+        ],
+        "Ishfaaq Mohammed Imtiyas": [
+          {
+            "semester": "Fall",
+            "year": 2022,
+            "semesterId": "202208"
+          },
+          {
+            "semester": "Summer",
+            "year": 2022,
+            "semesterId": "202205"
+          },
+          {
+            "semester": "Fall",
+            "year": 2023,
+            "semesterId": "202308"
+          }
+        ],
+        "Jonathan Fernandes": [
+          {
+            "semester": "Spring",
+            "year": 2024,
+            "semesterId": "202401"
+          },
+          {
+            "semester": "Spring",
+            "year": 2026,
+            "semesterId": "202601"
+          }
+        ],
+        "Lang Song": [
+          {
+            "semester": "Summer",
+            "year": 2026,
+            "semesterId": "202605"
+          }
+        ],
+        "Maeve Wildes": [
+          {
+            "semester": "Summer",
+            "year": 2026,
+            "semesterId": "202605"
+          }
+        ],
+        "Matthew Griffin": [
+          {
+            "semester": "Fall",
+            "year": 2021,
+            "semesterId": "202108"
+          },
+          {
+            "semester": "Spring",
+            "year": 2021,
+            "semesterId": "202101"
+          },
+          {
+            "semester": "Summer",
+            "year": 2021,
+            "semesterId": "202105"
+          },
+          {
+            "semester": "Spring",
+            "year": 2022,
+            "semesterId": "202201"
+          },
+          {
+            "semester": "Fall",
+            "year": 2022,
+            "semesterId": "202208"
+          },
+          {
+            "semester": "Spring",
+            "year": 2023,
+            "semesterId": "202301"
+          },
+          {
+            "semester": "Fall",
+            "year": 2023,
+            "semesterId": "202308"
+          },
+          {
+            "semester": "Spring",
+            "year": 2024,
+            "semesterId": "202401"
+          },
+          {
+            "semester": "Summer",
+            "year": 2024,
+            "semesterId": "202405"
+          },
+          {
+            "semester": "Fall",
+            "year": 2024,
+            "semesterId": "202408"
+          },
+          {
+            "semester": "Spring",
+            "year": 2025,
+            "semesterId": "202501"
+          },
+          {
+            "semester": "Fall",
+            "year": 2025,
+            "semesterId": "202508"
+          },
+          {
+            "semester": "Summer",
+            "year": 2025,
+            "semesterId": "202505"
+          },
+          {
+            "semester": "Spring",
+            "year": 2026,
+            "semesterId": "202601"
+          },
+          {
+            "semester": "Fall",
+            "year": 2026,
+            "semesterId": "202608"
+          }
+        ],
+        "Mohammed Rahman": [
+          {
+            "semester": "Summer",
+            "year": 2024,
+            "semesterId": "202405"
+          }
+        ],
+        "Ran Li": [
+          {
+            "semester": "Summer",
+            "year": 2022,
+            "semesterId": "202205"
+          },
+          {
+            "semester": "Summer",
+            "year": 2024,
+            "semesterId": "202405"
+          },
+          {
+            "semester": "Summer",
+            "year": 2025,
+            "semesterId": "202505"
+          },
+          {
+            "semester": "Summer",
+            "year": 2026,
+            "semesterId": "202605"
+          }
+        ],
+        "Shiping Liu": [
+          {
+            "semester": "Summer",
+            "year": 2021,
+            "semesterId": "202105"
+          }
+        ],
+        "Siddharth Sharma": [
+          {
+            "semester": "Fall",
+            "year": 2021,
+            "semesterId": "202108"
+          }
+        ],
+        "Susan Mazzullo": [
+          {
+            "semester": "Fall",
+            "year": 2021,
+            "semesterId": "202108"
+          },
+          {
+            "semester": "Spring",
+            "year": 2021,
+            "semesterId": "202101"
+          },
+          {
+            "semester": "Spring",
+            "year": 2022,
+            "semesterId": "202201"
+          },
+          {
+            "semester": "Fall",
+            "year": 2022,
+            "semesterId": "202208"
+          },
+          {
+            "semester": "Summer",
+            "year": 2025,
+            "semesterId": "202505"
+          }
+        ],
+        "Valeriia Cherepanova": [],
+        "Wen-Tai Hsu": [
+          {
+            "semester": "Summer",
+            "year": 2023,
+            "semesterId": "202305"
+          }
+        ],
+        "Yu-Chi Hou": [
+          {
+            "semester": "Summer",
+            "year": 2026,
+            "semesterId": "202605"
+          }
+        ],
+        "Yue Dong": [
+          {
+            "semester": "Fall",
+            "year": 2024,
+            "semesterId": "202408"
+          }
+        ],
+        "Yuyin Shi": []
       }
     },
     "STAT110": {
