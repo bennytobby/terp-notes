@@ -33,13 +33,18 @@ class IntegrationsManager {
         const success = urlParams.get('success');
         const error = urlParams.get('error');
 
-        if (success === 'connected') {
-            this.showNotification('Integration connected successfully!', 'success');
-            // Clean up URL
+        const successMessages = {
+            connected: 'Integration connected successfully!',
+            google_connected: 'Google Drive connected successfully!',
+            microsoft_connected: 'OneNote connected successfully!',
+            notion_connected: 'Notion connected successfully!'
+        };
+
+        if (success && successMessages[success]) {
+            this.showNotification(successMessages[success], 'success');
             window.history.replaceState({}, document.title, window.location.pathname);
         } else if (error) {
             this.showNotification(`Connection failed: ${decodeURIComponent(error)}`, 'error');
-            // Clean up URL
             window.history.replaceState({}, document.title, window.location.pathname);
         }
     }
@@ -97,10 +102,10 @@ class IntegrationsManager {
         const card = document.createElement('div');
         card.className = `integration-card ${integration.isConnected ? 'connected' : ''}`;
 
-        // Show connected account info if available
-        const connectedAccountInfo = integration.connectedAccount ?
+        const connectedLabel = this.formatConnectedAccount(integration.connectedAccount);
+        const connectedAccountInfo = connectedLabel ?
             `<div class="connected-account">
-                <small>✅ Connected as: ${integration.connectedAccount.email || integration.connectedAccount.name || 'Connected'}</small>
+                <small>✅ Connected as: ${connectedLabel}</small>
             </div>` : '';
 
         card.innerHTML = `
@@ -140,20 +145,32 @@ class IntegrationsManager {
                     Disconnect
                 </button>
             `;
-        } else {
-            if (integration.oauthSupported) {
+        } else if (integration.unavailable) {
+            return `
+                <button class="btn btn-secondary" disabled>
+                    Not available on the web
+                </button>
+            `;
+        } else if (integration.oauthSupported) {
+            if (integration.oauthConfigured === false) {
                 return `
-                    <button class="btn btn-primary" onclick="integrationsManager.startOAuthFlow('${integration.id}')">
-                        🔐 Connect with OAuth
-                    </button>
-                `;
-            } else {
-                return `
-                    <button class="btn btn-primary" onclick="integrationsManager.showConnectModal('${integration.id}')">
-                        Connect
+                    <button class="btn btn-secondary" disabled title="OAuth app credentials are not configured on the server">
+                        Connect unavailable
                     </button>
                 `;
             }
+            const label = integration.connectLabel || 'Connect';
+            return `
+                <button class="btn btn-primary" onclick="integrationsManager.startOAuthFlow('${integration.id}')">
+                    ${label}
+                </button>
+            `;
+        } else {
+            return `
+                <button class="btn btn-primary" onclick="integrationsManager.showConnectModal('${integration.id}')">
+                    Connect
+                </button>
+            `;
         }
     }
 
@@ -268,23 +285,27 @@ class IntegrationsManager {
         }
     }
 
+    formatConnectedAccount(account) {
+        if (!account) return '';
+        if (typeof account === 'string') return account;
+        return account.email || account.name || 'Connected';
+    }
+
     async startOAuthFlow(integrationId) {
         try {
-            // Map integration IDs to OAuth providers
+            const integration = this.integrations.find(i => i.id === integrationId);
             const providerMap = {
                 'notion': 'notion',
                 'onenote': 'microsoft',
                 'google-docs': 'google'
             };
 
-            const provider = providerMap[integrationId];
+            const provider = integration?.oauthProvider || providerMap[integrationId];
             if (!provider) {
                 this.showNotification('OAuth not supported for this integration', 'error');
                 return;
             }
 
-            // OAuth redirect - use relative URL (same as API calls)
-            // The server will handle the full URL construction for OAuth redirects
             window.location.href = `/auth/${provider}`;
         } catch (error) {
             console.error('Error starting OAuth flow:', error);

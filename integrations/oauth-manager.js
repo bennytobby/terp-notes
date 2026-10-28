@@ -10,7 +10,7 @@ class OAuthManager {
                 clientId: process.env.GOOGLE_CLIENT_ID,
                 clientSecret: process.env.GOOGLE_CLIENT_SECRET,
                 redirectUri: `${process.env.BASE_URL || 'http://localhost:3000'}/auth/google/callback`,
-                scope: 'openid email profile https://www.googleapis.com/auth/drive.file',
+                scope: 'openid email profile https://www.googleapis.com/auth/drive.readonly https://www.googleapis.com/auth/drive.file https://www.googleapis.com/auth/documents',
                 authUrl: 'https://accounts.google.com/o/oauth2/v2/auth',
                 tokenUrl: 'https://oauth2.googleapis.com/token',
                 userInfoUrl: 'https://openidconnect.googleapis.com/v1/userinfo'
@@ -62,8 +62,11 @@ class OAuthManager {
         if (provider === 'google') {
             params.set('access_type', 'offline');
             params.set('prompt', 'consent');
+            params.set('include_granted_scopes', 'true');
         }
-        // For Notion, ensure owner=user is in the authUrl or add it here
+        if (provider === 'microsoft') {
+            params.set('prompt', 'select_account');
+        }
         if (provider === 'notion') {
             params.set('owner', 'user');
         }

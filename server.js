@@ -1075,8 +1075,9 @@ function sanitizeForHeader(filename) {
 app.use(async (req, res, next) => {
     const publicRoutes = ['/', '/login', '/register', '/loginSubmit', '/registerSubmit', '/forgot-password', '/resend-verification', '/privacy', '/terms', '/contact', '/contact/submit', '/api/umd/professors', '/api/umd/courses', '/api/umd/professor-courses', '/api/professor-cache', '/api/course-cache', '/api/semester-year-cache', '/api/optimized-cache'];
     const publicRoutesRegex = /^\/(verify|reset-password)\/.+/; // Match /verify/:token and /reset-password/:token
+    const isOAuthCallback = /^\/auth\/[a-z]+\/callback$/.test(req.path);
 
-    const isPublicRoute = publicRoutes.includes(req.path) || publicRoutesRegex.test(req.path);
+    const isPublicRoute = publicRoutes.includes(req.path) || publicRoutesRegex.test(req.path) || isOAuthCallback;
     const isApiRoute = req.path.startsWith('/api/');
 
     // Check if user is authenticated via session
@@ -5578,50 +5579,37 @@ app.get('/api/semester-year-cache', async (req, res) => {
 });
 
 
-// OAuth Routes
-app.get('/auth/google', (req, res) => {
-    if (!req.session.user) {
-        return res.status(401).json({ error: 'Unauthorized' });
-    }
+function startOAuthFlow(provider) {
+    return function (req, res) {
+        if (!req.session.user) {
+            return res.redirect('/login');
+        }
 
-    try {
-        const authData = oauthManager.generateAuthUrl('google', req.session.user.userid);
-        res.redirect(authData.authUrl);
-    } catch (error) {
-        console.error('Google OAuth error:', error);
-        res.status(500).json({ error: 'OAuth configuration error' });
-    }
-});
+        if (!oauthManager.isConfigured(provider)) {
+            return res.redirect(`/integrations?error=${encodeURIComponent(`${provider} OAuth is not configured`)}`);
+        }
 
-app.get('/auth/microsoft', (req, res) => {
-    if (!req.session.user) {
-        return res.status(401).json({ error: 'Unauthorized' });
-    }
+        try {
+            const { authUrl, state } = oauthManager.generateAuthUrl(provider, req.session.user.userid);
+            req.session.oauthState = state;
+            req.session.oauthProvider = provider;
+            req.session.save((err) => {
+                if (err) {
+                    console.error(`${provider} OAuth session save error:`, err);
+                    return res.redirect('/integrations?error=oauth_failed');
+                }
+                res.redirect(authUrl);
+            });
+        } catch (error) {
+            console.error(`${provider} OAuth error:`, error);
+            res.redirect('/integrations?error=oauth_failed');
+        }
+    };
+}
 
-    try {
-        const authData = oauthManager.generateAuthUrl('microsoft', req.session.user.userid);
-        res.redirect(authData.authUrl);
-    } catch (error) {
-        console.error('Microsoft OAuth error:', error);
-        res.status(500).json({ error: 'OAuth configuration error' });
-    }
-});
-
-app.get('/auth/notion', (req, res) => {
-    if (!req.session.user) {
-        return res.status(401).json({ error: 'Unauthorized' });
-    }
-
-    try {
-        console.log('Notion OAuth initiation - user:', req.session.user.userid);
-        const authData = oauthManager.generateAuthUrl('notion', req.session.user.userid);
-        console.log('Notion OAuth - generated auth URL:', authData.authUrl);
-        res.redirect(authData.authUrl);
-    } catch (error) {
-        console.error('Notion OAuth error:', error);
-        res.status(500).json({ error: 'OAuth configuration error' });
-    }
-});
+app.get('/auth/google', startOAuthFlow('google'));
+app.get('/auth/microsoft', startOAuthFlow('microsoft'));
+app.get('/auth/notion', startOAuthFlow('notion'));
 
 // OAuth Callback Routes
 app.get('/auth/google/callback', async (req, res) => {
@@ -5950,50 +5938,65 @@ function registerIntegrationRoutes() {
                 // }
             }
 
+            const googleConfigured = oauthManager.isConfigured('google');
+            const microsoftConfigured = oauthManager.isConfigured('microsoft');
+            const notionConfigured = oauthManager.isConfigured('notion');
+
             const integrations = [
+                {
+                    id: 'google-docs',
+                    name: 'Google Drive',
+                    description: 'One-click connect to import and export notes from Google Drive and Docs',
+                    icon: '📄',
+                    features: ['import', 'export'],
+                    authRequired: true,
+                    isConnected: validatedIntegrations.some(i => i.integrationId === 'google-docs') && googleConfigured,
+                    connectedAccount: validatedIntegrations.find(i => i.integrationId === 'google-docs')?.connectedAccount || null,
+                    oauthSupported: true,
+                    oauthConfigured: googleConfigured,
+                    oauthProvider: 'google',
+                    connectLabel: 'Connect with Google'
+                },
                 {
                     id: 'notion',
                     name: 'Notion',
-                    description: 'Import and export notes from Notion databases',
+                    description: 'One-click connect to import and export notes from your Notion workspace',
                     icon: '📝',
                     features: ['import', 'export'],
                     authRequired: true,
-                    isConnected: validatedIntegrations.some(i => i.integrationId === 'notion') && oauthManager.isConfigured('notion'),
+                    isConnected: validatedIntegrations.some(i => i.integrationId === 'notion') && notionConfigured,
                     connectedAccount: validatedIntegrations.find(i => i.integrationId === 'notion')?.connectedAccount || null,
-                    oauthSupported: oauthManager.isConfigured('notion')
+                    oauthSupported: true,
+                    oauthConfigured: notionConfigured,
+                    oauthProvider: 'notion',
+                    connectLabel: 'Connect with Notion'
                 },
                 {
                     id: 'onenote',
                     name: 'OneNote',
-                    description: 'Sync with Microsoft OneNote notebooks',
+                    description: 'One-click connect to sync notes with Microsoft OneNote',
                     icon: '📓',
                     features: ['import', 'export'],
                     authRequired: true,
-                    isConnected: validatedIntegrations.some(i => i.integrationId === 'onenote') && oauthManager.isConfigured('microsoft'),
+                    isConnected: validatedIntegrations.some(i => i.integrationId === 'onenote') && microsoftConfigured,
                     connectedAccount: validatedIntegrations.find(i => i.integrationId === 'onenote')?.connectedAccount || null,
-                    oauthSupported: oauthManager.isConfigured('microsoft')
-                },
-                {
-                    id: 'google-docs',
-                    name: 'Google Docs',
-                    description: 'Import and export Google Docs',
-                    icon: '📄',
-                    features: ['import', 'export'],
-                    authRequired: true,
-                    isConnected: validatedIntegrations.some(i => i.integrationId === 'google-docs') && oauthManager.isConfigured('google'),
-                    connectedAccount: validatedIntegrations.find(i => i.integrationId === 'google-docs')?.connectedAccount || null,
-                    oauthSupported: oauthManager.isConfigured('google')
+                    oauthSupported: true,
+                    oauthConfigured: microsoftConfigured,
+                    oauthProvider: 'microsoft',
+                    connectLabel: 'Connect with Microsoft'
                 },
                 {
                     id: 'obsidian',
                     name: 'Obsidian',
-                    description: 'Import and export from Obsidian vaults',
+                    description: 'Local vault access is not available on the hosted site. Use dashboard upload for Markdown files.',
                     icon: '🔗',
                     features: ['import', 'export'],
                     authRequired: false,
-                    isConnected: validatedIntegrations.some(i => i.integrationId === 'obsidian'),
-                    connectedAccount: validatedIntegrations.find(i => i.integrationId === 'obsidian')?.connectedAccount || null,
-                    oauthSupported: false
+                    isConnected: false,
+                    connectedAccount: null,
+                    oauthSupported: false,
+                    oauthConfigured: false,
+                    unavailable: true
                 }
             ];
 
@@ -6013,6 +6016,13 @@ function registerIntegrationRoutes() {
         try {
             const { integrationId } = req.params;
             const { credentials } = req.body;
+            const oauthOnlyIntegrations = ['google-docs', 'notion', 'onenote'];
+
+            if (oauthOnlyIntegrations.includes(integrationId)) {
+                return res.status(400).json({
+                    error: 'Connect this integration with one-click OAuth from the Integrations page.'
+                });
+            }
 
             if (!credentials) {
                 return res.status(400).json({ error: 'Credentials required' });
@@ -6253,38 +6263,4 @@ async function initializeIntegrations() {
 
 // Store user integration credentials (in production, use encrypted storage)
 const userIntegrations = new Map();
-
-// ================================
-// OAUTH AUTHENTICATION ROUTES
-// ================================
-
-// OAuth: Start authentication flow
-app.get('/auth/:provider', async (req, res) => {
-    if (!req.session.user) {
-        return res.status(401).json({ error: 'Unauthorized' });
-    }
-
-    try {
-        const { provider } = req.params;
-
-        if (!oauthManager.isConfigured(provider)) {
-            return res.status(400).json({
-                error: `${provider} OAuth is not configured. Please set up ${provider.toUpperCase()}_CLIENT_ID and ${provider.toUpperCase()}_CLIENT_SECRET environment variables.`
-            });
-        }
-
-        const { authUrl, state } = oauthManager.generateAuthUrl(provider, req.session.user.userid);
-
-        // Store state in session for verification
-        req.session.oauthState = state;
-        req.session.oauthProvider = provider;
-
-        res.json({ success: true, authUrl: authUrl });
-    } catch (error) {
-        console.error('OAuth initiation error:', error);
-        res.status(500).json({ error: 'Failed to initiate OAuth flow' });
-    }
-});
-
-// Generic OAuth callback route removed - using specific routes for each provider
 
