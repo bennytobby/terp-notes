@@ -1,8 +1,8 @@
 {
   "metadata": {
-    "generated": "2026-11-01T10:12:48.867Z",
+    "generated": "2026-11-08T10:23:53.799Z",
     "type": "course-indexed",
-    "coursesCount": 4644,
+    "coursesCount": 4667,
     "yearFilter": "Only years 2021 and after",
     "structure": "course -> professors -> semesters"
   },
@@ -5045,6 +5045,13 @@
         ],
         "Perla Guerrero": []
       }
+    },
+    "AMST628Q": {
+      "courseInfo": {
+        "id": "AMST628Q",
+        "name": "Seminar in American Studies; Radical Love"
+      },
+      "professors": {}
     },
     "AMST655": {
       "courseInfo": {
@@ -25763,6 +25770,60 @@
         ]
       }
     },
+    "ARTT331H": {
+      "courseInfo": {
+        "id": "ARTT331H",
+        "name": "Elements of Sculpture: Steel"
+      },
+      "professors": {
+        "Jeremy Kunkel": [
+          {
+            "semester": "Fall",
+            "year": 2024,
+            "semesterId": "202408"
+          },
+          {
+            "semester": "Fall",
+            "year": 2025,
+            "semesterId": "202508"
+          },
+          {
+            "semester": "Fall",
+            "year": 2026,
+            "semesterId": "202608"
+          }
+        ],
+        "John Ruppert": [
+          {
+            "semester": "Fall",
+            "year": 2021,
+            "semesterId": "202108"
+          },
+          {
+            "semester": "Fall",
+            "year": 2022,
+            "semesterId": "202208"
+          },
+          {
+            "semester": "Fall",
+            "year": 2023,
+            "semesterId": "202308"
+          }
+        ],
+        "Steven Jones": [
+          {
+            "semester": "Fall",
+            "year": 2023,
+            "semesterId": "202308"
+          },
+          {
+            "semester": "Fall",
+            "year": 2024,
+            "semesterId": "202408"
+          }
+        ]
+      }
+    },
     "ARTT333": {
       "courseInfo": {
         "id": "ARTT333",
@@ -29004,6 +29065,13 @@
       "courseInfo": {
         "id": "ASTR288",
         "name": "Special Projects in Astronomy"
+      },
+      "professors": {}
+    },
+    "ASTR288M": {
+      "courseInfo": {
+        "id": "ASTR288M",
+        "name": "Special Projects in Astronomy; Current Events in Astronomy"
       },
       "professors": {}
     },
@@ -48498,6 +48566,48 @@
         ]
       }
     },
+    "BMGT841": {
+      "courseInfo": {
+        "id": "BMGT841",
+        "name": "Seminar in Corporate Finance"
+      },
+      "professors": {
+        "Maria Bustamante": [
+          {
+            "semester": "Spring",
+            "year": 2022,
+            "semesterId": "202201"
+          },
+          {
+            "semester": "Spring",
+            "year": 2025,
+            "semesterId": "202501"
+          },
+          {
+            "semester": "Spring",
+            "year": 2026,
+            "semesterId": "202601"
+          }
+        ],
+        "Richmond Mathews": [
+          {
+            "semester": "Spring",
+            "year": 2022,
+            "semesterId": "202201"
+          },
+          {
+            "semester": "Spring",
+            "year": 2025,
+            "semesterId": "202501"
+          },
+          {
+            "semester": "Spring",
+            "year": 2026,
+            "semesterId": "202601"
+          }
+        ]
+      }
+    },
     "BMGT843": {
       "courseInfo": {
         "id": "BMGT843",
@@ -48641,6 +48751,15 @@
         ]
       }
     },
+    "BMGT848G": {
+      "courseInfo": {
+        "id": "BMGT848G",
+        "name": "Special Topics in Finance; Empirical Methods"
+      },
+      "professors": {
+        "Juha Joenvaeaerae": []
+      }
+    },
     "BMGT858A": {
       "courseInfo": {
         "id": "BMGT858A",
@@ -48665,6 +48784,51 @@
           }
         ],
         "Yajin Wang": []
+      }
+    },
+    "BMGT858E": {
+      "courseInfo": {
+        "id": "BMGT858E",
+        "name": "Special Topics in Marketing; Experimental Design"
+      },
+      "professors": {
+        "Rosellina Ferraro": [
+          {
+            "semester": "Fall",
+            "year": 2022,
+            "semesterId": "202208"
+          },
+          {
+            "semester": "Spring",
+            "year": 2025,
+            "semesterId": "202501"
+          },
+          {
+            "semester": "Spring",
+            "year": 2026,
+            "semesterId": "202601"
+          }
+        ]
+      }
+    },
+    "BMGT858J": {
+      "courseInfo": {
+        "id": "BMGT858J",
+        "name": "Special Topics in Marketing; Structural Models"
+      },
+      "professors": {
+        "Liye Ma": [
+          {
+            "semester": "Spring",
+            "year": 2021,
+            "semesterId": "202101"
+          },
+          {
+            "semester": "Spring",
+            "year": 2024,
+            "semesterId": "202401"
+          }
+        ]
       }
     },
     "BMGT858L": {
@@ -49884,6 +50048,79 @@
       "courseInfo": {
         "id": "BMSO789",
         "name": "Experiential Learning II"
+      },
+      "professors": {}
+    },
+    "BOIS602": {
+      "courseInfo": {
+        "id": "BOIS602",
+        "name": "AI Augmented Database Management"
+      },
+      "professors": {
+        "Woei-jyh Lee": [
+          {
+            "semester": "Fall",
+            "year": 2026,
+            "semesterId": "202608"
+          }
+        ]
+      }
+    },
+    "BOIS604": {
+      "courseInfo": {
+        "id": "BOIS604",
+        "name": "AI Augmented Data Processing and Analysis"
+      },
+      "professors": {
+        "Manmohan Aseri": [
+          {
+            "semester": "Fall",
+            "year": 2026,
+            "semesterId": "202608"
+          }
+        ]
+      }
+    },
+    "BOIS621": {
+      "courseInfo": {
+        "id": "BOIS621",
+        "name": "Digital Transformation in Business"
+      },
+      "professors": {}
+    },
+    "BOIS622": {
+      "courseInfo": {
+        "id": "BOIS622",
+        "name": "Digital Platforms and Markets"
+      },
+      "professors": {}
+    },
+    "BOIS631": {
+      "courseInfo": {
+        "id": "BOIS631",
+        "name": "Statistical Modeling and Data Analytics"
+      },
+      "professors": {
+        "Sujin Kim": [
+          {
+            "semester": "Fall",
+            "year": 2026,
+            "semesterId": "202608"
+          }
+        ]
+      }
+    },
+    "BOIS751": {
+      "courseInfo": {
+        "id": "BOIS751",
+        "name": "Harnessing AI for Business"
+      },
+      "professors": {}
+    },
+    "BOIS758A": {
+      "courseInfo": {
+        "id": "BOIS758A",
+        "name": "Special Topics in Decision, Operations and Information Technologies; Dynamic Project Management"
       },
       "professors": {}
     },
@@ -58237,6 +58474,36 @@
       },
       "professors": {
         "Harish Neelakandan": [
+          {
+            "semester": "Fall",
+            "year": 2026,
+            "semesterId": "202608"
+          }
+        ]
+      }
+    },
+    "BUDT757": {
+      "courseInfo": {
+        "id": "BUDT757",
+        "name": "Cybersecurity"
+      },
+      "professors": {
+        "Minoo Modaresnezhad": [
+          {
+            "semester": "Fall",
+            "year": 2024,
+            "semesterId": "202408"
+          },
+          {
+            "semester": "Fall",
+            "year": 2025,
+            "semesterId": "202508"
+          },
+          {
+            "semester": "Spring",
+            "year": 2026,
+            "semesterId": "202601"
+          },
           {
             "semester": "Fall",
             "year": 2026,
@@ -80234,6 +80501,41 @@
             "semester": "Spring",
             "year": 2021,
             "semesterId": "202101"
+          }
+        ]
+      }
+    },
+    "CMSC828J": {
+      "courseInfo": {
+        "id": "CMSC828J",
+        "name": "Advanced Topics in Information Processing"
+      },
+      "professors": {
+        "Rachel Rudinger": [
+          {
+            "semester": "Fall",
+            "year": 2021,
+            "semesterId": "202108"
+          },
+          {
+            "semester": "Fall",
+            "year": 2022,
+            "semesterId": "202208"
+          },
+          {
+            "semester": "Spring",
+            "year": 2024,
+            "semesterId": "202401"
+          },
+          {
+            "semester": "Fall",
+            "year": 2024,
+            "semesterId": "202408"
+          },
+          {
+            "semester": "Fall",
+            "year": 2025,
+            "semesterId": "202508"
           }
         ]
       }
@@ -119087,6 +119389,13 @@
           }
         ]
       }
+    },
+    "ENCE634": {
+      "courseInfo": {
+        "id": "ENCE634",
+        "name": "Urban Water and Networked Infrastructure Systems"
+      },
+      "professors": {}
     },
     "ENCE647": {
       "courseInfo": {
@@ -163898,6 +164207,21 @@
         "Mona Mittal": []
       }
     },
+    "FMSC450": {
+      "courseInfo": {
+        "id": "FMSC450",
+        "name": "The Loneliness Epidemic and Mental Health"
+      },
+      "professors": {
+        "Marisa Franco": [
+          {
+            "semester": "Spring",
+            "year": 2026,
+            "semesterId": "202601"
+          }
+        ]
+      }
+    },
     "FMSC460": {
       "courseInfo": {
         "id": "FMSC460",
@@ -180731,6 +181055,13 @@
       "courseInfo": {
         "id": "HEBR386",
         "name": "Experiential Learning"
+      },
+      "professors": {}
+    },
+    "HEBR399": {
+      "courseInfo": {
+        "id": "HEBR399",
+        "name": "Special Topics in Hebrew Studies; Israeli Slang"
       },
       "professors": {}
     },
@@ -267665,6 +267996,58 @@
         ]
       }
     },
+    "PHSC412": {
+      "courseInfo": {
+        "id": "PHSC412",
+        "name": "Food, Policy, and Public Health"
+      },
+      "professors": {
+        "Christopher Waldrop": [
+          {
+            "semester": "Fall",
+            "year": 2021,
+            "semesterId": "202108"
+          },
+          {
+            "semester": "Fall",
+            "year": 2023,
+            "semesterId": "202308"
+          }
+        ],
+        "Michael Bazaco": [
+          {
+            "semester": "Fall",
+            "year": 2022,
+            "semesterId": "202208"
+          },
+          {
+            "semester": "Spring",
+            "year": 2023,
+            "semesterId": "202301"
+          },
+          {
+            "semester": "Summer",
+            "year": 2024,
+            "semesterId": "202405"
+          },
+          {
+            "semester": "Fall",
+            "year": 2024,
+            "semesterId": "202408"
+          },
+          {
+            "semester": "Summer",
+            "year": 2025,
+            "semesterId": "202505"
+          },
+          {
+            "semester": "Summer",
+            "year": 2026,
+            "semesterId": "202605"
+          }
+        ]
+      }
+    },
     "PHSC415": {
       "courseInfo": {
         "id": "PHSC415",
@@ -290957,6 +291340,35 @@
       },
       "professors": {}
     },
+    "SLLC109J": {
+      "courseInfo": {
+        "id": "SLLC109J",
+        "name": "Beg Less Commonly Taught Language II; Elementary Polish II"
+      },
+      "professors": {}
+    },
+    "SLLC118A": {
+      "courseInfo": {
+        "id": "SLLC118A",
+        "name": "Introductory Less Commonly Taught Language I; Spoken Sanskrit"
+      },
+      "professors": {
+        "Niva Mangalampalli": [
+          {
+            "semester": "Fall",
+            "year": 2026,
+            "semesterId": "202608"
+          }
+        ],
+        "Sean Pue": [
+          {
+            "semester": "Fall",
+            "year": 2026,
+            "semesterId": "202608"
+          }
+        ]
+      }
+    },
     "SLLC286": {
       "courseInfo": {
         "id": "SLLC286",
@@ -306411,6 +306823,26 @@
             "semester": "Spring",
             "year": 2026,
             "semesterId": "202601"
+          }
+        ]
+      }
+    },
+    "THET608G": {
+      "courseInfo": {
+        "id": "THET608G",
+        "name": "Seminar: Theory and Performance Studies; Interpreting the Play for Design: Genre, Period, Style"
+      },
+      "professors": {
+        "Van Tran Nguyen": [
+          {
+            "semester": "Spring",
+            "year": 2022,
+            "semesterId": "202201"
+          },
+          {
+            "semester": "Spring",
+            "year": 2023,
+            "semesterId": "202301"
           }
         ]
       }
