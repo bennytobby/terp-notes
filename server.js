@@ -210,7 +210,9 @@ app.use(helmet({
 // Rate limiters
 const loginLimiter = rateLimit({
     windowMs: 2 * 60 * 1000, // 2 minutes
-    max: 5, // 5 login attempts
+    // 5 login attempts. LOGIN_RATE_LIMIT_MAX raises it only where many sign-ins come from
+    // one IP on purpose (the end-to-end tests); production leaves it unset.
+    max: Number(process.env.LOGIN_RATE_LIMIT_MAX) || 5,
     message: 'Too many login attempts. Please try again in 5 minutes.',
     standardHeaders: true,
     legacyHeaders: false,
