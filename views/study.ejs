@@ -39,6 +39,7 @@
             Ask about a course and get answers from its notes, with links to the files they came from, or get a practice quiz.
             <% if (!aiEnabled) { %>AI answers aren't switched on yet, so you'll get the most relevant passages from the notes.<% } %>
         </p>
+        <p class="muted">Prefer ChatGPT or Claude? <a href="/ai-access">Connect your notes to your AI app</a>.</p>
         <% if (courses.length === 0) { %>
             <p class="muted">No notes have been indexed yet. Upload text, PDF or Word notes to get started.</p>
         <% } %>
