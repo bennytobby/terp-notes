@@ -58,7 +58,7 @@ class UserIntegrationsModel {
                 scope: credentials.scope || null,
                 // For Obsidian, store the vault path (not encrypted)
                 vaultPath: credentials.vaultPath || null,
-                // Metadata
+                connectedAccount: credentials.connectedAccount || null,
                 connectedAt: new Date(),
                 lastUsedAt: new Date(),
                 isActive: true
@@ -105,6 +105,7 @@ class UserIntegrationsModel {
                 tokenType: result.tokenType,
                 scope: result.scope,
                 vaultPath: result.vaultPath,
+                connectedAccount: result.connectedAccount || null,
                 connectedAt: result.connectedAt,
                 lastUsedAt: result.lastUsedAt
             };
@@ -132,7 +133,7 @@ class UserIntegrationsModel {
                 connectedAt: integration.connectedAt,
                 lastUsedAt: integration.lastUsedAt,
                 isActive: integration.isActive,
-                // Don't return sensitive data in list
+                connectedAccount: integration.connectedAccount || null,
                 hasCredentials: !!(integration.accessToken || integration.vaultPath)
             }));
 

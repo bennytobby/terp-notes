@@ -12,8 +12,13 @@ class NotionIntegration {
      */
     async initialize(integrationToken) {
         try {
-            this.client = new Client({ auth: integrationToken });
-            // Test the connection
+            const token = typeof integrationToken === 'string'
+                ? integrationToken
+                : integrationToken?.accessToken;
+            if (!token) {
+                throw new Error('No Notion access token provided');
+            }
+            this.client = new Client({ auth: token });
             await this.client.users.me();
             this.isAuthenticated = true;
             return { success: true };
@@ -21,7 +26,7 @@ class NotionIntegration {
             console.error('Notion authentication failed:', error);
             return {
                 success: false,
-                error: 'Invalid Notion integration token. Please check your token and try again.'
+                error: error.message || 'Invalid Notion integration token. Please check your token and try again.'
             };
         }
     }
@@ -36,21 +41,32 @@ class NotionIntegration {
 
         try {
             const databases = await this.client.search({
-                filter: {
-                    property: 'object',
-                    value: 'database'
-                }
+                filter: { property: 'object', value: 'database' },
+                page_size: 50
             });
+            const pages = await this.client.search({
+                filter: { property: 'object', value: 'page' },
+                page_size: 50
+            });
+
+            const databaseItems = (databases.results || []).map(db => ({
+                id: `database:${db.id}`,
+                title: `${db.title?.[0]?.plain_text || 'Untitled'} (database)`,
+                url: db.url,
+                created_time: db.created_time,
+                last_edited_time: db.last_edited_time
+            }));
+            const pageItems = (pages.results || []).map(page => ({
+                id: `page:${page.id}`,
+                title: `${this.extractTitle(page)} (page)`,
+                url: page.url,
+                created_time: page.created_time,
+                last_edited_time: page.last_edited_time
+            }));
 
             return {
                 success: true,
-                databases: databases.results.map(db => ({
-                    id: db.id,
-                    title: db.title[0]?.plain_text || 'Untitled',
-                    url: db.url,
-                    created_time: db.created_time,
-                    last_edited_time: db.last_edited_time
-                }))
+                databases: [...databaseItems, ...pageItems]
             };
         } catch (error) {
             console.error('Error fetching Notion workspaces:', error);
@@ -290,11 +306,31 @@ class NotionIntegration {
      * @param {Object} page - Notion page object
      */
     extractTitle(page) {
-        const titleProperty = page.properties.title || page.properties.Name;
-        if (titleProperty && titleProperty.title && titleProperty.title.length > 0) {
-            return titleProperty.title[0].plain_text;
+        if (page.properties) {
+            for (const property of Object.values(page.properties)) {
+                if (property?.type === 'title' && property.title?.[0]?.plain_text) {
+                    return property.title[0].plain_text;
+                }
+            }
         }
-        return 'Untitled';
+        return page.title?.[0]?.plain_text || 'Untitled';
+    }
+
+    async importSinglePage(pageId) {
+        const page = await this.client.pages.retrieve({ page_id: pageId });
+        const pageContent = await this.client.blocks.children.list({ block_id: pageId });
+        const markdown = this.convertBlocksToMarkdown(pageContent.results);
+        return {
+            filename: `${this.extractTitle(page)}.md`,
+            content: Buffer.from(markdown, 'utf8'),
+            metadata: {
+                notionPageId: page.id,
+                notionUrl: page.url,
+                lastEdited: page.last_edited_time,
+                created: page.created_time,
+                source: 'notion'
+            }
+        };
     }
 
     /**
@@ -315,10 +351,12 @@ class NotionIntegration {
                 return { success: false, error: workspacesResult.error };
             }
 
+            const databases = workspacesResult.databases || [];
             return {
                 success: true,
                 data: {
-                    databases: workspacesResult.databases,
+                    databases,
+                    sources: databases.map(db => ({ id: db.id, name: db.title })),
                     integrationType: 'notion',
                     connected: true
                 }
@@ -343,8 +381,18 @@ class NotionIntegration {
                 return { success: false, error: initResult.error };
             }
 
-            // Import from the database
-            const result = await this.importFromDatabase(sourceId, options);
+            if (sourceId.startsWith('page:')) {
+                const file = await this.importSinglePage(sourceId.slice('page:'.length));
+                return { success: true, count: 1, files: [file] };
+            }
+
+            const databaseId = sourceId.startsWith('database:')
+                ? sourceId.slice('database:'.length)
+                : sourceId;
+            const result = await this.importFromDatabase(databaseId, options);
+            if (!result.success) {
+                return result;
+            }
             return {
                 success: true,
                 count: result.count || 0,
@@ -371,7 +419,8 @@ class NotionIntegration {
             }
 
             // Export to the database
-            const result = await this.exportToDatabase(fileData, options.databaseId);
+            const databaseId = (options.databaseId || options.targetId || '').replace(/^database:/, '');
+            const result = await this.exportToDatabase(fileData, databaseId);
             return {
                 success: true,
                 pageId: result.notionPageId,

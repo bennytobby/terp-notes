@@ -13,12 +13,15 @@ class OneNoteIntegration {
      */
     async initialize(accessToken) {
         try {
-            this.accessToken = accessToken;
+            const token = typeof accessToken === 'string' ? accessToken : accessToken?.accessToken;
+            if (!token) {
+                throw new Error('No Microsoft access token provided');
+            }
+            this.accessToken = token;
 
-            // Test the connection by getting user info
             const response = await axios.get(`${this.baseUrl}/me`, {
                 headers: {
-                    'Authorization': `Bearer ${accessToken}`,
+                    'Authorization': `Bearer ${token}`,
                     'Content-Type': 'application/json'
                 }
             });
@@ -292,16 +295,28 @@ class OneNoteIntegration {
                 return { success: false, error: initResult.error };
             }
 
-            // Get user's notebooks
             const notebooksResult = await this.getNotebooks();
             if (!notebooksResult.success) {
                 return { success: false, error: notebooksResult.error };
             }
 
+            const sectionItems = [];
+            for (const notebook of notebooksResult.notebooks || []) {
+                const sectionsResult = await this.getSections(notebook.id);
+                if (!sectionsResult.success) continue;
+                for (const section of sectionsResult.sections || []) {
+                    sectionItems.push({
+                        id: section.id,
+                        displayName: `${notebook.displayName} / ${section.displayName}`
+                    });
+                }
+            }
+
             return {
                 success: true,
                 data: {
-                    notebooks: notebooksResult.notebooks,
+                    notebooks: sectionItems,
+                    sources: sectionItems.map(section => ({ id: section.id, name: section.displayName })),
                     integrationType: 'onenote',
                     connected: true
                 }
@@ -326,8 +341,10 @@ class OneNoteIntegration {
                 return { success: false, error: initResult.error };
             }
 
-            // Import from the section
             const result = await this.importFromSection(sourceId, options);
+            if (!result.success) {
+                return result;
+            }
             return {
                 success: true,
                 count: result.count || 0,
@@ -354,7 +371,7 @@ class OneNoteIntegration {
             }
 
             // Export to the section
-            const result = await this.exportToSection(fileData, options.sectionId);
+            const result = await this.exportToSection(fileData, options.sectionId || options.targetId);
             return {
                 success: true,
                 pageId: result.oneNotePageId,
