@@ -51,5 +51,6 @@ test("a student uploads a note and it is stored, recorded and reported as a succ
 
     // The upload shows on the dashboard.
     await page.goto("/dashboard");
-    await expect(page.getByText("week1.txt").first()).toBeVisible();
+    // Files sit in collapsible course groups, so check the card is on the page.
+    await expect(page.locator('.file-card[data-name="week1.txt"]')).toHaveCount(1);
 });
