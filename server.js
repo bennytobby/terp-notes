@@ -4413,6 +4413,9 @@ app.post('/loginSubmit', loginLimiter, async function (req, res) {
             console.log(`🔄 Account switch: ${req.session.user.userid} → ${userId}`);
         }
 
+        // Read before regenerating: regeneration (anti session-fixation) clears the old session.
+        const pendingInviteBeforeLogin = req.session.pendingInvite;
+
         // Regenerate session ID to prevent session fixation attacks
         req.session.regenerate((err) => {
             if (err) {
@@ -4449,9 +4452,8 @@ app.post('/loginSubmit', loginLimiter, async function (req, res) {
             req.session.loginTimestamp = now;
 
             // Came here from a course-staff invite link: go back to it.
-            const pendingInvite = req.session.pendingInvite;
+            const pendingInvite = pendingInviteBeforeLogin;
             if (pendingInvite && /^[a-f0-9]{64}$/.test(pendingInvite)) {
-                delete req.session.pendingInvite;
                 return res.redirect(`/invite/${pendingInvite}`);
             }
 
