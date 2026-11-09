@@ -132,7 +132,6 @@
         </div>
 
         <!-- Reported Files Section (Critical Alerts) -->
-        <% if (reports && reports.length> 0) { %>
             <section class="reports-section" id="course-staff-section" style="margin-top: 3rem;">
                 <h2>Course Staff</h2>
                 <p style="color: #6B7280; margin-bottom: 1rem;">Invite a professor to a course. They can moderate that course's notes and add their own TAs.</p>
@@ -197,6 +196,8 @@
                     <% }) %>
                 </div>
             </section>
+
+        <% if (reports && reports.length> 0) { %>
 
             <section class="reports-section" style="margin-top: 3rem;">
                 <h2>Reported Files (<%= reports.length %>) - Needs Review</h2>
