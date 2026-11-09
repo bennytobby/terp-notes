@@ -41,6 +41,8 @@ module.exports = defineConfig({
                       ...(process.env.AWS_S3_ENDPOINT ? { AWS_S3_ENDPOINT: process.env.AWS_S3_ENDPOINT } : {}),
                       SECRET_KEY: "e2e-only-session-secret",
                       NODE_ENV: "test",
+                      // The tests sign in many times from one IP; production keeps the limit of 5.
+                      LOGIN_RATE_LIMIT_MAX: "1000",
                   },
               },
           }),
