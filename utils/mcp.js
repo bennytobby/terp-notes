@@ -12,6 +12,7 @@ const crypto = require("crypto");
 const { z } = require("zod");
 const { McpServer } = require("@modelcontextprotocol/sdk/server/mcp.js");
 const studyBuddy = require("./study-buddy");
+const schools = require("./schools");
 
 const TOKEN_RE = /^tn_[a-f0-9]{40}$/;
 const MAX_TOKENS_PER_USER = 10;
@@ -72,7 +73,7 @@ async function authenticate(db, usersCollection, token) {
     const user = await db.collection(usersCollection).findOne({ userid: row.userid });
     if (!user || isBanned(user)) return null;
     await tokens.updateOne({ id: row.id }, { $set: { lastUsedAt: new Date() } });
-    return { userid: user.userid, role: user.role, firstname: user.firstname, tokenId: row.id };
+    return { userid: user.userid, role: user.role, firstname: user.firstname, school: schools.schoolOf(user), tokenId: row.id };
 }
 
 /** Pulls a token from the Authorization header or the /mcp/:token path. */
@@ -93,11 +94,14 @@ function buildServer({ db, filesCollection, baseUrl, user }) {
     const fileUrl = (filename) => `${baseUrl}/download/${encodeURIComponent(filename)}`;
     const readOnly = { readOnlyHint: true, openWorldHint: false };
 
+    // Only the user's own school's notes.
+    const scope = schools.schoolFilter(user.school || schools.schoolOf(user));
+
     async function visibleNotes(filter = {}) {
-        const notes = await db.collection("noteTexts").find(filter).limit(2000).toArray();
+        const notes = await db.collection("noteTexts").find({ ...filter, ...scope }).limit(2000).toArray();
         if (!notes.length) return [];
         const fileIds = new Set(notes.map((n) => n.fileId));
-        const files = await db.collection(filesCollection).find({}).toArray();
+        const files = await db.collection(filesCollection).find(scope).toArray();
         const ok = new Set(
             files
                 .filter((f) => fileIds.has(String(f._id)))
