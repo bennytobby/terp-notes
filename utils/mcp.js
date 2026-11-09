@@ -56,6 +56,13 @@ async function revokeToken(db, userid, id) {
     if (!r.modifiedCount) throw new TokenError("Token not found.", 404);
 }
 
+/** True while a ban is in force (the app stores bans as banStatus; timed bans expire). */
+function isBanned(user) {
+    const ban = user && user.banStatus;
+    if (!ban || !ban.isBanned) return false;
+    return !(ban.banType === "timed" && ban.banExpiry && new Date(ban.banExpiry) < new Date());
+}
+
 /** Returns the token's user (fresh from the users collection) or null. Banned users are refused. */
 async function authenticate(db, usersCollection, token) {
     if (!TOKEN_RE.test(String(token || ""))) return null;
@@ -63,7 +70,7 @@ async function authenticate(db, usersCollection, token) {
     const row = await tokens.findOne({ tokenHash: hashToken(token), revokedAt: null });
     if (!row) return null;
     const user = await db.collection(usersCollection).findOne({ userid: row.userid });
-    if (!user || user.isBanned) return null;
+    if (!user || isBanned(user)) return null;
     await tokens.updateOne({ id: row.id }, { $set: { lastUsedAt: new Date() } });
     return { userid: user.userid, role: user.role, firstname: user.firstname, tokenId: row.id };
 }

@@ -9,7 +9,8 @@ const { fakeDb } = require("./fake-db");
 async function setup() {
     const db = fakeDb();
     await db.collection("users").insertOne({ userid: "stu", role: "contributor", firstname: "Stu" });
-    await db.collection("users").insertOne({ userid: "banned", role: "contributor", isBanned: true });
+    await db.collection("users").insertOne({ userid: "banned", role: "contributor", banStatus: { isBanned: true, banType: "permanent" } });
+    await db.collection("users").insertOne({ userid: "was_banned", role: "contributor", banStatus: { isBanned: true, banType: "timed", banExpiry: new Date(Date.now() - 1000) } });
     const files = db.collection("files");
     const a = await files.insertOne({ classCode: "CMSC132", originalName: "stacks.txt", filename: "k1", uploadedBy: "x" });
     const b = await files.insertOne({ classCode: "CMSC132", originalName: "roster.txt", filename: "k2", uploadedBy: "x", quarantined: true });
@@ -47,6 +48,8 @@ test("tokens are stored hashed, authenticate their owner, and can be revoked", a
 
     const banned = await mcp.createToken(db, "banned", "x");
     assert.equal(await mcp.authenticate(db, "users", banned.token), null, "banned users are refused");
+    const expired = await mcp.createToken(db, "was_banned", "x");
+    assert.equal((await mcp.authenticate(db, "users", expired.token)).userid, "was_banned", "an expired timed ban no longer blocks");
 });
 
 test("the token comes from the Bearer header or the URL", () => {
