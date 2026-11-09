@@ -40,7 +40,12 @@ test("a student connects an AI app to their notes over MCP", async ({ page, base
     await page.goto("/study");
     await page.getByRole("link", { name: "Connect your notes to your AI app" }).click();
     await page.getByLabel("Token name").fill("E2E client");
-    await page.getByRole("button", { name: "Create token" }).click();
+    const [created] = await Promise.all([
+        page.waitForResponse((r) => r.url().endsWith("/api/ai-access/tokens") && r.request().method() === "POST"),
+        page.getByRole("button", { name: "Create token" }).click(),
+    ]);
+    expect(created.status()).toBe(200);
+    await expect(page.locator("#token-value")).toHaveText(/^tn_[a-f0-9]{40}$/);
     const token = (await page.locator("#token-value").textContent()).trim();
     const privateUrl = (await page.locator("#token-url").textContent()).trim();
     expect(token).toMatch(/^tn_[a-f0-9]{40}$/);
