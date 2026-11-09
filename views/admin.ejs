@@ -133,6 +133,33 @@
 
         <!-- Reported Files Section (Critical Alerts) -->
         <% if (reports && reports.length> 0) { %>
+            <section class="reports-section" id="course-staff-section" style="margin-top: 3rem;">
+                <h2>Course Staff</h2>
+                <p style="color: #6B7280; margin-bottom: 1rem;">Invite a professor to a course. They can moderate that course's notes and add their own TAs.</p>
+                <form id="professor-invite-form" style="display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 1rem;" onsubmit="return inviteProfessor(event)">
+                    <input name="email" type="email" required placeholder="Professor's email" aria-label="Professor's email" style="flex: 2; min-width: 220px; padding: 0.5rem 0.75rem; border: 1px solid #D1D5DB; border-radius: 8px;" />
+                    <input name="classCode" required placeholder="Course, e.g. CMSC131" aria-label="Course code" style="flex: 1; min-width: 140px; padding: 0.5rem 0.75rem; border: 1px solid #D1D5DB; border-radius: 8px;" />
+                    <button type="submit" class="button primary">Create invite</button>
+                </form>
+                <div id="invite-result" style="display: none; background: #F0FDF4; border: 1px solid #BBF7D0; border-radius: 8px; padding: 0.75rem; margin-bottom: 1rem; word-break: break-all;"></div>
+                <% const staffRows = typeof courseStaffList !== 'undefined' ? courseStaffList : []; %>
+                <% if (staffRows.length === 0) { %>
+                    <p style="color: #6B7280;">No course staff yet.</p>
+                <% } else { %>
+                    <table style="width: 100%; border-collapse: collapse;">
+                        <thead><tr style="text-align: left;"><th>Course</th><th>User</th><th>Role</th><th></th></tr></thead>
+                        <tbody>
+                            <% staffRows.forEach(r => { %>
+                                <tr class="staff-admin-row" data-course="<%= r.classCode %>" data-userid="<%= r.userid %>" style="border-top: 1px solid #F3F4F6;">
+                                    <td><%= r.classCode %></td><td><%= r.userid %></td><td><%= r.role === 'professor' ? 'Professor' : 'TA' %></td>
+                                    <td><button class="button danger" onclick="removeCourseStaff('<%= r.classCode %>', '<%= r.userid %>')">Remove</button></td>
+                                </tr>
+                            <% }) %>
+                        </tbody>
+                    </table>
+                <% } %>
+            </section>
+
             <section class="reports-section" id="flagged-section" style="margin-top: 3rem;">
                 <h2>Flagged for Confidential Information (<%= (typeof flaggedFiles !== 'undefined' ? flaggedFiles : []).length %>)</h2>
                 <p style="color: #6B7280; margin-bottom: 1rem;">
@@ -762,6 +789,48 @@
         }
 
         // Resolve report function - GLOBAL SCOPE so onclick can find it
+        async function inviteProfessor(e) {
+            e.preventDefault();
+            const form = e.target;
+            const box = document.getElementById('invite-result');
+            try {
+                const response = await fetch('/api/admin/professor-invites', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email: form.email.value, classCode: form.classCode.value })
+                });
+                const result = await response.json();
+                if (!response.ok) throw new Error(result.error || 'Could not create the invite');
+                box.style.display = 'block';
+                box.textContent = '';
+                const p = document.createElement('p');
+                p.style.margin = '0 0 0.5rem';
+                p.textContent = `Invite for ${result.email} to ${result.classCode} ${result.emailed ? 'was emailed. You can also share this link' : '(email is not set up, so share this link)'} - it works once and expires in 14 days:`;
+                const code = document.createElement('code');
+                code.id = 'invite-link';
+                code.textContent = result.link;
+                box.append(p, code);
+                form.reset();
+            } catch (err) {
+                showNotification(err.message, 'error');
+            }
+            return false;
+        }
+
+        async function removeCourseStaff(classCode, userid) {
+            const confirmed = await customConfirm(`Remove ${userid} from ${classCode} staff?`, 'Confirm Action');
+            if (!confirmed) return;
+            const response = await fetch('/api/admin/course-staff/remove', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ classCode, userid })
+            });
+            const result = await response.json();
+            if (!response.ok) return showNotification(result.error || 'Could not remove', 'error');
+            document.querySelector(`.staff-admin-row[data-course="${classCode}"][data-userid="${userid}"]`)?.remove();
+            showNotification('Removed.', 'success');
+        }
+
         async function reviewConfidential(fileHash, action) {
             const confirmed = await customConfirm(
                 action === 'remove' ? 'Remove this file for everyone?' : 'Approve this file and make it visible?',

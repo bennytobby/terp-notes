@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Course Staff - Terp Notes</title>
+    <link rel="icon" type="image/png" href="/favicon.png" />
+    <link rel="stylesheet" href="/styles/main.css" />
+    <style>
+        .staff-wrap { max-width: 960px; margin: 2rem auto; padding: 0 1rem; }
+        .course { background: #fff; border: 1px solid #E5E7EB; border-radius: 12px; padding: 1.25rem; margin-bottom: 1.5rem; }
+        .course h2 { margin: 0 0 0.25rem; }
+        .role-pill { display: inline-block; padding: 2px 10px; border-radius: 999px; font-size: 0.8rem; font-weight: 600; background: #EEF2FF; color: #3730A3; }
+        .row { display: flex; gap: 0.75rem; align-items: center; justify-content: space-between; padding: 0.5rem 0; border-bottom: 1px solid #F3F4F6; flex-wrap: wrap; }
+        .row:last-child { border-bottom: 0; }
+        .muted { color: #6B7280; font-size: 0.9rem; }
+        .inline-form { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-top: 0.75rem; }
+        .inline-form input { flex: 1; min-width: 200px; padding: 0.5rem 0.75rem; border: 1px solid #D1D5DB; border-radius: 8px; }
+        h3 { margin: 1.25rem 0 0.25rem; font-size: 1rem; }
+    </style>
+</head>
+<body>
+    <header class="topbar">
+        <h2><a href="/dashboard" style="text-decoration: none; color: inherit; display: flex; align-items: center;">
+            <img src="/logo.png" alt="Terp Notes Logo" style="width: 32px; height: 32px; margin-right: 8px;" />
+            Terp Notes
+        </a></h2>
+    </header>
+    <main class="staff-wrap">
+        <h1>Course staff</h1>
+        <p class="muted">Courses you help run. Moderation here only affects these courses.</p>
+        <% if (courses.length === 0) { %>
+            <div class="course"><p>You're not staff for any course yet. Professors are added by an admin invite; TAs are added by their professor.</p></div>
+        <% } %>
+        <% courses.forEach(c => { %>
+            <section class="course" data-course="<%= c.classCode %>">
+                <div class="row" style="border: 0; padding-top: 0;">
+                    <h2><%= c.classCode %></h2>
+                    <span class="role-pill"><%= c.role === 'professor' ? 'Professor' : 'TA' %></span>
+                </div>
+
+                <h3>Staff</h3>
+                <% c.staff.forEach(s => { %>
+                    <div class="row staff-row" data-userid="<%= s.userid %>">
+                        <span><strong><%= s.userid %></strong> <span class="muted"><%= s.role === 'professor' ? 'Professor' : 'TA' %></span></span>
+                        <% if (c.role === 'professor' && s.role === 'ta') { %>
+                            <button class="button danger" onclick="removeTa('<%= c.classCode %>', '<%= s.userid %>')">Remove TA</button>
+                        <% } %>
+                    </div>
+                <% }) %>
+                <% if (c.role === 'professor') { %>
+                    <form class="inline-form" onsubmit="return addTa(event, '<%= c.classCode %>')">
+                        <input name="ta" aria-label="TA username or email for <%= c.classCode %>" placeholder="TA's username or email" required />
+                        <button type="submit" class="button primary">Add TA</button>
+                    </form>
+                <% } %>
+
+                <h3>Flagged files (<%= c.flagged.length %>)</h3>
+                <% if (c.flagged.length === 0) { %><p class="muted">Nothing flagged.</p><% } %>
+                <% c.flagged.forEach(f => { %>
+                    <div class="row flagged-row" data-file-hash="<%= f.fileHash %>">
+                        <span><strong><%= f.originalName %></strong>
+                            <span class="muted"><%= (f.confidentialScan.findings || []).map(x => x.label).join(', ') %> · by <%= f.uploadedBy %></span></span>
+                        <span>
+                            <a class="button" href="/download/<%= encodeURIComponent(f.filename) %>" target="_blank" rel="noopener noreferrer">Review</a>
+                            <button class="button" onclick="reviewFlagged('<%= c.classCode %>', '<%= f.fileHash %>', 'approve')">Approve</button>
+                            <button class="button danger" onclick="reviewFlagged('<%= c.classCode %>', '<%= f.fileHash %>', 'remove')">Remove</button>
+                        </span>
+                    </div>
+                <% }) %>
+
+                <h3>Recent files (<%= c.files.length %>)</h3>
+                <% if (c.files.length === 0) { %><p class="muted">No files yet.</p><% } %>
+                <% c.files.forEach(f => { %>
+                    <div class="row file-row" data-file-id="<%= f._id %>">
+                        <span><strong><%= f.originalName %></strong> <span class="muted">by <%= f.uploadedBy %> · <%= new Date(f.uploadDate).toLocaleDateString() %></span></span>
+                        <button class="button danger" onclick="deleteFile('<%= c.classCode %>', '<%= f._id %>')">Delete</button>
+                    </div>
+                <% }) %>
+            </section>
+        <% }) %>
+        <p id="staff-status" role="status" class="muted"></p>
+    </main>
+    <%- include('partials/footer') %>
+    <script>
+        async function call(url, body) {
+            const res = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+            const data = await res.json().catch(() => ({}));
+            if (!res.ok) throw new Error(data.error || 'That didn\'t work.');
+            return data;
+        }
+        function status(msg) { document.getElementById('staff-status').textContent = msg; }
+        async function addTa(e, course) {
+            e.preventDefault();
+            try { await call(`/api/staff/${course}/tas`, { ta: e.target.ta.value }); location.reload(); }
+            catch (err) { status(err.message); }
+            return false;
+        }
+        async function removeTa(course, userid) {
+            if (!confirm(`Remove ${userid} as a TA for ${course}?`)) return;
+            try { await call(`/api/staff/${course}/tas/remove`, { userid }); location.reload(); }
+            catch (err) { status(err.message); }
+        }
+        async function reviewFlagged(course, fileHash, action) {
+            if (action === 'remove' && !confirm('Remove this file for everyone?')) return;
+            try { await call(`/api/staff/${course}/flagged`, { fileHash, action }); document.querySelector(`[data-file-hash="${fileHash}"]`)?.remove(); status(action === 'remove' ? 'File removed.' : 'File approved.'); }
+            catch (err) { status(err.message); }
+        }
+        async function deleteFile(course, fileId) {
+            if (!confirm('Delete this file from Terp Notes?')) return;
+            try { await call(`/api/staff/${course}/files/delete`, { fileId }); document.querySelector(`[data-file-id="${fileId}"]`)?.remove(); status('File deleted.'); }
+            catch (err) { status(err.message); }
+        }
+    </script>
+</body>
+</html>

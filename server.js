@@ -86,6 +86,8 @@ const AWS_BUCKET = process.env.AWS_S3_BUCKET;
 
 /* VirusTotal Configuration */
 const { scanUpload: scanForConfidentialInfo } = require('./utils/confidential-scanner');
+const courseStaff = require('./utils/course-staff');
+courseStaff.setUsersCollection(process.env.MONGO_USERCOLLECTION);
 
 /**
  * Files held by the confidential-information scanner are only visible to their uploader
@@ -1093,7 +1095,7 @@ function sanitizeForHeader(filename) {
 // Session validation middleware
 app.use(async (req, res, next) => {
     const publicRoutes = ['/', '/health', '/login', '/register', '/loginSubmit', '/registerSubmit', '/forgot-password', '/resend-verification', '/privacy', '/terms', '/contact', '/contact/submit', '/api/umd/professors', '/api/umd/courses', '/api/umd/professor-courses', '/api/professor-cache', '/api/course-cache', '/api/semester-year-cache', '/api/optimized-cache'];
-    const publicRoutesRegex = /^\/(verify|reset-password)\/.+/; // Match /verify/:token and /reset-password/:token
+    const publicRoutesRegex = /^\/(verify|reset-password)\/.+|^\/invite\/[^/]+$/; // /verify/:token, /reset-password/:token, /invite/:token (not /accept)
     const isOAuthCallback = /^\/auth\/[a-z]+\/callback$/.test(req.path);
 
     const isPublicRoute = publicRoutes.includes(req.path) || publicRoutesRegex.test(req.path) || isOAuthCallback;
@@ -1361,6 +1363,13 @@ async function createDatabaseIndexes() {
             .db(fileCollection.db)
             .collection(fileCollection.collection)
             .createIndex({ virusScanStatus: 1 }); // For filtering scanned files
+
+        // Confidential-scan review queue and course staff
+        await indexClient
+            .db(fileCollection.db)
+            .collection(fileCollection.collection)
+            .createIndex({ 'confidentialScan.status': 1, quarantined: 1 });
+        await courseStaff.ensureIndexes(indexClient.db(fileCollection.db));
 
         // Reports collection indexes
         await indexClient
@@ -2972,6 +2981,10 @@ app.get('/dashboard', async (req, res) => {
             .sort({ createdAt: -1 })
             .toArray();
 
+        // Course staff: badges on their uploads, and a nav link for staff.
+        const staffBadges = await courseStaff.staffBadgeMap(client.db(fileCollection.db)).catch(() => ({}));
+        const isCourseStaff = Object.keys(staffBadges).some(k => k.endsWith(`|${req.session.user.userid}`));
+
         res.render('dashboard', {
             firstname: req.session.user.firstname,
             email: req.session.user.email,
@@ -2981,7 +2994,9 @@ app.get('/dashboard', async (req, res) => {
             classCodes: uniqueClassCodes,
             semesters: sortedSemesters,
             years: uniqueYears,
-            announcements: announcements
+            announcements: announcements,
+            staffBadges: staffBadges,
+            isCourseStaff: isCourseStaff
         });
     } catch (e) {
         console.error(e);
@@ -4431,6 +4446,13 @@ app.post('/loginSubmit', loginLimiter, async function (req, res) {
             // Set a flag to indicate successful login for tab synchronization
             req.session.loginTimestamp = now;
 
+            // Came here from a course-staff invite link: go back to it.
+            const pendingInvite = req.session.pendingInvite;
+            if (pendingInvite && /^[a-f0-9]{64}$/.test(pendingInvite)) {
+                delete req.session.pendingInvite;
+                return res.redirect(`/invite/${pendingInvite}`);
+            }
+
             return res.redirect('/dashboard');
         });
     } catch (e) {
@@ -4804,6 +4826,7 @@ app.get('/admin', async (req, res) => {
             users: usersWithAnalytics,
             reports: reports,
             flaggedFiles: flaggedFiles,
+            courseStaffList: await client.db(fileCollection.db).collection('courseStaff').find({}).sort({ classCode: 1, role: 1 }).toArray(),
             announcements: announcements
         });
     } catch (error) {
@@ -4818,6 +4841,223 @@ app.get('/admin', async (req, res) => {
 });
 
 // API: Resolve file report
+
+/* COURSE STAFF: professors and TAs (see utils/course-staff.js) */
+
+function staffDb() {
+    return client.db(fileCollection.db);
+}
+
+function sendStaffError(res, err) {
+    if (err instanceof courseStaff.StaffError) return res.status(err.status).json({ error: err.message });
+    console.error('Course staff error:', err);
+    return res.status(500).json({ error: 'Something went wrong' });
+}
+
+/** Loads the signed-in user's staff role for :classCode, or answers 403. */
+async function requireCourseStaff(req, res, roles = ['professor', 'ta']) {
+    if (!req.session.user) {
+        res.status(401).json({ error: 'Not signed in' });
+        return null;
+    }
+    const classCode = courseStaff.normalizeCourse(req.params.classCode);
+    await ensureConnection();
+    const role = classCode ? await courseStaff.staffRole(staffDb(), req.session.user.userid, classCode) : null;
+    if (!role || !roles.includes(role)) {
+        res.status(403).json({ error: 'You are not staff for this course' });
+        return null;
+    }
+    return { classCode, role };
+}
+
+// Admin: invite a professor to a course. Returns the link (also emailed when email is set up).
+app.post('/api/admin/professor-invites', apiLimiter, async (req, res) => {
+    if (!req.session.user || req.session.user.role !== 'admin') {
+        return res.status(401).json({ error: 'Unauthorized' });
+    }
+    try {
+        await ensureConnection();
+        const { token, invite } = await courseStaff.createInvite(staffDb(), {
+            email: req.body.email,
+            classCode: req.body.classCode,
+            invitedBy: req.session.user.userid,
+            role: 'professor'
+        });
+        const base = process.env.BASE_URL || `${req.protocol}://${req.get('host')}`;
+        const link = `${base}/invite/${token}`;
+        let emailed = false;
+        try {
+            await sendEmail(invite.email, `You're invited to moderate ${invite.classCode} on Terp Notes`,
+                emailTemplates.staffInviteEmail(invite.classCode, link, courseStaff.INVITE_DAYS));
+            emailed = true;
+        } catch (mailErr) {
+            console.warn('Invite email not sent:', mailErr.message);
+        }
+        await logAccountHistory(req.session.user.userid, 'STAFF_INVITE',
+            `Invited ${invite.email} as professor for ${invite.classCode}`, null, { classCode: invite.classCode, email: invite.email });
+        res.json({ success: true, link, emailed, classCode: invite.classCode, email: invite.email, expiresAt: invite.expiresAt });
+    } catch (err) {
+        sendStaffError(res, err);
+    }
+});
+
+// Admin: remove anyone from a course's staff.
+app.post('/api/admin/course-staff/remove', apiLimiter, async (req, res) => {
+    if (!req.session.user || req.session.user.role !== 'admin') {
+        return res.status(401).json({ error: 'Unauthorized' });
+    }
+    try {
+        await ensureConnection();
+        await courseStaff.removeStaff(staffDb(), {
+            classCode: req.body.classCode, actor: req.session.user, userid: req.body.userid, actorIsAdmin: true
+        });
+        res.json({ success: true });
+    } catch (err) {
+        sendStaffError(res, err);
+    }
+});
+
+// Invite landing page. Public, so a signed-out professor can see what it is and sign in.
+app.get('/invite/:token', async (req, res) => {
+    try {
+        await ensureConnection();
+        const { invite, error } = await courseStaff.findInvite(staffDb(), req.params.token);
+        if (!req.session.user && invite) req.session.pendingInvite = req.params.token;
+        res.status(error ? 410 : 200).render('invite', {
+            title: 'Course invite - Terp Notes',
+            error, invite, token: req.params.token, user: req.session.user || null
+        });
+    } catch (err) {
+        console.error('Invite page error:', err);
+        res.status(500).render('error', { title: 'Something went wrong', message: 'Please try the link again.', link: '/', linkText: 'Home' });
+    }
+});
+
+app.post('/invite/:token/accept', async (req, res) => {
+    if (!req.session.user) return res.redirect(`/invite/${encodeURIComponent(req.params.token)}`);
+    try {
+        await ensureConnection();
+        const result = await courseStaff.acceptInvite(staffDb(), req.params.token, req.session.user);
+        await logAccountHistory(req.session.user.userid, 'STAFF_JOIN',
+            `Became ${result.role} for ${result.classCode}`, null, result);
+        res.redirect('/staff');
+    } catch (err) {
+        const message = err instanceof courseStaff.StaffError ? err.message : 'Something went wrong.';
+        if (!(err instanceof courseStaff.StaffError)) console.error('Accept invite error:', err);
+        res.status(err.status || 500).render('error', { title: "Couldn't accept invite", message, link: '/dashboard', linkText: 'Go to Dashboard' });
+    }
+});
+
+// The staff page: each course the user helps run, with staff, flagged files and recent files.
+app.get('/staff', async (req, res) => {
+    if (!req.session.user) return res.redirect('/login');
+    try {
+        await ensureConnection();
+        const db = staffDb();
+        const files = db.collection(fileCollection.collection);
+        const mine = await courseStaff.coursesFor(db, req.session.user.userid);
+        const courses = [];
+        for (const c of mine) {
+            const flaggedDocs = await files
+                .find({ classCode: c.classCode, 'confidentialScan.status': 'flagged', 'confidentialScan.reviewed': { $ne: true } })
+                .sort({ uploadDate: -1 }).limit(100).toArray();
+            courses.push({
+                classCode: c.classCode,
+                role: c.role,
+                staff: await courseStaff.staffForCourse(db, c.classCode),
+                flagged: [...new Map(flaggedDocs.map(f => [f.fileHash, f])).values()],
+                files: await files.find({ classCode: c.classCode }).sort({ uploadDate: -1 }).limit(50).toArray()
+            });
+        }
+        res.render('staff', { courses });
+    } catch (err) {
+        console.error('Staff page error:', err);
+        res.status(500).render('error', { title: 'Something went wrong', message: 'Could not load your courses.', link: '/dashboard', linkText: 'Go to Dashboard' });
+    }
+});
+
+app.post('/api/staff/:classCode/tas', apiLimiter, async (req, res) => {
+    const ctx = await requireCourseStaff(req, res, ['professor']);
+    if (!ctx) return;
+    try {
+        const ta = await courseStaff.addTa(staffDb(), { classCode: ctx.classCode, professor: req.session.user, ta: req.body.ta });
+        await logAccountHistory(req.session.user.userid, 'STAFF_ADD_TA', `Added ${ta.userid} as TA for ${ctx.classCode}`, null, { classCode: ctx.classCode, ta: ta.userid });
+        res.json({ success: true, ta: { userid: ta.userid } });
+    } catch (err) {
+        sendStaffError(res, err);
+    }
+});
+
+app.post('/api/staff/:classCode/tas/remove', apiLimiter, async (req, res) => {
+    const ctx = await requireCourseStaff(req, res, ['professor']);
+    if (!ctx) return;
+    try {
+        await courseStaff.removeStaff(staffDb(), { classCode: ctx.classCode, actor: req.session.user, userid: req.body.userid });
+        await logAccountHistory(req.session.user.userid, 'STAFF_REMOVE_TA', `Removed ${req.body.userid} as TA for ${ctx.classCode}`, null, { classCode: ctx.classCode });
+        res.json({ success: true });
+    } catch (err) {
+        sendStaffError(res, err);
+    }
+});
+
+// Staff review of a flagged file in their course (same actions as the admin queue).
+app.post('/api/staff/:classCode/flagged', apiLimiter, async (req, res) => {
+    const ctx = await requireCourseStaff(req, res);
+    if (!ctx) return;
+    const { fileHash, action } = req.body || {};
+    if (typeof fileHash !== 'string' || !/^[a-f0-9]{64}$/.test(fileHash) || !['approve', 'remove'].includes(action)) {
+        return res.status(400).json({ error: 'fileHash and action (approve or remove) are required' });
+    }
+    try {
+        const files = staffDb().collection(fileCollection.collection);
+        const docs = await files.find({ fileHash, classCode: ctx.classCode }).toArray();
+        if (docs.length === 0) return res.status(404).json({ error: 'File not found in this course' });
+        if (action === 'approve') {
+            await files.updateMany({ fileHash, classCode: ctx.classCode }, {
+                $set: { quarantined: false, 'confidentialScan.reviewed': true, 'confidentialScan.reviewedBy': req.session.user.userid, 'confidentialScan.reviewedAt': new Date() }
+            });
+        } else {
+            await files.deleteMany({ fileHash, classCode: ctx.classCode });
+            if ((await files.countDocuments({ fileHash })) === 0) {
+                for (const key of new Set(docs.map(d => d.filename))) {
+                    await s3.deleteObject({ Bucket: AWS_BUCKET, Key: key }).promise().catch(e => console.error('S3 delete failed:', e.message));
+                }
+            }
+        }
+        await logAccountHistory(req.session.user.userid, 'CONFIDENTIAL_REVIEW',
+            `${action === 'approve' ? 'Approved' : 'Removed'} flagged file ${docs[0].originalName} in ${ctx.classCode} (as ${ctx.role})`, null, { fileHash, action });
+        res.json({ success: true });
+    } catch (err) {
+        sendStaffError(res, err);
+    }
+});
+
+// Staff delete one file in their course. The stored object goes only when no copy is left.
+app.post('/api/staff/:classCode/files/delete', apiLimiter, async (req, res) => {
+    const ctx = await requireCourseStaff(req, res);
+    if (!ctx) return;
+    let fileId;
+    try {
+        fileId = new ObjectId(String(req.body.fileId));
+    } catch {
+        return res.status(400).json({ error: 'Invalid file id' });
+    }
+    try {
+        const files = staffDb().collection(fileCollection.collection);
+        const doc = await files.findOne({ _id: fileId, classCode: ctx.classCode });
+        if (!doc) return res.status(404).json({ error: 'File not found in this course' });
+        await files.deleteOne({ _id: fileId });
+        if ((await files.countDocuments({ fileHash: doc.fileHash })) === 0) {
+            await s3.deleteObject({ Bucket: AWS_BUCKET, Key: doc.filename }).promise().catch(e => console.error('S3 delete failed:', e.message));
+        }
+        await logAccountHistory(req.session.user.userid, 'STAFF_DELETE_FILE',
+            `Deleted ${doc.originalName} from ${ctx.classCode} (as ${ctx.role})`, null, { classCode: ctx.classCode, uploadedBy: doc.uploadedBy });
+        res.json({ success: true });
+    } catch (err) {
+        sendStaffError(res, err);
+    }
+});
+
 // Admin review of a file flagged by the confidential-information scanner.
 // action "approve" makes it visible again; "remove" deletes every copy and the stored object.
 app.post('/api/admin/confidential-review', apiLimiter, async (req, res) => {
