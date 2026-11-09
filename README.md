@@ -348,7 +348,7 @@ UMD Alum | Full-Stack Developer | Building tools to help students succeed
 **Ready to access thousands of study materials?**
 
 **[Join Terp Notes Now](https://terp-notes.org/)**
-now updat
+
 1. **Sign up** with your UMD email
 2. **Verify** your account (check inbox/spam)
 3. **Browse** thousands of notes, guides, and resources
