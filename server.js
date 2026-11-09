@@ -5853,9 +5853,162 @@ if (require.main === module) {
 const oauthManager = new OAuthManager();
 let userIntegrationsModel;
 
+const INTEGRATION_PROVIDERS = {
+    'google-docs': 'google',
+    'onenote': 'microsoft',
+    'notion': 'notion'
+};
+
+function getIntegrationClass(integrationId) {
+    switch (integrationId) {
+        case 'notion':
+            return require('./integrations/notion');
+        case 'onenote':
+            return require('./integrations/onenote');
+        case 'google-docs':
+            return require('./integrations/google-docs');
+        case 'obsidian':
+            return require('./integrations/obsidian');
+        default:
+            return null;
+    }
+}
+
+async function ensureIntegrationCredentials(userId, integrationId) {
+    const result = await userIntegrationsModel.getIntegration(userId, integrationId);
+    if (!result.success) return result;
+
+    const credentials = result.credentials;
+    const provider = INTEGRATION_PROVIDERS[integrationId];
+    const shouldRefresh = provider && credentials.refreshToken && userIntegrationsModel.isExpired(credentials);
+
+    if (shouldRefresh) {
+        const refreshed = await oauthManager.refreshAccessToken(provider, credentials.refreshToken);
+        if (refreshed.success) {
+            const expiresAt = refreshed.expiresIn
+                ? new Date(Date.now() + refreshed.expiresIn * 1000)
+                : credentials.expiresAt;
+            await userIntegrationsModel.updateCredentials(userId, integrationId, {
+                accessToken: refreshed.accessToken,
+                refreshToken: refreshed.refreshToken,
+                expiresAt
+            });
+            credentials.accessToken = refreshed.accessToken;
+            credentials.refreshToken = refreshed.refreshToken;
+            credentials.expiresAt = expiresAt;
+        }
+    }
+
+    return { success: true, credentials };
+}
+
+async function persistImportedNotes(user, files, options = {}) {
+    const classCode = (options.classCode || '').trim().toUpperCase();
+    if (!classCode) {
+        return { success: false, error: 'Class code is required to publish imported notes' };
+    }
+
+    const major = classCode.replace(/[0-9]/g, '').trim() || classCode;
+    const published = [];
+    const failed = [];
+
+    await ensureConnection();
+
+    for (const file of files || []) {
+        const originalName = file?.filename || 'imported-note.md';
+        try {
+            if (!file?.content) {
+                failed.push(originalName);
+                continue;
+            }
+
+            const buffer = Buffer.isBuffer(file.content) ? file.content : Buffer.from(file.content);
+            const fileHash = crypto.createHash('sha256').update(buffer).digest('hex');
+            const existingFile = await client
+                .db(fileCollection.db)
+                .collection(fileCollection.collection)
+                .findOne({ fileHash });
+
+            let s3Key;
+            let s3Url;
+            if (existingFile) {
+                s3Key = existingFile.filename;
+                s3Url = existingFile.s3Url;
+            } else {
+                s3Key = `${Date.now()}_${Math.random().toString(36).substring(7)}_${originalName}`;
+                const contentType = originalName.toLowerCase().endsWith('.pdf') ? 'application/pdf' : 'text/markdown';
+                const s3Result = await s3.upload({
+                    Bucket: AWS_BUCKET,
+                    Key: s3Key,
+                    Body: buffer,
+                    ContentType: contentType
+                }).promise();
+                s3Url = s3Result.Location;
+            }
+
+            await client
+                .db(fileCollection.db)
+                .collection(fileCollection.collection)
+                .insertOne({
+                    filename: s3Key,
+                    originalName,
+                    s3Url,
+                    mimetype: originalName.toLowerCase().endsWith('.pdf') ? 'application/pdf' : 'text/markdown',
+                    size: buffer.length,
+                    fileHash,
+                    uploadDate: new Date(),
+                    uploadedBy: user.userid,
+                    description: options.description || `Imported from ${file.metadata?.source || 'integration'}`,
+                    classCode,
+                    major,
+                    semester: options.semester || '',
+                    year: options.year || '',
+                    professor: options.professor || '',
+                    category: options.category || 'Lecture Notes',
+                    downloadCount: 0,
+                    virusScanStatus: existingFile ? existingFile.virusScanStatus : 'pending',
+                    virusScanDate: existingFile ? existingFile.virusScanDate : null,
+                    virusScanDetails: existingFile ? existingFile.virusScanDetails : null,
+                    scanAttempts: existingFile ? existingFile.scanAttempts || 0 : 0,
+                    source: file.metadata?.source || 'integration'
+                });
+
+            published.push(originalName);
+        } catch (error) {
+            console.error(`Failed to persist imported file ${originalName}:`, error);
+            failed.push(originalName);
+        }
+    }
+
+    return { success: true, published, failed };
+}
+
 // Register integration API routes
 function registerIntegrationRoutes() {
     console.log('🔧 Registering integration API routes...');
+
+    app.get('/api/my-files', async (req, res) => {
+        if (!req.session.user) {
+            return res.status(401).json({ error: 'Unauthorized' });
+        }
+
+        try {
+            await ensureConnection();
+            const files = await client
+                .db(fileCollection.db)
+                .collection(fileCollection.collection)
+                .find({ uploadedBy: req.session.user.userid })
+                .project({ originalName: 1, filename: 1, classCode: 1, uploadDate: 1 })
+                .sort({ uploadDate: -1 })
+                .limit(100)
+                .toArray();
+
+            res.json({ success: true, files });
+        } catch (error) {
+            console.error('Error listing user files:', error);
+            res.status(500).json({ error: 'Failed to load files' });
+        }
+    });
 
     // API: Get available integrations
     app.get('/api/integrations', async (req, res) => {
@@ -6083,37 +6236,27 @@ function registerIntegrationRoutes() {
                 return res.status(404).json({ error: 'Integration not found' });
             }
 
-            let IntegrationClass;
-            switch (integrationId) {
-                case 'notion':
-                    IntegrationClass = require('./integrations/notion');
-                    break;
-                case 'onenote':
-                    IntegrationClass = require('./integrations/onenote');
-                    break;
-                case 'google-docs':
-                    IntegrationClass = require('./integrations/google-docs');
-                    break;
-                case 'obsidian':
-                    IntegrationClass = require('./integrations/obsidian');
-                    break;
-                default:
-                    return res.status(400).json({ error: 'Unsupported integration' });
+            const IntegrationClass = getIntegrationClass(integrationId);
+            if (!IntegrationClass) {
+                return res.status(400).json({ error: 'Unsupported integration' });
             }
 
-            // Get integration credentials
-            const integrationCredentials = await userIntegrationsModel.getIntegration(req.session.user.userid, integrationId);
+            const integrationCredentials = await ensureIntegrationCredentials(req.session.user.userid, integrationId);
             if (!integrationCredentials.success) {
                 return res.status(404).json({ error: 'Integration credentials not found' });
             }
 
-            // Instantiate integration class and get data
             const integrationInstance = new IntegrationClass();
-            const data = await integrationInstance.getData(integrationCredentials.credentials);
-            res.json({ success: true, data });
+            const result = await integrationInstance.getData(integrationCredentials.credentials);
+            if (!result.success) {
+                console.error(`Integration data error (${integrationId}):`, result.error);
+                return res.status(400).json({ success: false, error: result.error || 'Failed to load integration data' });
+            }
+
+            res.json({ success: true, data: result.data || result });
         } catch (error) {
             console.error('Error fetching integration data:', error);
-            res.status(500).json({ error: 'Failed to fetch integration data' });
+            res.status(500).json({ error: error.message || 'Failed to fetch integration data' });
         }
     });
 
@@ -6131,6 +6274,10 @@ function registerIntegrationRoutes() {
                 return res.status(400).json({ error: 'Source ID required' });
             }
 
+            if (!options?.classCode) {
+                return res.status(400).json({ error: 'Class code is required so imported notes can appear on the dashboard' });
+            }
+
             const userIntegrations = await userIntegrationsModel.getUserIntegrations(req.session.user.userid);
             const integration = userIntegrations.integrations.find(i => i.integrationId === integrationId);
 
@@ -6138,37 +6285,37 @@ function registerIntegrationRoutes() {
                 return res.status(404).json({ error: 'Integration not found' });
             }
 
-            let IntegrationClass;
-            switch (integrationId) {
-                case 'notion':
-                    IntegrationClass = require('./integrations/notion');
-                    break;
-                case 'onenote':
-                    IntegrationClass = require('./integrations/onenote');
-                    break;
-                case 'google-docs':
-                    IntegrationClass = require('./integrations/google-docs');
-                    break;
-                case 'obsidian':
-                    IntegrationClass = require('./integrations/obsidian');
-                    break;
-                default:
-                    return res.status(400).json({ error: 'Unsupported integration' });
+            const IntegrationClass = getIntegrationClass(integrationId);
+            if (!IntegrationClass) {
+                return res.status(400).json({ error: 'Unsupported integration' });
             }
 
-            // Get integration credentials
-            const integrationCredentials = await userIntegrationsModel.getIntegration(req.session.user.userid, integrationId);
+            const integrationCredentials = await ensureIntegrationCredentials(req.session.user.userid, integrationId);
             if (!integrationCredentials.success) {
                 return res.status(404).json({ error: 'Integration credentials not found' });
             }
 
-            // Instantiate integration class and import
             const integrationInstance = new IntegrationClass();
             const result = await integrationInstance.import(sourceId, integrationCredentials.credentials, options);
-            res.json({ success: true, count: result.count, files: result.files });
+            if (!result.success) {
+                console.error(`Import failed (${integrationId}):`, result.error);
+                return res.status(400).json({ success: false, error: result.error || 'Import failed' });
+            }
+
+            const persistResult = await persistImportedNotes(req.session.user, result.files || [], options);
+            if (!persistResult.success) {
+                return res.status(400).json({ success: false, error: persistResult.error });
+            }
+
+            res.json({
+                success: true,
+                count: persistResult.published.length,
+                files: persistResult.published,
+                failed: persistResult.failed
+            });
         } catch (error) {
             console.error('Import error:', error);
-            res.status(500).json({ error: 'Import failed' });
+            res.status(500).json({ error: error.message || 'Import failed' });
         }
     });
 
@@ -6193,37 +6340,50 @@ function registerIntegrationRoutes() {
                 return res.status(404).json({ error: 'Integration not found' });
             }
 
-            let IntegrationClass;
-            switch (integrationId) {
-                case 'notion':
-                    IntegrationClass = require('./integrations/notion');
-                    break;
-                case 'onenote':
-                    IntegrationClass = require('./integrations/onenote');
-                    break;
-                case 'google-docs':
-                    IntegrationClass = require('./integrations/google-docs');
-                    break;
-                case 'obsidian':
-                    IntegrationClass = require('./integrations/obsidian');
-                    break;
-                default:
-                    return res.status(400).json({ error: 'Unsupported integration' });
+            const IntegrationClass = getIntegrationClass(integrationId);
+            if (!IntegrationClass) {
+                return res.status(400).json({ error: 'Unsupported integration' });
             }
 
-            // Get integration credentials
-            const integrationCredentials = await userIntegrationsModel.getIntegration(req.session.user.userid, integrationId);
+            const integrationCredentials = await ensureIntegrationCredentials(req.session.user.userid, integrationId);
             if (!integrationCredentials.success) {
                 return res.status(404).json({ error: 'Integration credentials not found' });
             }
 
-            // Instantiate integration class and export
+            await ensureConnection();
+            let fileDoc = null;
+            try {
+                fileDoc = await client
+                    .db(fileCollection.db)
+                    .collection(fileCollection.collection)
+                    .findOne({ _id: new ObjectId(fileId), uploadedBy: req.session.user.userid });
+            } catch (lookupError) {
+                fileDoc = await client
+                    .db(fileCollection.db)
+                    .collection(fileCollection.collection)
+                    .findOne({ filename: fileId, uploadedBy: req.session.user.userid });
+            }
+
+            if (!fileDoc) {
+                return res.status(404).json({ error: 'File not found' });
+            }
+
+            const s3Object = await s3.getObject({ Bucket: AWS_BUCKET, Key: fileDoc.filename }).promise();
+            const fileData = {
+                filename: fileDoc.originalName,
+                originalName: fileDoc.originalName,
+                content: Buffer.isBuffer(s3Object.Body) ? s3Object.Body.toString('utf8') : String(s3Object.Body)
+            };
+
             const integrationInstance = new IntegrationClass();
-            const result = await integrationInstance.export(fileId, integrationCredentials.credentials, { targetId, title });
+            const result = await integrationInstance.export(fileData, integrationCredentials.credentials, { targetId, title, databaseId: targetId, sectionId: targetId });
+            if (!result.success) {
+                return res.status(400).json({ success: false, error: result.error || 'Export failed' });
+            }
             res.json({ success: true, url: result.url });
         } catch (error) {
             console.error('Export error:', error);
-            res.status(500).json({ error: 'Export failed' });
+            res.status(500).json({ error: error.message || 'Export failed' });
         }
     });
 

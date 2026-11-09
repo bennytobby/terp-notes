@@ -15,57 +15,30 @@ class GoogleDocsIntegration {
      */
     async initialize(credentials) {
         try {
-            // Check if we have OAuth tokens (from OAuth flow)
-            if (credentials.accessToken && credentials.refreshToken) {
-                const auth = new google.auth.OAuth2(
-                    process.env.GOOGLE_CLIENT_ID,
-                    process.env.GOOGLE_CLIENT_SECRET
-                    // No redirect URI needed when using existing tokens
-                );
-
-                auth.setCredentials({
-                    access_token: credentials.accessToken,
-                    refresh_token: credentials.refreshToken
-                });
-
-                this.docs = google.docs({ version: 'v1', auth });
-                this.drive = google.drive({ version: 'v3', auth });
-
-                // Test the connection
-                await this.drive.files.list({ pageSize: 1 });
-                this.isAuthenticated = true;
-
-                return { success: true };
-            }
-            // Fallback to manual credentials (for backward compatibility)
-            else if (credentials.clientId && credentials.clientSecret) {
-                const auth = new google.auth.OAuth2(
-                    credentials.clientId,
-                    credentials.clientSecret,
-                    credentials.redirectUri
-                );
-
-                auth.setCredentials({
-                    access_token: credentials.accessToken,
-                    refresh_token: credentials.refreshToken
-                });
-
-                this.docs = google.docs({ version: 'v1', auth });
-                this.drive = google.drive({ version: 'v3', auth });
-
-                // Test the connection
-                await this.drive.files.list({ pageSize: 1 });
-                this.isAuthenticated = true;
-
-                return { success: true };
-            } else {
+            if (!credentials?.accessToken) {
                 throw new Error('No valid credentials provided');
             }
+
+            const auth = new google.auth.OAuth2(
+                process.env.GOOGLE_CLIENT_ID,
+                process.env.GOOGLE_CLIENT_SECRET
+            );
+
+            auth.setCredentials({
+                access_token: credentials.accessToken,
+                refresh_token: credentials.refreshToken || undefined
+            });
+
+            this.docs = google.docs({ version: 'v1', auth });
+            this.drive = google.drive({ version: 'v3', auth });
+            this.isAuthenticated = true;
+
+            return { success: true };
         } catch (error) {
             console.error('Google Docs authentication failed:', error);
             return {
                 success: false,
-                error: 'Invalid Google OAuth credentials. Please re-authenticate.'
+                error: error.message || 'Invalid Google OAuth credentials. Please re-authenticate.'
             };
         }
     }
@@ -80,22 +53,26 @@ class GoogleDocsIntegration {
 
         try {
             const response = await this.drive.files.list({
-                q: "mimeType contains 'application/vnd.google-apps' or mimeType contains 'application/pdf' or mimeType contains 'application/vnd.openxmlformats'",
+                q: "trashed = false and (mimeType = 'application/vnd.google-apps.document' or mimeType = 'application/pdf' or mimeType = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document')",
                 fields: 'files(id,name,mimeType,createdTime,modifiedTime,webViewLink)',
                 orderBy: 'modifiedTime desc',
-                pageSize: 100
+                pageSize: 50,
+                spaces: 'drive',
+                corpora: 'user'
             });
+
+            const documents = (response.data.files || []).map(doc => ({
+                id: doc.id,
+                name: doc.name,
+                mimeType: doc.mimeType,
+                createdTime: doc.createdTime,
+                modifiedTime: doc.modifiedTime,
+                webViewLink: doc.webViewLink
+            }));
 
             return {
                 success: true,
-                documents: response.data.files.map(doc => ({
-                    id: doc.id,
-                    name: doc.name,
-                    mimeType: doc.mimeType,
-                    createdTime: doc.createdTime,
-                    modifiedTime: doc.modifiedTime,
-                    webViewLink: doc.webViewLink
-                }))
+                documents
             };
         } catch (error) {
             console.error('Error fetching Google Docs:', error);
@@ -114,30 +91,60 @@ class GoogleDocsIntegration {
         }
 
         try {
-            // Get document content
-            const doc = await this.docs.documents.get({
-                documentId: documentId
+            const meta = await this.drive.files.get({
+                fileId: documentId,
+                fields: 'id,name,mimeType,webViewLink,modifiedTime,createdTime'
             });
+            const mimeType = meta.data.mimeType;
+            const baseName = meta.data.name || 'google-note';
+            const metadata = {
+                googleDocId: documentId,
+                googleDocUrl: meta.data.webViewLink || `https://docs.google.com/document/d/${documentId}/edit`,
+                lastModified: meta.data.modifiedTime,
+                created: meta.data.createdTime,
+                source: 'google-docs'
+            };
 
-            // Convert Google Docs content to markdown
-            const markdown = this.convertGoogleDocToMarkdown(doc.data);
+            if (mimeType === 'application/vnd.google-apps.document') {
+                try {
+                    const exported = await this.drive.files.export(
+                        { fileId: documentId, mimeType: 'text/plain' },
+                        { responseType: 'arraybuffer' }
+                    );
+                    return {
+                        success: true,
+                        file: {
+                            filename: `${baseName}.md`,
+                            content: Buffer.from(exported.data),
+                            metadata
+                        }
+                    };
+                } catch (exportError) {
+                    const doc = await this.docs.documents.get({ documentId });
+                    const markdown = this.convertGoogleDocToMarkdown(doc.data);
+                    return {
+                        success: true,
+                        file: {
+                            filename: `${doc.data.title || baseName}.md`,
+                            content: Buffer.from(markdown, 'utf8'),
+                            metadata
+                        }
+                    };
+                }
+            }
 
-            // Create file metadata
-            const fileName = doc.data.title + '.md';
-            const fileContent = Buffer.from(markdown, 'utf8');
-
+            const downloaded = await this.drive.files.get(
+                { fileId: documentId, alt: 'media' },
+                { responseType: 'arraybuffer' }
+            );
+            const extension = mimeType === 'application/pdf' ? '.pdf' : '';
+            const filename = baseName.includes('.') ? baseName : `${baseName}${extension}`;
             return {
                 success: true,
                 file: {
-                    filename: fileName,
-                    content: fileContent,
-                    metadata: {
-                        googleDocId: documentId,
-                        googleDocUrl: `https://docs.google.com/document/d/${documentId}/edit`,
-                        lastModified: doc.data.modifiedTime,
-                        created: doc.data.createdTime,
-                        source: 'google-docs'
-                    }
+                    filename,
+                    content: Buffer.from(downloaded.data),
+                    metadata
                 }
             };
         } catch (error) {
@@ -382,10 +389,12 @@ class GoogleDocsIntegration {
                 return { success: false, error: documentsResult.error };
             }
 
+            const documents = documentsResult.documents || [];
             return {
                 success: true,
                 data: {
-                    documents: documentsResult.documents,
+                    documents,
+                    sources: documents.map(doc => ({ id: doc.id, name: doc.name })),
                     integrationType: 'google-docs',
                     connected: true
                 }
@@ -410,8 +419,10 @@ class GoogleDocsIntegration {
                 return { success: false, error: initResult.error };
             }
 
-            // Import the document
             const result = await this.importDocument(sourceId, options);
+            if (!result.success || !result.file) {
+                return { success: false, error: result.error || 'Failed to import Google document' };
+            }
             return {
                 success: true,
                 count: 1,

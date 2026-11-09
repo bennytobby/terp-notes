@@ -429,50 +429,33 @@ class IntegrationsManager {
                 return `<p class="form-error">Failed to load ${integrationId} data: ${data.error}</p>`;
             }
 
-            let optionsHTML = '';
-            let sourceLabel = '';
-
-            switch (integrationId) {
-                case 'notion':
-                    sourceLabel = 'Database';
-                    if (data.data && data.data.databases && Array.isArray(data.data.databases)) {
-                        optionsHTML = data.data.databases.map(db =>
-                            `<option value="${db.id}">${db.title}</option>`
-                        ).join('');
-                    } else {
-                        return `<p class="form-error">No databases available. Please check your Notion connection.</p>`;
-                    }
-                    break;
-                case 'onenote':
-                    sourceLabel = 'Notebook';
-                    if (data.data && data.data.notebooks && Array.isArray(data.data.notebooks)) {
-                        optionsHTML = data.data.notebooks.map(notebook =>
-                            `<option value="${notebook.id}">${notebook.displayName}</option>`
-                        ).join('');
-                    } else {
-                        return `<p class="form-error">No notebooks available. Please check your OneNote connection.</p>`;
-                    }
-                    break;
-                case 'google-docs':
-                    sourceLabel = 'Document';
-                    if (data.data && data.data.documents && Array.isArray(data.data.documents)) {
-                        optionsHTML = data.data.documents.map(doc =>
-                            `<option value="${doc.id}">${doc.name}</option>`
-                        ).join('');
-                    } else {
-                        return `<p class="form-error">No documents available. Please check your Google Docs connection.</p>`;
-                    }
-                    break;
-                case 'obsidian':
-                    sourceLabel = 'Folder';
-                    optionsHTML = '<option value="">Root folder</option>';
-                    if (data.data && data.data.files && Array.isArray(data.data.files)) {
-                        optionsHTML += this.buildObsidianOptions(data.data.files);
-                    } else {
-                        return `<p class="form-error">No files available. Please check your Obsidian vault path.</p>`;
-                    }
-                    break;
+            const payload = data.data || {};
+            let sources = Array.isArray(payload.sources) ? payload.sources : [];
+            if (!sources.length && Array.isArray(payload.documents)) {
+                sources = payload.documents.map(doc => ({ id: doc.id, name: doc.name }));
             }
+            if (!sources.length && Array.isArray(payload.databases)) {
+                sources = payload.databases.map(db => ({ id: db.id, name: db.title }));
+            }
+            if (!sources.length && Array.isArray(payload.notebooks)) {
+                sources = payload.notebooks.map(notebook => ({ id: notebook.id, name: notebook.displayName }));
+            }
+
+            if (!sources.length) {
+                const emptyHints = {
+                    notion: 'No Notion pages or databases were shared with Terp Notes. In Notion, open a page and add the Terp Notes connection.',
+                    onenote: 'No OneNote sections were found on this Microsoft account.',
+                    'google-docs': 'No Google Docs or PDFs were found. Try creating a Doc, then reconnect Google.'
+                };
+                return `<p class="form-error">${emptyHints[integrationId] || 'No notes were found for this account.'}</p>`;
+            }
+
+            const sourceLabel = integrationId === 'onenote' ? 'Section'
+                : integrationId === 'notion' ? 'Page or database'
+                : 'Document';
+            const optionsHTML = sources.map(source =>
+                `<option value="${source.id}">${source.name}</option>`
+            ).join('');
 
             if (action === 'import') {
                 return `
@@ -483,8 +466,9 @@ class IntegrationsManager {
                         </select>
                     </div>
                     <div class="form-group">
-                        <label class="form-label" for="classCode">Class Code (Optional)</label>
-                        <input type="text" id="classCode" class="form-input" placeholder="e.g., CMSC330">
+                        <label class="form-label" for="classCode">Class Code</label>
+                        <input type="text" id="classCode" class="form-input" placeholder="e.g., CMSC330" required>
+                        <div class="form-help">Required so the notes show up on the dashboard.</div>
                     </div>
                     <div class="form-group">
                         <label class="form-label" for="professor">Professor (Optional)</label>
@@ -514,11 +498,20 @@ class IntegrationsManager {
                     </div>
                 `;
             } else {
+                const filesResponse = await fetch(getApiUrl('api/my-files'), {
+                    credentials: 'include',
+                    headers: { 'Accept': 'application/json' }
+                });
+                const filesData = await filesResponse.json().catch(() => ({ files: [] }));
+                const fileOptions = (filesData.files || []).map(file =>
+                    `<option value="${file._id}">${file.originalName}${file.classCode ? ` (${file.classCode})` : ''}</option>`
+                ).join('') || '<option value="">No uploaded files yet</option>';
+
                 return `
                     <div class="form-group">
                         <label class="form-label" for="fileSelect">Select File to Export</label>
                         <select id="fileSelect" class="form-input">
-                            <option value="">Loading files...</option>
+                            ${fileOptions}
                         </select>
                     </div>
                     <div class="form-group">
@@ -568,8 +561,14 @@ class IntegrationsManager {
             return;
         }
 
+        const classCode = document.getElementById('classCode').value.trim();
+        if (!classCode) {
+            this.showNotification('Enter a class code so the notes can appear on the dashboard', 'error');
+            return;
+        }
+
         const options = {
-            classCode: document.getElementById('classCode').value,
+            classCode,
             professor: document.getElementById('professor').value,
             semester: document.getElementById('semester').value,
             year: document.getElementById('year').value
@@ -590,7 +589,11 @@ class IntegrationsManager {
             const result = await response.json();
 
             if (result.success) {
-                this.showNotification(`Successfully imported ${result.count || 1} file(s)!`, 'success');
+                const failedCount = (result.failed || []).length;
+                const message = failedCount
+                    ? `Imported ${result.count} file(s); ${failedCount} failed.`
+                    : `Imported ${result.count || 1} file(s) to the dashboard.`;
+                this.showNotification(message, failedCount ? 'warning' : 'success');
                 this.closeActionModal();
             } else {
                 this.showNotification(result.error || 'Import failed', 'error');
