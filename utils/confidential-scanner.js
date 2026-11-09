@@ -211,12 +211,15 @@ function scanText(text) {
     return { level, findings };
 }
 
-/** Extracts and scans an upload. status: "clean" | "flagged" | "skipped". */
+/**
+ * Extracts and scans an upload. status: "clean" | "flagged" | "skipped".
+ * Also returns the extracted `text` so the caller can index it (never store it on the file).
+ */
 async function scanUpload(buffer, mimetype, name) {
     const text = await extractText(buffer, mimetype, name);
-    if (text === null) return { status: "skipped", level: "none", findings: [], reason: "unreadable format" };
+    if (text === null) return { status: "skipped", level: "none", findings: [], reason: "unreadable format", text: null };
     const { level, findings } = scanText(text);
-    return { status: level === "none" ? "clean" : "flagged", level, findings };
+    return { status: level === "none" ? "clean" : "flagged", level, findings, text };
 }
 
 module.exports = { extractText, scanText, scanUpload, luhn, mask };

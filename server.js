@@ -85,8 +85,9 @@ const s3 = new AWS.S3({
 const AWS_BUCKET = process.env.AWS_S3_BUCKET;
 
 /* VirusTotal Configuration */
-const { scanUpload: scanForConfidentialInfo } = require('./utils/confidential-scanner');
+const { scanUpload: scanForConfidentialInfo, extractText } = require('./utils/confidential-scanner');
 const courseStaff = require('./utils/course-staff');
+const studyBuddy = require('./utils/study-buddy');
 courseStaff.setUsersCollection(process.env.MONGO_USERCOLLECTION);
 
 /**
@@ -4554,11 +4555,14 @@ app.post("/upload", uploadLimiter, upload.array("documents", 50), async (req, re
                 // Confidential-information scan (SSNs, card numbers, rosters, answer keys...).
                 // A duplicate reuses the original's result; a failed scan never blocks the upload.
                 let confidentialScan;
+                let extractedText = null;
                 if (existingFile && existingFile.confidentialScan) {
                     confidentialScan = existingFile.confidentialScan;
                 } else {
                     try {
-                        confidentialScan = await scanForConfidentialInfo(file.buffer, file.mimetype, file.originalname);
+                        const { text, ...scan } = await scanForConfidentialInfo(file.buffer, file.mimetype, file.originalname);
+                        confidentialScan = scan;
+                        extractedText = text;
                     } catch (scanErr) {
                         console.error('Confidential scan failed:', scanErr.message);
                         confidentialScan = { status: 'error', level: 'none', findings: [] };
@@ -4597,6 +4601,19 @@ app.post("/upload", uploadLimiter, upload.array("documents", 50), async (req, re
                     .db(fileCollection.db)
                     .collection(fileCollection.collection)
                     .insertOne(fileMeta);
+
+                // Index the text for the study buddy (a duplicate reuses the original's chunks).
+                try {
+                    const db = client.db(fileCollection.db);
+                    if (extractedText) {
+                        await studyBuddy.indexFile(db, { ...fileMeta, _id: insertResult.insertedId }, extractedText);
+                    } else if (existingFile) {
+                        const prior = await db.collection('noteTexts').findOne({ fileHash: fileHash });
+                        if (prior) await studyBuddy.indexFile(db, { ...fileMeta, _id: insertResult.insertedId }, prior.chunks.join('\n\n'));
+                    }
+                } catch (indexErr) {
+                    console.error('Study index failed:', indexErr.message);
+                }
 
                 // Log upload to account history
                 await logAccountHistory(req.session.user.userid, 'UPLOAD',
@@ -4843,6 +4860,88 @@ app.get('/admin', async (req, res) => {
 });
 
 // API: Resolve file report
+
+
+/* AI STUDY BUDDY (see utils/study-buddy.js) */
+
+app.get('/study', async (req, res) => {
+    if (!req.session.user) return res.redirect('/login');
+    try {
+        await ensureConnection();
+        const db = client.db(fileCollection.db);
+        const indexed = await db.collection('noteTexts').distinct('classCode');
+        res.render('study', {
+            courses: indexed.filter(Boolean).sort(),
+            selected: courseStaff.normalizeCourse(req.query.course) || '',
+            aiEnabled: Boolean(studyBuddy.aiConfig()),
+            user: req.session.user
+        });
+    } catch (err) {
+        console.error('Study page error:', err);
+        res.status(500).render('error', { title: 'Something went wrong', message: 'Could not load the study buddy.', link: '/dashboard', linkText: 'Go to Dashboard' });
+    }
+});
+
+app.post('/api/study/ask', apiLimiter, async (req, res) => {
+    if (!req.session.user) return res.status(401).json({ error: 'Not signed in' });
+    const classCode = courseStaff.normalizeCourse(req.body.classCode);
+    const mode = req.body.mode === 'quiz' ? 'quiz' : 'ask';
+    const question = String(req.body.question || '').trim().slice(0, 1000);
+    if (!classCode) return res.status(400).json({ error: 'Pick a course first.' });
+    if (mode === 'ask' && question.length < 3) return res.status(400).json({ error: 'Ask a question first.' });
+    try {
+        await ensureConnection();
+        const result = await studyBuddy.answer({
+            db: client.db(fileCollection.db),
+            filesCollection: fileCollection.collection,
+            classCode, question, mode,
+            userid: req.session.user.userid,
+            config: studyBuddy.aiConfig()
+        });
+        res.json(result);
+    } catch (err) {
+        console.error('Study buddy error:', err.message);
+        res.status(502).json({ error: 'The study buddy is having trouble right now. Try again in a minute.' });
+    }
+});
+
+// Admin: index notes uploaded before the study buddy existed. Runs in batches (serverless time limits).
+app.post('/api/admin/study-index', apiLimiter, async (req, res) => {
+    if (!req.session.user || req.session.user.role !== 'admin') {
+        return res.status(401).json({ error: 'Unauthorized' });
+    }
+    const batch = Math.min(Math.max(Number(req.body?.limit) || 20, 1), 50);
+    try {
+        await ensureConnection();
+        const db = client.db(fileCollection.db);
+        const done = new Set((await db.collection('noteTexts').distinct('fileId')).map(String));
+        const files = await db.collection(fileCollection.collection)
+            .find({ studyIndexSkipped: { $ne: true } }, { projection: { filename: 1, originalName: 1, mimetype: 1, classCode: 1, fileHash: 1, quarantined: 1 } })
+            .toArray();
+        const todo = files.filter(f => !done.has(String(f._id)));
+        let indexed = 0;
+        let skipped = 0;
+        for (const f of todo.slice(0, batch)) {
+            try {
+                const obj = await s3.getObject({ Bucket: AWS_BUCKET, Key: f.filename }).promise();
+                const text = await extractText(obj.Body, f.mimetype, f.originalName);
+                if (text && (await studyBuddy.indexFile(db, f, text)) > 0) indexed++;
+                else {
+                    skipped++;
+                    await db.collection(fileCollection.collection).updateOne({ _id: f._id }, { $set: { studyIndexSkipped: true } });
+                }
+            } catch (err) {
+                skipped++;
+                console.error(`Study index skipped ${f.originalName}:`, err.message);
+                await db.collection(fileCollection.collection).updateOne({ _id: f._id }, { $set: { studyIndexSkipped: true } });
+            }
+        }
+        res.json({ indexed, skipped, remaining: Math.max(todo.length - batch, 0) });
+    } catch (err) {
+        console.error('Study index error:', err);
+        res.status(500).json({ error: 'Indexing failed' });
+    }
+});
 
 /* COURSE STAFF: professors and TAs (see utils/course-staff.js) */
 

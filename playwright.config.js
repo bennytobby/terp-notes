@@ -21,7 +21,14 @@ module.exports = defineConfig({
     ...(live
         ? {}
         : {
-              webServer: {
+              webServer: [
+                  {
+                      // Stand-in for an OpenAI-compatible model, so the study buddy runs end to end.
+                      command: "node e2e/mock-llm.js",
+                      url: "http://127.0.0.1:3399/",
+                      reuseExistingServer: false,
+                  },
+                  {
                   command: "node server.js",
                   url: `http://127.0.0.1:${port}/health`,
                   reuseExistingServer: false,
@@ -43,7 +50,11 @@ module.exports = defineConfig({
                       NODE_ENV: "test",
                       // The tests sign in many times from one IP; production keeps the limit of 5.
                       LOGIN_RATE_LIMIT_MAX: "1000",
+                      AI_BASE_URL: "http://127.0.0.1:3399/v1",
+                      AI_MODEL: "mock-model",
+                      AI_API_KEY: "e2e-only",
                   },
-              },
+                  },
+              ],
           }),
 });

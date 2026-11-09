@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Study Buddy - Terp Notes</title>
+    <link rel="icon" type="image/png" href="/favicon.png" />
+    <link rel="stylesheet" href="/styles/main.css" />
+    <style>
+        .study { max-width: 820px; margin: 2rem auto; padding: 0 1rem; }
+        .study h1 { margin-bottom: 0.25rem; }
+        .muted { color: #6B7280; font-size: 0.92rem; }
+        .controls { display: flex; gap: 0.5rem; flex-wrap: wrap; margin: 1rem 0; }
+        .controls select, .controls input { padding: 0.6rem 0.75rem; border: 1px solid #D1D5DB; border-radius: 10px; font-size: 1rem; }
+        .controls input { flex: 1; min-width: 220px; }
+        #thread { display: flex; flex-direction: column; gap: 1rem; margin-top: 1rem; }
+        .msg { padding: 0.9rem 1rem; border-radius: 14px; line-height: 1.55; white-space: pre-wrap; }
+        .msg.you { align-self: flex-end; background: #F3F4F6; max-width: 85%; }
+        .msg.buddy { background: #fff; border: 1px solid #E5E7EB; }
+        .sources { margin-top: 0.75rem; display: grid; gap: 0.5rem; white-space: normal; }
+        .source { font-size: 0.88rem; background: #FAFAFA; border: 1px solid #F3F4F6; border-radius: 10px; padding: 0.5rem 0.75rem; }
+        .source a { font-weight: 600; }
+        .badge { display: inline-block; font-size: 0.75rem; font-weight: 600; padding: 1px 8px; border-radius: 999px; margin-bottom: 0.4rem; }
+        .badge.ai { background: #EEF2FF; color: #3730A3; }
+        .badge.search { background: #ECFDF5; color: #065F46; }
+        @media (max-width: 480px) { .controls select, .controls button { width: 100%; } }
+    </style>
+</head>
+<body>
+    <header class="topbar">
+        <h2><a href="/dashboard" style="text-decoration: none; color: inherit; display: flex; align-items: center;">
+            <img src="/logo.png" alt="Terp Notes Logo" style="width: 32px; height: 32px; margin-right: 8px;" />
+            Terp Notes
+        </a></h2>
+    </header>
+    <main class="study">
+        <h1>Study Buddy</h1>
+        <p class="muted">
+            Ask about a course and get answers from its notes, with links to the files they came from, or get a practice quiz.
+            <% if (!aiEnabled) { %>AI answers aren't switched on yet, so you'll get the most relevant passages from the notes.<% } %>
+        </p>
+        <% if (courses.length === 0) { %>
+            <p class="muted">No notes have been indexed yet. Upload text, PDF or Word notes to get started.</p>
+        <% } %>
+        <form class="controls" id="ask-form">
+            <select id="course" aria-label="Course" required>
+                <option value="">Pick a course</option>
+                <% courses.forEach(c => { %><option value="<%= c %>" <%= c === selected ? 'selected' : '' %>><%= c %></option><% }) %>
+            </select>
+            <input id="question" aria-label="Your question" placeholder="e.g. What's the difference between a stack and a queue?" maxlength="1000" autocomplete="off" />
+            <button type="submit" class="button primary">Ask</button>
+            <button type="button" class="button" id="quiz-btn">Quiz me</button>
+        </form>
+        <div id="thread" aria-live="polite"></div>
+    </main>
+    <%- include('partials/footer') %>
+    <script>
+        const thread = document.getElementById('thread');
+        const form = document.getElementById('ask-form');
+
+        function add(cls, text) {
+            const div = document.createElement('div');
+            div.className = `msg ${cls}`;
+            div.textContent = text;
+            thread.appendChild(div);
+            div.scrollIntoView({ behavior: 'smooth', block: 'end' });
+            return div;
+        }
+
+        function render(div, data) {
+            div.textContent = '';
+            const badge = document.createElement('span');
+            badge.className = `badge ${data.mode}`;
+            badge.textContent = data.mode === 'ai' ? 'AI answer' : 'From your class notes';
+            div.append(badge, document.createElement('br'), document.createTextNode(data.answer));
+            if (data.sources && data.sources.length) {
+                const list = document.createElement('div');
+                list.className = 'sources';
+                for (const s of data.sources) {
+                    const item = document.createElement('div');
+                    item.className = 'source';
+                    const link = document.createElement('a');
+                    link.href = `/download/${encodeURIComponent(s.filename)}`;
+                    link.target = '_blank';
+                    link.rel = 'noopener noreferrer';
+                    link.textContent = `[${s.n}] ${s.originalName}`;
+                    item.append(link, document.createElement('br'), document.createTextNode(s.snippet));
+                    list.appendChild(item);
+                }
+                div.appendChild(list);
+            }
+        }
+
+        async function ask(mode) {
+            const classCode = document.getElementById('course').value;
+            const question = document.getElementById('question').value.trim();
+            if (!classCode) return add('buddy', 'Pick a course first.');
+            if (mode === 'ask' && question.length < 3) return add('buddy', 'Type a question first.');
+            add('you', mode === 'quiz' ? `Quiz me on ${question || classCode}` : question);
+            const pending = add('buddy', 'Thinking…');
+            try {
+                const res = await fetch('/api/study/ask', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ classCode, question, mode })
+                });
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.error || 'Something went wrong.');
+                render(pending, data);
+                if (mode === 'ask') document.getElementById('question').value = '';
+            } catch (err) {
+                pending.textContent = err.message;
+            }
+        }
+
+        form.addEventListener('submit', (e) => { e.preventDefault(); ask('ask'); });
+        document.getElementById('quiz-btn').addEventListener('click', () => ask('quiz'));
+    </script>
+</body>
+</html>
