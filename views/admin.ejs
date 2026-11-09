@@ -132,7 +132,6 @@
         </div>
 
         <!-- Reported Files Section (Critical Alerts) -->
-        <% if (reports && reports.length> 0) { %>
             <section class="reports-section" id="flagged-section" style="margin-top: 3rem;">
                 <h2>Flagged for Confidential Information (<%= (typeof flaggedFiles !== 'undefined' ? flaggedFiles : []).length %>)</h2>
                 <p style="color: #6B7280; margin-bottom: 1rem;">
@@ -170,6 +169,8 @@
                     <% }) %>
                 </div>
             </section>
+
+        <% if (reports && reports.length> 0) { %>
 
             <section class="reports-section" style="margin-top: 3rem;">
                 <h2>Reported Files (<%= reports.length %>) - Needs Review</h2>
