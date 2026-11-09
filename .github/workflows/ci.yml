@@ -22,6 +22,11 @@ jobs:
     env:
       # Throwaway test database in the service container above. Nothing real is used in CI.
       MONGO_CONNECTION_STRING: mongodb://127.0.0.1:27017
+      # MinIO stands in for S3 (started below). Test-only credentials.
+      AWS_S3_ENDPOINT: http://127.0.0.1:9000
+      AWS_ACCESS_KEY_ID: e2e-access
+      AWS_SECRET_ACCESS_KEY: e2e-secret-key
+      AWS_S3_BUCKET: terpnotes-e2e
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -29,5 +34,11 @@ jobs:
           node-version: 22
       - run: npm install --no-audit --no-fund
       - run: node --check server.js
+      - name: Start MinIO (S3 stand-in)
+        run: |
+          docker run -d --name minio -p 9000:9000 \
+            -e MINIO_ROOT_USER=e2e-access -e MINIO_ROOT_PASSWORD=e2e-secret-key \
+            minio/minio server /data
+          for i in $(seq 1 30); do curl -sf http://127.0.0.1:9000/minio/health/live && break; sleep 1; done
       - run: npx playwright install --with-deps chromium
       - run: npm run test:e2e
