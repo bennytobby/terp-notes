@@ -88,6 +88,7 @@ const AWS_BUCKET = process.env.AWS_S3_BUCKET;
 const { scanUpload: scanForConfidentialInfo, extractText } = require('./utils/confidential-scanner');
 const courseStaff = require('./utils/course-staff');
 const schools = require('./utils/schools');
+const notePipeline = require('./utils/note-pipeline');
 const studyBuddy = require('./utils/study-buddy');
 const mcp = require('./utils/mcp');
 const { StreamableHTTPServerTransport } = require('@modelcontextprotocol/sdk/server/streamableHttp.js');
@@ -4583,24 +4584,11 @@ app.post("/upload", uploadLimiter, upload.array("documents", 50), async (req, re
                 // Extract major from class code (e.g., CMSC330 → CMSC, HIST000 → HIST)
                 const major = classCode.replace(/[0-9]/g, '').trim() || classCode;
 
-                // Confidential-information scan (SSNs, card numbers, rosters, answer keys...).
-                // A duplicate reuses the original's result; a failed scan never blocks the upload.
-                let confidentialScan;
-                let extractedText = null;
-                if (existingFile && existingFile.confidentialScan) {
-                    confidentialScan = existingFile.confidentialScan;
-                } else {
-                    try {
-                        const { text, ...scan } = await scanForConfidentialInfo(file.buffer, file.mimetype, file.originalname);
-                        confidentialScan = scan;
-                        extractedText = text;
-                    } catch (scanErr) {
-                        console.error('Confidential scan failed:', scanErr.message);
-                        confidentialScan = { status: 'error', level: 'none', findings: [] };
-                    }
-                    confidentialScan.scannedAt = new Date();
-                }
-                const quarantined = confidentialScan.level === 'high' && !confidentialScan.reviewed;
+                // Confidential-information scan (SSNs, card numbers, rosters, answer keys...), shared
+                // with imports. A duplicate reuses the original's result; a failed scan never blocks.
+                const { confidentialScan, quarantined, text: extractedText } = await notePipeline.assessNote({
+                    buffer: file.buffer, mimetype: file.mimetype, name: file.originalname, existingFile
+                });
                 if (quarantined) heldFiles.push(file.originalname);
 
                 const fileMeta = {
@@ -6490,6 +6478,7 @@ async function persistImportedNotes(user, files, options = {}) {
     const major = classCode.replace(/[0-9]/g, '').trim() || classCode;
     const published = [];
     const failed = [];
+    const held = [];
 
     await ensureConnection();
 
@@ -6503,6 +6492,7 @@ async function persistImportedNotes(user, files, options = {}) {
 
             const buffer = Buffer.isBuffer(file.content) ? file.content : Buffer.from(file.content);
             const fileHash = crypto.createHash('sha256').update(buffer).digest('hex');
+            const mimetype = notePipeline.mimeForName(originalName);
             const existingFile = await client
                 .db(fileCollection.db)
                 .collection(fileCollection.collection)
@@ -6515,7 +6505,7 @@ async function persistImportedNotes(user, files, options = {}) {
                 s3Url = existingFile.s3Url;
             } else {
                 s3Key = `${Date.now()}_${Math.random().toString(36).substring(7)}_${originalName}`;
-                const contentType = originalName.toLowerCase().endsWith('.pdf') ? 'application/pdf' : 'text/markdown';
+                const contentType = mimetype;
                 const s3Result = await s3.upload({
                     Bucket: AWS_BUCKET,
                     Key: s3Key,
@@ -6525,14 +6515,13 @@ async function persistImportedNotes(user, files, options = {}) {
                 s3Url = s3Result.Location;
             }
 
-            await client
-                .db(fileCollection.db)
-                .collection(fileCollection.collection)
-                .insertOne({
+            // Imports get the same checks as uploads: confidential scan, school, study index, malware scan.
+            const { confidentialScan, quarantined, text } = await notePipeline.assessNote({ buffer, mimetype, name: originalName, existingFile });
+            const fileMeta = {
                     filename: s3Key,
                     originalName,
                     s3Url,
-                    mimetype: originalName.toLowerCase().endsWith('.pdf') ? 'application/pdf' : 'text/markdown',
+                    mimetype,
                     size: buffer.length,
                     fileHash,
                     uploadDate: new Date(),
@@ -6549,9 +6538,26 @@ async function persistImportedNotes(user, files, options = {}) {
                     virusScanDate: existingFile ? existingFile.virusScanDate : null,
                     virusScanDetails: existingFile ? existingFile.virusScanDetails : null,
                     scanAttempts: existingFile ? existingFile.scanAttempts || 0 : 0,
-                    source: file.metadata?.source || 'integration'
-                });
-
+                    source: file.metadata?.source || 'integration',
+                    confidentialScan,
+                    quarantined,
+                    school: schools.schoolOf(user)
+            };
+            const inserted = await client
+                .db(fileCollection.db)
+                .collection(fileCollection.collection)
+                .insertOne(fileMeta);
+            try {
+                const db = client.db(fileCollection.db);
+                const indexText = text || (existingFile ? ((await db.collection('noteTexts').findOne({ fileHash }))?.chunks || []).join('\n\n') : '');
+                if (indexText) await studyBuddy.indexFile(db, { ...fileMeta, _id: inserted.insertedId }, indexText);
+            } catch (indexErr) {
+                console.error('Study index failed for import:', indexErr.message);
+            }
+            if (!existingFile && VIRUSTOTAL_ENABLED) {
+                scanFileWithVirusTotal(inserted.insertedId, buffer, originalName).catch(err => console.error('Background virus scan error:', err));
+            }
+            if (quarantined) held.push(originalName);
             published.push(originalName);
         } catch (error) {
             console.error(`Failed to persist imported file ${originalName}:`, error);
@@ -6559,7 +6565,7 @@ async function persistImportedNotes(user, files, options = {}) {
         }
     }
 
-    return { success: true, published, failed };
+    return { success: true, published, failed, held };
 }
 
 // Register integration API routes
@@ -6890,7 +6896,8 @@ function registerIntegrationRoutes() {
                 success: true,
                 count: persistResult.published.length,
                 files: persistResult.published,
-                failed: persistResult.failed
+                failed: persistResult.failed,
+                held: persistResult.held
             });
         } catch (error) {
             console.error('Import error:', error);
