@@ -159,6 +159,13 @@
                 <% } %>
             </section>
 
+            <section class="reports-section" id="study-index-section" style="margin-top: 3rem;">
+                <h2>Study Buddy</h2>
+                <p style="color: #6B7280;">New uploads are indexed automatically. Index notes uploaded before the study buddy existed (runs 20 files at a time).</p>
+                <button class="button" id="study-index-btn" onclick="indexStudyNotes()">Index older notes</button>
+                <span id="study-index-status" style="margin-left: 0.75rem; color: #6B7280;"></span>
+            </section>
+
             <section class="reports-section" id="flagged-section" style="margin-top: 3rem;">
                 <h2>Flagged for Confidential Information (<%= (typeof flaggedFiles !== 'undefined' ? flaggedFiles : []).length %>)</h2>
                 <p style="color: #6B7280; margin-bottom: 1rem;">
@@ -830,6 +837,28 @@
             if (!response.ok) return showNotification(result.error || 'Could not remove', 'error');
             document.querySelector(`.staff-admin-row[data-course="${classCode}"][data-userid="${userid}"]`)?.remove();
             showNotification('Removed.', 'success');
+        }
+
+        async function indexStudyNotes() {
+            const btn = document.getElementById('study-index-btn');
+            const status = document.getElementById('study-index-status');
+            btn.disabled = true;
+            let total = 0;
+            try {
+                for (let i = 0; i < 25; i++) {
+                    const res = await fetch('/api/admin/study-index', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{}' });
+                    const r = await res.json();
+                    if (!res.ok) throw new Error(r.error || 'Indexing failed');
+                    total += r.indexed;
+                    status.textContent = `Indexed ${total} so far, ${r.remaining} left…`;
+                    if (r.remaining === 0) break;
+                }
+                status.textContent = `Done. Indexed ${total} file(s).`;
+            } catch (err) {
+                status.textContent = err.message;
+            } finally {
+                btn.disabled = false;
+            }
         }
 
         async function reviewConfidential(fileHash, action) {
