@@ -30,12 +30,10 @@
         "multer": "^2.0.0-rc.4",
         "natural": "^8.1.0",
         "node-fetch": "^2.7.0",
-        "nodemailer": "^7.0.10",
         "openai": "^4.104.0",
         "redis": "^5.8.2",
         "resend": "^6.1.2",
-        "sentiment": "^5.0.2",
-        "sharp": "^0.33.5"
+        "sentiment": "^5.0.2"
     },
     "scripts": {
         "start": "node server.js",
