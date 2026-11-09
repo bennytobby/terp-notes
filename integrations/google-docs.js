@@ -137,8 +137,9 @@ class GoogleDocsIntegration {
                 { fileId: documentId, alt: 'media' },
                 { responseType: 'arraybuffer' }
             );
-            const extension = mimeType === 'application/pdf' ? '.pdf' : '';
-            const filename = baseName.includes('.') ? baseName : `${baseName}${extension}`;
+            // Name the file by its real type: names like "Week 1. Intro" contain a dot but no
+            // extension, and a Word file saved without .docx was served as Markdown.
+            const filename = require('../utils/note-pipeline').withExtension(baseName, mimeType);
             return {
                 success: true,
                 file: {
