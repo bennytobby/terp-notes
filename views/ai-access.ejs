@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Use your notes in AI apps - Terp Notes</title>
+    <link rel="icon" type="image/png" href="/favicon.png" />
+    <link rel="stylesheet" href="/styles/main.css" />
+    <style>
+        .wrap { max-width: 820px; margin: 2rem auto; padding: 0 1rem; }
+        .card { background: #fff; border: 1px solid #E5E7EB; border-radius: 12px; padding: 1.25rem; margin-bottom: 1.25rem; }
+        .muted { color: #6B7280; font-size: 0.92rem; }
+        code, pre { background: #F3F4F6; border-radius: 6px; padding: 2px 6px; word-break: break-all; }
+        pre { padding: 0.75rem; white-space: pre-wrap; }
+        .row { display: flex; justify-content: space-between; align-items: center; gap: 0.75rem; padding: 0.5rem 0; border-bottom: 1px solid #F3F4F6; flex-wrap: wrap; }
+        .row:last-child { border-bottom: 0; }
+        form { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+        form input { flex: 1; min-width: 200px; padding: 0.55rem 0.75rem; border: 1px solid #D1D5DB; border-radius: 8px; }
+        #new-token { display: none; background: #F0FDF4; border: 1px solid #BBF7D0; }
+        h2 { margin-top: 0; }
+    </style>
+</head>
+<body>
+    <header class="topbar">
+        <h2><a href="/dashboard" style="text-decoration: none; color: inherit; display: flex; align-items: center;">
+            <img src="/logo.png" alt="Terp Notes Logo" style="width: 32px; height: 32px; margin-right: 8px;" />
+            Terp Notes
+        </a></h2>
+    </header>
+    <main class="wrap">
+        <h1>Use your notes in ChatGPT and Claude</h1>
+        <p class="muted">Terp Notes has an MCP server, so AI apps can search course notes and read them while you study. It can only read notes you can already see; it can't upload, change or delete anything.</p>
+
+        <section class="card">
+            <h2>1. Create an access token</h2>
+            <form id="create-form">
+                <input name="name" aria-label="Token name" placeholder="Name, e.g. ChatGPT on my laptop" maxlength="60" />
+                <button type="submit" class="button primary">Create token</button>
+            </form>
+            <div id="new-token" class="card" style="margin-top: 1rem;" role="status">
+                <p style="margin-top: 0;"><strong>Copy this now.</strong> You won't see it again.</p>
+                <p>Token: <code id="token-value"></code></p>
+                <p>Private connector URL (for ChatGPT and Claude.ai): <code id="token-url"></code></p>
+                <p class="muted" style="margin-bottom: 0;">Treat both like a password. If one leaks, revoke it below.</p>
+            </div>
+        </section>
+
+        <section class="card">
+            <h2>2. Connect your AI app</h2>
+            <p><strong>ChatGPT:</strong> Plugins → <em>+</em> → Add custom MCP server. Paste your private connector URL and choose <em>No authentication</em> (the token is in the URL).</p>
+            <p><strong>Claude.ai:</strong> Settings → Connectors → Add custom connector, and paste your private connector URL.</p>
+            <p><strong>Claude Code:</strong></p>
+            <pre>claude mcp add --transport http terp-notes <%= baseUrl %>/mcp --header "Authorization: Bearer YOUR_TOKEN"</pre>
+            <p><strong>Other MCP clients:</strong> server URL <code><%= baseUrl %>/mcp</code>, header <code>Authorization: Bearer YOUR_TOKEN</code>.</p>
+            <p class="muted">Tools: <code>list_courses</code>, <code>search_notes</code>, <code>get_note</code>, and <code>search</code> / <code>fetch</code> for ChatGPT.</p>
+        </section>
+
+        <section class="card">
+            <h2>Your tokens</h2>
+            <% if (tokens.length === 0) { %>
+                <p class="muted" id="no-tokens">No active tokens.</p>
+            <% } %>
+            <div id="token-list">
+                <% tokens.forEach(t => { %>
+                    <div class="row token-row" data-id="<%= t.id %>">
+                        <span><strong><%= t.name %></strong> <span class="muted"><code><%= t.prefix %>…</code> · created <%= new Date(t.createdAt).toLocaleDateString() %> · <%= t.lastUsedAt ? 'last used ' + new Date(t.lastUsedAt).toLocaleString() : 'never used' %></span></span>
+                        <button class="button danger" onclick="revoke('<%= t.id %>')">Revoke</button>
+                    </div>
+                <% }) %>
+            </div>
+        </section>
+    </main>
+    <%- include('partials/footer') %>
+    <script>
+        const baseUrl = <%- JSON.stringify(baseUrl) %>;
+        document.getElementById('create-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const res = await fetch('/api/ai-access/tokens', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name: e.target.name.value })
+            });
+            const data = await res.json();
+            if (!res.ok) return alert(data.error || 'Could not create a token');
+            document.getElementById('token-value').textContent = data.token;
+            document.getElementById('token-url').textContent = `${baseUrl}/mcp/${data.token}`;
+            document.getElementById('new-token').style.display = 'block';
+            e.target.reset();
+        });
+        async function revoke(id) {
+            if (!confirm('Revoke this token? Apps using it will stop working.')) return;
+            const res = await fetch(`/api/ai-access/tokens/${id}/revoke`, { method: 'POST' });
+            if (res.ok) document.querySelector(`.token-row[data-id="${id}"]`)?.remove();
+        }
+    </script>
+</body>
+</html>

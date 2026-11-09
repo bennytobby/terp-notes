@@ -88,6 +88,8 @@ const AWS_BUCKET = process.env.AWS_S3_BUCKET;
 const { scanUpload: scanForConfidentialInfo, extractText } = require('./utils/confidential-scanner');
 const courseStaff = require('./utils/course-staff');
 const studyBuddy = require('./utils/study-buddy');
+const mcp = require('./utils/mcp');
+const { StreamableHTTPServerTransport } = require('@modelcontextprotocol/sdk/server/streamableHttp.js');
 courseStaff.setUsersCollection(process.env.MONGO_USERCOLLECTION);
 
 /**
@@ -1101,7 +1103,9 @@ app.use(async (req, res, next) => {
     const publicRoutesRegex = /^\/(verify|reset-password)\/.+|^\/invite\/[^/]+$/; // /verify/:token, /reset-password/:token, /invite/:token (not /accept)
     const isOAuthCallback = /^\/auth\/[a-z]+\/callback$/.test(req.path);
 
-    const isPublicRoute = publicRoutes.includes(req.path) || publicRoutesRegex.test(req.path) || isOAuthCallback;
+    // /mcp authenticates with personal access tokens, not the browser session.
+    const isMcp = req.path === '/mcp' || req.path.startsWith('/mcp/');
+    const isPublicRoute = publicRoutes.includes(req.path) || publicRoutesRegex.test(req.path) || isOAuthCallback || isMcp;
     const isApiRoute = req.path.startsWith('/api/');
 
     // Check if user is authenticated via session
@@ -4863,6 +4867,97 @@ app.get('/admin', async (req, res) => {
 
 // API: Resolve file report
 
+
+
+/* MCP SERVER for ChatGPT, Claude and other AI apps (see utils/mcp.js) */
+
+const mcpLimiter = rateLimit({
+    windowMs: 60 * 1000,
+    max: 120,
+    standardHeaders: true,
+    legacyHeaders: false,
+    validate: false,
+    keyGenerator: (req) => {
+        const token = mcp.tokenFromRequest(req);
+        return token ? `t:${mcp.hashToken(token)}` : `ip:${req.ip}`;
+    },
+    message: { jsonrpc: '2.0', error: { code: -32000, message: 'Too many requests' }, id: null }
+});
+
+function mcpError(res, status, message) {
+    res.status(status).json({ jsonrpc: '2.0', error: { code: -32001, message }, id: null });
+}
+
+app.post(['/mcp', '/mcp/:token'], mcpLimiter, async (req, res) => {
+    try {
+        await ensureConnection();
+        const db = client.db(fileCollection.db);
+        const user = await mcp.authenticate(db, userCollection.collection, mcp.tokenFromRequest(req));
+        if (!user) {
+            res.set('WWW-Authenticate', 'Bearer realm="terp-notes"');
+            return mcpError(res, 401, 'A valid Terp Notes access token is required. Create one at /ai-access.');
+        }
+        const baseUrl = process.env.BASE_URL || `${req.protocol}://${req.get('host')}`;
+        const server = mcp.buildServer({ db, filesCollection: fileCollection.collection, baseUrl, user });
+        // Stateless: a new server and transport per request (works on serverless).
+        const transport = new StreamableHTTPServerTransport({ sessionIdGenerator: undefined, enableJsonResponse: true });
+        res.on('close', () => {
+            transport.close();
+            server.close();
+        });
+        await server.connect(transport);
+        await transport.handleRequest(req, res, req.body);
+    } catch (err) {
+        console.error('MCP error:', err);
+        if (!res.headersSent) mcpError(res, 500, 'Internal error');
+    }
+});
+
+// Stateless server: no SSE stream or sessions to resume or end.
+app.all(['/mcp', '/mcp/:token'], (req, res) => {
+    res.set('Allow', 'POST');
+    mcpError(res, 405, 'Method not allowed');
+});
+
+app.get('/ai-access', async (req, res) => {
+    if (!req.session.user) return res.redirect('/login');
+    try {
+        await ensureConnection();
+        const tokens = await mcp.listTokens(client.db(fileCollection.db), req.session.user.userid);
+        res.render('ai-access', { tokens, baseUrl: process.env.BASE_URL || `${req.protocol}://${req.get('host')}` });
+    } catch (err) {
+        console.error('AI access page error:', err);
+        res.status(500).render('error', { title: 'Something went wrong', message: 'Could not load your access tokens.', link: '/dashboard', linkText: 'Go to Dashboard' });
+    }
+});
+
+app.post('/api/ai-access/tokens', apiLimiter, async (req, res) => {
+    if (!req.session.user) return res.status(401).json({ error: 'Not signed in' });
+    try {
+        await ensureConnection();
+        const created = await mcp.createToken(client.db(fileCollection.db), req.session.user.userid, req.body?.name);
+        await logAccountHistory(req.session.user.userid, 'AI_TOKEN_CREATE', `Created AI access token "${created.name}"`, null, { id: created.id });
+        res.json(created);
+    } catch (err) {
+        if (err instanceof mcp.TokenError) return res.status(err.status).json({ error: err.message });
+        console.error('Token create error:', err);
+        res.status(500).json({ error: 'Could not create a token' });
+    }
+});
+
+app.post('/api/ai-access/tokens/:id/revoke', apiLimiter, async (req, res) => {
+    if (!req.session.user) return res.status(401).json({ error: 'Not signed in' });
+    try {
+        await ensureConnection();
+        await mcp.revokeToken(client.db(fileCollection.db), req.session.user.userid, req.params.id);
+        await logAccountHistory(req.session.user.userid, 'AI_TOKEN_REVOKE', 'Revoked an AI access token', null, { id: req.params.id });
+        res.json({ success: true });
+    } catch (err) {
+        if (err instanceof mcp.TokenError) return res.status(err.status).json({ error: err.message });
+        console.error('Token revoke error:', err);
+        res.status(500).json({ error: 'Could not revoke the token' });
+    }
+});
 
 /* AI STUDY BUDDY (see utils/study-buddy.js) */
 
