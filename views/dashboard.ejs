@@ -789,6 +789,11 @@
                                                 data-downloads="<%= file.downloadCount || 0 %>"
                                                 data-size="<%= file.size || 0 %>">
                                                 <div class="file-header" style="position: relative;">
+                                                    <% if (file.quarantined) { %>
+                                                        <div class="held-for-review" style="position: absolute; bottom: 0.5rem; left: 0.5rem; background: #FEE2E2; color: #991B1B; padding: 2px 8px; border-radius: 4px; font-size: 0.7rem; font-weight: 600; z-index: 10;" title="This file may contain personal or confidential information. Only you and admins can see it until an admin reviews it.">
+                                                            Held for review
+                                                        </div>
+                                                    <% } %>
                                                     <!-- Bulk select checkbox -->
                                                     <div style="position: absolute; top: 0.5rem; left: 0.5rem; z-index: 20; background: rgba(255,255,255,0.9); padding: 2px; border-radius: 4px; border: 1px solid #D1D5DB;">
                                                         <input type="checkbox" class="file-select-checkbox" data-filename="<%= file.filename %>"

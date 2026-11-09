@@ -85,6 +85,21 @@ const s3 = new AWS.S3({
 const AWS_BUCKET = process.env.AWS_S3_BUCKET;
 
 /* VirusTotal Configuration */
+const { scanUpload: scanForConfidentialInfo } = require('./utils/confidential-scanner');
+
+/**
+ * Files held by the confidential-information scanner are only visible to their uploader
+ * and to admins until an admin reviews them.
+ */
+function visibleFilesFilter(user) {
+    if (user && user.role === 'admin') return {};
+    return { $or: [{ quarantined: { $ne: true } }, { uploadedBy: user ? user.userid : null }] };
+}
+
+function canSeeFile(user, fileDoc) {
+    return !fileDoc.quarantined || (user && (user.role === 'admin' || fileDoc.uploadedBy === user.userid));
+}
+
 const VIRUSTOTAL_API_KEY = process.env.VIRUSTOTAL_API_KEY;
 const VIRUSTOTAL_ENABLED = !!VIRUSTOTAL_API_KEY;
 if (VIRUSTOTAL_ENABLED) {
@@ -2931,7 +2946,7 @@ app.get('/dashboard', async (req, res) => {
         const allFiles = await client
             .db(fileCollection.db)
             .collection(fileCollection.collection)
-            .find({})
+            .find(visibleFilesFilter(req.session.user))
             .sort({ uploadDate: -1 }) // Default sort by newest
             .toArray();
 
@@ -2987,7 +3002,7 @@ app.get('/mobile/dashboard', async (req, res) => {
         const recentFiles = await client
             .db(fileCollection.db)
             .collection(fileCollection.collection)
-            .find({})
+            .find(visibleFilesFilter(req.session.user))
             .sort({ uploadDate: -1 })
             .limit(50) // Limit for mobile performance
             .toArray();
@@ -3857,6 +3872,15 @@ app.get("/download/:filename", async (req, res) => {
             });
         }
 
+        if (!canSeeFile(req.session.user, fileDoc)) {
+            return res.status(403).render('error', {
+                title: "File Under Review",
+                message: "This file is being reviewed by an admin because it may contain personal or confidential information.",
+                link: "/dashboard",
+                linkText: "Go to Dashboard"
+            });
+        }
+
         // Check if force download is requested
         const forceDownload = req.query.force === 'download';
 
@@ -3982,7 +4006,7 @@ app.post("/bulk-download", async (req, res) => {
         const fileDocs = await client
             .db(fileCollection.db)
             .collection(fileCollection.collection)
-            .find({ filename: { $in: filenames } })
+            .find({ $and: [{ filename: { $in: filenames } }, visibleFilesFilter(req.session.user)] })
             .toArray();
 
         if (fileDocs.length === 0) {
@@ -4463,6 +4487,7 @@ app.post("/upload", uploadLimiter, upload.array("documents", 50), async (req, re
 
     const uploadedFiles = [];
     const failedFiles = [];
+    const heldFiles = [];
 
     try {
         await ensureConnection();
@@ -4502,6 +4527,23 @@ app.post("/upload", uploadLimiter, upload.array("documents", 50), async (req, re
                 // Extract major from class code (e.g., CMSC330 → CMSC, HIST000 → HIST)
                 const major = classCode.replace(/[0-9]/g, '').trim() || classCode;
 
+                // Confidential-information scan (SSNs, card numbers, rosters, answer keys...).
+                // A duplicate reuses the original's result; a failed scan never blocks the upload.
+                let confidentialScan;
+                if (existingFile && existingFile.confidentialScan) {
+                    confidentialScan = existingFile.confidentialScan;
+                } else {
+                    try {
+                        confidentialScan = await scanForConfidentialInfo(file.buffer, file.mimetype, file.originalname);
+                    } catch (scanErr) {
+                        console.error('Confidential scan failed:', scanErr.message);
+                        confidentialScan = { status: 'error', level: 'none', findings: [] };
+                    }
+                    confidentialScan.scannedAt = new Date();
+                }
+                const quarantined = confidentialScan.level === 'high' && !confidentialScan.reviewed;
+                if (quarantined) heldFiles.push(file.originalname);
+
                 const fileMeta = {
                     filename: s3Key,
                     originalName: file.originalname,
@@ -4522,7 +4564,9 @@ app.post("/upload", uploadLimiter, upload.array("documents", 50), async (req, re
                     virusScanStatus: existingFile ? existingFile.virusScanStatus : 'pending', // pending, clean, infected
                     virusScanDate: existingFile ? existingFile.virusScanDate : null,
                     virusScanDetails: existingFile ? existingFile.virusScanDetails : null,
-                    scanAttempts: existingFile ? existingFile.scanAttempts || 0 : 0
+                    scanAttempts: existingFile ? existingFile.scanAttempts || 0 : 0,
+                    confidentialScan: confidentialScan,
+                    quarantined: quarantined
                 };
 
                 const insertResult = await client
@@ -4571,6 +4615,9 @@ app.post("/upload", uploadLimiter, upload.array("documents", 50), async (req, re
         let message = `Successfully uploaded ${uploadedFiles.length} file(s) to ${classCode}!`;
         if (failedFiles.length > 0) {
             message += ` ${failedFiles.length} file(s) failed to upload.`;
+        }
+        if (heldFiles.length > 0) {
+            message += ` ${heldFiles.length} file(s) look like they contain personal or confidential information (for example ID or card numbers), so they're hidden from other students until an admin reviews them.`;
         }
 
         res.render('success', {
@@ -4649,6 +4696,16 @@ app.get('/admin', async (req, res) => {
             .find({ status: 'pending' })
             .sort({ reportedAt: -1 })
             .toArray();
+
+        // Files the confidential-information scanner flagged, one entry per distinct file.
+        const flaggedDocs = await client
+            .db(fileCollection.db)
+            .collection(fileCollection.collection)
+            .find({ 'confidentialScan.status': 'flagged', 'confidentialScan.reviewed': { $ne: true } })
+            .sort({ uploadDate: -1 })
+            .limit(200)
+            .toArray();
+        const flaggedFiles = [...new Map(flaggedDocs.map(f => [f.fileHash, f])).values()];
 
         // Get announcements
         const announcements = await client
@@ -4746,6 +4803,7 @@ app.get('/admin', async (req, res) => {
             user: req.session.user,
             users: usersWithAnalytics,
             reports: reports,
+            flaggedFiles: flaggedFiles,
             announcements: announcements
         });
     } catch (error) {
@@ -4760,6 +4818,53 @@ app.get('/admin', async (req, res) => {
 });
 
 // API: Resolve file report
+// Admin review of a file flagged by the confidential-information scanner.
+// action "approve" makes it visible again; "remove" deletes every copy and the stored object.
+app.post('/api/admin/confidential-review', apiLimiter, async (req, res) => {
+    if (!req.session.user || req.session.user.role !== 'admin') {
+        return res.status(401).json({ error: 'Unauthorized' });
+    }
+    const { fileHash, action } = req.body || {};
+    if (typeof fileHash !== 'string' || !/^[a-f0-9]{64}$/.test(fileHash) || !['approve', 'remove'].includes(action)) {
+        return res.status(400).json({ error: 'fileHash and action (approve or remove) are required' });
+    }
+    try {
+        await ensureConnection();
+        const files = client.db(fileCollection.db).collection(fileCollection.collection);
+        const docs = await files.find({ fileHash }).toArray();
+        if (docs.length === 0) return res.status(404).json({ error: 'File not found' });
+
+        if (action === 'approve') {
+            await files.updateMany(
+                { fileHash },
+                {
+                    $set: {
+                        quarantined: false,
+                        'confidentialScan.reviewed': true,
+                        'confidentialScan.reviewedBy': req.session.user.userid,
+                        'confidentialScan.reviewedAt': new Date()
+                    }
+                }
+            );
+        } else {
+            for (const key of new Set(docs.map(d => d.filename))) {
+                await s3.deleteObject({ Bucket: AWS_BUCKET, Key: key }).promise()
+                    .catch(err => console.error('S3 delete failed for flagged file:', err.message));
+            }
+            await files.deleteMany({ fileHash });
+            await client.db(fileCollection.db).collection('reports')
+                .deleteMany({ filename: { $in: docs.map(d => d.filename) } });
+        }
+        await logAccountHistory(req.session.user.userid, 'CONFIDENTIAL_REVIEW',
+            `${action === 'approve' ? 'Approved' : 'Removed'} flagged file ${docs[0].originalName}`,
+            null, { fileHash, action, copies: docs.length });
+        res.json({ success: true, action, copies: docs.length });
+    } catch (err) {
+        console.error('Confidential review failed:', err);
+        res.status(500).json({ error: 'Review failed' });
+    }
+});
+
 app.post('/api/resolve-report', apiLimiter, async (req, res) => {
     if (!req.session.user || req.session.user.role !== 'admin') {
         return res.status(401).json({ error: 'Unauthorized' });
