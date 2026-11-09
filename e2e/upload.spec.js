@@ -1,5 +1,5 @@
 // Uploading a note: stored in S3, recorded in MongoDB, reported as a success, queued for scanning.
-// Needs MongoDB and an S3-compatible store (CI runs MinIO and sets AWS_S3_ENDPOINT).
+// Needs MongoDB and an S3-compatible store (CI runs S3Mock and sets AWS_S3_ENDPOINT).
 const { expect, test } = require("@playwright/test");
 const AWS = require("aws-sdk");
 const { needsDb, seedUser, signIn, withDb } = require("./helpers");
