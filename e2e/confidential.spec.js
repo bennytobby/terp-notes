@@ -1,5 +1,5 @@
 // Confidential-information scanner: high-risk uploads are held for admin review.
-// Needs MongoDB and an S3-compatible store (CI runs MinIO).
+// Needs MongoDB and an S3-compatible store (CI runs S3Mock).
 const { expect, test } = require("@playwright/test");
 const AWS = require("aws-sdk");
 const { needsDb, seedUser, signIn, withDb } = require("./helpers");
