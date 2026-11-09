@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title><%= title %></title>
+    <link rel="icon" type="image/png" href="/favicon.png" />
+    <link rel="stylesheet" href="/styles/main.css" />
+</head>
+<body>
+    <header class="topbar">
+        <h2><a href="/" style="text-decoration: none; color: inherit; display: flex; align-items: center;">
+            <img src="/logo.png" alt="Terp Notes Logo" style="width: 32px; height: 32px; margin-right: 8px;" />
+            Terp Notes
+        </a></h2>
+    </header>
+    <main class="centered">
+        <div class="alert" style="max-width: 560px;">
+            <% if (error) { %>
+                <h1>Invite unavailable</h1>
+                <p><%= error %></p>
+                <a href="/dashboard" class="button primary">Go to Dashboard</a>
+            <% } else if (!user) { %>
+                <h1>You're invited to teach <%= invite.classCode %></h1>
+                <p>This invite makes <strong><%= invite.email %></strong> the <%= invite.role === 'ta' ? 'TA' : 'professor' %> for <strong><%= invite.classCode %></strong> on Terp Notes, so you can moderate the course's notes and add TAs.</p>
+                <p>Sign in with that account (or create it) to accept. You'll come back here after signing in.</p>
+                <a href="/login" class="button primary">Sign in</a>
+                <a href="/register" class="button">Create an account</a>
+            <% } else { %>
+                <h1>Accept your invite to <%= invite.classCode %></h1>
+                <p>You'll become the <strong><%= invite.role === 'ta' ? 'TA' : 'professor' %></strong> for <strong><%= invite.classCode %></strong>. You can then:</p>
+                <ul style="text-align: left; line-height: 1.8;">
+                    <li>remove notes for your course that shouldn't be shared,</li>
+                    <li>review files flagged for personal or confidential information,</li>
+                    <li>add and remove your TAs.</li>
+                </ul>
+                <form method="POST" action="/invite/<%= token %>/accept">
+                    <button type="submit" class="button primary">Accept invite</button>
+                </form>
+            <% } %>
+        </div>
+    </main>
+    <%- include('partials/footer') %>
+</body>
+</html>

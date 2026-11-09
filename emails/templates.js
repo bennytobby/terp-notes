@@ -409,7 +409,21 @@ function accountUnbannedEmail(firstname) {
     return emailWrapper(content);
 }
 
+/**
+ * Course staff invite (professor)
+ */
+function staffInviteEmail(classCode, link, days) {
+    const content = `
+        <h2 style="color: #E21833; margin-top: 0;">You're invited to help run ${classCode}</h2>
+        <p style="color: #374151; line-height: 1.6;">A Terp Notes admin invited you to be the professor for <strong>${classCode}</strong>. You'll be able to remove course notes that shouldn't be shared, review files flagged for personal information, and add your TAs.</p>
+        ${button(link, 'Accept invite')}
+        <p style="color: #6B7280; font-size: 0.875rem;">Sign in with this email address to accept. The link works once and expires in ${days} days.</p>
+    `;
+    return emailWrapper(content);
+}
+
 module.exports = {
+    staffInviteEmail,
     verificationEmail,
     resendVerificationEmail,
     passwordResetEmail,

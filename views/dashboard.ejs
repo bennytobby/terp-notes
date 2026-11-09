@@ -536,6 +536,9 @@
         <!-- Navigation Links -->
         <nav class="main-nav">
             <a href="/dashboard" class="nav-link nav-dashboard">Dashboard</a>
+            <% if (typeof isCourseStaff !== 'undefined' && isCourseStaff) { %>
+                <a href="/staff" class="nav-link nav-staff">Course Staff</a>
+            <% } %>
             <a href="/profile" class="nav-link nav-profile">Profile</a>
             <a href="/integrations" class="nav-link nav-integrations">Integrations</a>
             <% if (user.role==='admin' ) { %>
@@ -789,6 +792,12 @@
                                                 data-downloads="<%= file.downloadCount || 0 %>"
                                                 data-size="<%= file.size || 0 %>">
                                                 <div class="file-header" style="position: relative;">
+                                                    <% const staffRole = (typeof staffBadges !== 'undefined' && staffBadges) ? staffBadges[`${file.classCode}|${file.uploadedBy}`] : null; %>
+                                                    <% if (staffRole) { %>
+                                                        <div class="staff-badge" style="position: absolute; bottom: 0.5rem; right: 0.5rem; background: #EEF2FF; color: #3730A3; padding: 2px 8px; border-radius: 4px; font-size: 0.7rem; font-weight: 600; z-index: 10;" title="Uploaded by this course's <%= staffRole === 'professor' ? 'professor' : 'TA' %>">
+                                                            <%= staffRole === 'professor' ? 'From the professor' : 'From a TA' %>
+                                                        </div>
+                                                    <% } %>
                                                     <% if (file.quarantined) { %>
                                                         <div class="held-for-review" style="position: absolute; bottom: 0.5rem; left: 0.5rem; background: #FEE2E2; color: #991B1B; padding: 2px 8px; border-radius: 4px; font-size: 0.7rem; font-weight: 600; z-index: 10;" title="This file may contain personal or confidential information. Only you and admins can see it until an admin reviews it.">
                                                             Held for review
