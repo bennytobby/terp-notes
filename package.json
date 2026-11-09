@@ -40,9 +40,12 @@
     "scripts": {
         "start": "node server.js",
         "dev": "nodemon server.js",
-        "build": "echo 'Build completed'"
+        "build": "echo 'Build completed'",
+        "test:e2e": "playwright test",
+        "test:live": "playwright test --grep @live"
     },
     "devDependencies": {
+        "@playwright/test": "^1.65.0",
         "nodemon": "^3.0.0"
     }
 }

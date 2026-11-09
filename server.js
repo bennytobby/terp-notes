@@ -1073,7 +1073,7 @@ function sanitizeForHeader(filename) {
 
 // Session validation middleware
 app.use(async (req, res, next) => {
-    const publicRoutes = ['/', '/login', '/register', '/loginSubmit', '/registerSubmit', '/forgot-password', '/resend-verification', '/privacy', '/terms', '/contact', '/contact/submit', '/api/umd/professors', '/api/umd/courses', '/api/umd/professor-courses', '/api/professor-cache', '/api/course-cache', '/api/semester-year-cache', '/api/optimized-cache'];
+    const publicRoutes = ['/', '/health', '/login', '/register', '/loginSubmit', '/registerSubmit', '/forgot-password', '/resend-verification', '/privacy', '/terms', '/contact', '/contact/submit', '/api/umd/professors', '/api/umd/courses', '/api/umd/professor-courses', '/api/professor-cache', '/api/course-cache', '/api/semester-year-cache', '/api/optimized-cache'];
     const publicRoutesRegex = /^\/(verify|reset-password)\/.+/; // Match /verify/:token and /reset-password/:token
     const isOAuthCallback = /^\/auth\/[a-z]+\/callback$/.test(req.path);
 
