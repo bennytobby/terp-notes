@@ -87,6 +87,7 @@ const AWS_BUCKET = process.env.AWS_S3_BUCKET;
 /* VirusTotal Configuration */
 const { scanUpload: scanForConfidentialInfo, extractText } = require('./utils/confidential-scanner');
 const courseStaff = require('./utils/course-staff');
+const schools = require('./utils/schools');
 const studyBuddy = require('./utils/study-buddy');
 const mcp = require('./utils/mcp');
 const { StreamableHTTPServerTransport } = require('@modelcontextprotocol/sdk/server/streamableHttp.js');
@@ -98,11 +99,19 @@ courseStaff.setUsersCollection(process.env.MONGO_USERCOLLECTION);
  */
 function visibleFilesFilter(user) {
     if (user && user.role === 'admin') return {};
-    return { $or: [{ quarantined: { $ne: true } }, { uploadedBy: user ? user.userid : null }] };
+    // Students see their own school's notes; held files only if they uploaded them.
+    return {
+        $and: [
+            schools.schoolFilter(schools.schoolOf(user)),
+            { $or: [{ quarantined: { $ne: true } }, { uploadedBy: user ? user.userid : null }] }
+        ]
+    };
 }
 
 function canSeeFile(user, fileDoc) {
-    return !fileDoc.quarantined || (user && (user.role === 'admin' || fileDoc.uploadedBy === user.userid));
+    if (user && user.role === 'admin') return true;
+    if (schools.docSchool(fileDoc) !== schools.schoolOf(user)) return false;
+    return !fileDoc.quarantined || (user && fileDoc.uploadedBy === user.userid);
 }
 
 const VIRUSTOTAL_API_KEY = process.env.VIRUSTOTAL_API_KEY;
@@ -663,6 +672,13 @@ app.get('/api/umd/search', async (req, res) => {
 });
 
 /* UMD.io Professors API - Must be before session validation middleware */
+// UMD.io course and professor suggestions only make sense for UMD students.
+app.use(['/api/umd/professors', '/api/umd/courses'], (req, res, next) => {
+    const user = req.session && req.session.user;
+    if (user && !schools.getSchool(schools.schoolOf(user)).courseCatalog) return res.json([]);
+    next();
+});
+
 app.get('/api/umd/professors', async (req, res) => {
     try {
         const { name, course_id, filter_semester, filter_year } = req.query;
@@ -3114,33 +3130,33 @@ app.post('/update-profile', async (req, res) => {
 
         // Check if email is being changed
         if (email !== req.session.user.email) {
-            // Validate UMD email domain
-            const validDomains = ['umd.edu', 'terpmail.umd.edu'];
-            const emailDomain = email.split('@')[1];
-
-            if (!validDomains.includes(emailDomain)) {
+            // Must be a school email, at the same school (files are tagged with the uploader's school).
+            const newSchool = schools.schoolForEmail(email);
+            if (!newSchool) {
                 return res.render('error', {
                     title: "Invalid Email Domain",
-                    message: "Please use a UMD email address (@umd.edu or @terpmail.umd.edu).",
+                    message: `Please use your ${schools.namesList()} email address (${schools.domainsList()}).`,
+                    link: "/profile",
+                    linkText: "Back to Profile"
+                });
+            }
+            if (newSchool.id !== schools.schoolOf(req.session.user)) {
+                return res.render('error', {
+                    title: "Different School",
+                    message: "Your new email is at a different school. To move your account to another school, contact support.",
                     link: "/profile",
                     linkText: "Back to Profile"
                 });
             }
 
             // Normalize email (same logic as registration)
-            const emailUsername = email.split('@')[0];
-            const normalizedEmail = `${emailUsername}@terpmail.umd.edu`;
+            const normalizedEmail = schools.normalizeEmail(email);
 
-            // Check if normalized email already exists (check both formats)
+            // Check if this mailbox is already registered (in any of its forms)
             const existingUser = await client
                 .db(userCollection.db)
                 .collection(userCollection.collection)
-                .findOne({
-                    $or: [
-                        { email: normalizedEmail },
-                        { email: `${emailUsername}@umd.edu` }
-                    ]
-                });
+                .findOne({ email: { $in: schools.equivalentEmails(email) } });
 
             if (existingUser && existingUser.userid !== req.session.user.userid) {
                 return res.render('error', {
@@ -3894,6 +3910,15 @@ app.get("/download/:filename", async (req, res) => {
             });
         }
 
+        // Another school's file: don't reveal that it exists.
+        if (req.session.user.role !== 'admin' && schools.docSchool(fileDoc) !== schools.schoolOf(req.session.user)) {
+            return res.status(404).render('error', {
+                title: "File Not Found",
+                message: "The requested file could not be found in our database.",
+                link: "/dashboard",
+                linkText: "Go to Dashboard"
+            });
+        }
         if (!canSeeFile(req.session.user, fileDoc)) {
             return res.status(403).render('error', {
                 title: "File Under Review",
@@ -4198,15 +4223,14 @@ app.get("/bulk-download-progress/:downloadId", (req, res) => {
 
 app.post('/registerSubmit', registerLimiter, async function (req, res) {
     try {
-        // Validate UMD email domain FIRST (before any DB queries)
-        const email = req.body.email.toLowerCase();
-        const validDomains = ['umd.edu', 'terpmail.umd.edu'];
-        const emailDomain = email.split('@')[1];
+        // Validate the school email domain FIRST (before any DB queries)
+        const email = String(req.body.email || '').trim().toLowerCase();
+        const school = schools.schoolForEmail(email);
 
-        if (!validDomains.includes(emailDomain)) {
+        if (!school) {
             return res.render('error', {
                 title: "Invalid Email Domain",
-                message: "Please use your UMD email (@umd.edu or @terpmail.umd.edu) to register.",
+                message: `Please use your ${schools.namesList()} email (${schools.domainsList()}) to register.`,
                 link: "/register",
                 linkText: "Back to Registration"
             });
@@ -4235,8 +4259,7 @@ app.post('/registerSubmit', registerLimiter, async function (req, res) {
 
         // Normalize email to prevent duplicates (@umd.edu and @terpmail.umd.edu are the same)
         // Extract username part and always use @terpmail.umd.edu for storage
-        const emailUsername = email.split('@')[0];
-        const normalizedEmail = `${emailUsername}@terpmail.umd.edu`;
+        const normalizedEmail = schools.normalizeEmail(email);
 
         // Trim and normalize user inputs
         const userid = req.body.userid.trim();
@@ -4264,8 +4287,7 @@ app.post('/registerSubmit', registerLimiter, async function (req, res) {
         await ensureConnection();
         let conflictFilter = {
             $or: [
-                { email: normalizedEmail },
-                { email: `${emailUsername}@umd.edu` }, // Also check the other format
+                { email: { $in: schools.equivalentEmails(email) } }, // every form of the same mailbox
                 { userid: userid }
             ]
         };
@@ -4285,7 +4307,9 @@ app.post('/registerSubmit', registerLimiter, async function (req, res) {
                 });
             }
 
-            if (result.email === email || result.email === `${emailUsername}@umd.edu`) {
+            // Any form of the same mailbox counts (x@umd.edu == x@terpmail.umd.edu). The old check
+            // compared only two forms, so re-registering with the other form slipped through.
+            if (schools.equivalentEmails(email).includes(String(result.email).toLowerCase())) {
                 return res.render('error', {
                     title: "Email Already Registered",
                     message: "This email is already registered. Try logging in or use forgot password.",
@@ -4314,7 +4338,8 @@ app.post('/registerSubmit', registerLimiter, async function (req, res) {
             firstname: firstname,
             lastname: lastname,
             userid: userid,
-            email: normalizedEmail, // Store normalized email (always @terpmail.umd.edu)
+            email: normalizedEmail, // one stored form per mailbox (UMD: @terpmail.umd.edu)
+            school: school.id,
             pass: hashedPassword,
             role: 'contributor',
             isProtected: false,
@@ -4600,7 +4625,8 @@ app.post("/upload", uploadLimiter, upload.array("documents", 50), async (req, re
                     virusScanDetails: existingFile ? existingFile.virusScanDetails : null,
                     scanAttempts: existingFile ? existingFile.scanAttempts || 0 : 0,
                     confidentialScan: confidentialScan,
-                    quarantined: quarantined
+                    quarantined: quarantined,
+                    school: schools.schoolOf(req.session.user)
                 };
 
                 const insertResult = await client
@@ -4966,7 +4992,7 @@ app.get('/study', async (req, res) => {
     try {
         await ensureConnection();
         const db = client.db(fileCollection.db);
-        const indexed = await db.collection('noteTexts').distinct('classCode');
+        const indexed = await db.collection('noteTexts').distinct('classCode', schools.schoolFilter(schools.schoolOf(req.session.user)));
         res.render('study', {
             courses: indexed.filter(Boolean).sort(),
             selected: courseStaff.normalizeCourse(req.query.course) || '',
@@ -4993,6 +5019,7 @@ app.post('/api/study/ask', apiLimiter, async (req, res) => {
             filesCollection: fileCollection.collection,
             classCode, question, mode,
             userid: req.session.user.userid,
+            school: schools.schoolOf(req.session.user),
             config: studyBuddy.aiConfig()
         });
         res.json(result);
@@ -5013,7 +5040,7 @@ app.post('/api/admin/study-index', apiLimiter, async (req, res) => {
         const db = client.db(fileCollection.db);
         const done = new Set((await db.collection('noteTexts').distinct('fileId')).map(String));
         const files = await db.collection(fileCollection.collection)
-            .find({ studyIndexSkipped: { $ne: true } }, { projection: { filename: 1, originalName: 1, mimetype: 1, classCode: 1, fileHash: 1, quarantined: 1 } })
+            .find({ studyIndexSkipped: { $ne: true } }, { projection: { filename: 1, originalName: 1, mimetype: 1, classCode: 1, fileHash: 1, quarantined: 1, school: 1 } })
             .toArray();
         const todo = files.filter(f => !done.has(String(f._id)));
         let indexed = 0;
@@ -5065,7 +5092,9 @@ async function requireCourseStaff(req, res, roles = ['professor', 'ta']) {
         res.status(403).json({ error: 'You are not staff for this course' });
         return null;
     }
-    return { classCode, role };
+    // Course codes repeat across schools; staff only ever act on their own school's files.
+    const school = schools.schoolOf(req.session.user);
+    return { classCode, role, school, scope: { classCode, ...schools.schoolFilter(school) } };
 }
 
 // Admin: invite a professor to a course. Returns the link (also emailed when email is set up).
@@ -5154,17 +5183,18 @@ app.get('/staff', async (req, res) => {
         const db = staffDb();
         const files = db.collection(fileCollection.collection);
         const mine = await courseStaff.coursesFor(db, req.session.user.userid);
+        const mySchool = schools.schoolFilter(schools.schoolOf(req.session.user));
         const courses = [];
         for (const c of mine) {
             const flaggedDocs = await files
-                .find({ classCode: c.classCode, 'confidentialScan.status': 'flagged', 'confidentialScan.reviewed': { $ne: true } })
+                .find({ classCode: c.classCode, ...mySchool, 'confidentialScan.status': 'flagged', 'confidentialScan.reviewed': { $ne: true } })
                 .sort({ uploadDate: -1 }).limit(100).toArray();
             courses.push({
                 classCode: c.classCode,
                 role: c.role,
                 staff: await courseStaff.staffForCourse(db, c.classCode),
                 flagged: [...new Map(flaggedDocs.map(f => [f.fileHash, f])).values()],
-                files: await files.find({ classCode: c.classCode }).sort({ uploadDate: -1 }).limit(50).toArray()
+                files: await files.find({ classCode: c.classCode, ...mySchool }).sort({ uploadDate: -1 }).limit(50).toArray()
             });
         }
         res.render('staff', { courses });
@@ -5208,14 +5238,14 @@ app.post('/api/staff/:classCode/flagged', apiLimiter, async (req, res) => {
     }
     try {
         const files = staffDb().collection(fileCollection.collection);
-        const docs = await files.find({ fileHash, classCode: ctx.classCode }).toArray();
+        const docs = await files.find({ fileHash, ...ctx.scope }).toArray();
         if (docs.length === 0) return res.status(404).json({ error: 'File not found in this course' });
         if (action === 'approve') {
-            await files.updateMany({ fileHash, classCode: ctx.classCode }, {
+            await files.updateMany({ fileHash, ...ctx.scope }, {
                 $set: { quarantined: false, 'confidentialScan.reviewed': true, 'confidentialScan.reviewedBy': req.session.user.userid, 'confidentialScan.reviewedAt': new Date() }
             });
         } else {
-            await files.deleteMany({ fileHash, classCode: ctx.classCode });
+            await files.deleteMany({ fileHash, ...ctx.scope });
             if ((await files.countDocuments({ fileHash })) === 0) {
                 for (const key of new Set(docs.map(d => d.filename))) {
                     await s3.deleteObject({ Bucket: AWS_BUCKET, Key: key }).promise().catch(e => console.error('S3 delete failed:', e.message));
@@ -5242,7 +5272,7 @@ app.post('/api/staff/:classCode/files/delete', apiLimiter, async (req, res) => {
     }
     try {
         const files = staffDb().collection(fileCollection.collection);
-        const doc = await files.findOne({ _id: fileId, classCode: ctx.classCode });
+        const doc = await files.findOne({ _id: fileId, ...ctx.scope });
         if (!doc) return res.status(404).json({ error: 'File not found in this course' });
         await files.deleteOne({ _id: fileId });
         if ((await files.countDocuments({ fileHash: doc.fileHash })) === 0) {

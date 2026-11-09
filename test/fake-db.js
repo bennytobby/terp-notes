@@ -3,7 +3,8 @@ function matches(doc, filter) {
     return Object.entries(filter).every(([k, v]) => {
         const actual = k.split(".").reduce((o, p) => (o == null ? undefined : o[p]), doc);
         if (v && typeof v === "object" && !(v instanceof Date) && !Array.isArray(v)) {
-            if ("$in" in v) return v.$in.some((x) => x === actual);
+            // Like MongoDB, null in $in also matches a missing field.
+            if ("$in" in v) return v.$in.some((x) => x === actual || (x === null && actual === undefined));
             if ("$ne" in v) return actual !== v.$ne;
         }
         return actual === v || (v === null && actual === undefined);

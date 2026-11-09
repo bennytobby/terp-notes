@@ -12,6 +12,8 @@
  * Works with OpenAI, any OpenAI-compatible host, or a local Llama server (Ollama, LM Studio).
  */
 
+const { schoolFilter } = require("./schools");
+
 const CHUNK_SIZE = 1200;
 const CHUNK_OVERLAP = 150;
 const MAX_CHUNKS_PER_FILE = 200;
@@ -138,6 +140,7 @@ async function indexFile(db, file, text) {
                 classCode: file.classCode,
                 originalName: file.originalName,
                 filename: file.filename,
+                school: file.school || "umd",
                 chunks,
                 indexedAt: new Date(),
             },
@@ -148,11 +151,12 @@ async function indexFile(db, file, text) {
     return chunks.length;
 }
 
-/** Passages for a course, skipping files that are held for review or gone. */
-async function coursePassages(db, filesCollection, classCode) {
-    const notes = await db.collection("noteTexts").find({ classCode }).limit(500).toArray();
+/** Passages for a course at one school, skipping files that are held for review or gone. */
+async function coursePassages(db, filesCollection, classCode, school = "umd") {
+    const scope = { classCode, ...schoolFilter(school) };
+    const notes = await db.collection("noteTexts").find(scope).limit(500).toArray();
     if (!notes.length) return [];
-    const files = await db.collection(filesCollection).find({ classCode }).toArray();
+    const files = await db.collection(filesCollection).find(scope).toArray();
     const visible = new Set(files.filter((f) => !f.quarantined).map((f) => String(f._id)));
     return notes
         .filter((n) => visible.has(n.fileId))
@@ -190,8 +194,8 @@ async function takeDailyQuota(db, userid, limit) {
  * Answers a question (mode "ask") or writes a quiz (mode "quiz") for a course.
  * Returns { mode: "ai" | "search", answer, sources: [{ n, originalName, filename, snippet }], notice? }
  */
-async function answer({ db, filesCollection, classCode, question, mode = "ask", userid, config, fetchImpl }) {
-    const passages = await coursePassages(db, filesCollection, classCode);
+async function answer({ db, filesCollection, classCode, question, mode = "ask", userid, school = "umd", config, fetchImpl }) {
+    const passages = await coursePassages(db, filesCollection, classCode, school);
     const query = question || (mode === "quiz" ? classCode : "");
     let top = rankPassages(query, passages);
     if (!top.length && mode === "quiz") top = passages.slice(0, TOP_K);
