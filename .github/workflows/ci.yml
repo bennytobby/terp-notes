@@ -34,6 +34,7 @@ jobs:
           node-version: 22
       - run: npm install --no-audit --no-fund
       - run: node --check server.js
+      - run: npm run test:unit
       - name: Start S3Mock (S3 stand-in)
         run: |
           docker run -d --name s3mock -p 9090:9090 adobe/s3mock
