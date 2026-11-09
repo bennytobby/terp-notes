@@ -1,0 +1,39 @@
+name: Live check
+# Runs the read-only @live tests against production every 6 hours and on demand.
+# Production URL comes from the repo variable PROD_URL (defaults to https://terp-notes.org).
+# A failure emails you and opens or updates one "Live check failing" issue.
+on:
+  schedule:
+    - cron: "23 */6 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  live:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      BASE_URL: ${{ vars.PROD_URL || 'https://terp-notes.org' }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm install --no-audit --no-fund
+      - run: npx playwright install --with-deps chromium
+      - run: npm run test:live
+      - name: Open or update the failure issue
+        if: failure()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          n=$(gh issue list --state open --search "Live check failing in:title" --json number --jq '.[0].number')
+          if [ -n "$n" ]; then
+            gh issue comment "$n" --body "Still failing: $RUN_URL"
+          else
+            gh issue create --title "Live check failing" --body "The scheduled live check against $BASE_URL failed: $RUN_URL"
+          fi
