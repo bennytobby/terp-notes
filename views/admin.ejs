@@ -10,79 +10,11 @@
     <link rel="icon" type="image/png" href="/favicon.png" />
     <link rel="stylesheet" href="/styles/main.css" />
     <style>
-        /* Navigation Styles */
-        .main-nav {
-            display: flex;
-            gap: 1rem;
-            align-items: center;
-        }
-
-        .nav-link {
-            padding: 0.5rem 1rem;
-            border-radius: 6px;
-            text-decoration: none;
-            color: rgba(255, 255, 255, 0.9);
-            font-weight: 500;
-            transition: all 0.2s ease;
-            border: 1px solid transparent;
-        }
-
-        .nav-link:hover {
-            background: rgba(255, 255, 255, 0.15);
-            color: white;
-            border-color: rgba(255, 255, 255, 0.3);
-        }
-
-        .nav-link.active {
-            background: rgba(255, 255, 255, 0.2);
-            color: white;
-            border-color: rgba(255, 255, 255, 0.4);
-            font-weight: 600;
-        }
-
-        .welcome-text {
-            font-size: 0.9rem;
-            color: rgba(255, 255, 255, 0.9);
-        }
-
-        /* Fix navigation centering */
-        .topbar {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .main-nav {
-            position: absolute;
-            left: 50%;
-            transform: translateX(-50%);
-        }
     </style>
 </head>
 
 <body>
-    <header class="topbar">
-        <h2><a href="/dashboard" style="text-decoration: none; color: inherit; display: flex; align-items: center; cursor: pointer; transition: opacity 0.2s ease;" onmouseover="this.style.opacity='0.8'" onmouseout="this.style.opacity='1'">
-            <img src="/logo.png" alt="Terp Notes Logo" style="width: 32px; height: 32px; vertical-align: middle; margin-right: 8px; pointer-events: none;" />
-            Terp Notes - Admin
-        </a></h2>
-
-        <!-- Navigation Links -->
-        <nav class="main-nav">
-            <a href="/dashboard" class="nav-link nav-dashboard">Dashboard</a>
-            <a href="/profile" class="nav-link nav-profile">Profile</a>
-            <a href="/integrations" class="nav-link nav-integrations">Integrations</a>
-            <a href="/admin" class="nav-link nav-admin">Admin Panel</a>
-        </nav>
-
-        <div class="user-info">
-            <span class="welcome-text">Welcome, <strong><%= user.firstname %></strong></span>
-            <span class="user-role role-<%= user.role %>">
-                <%= user.role %>
-            </span>
-            <button onclick="showQuickLogout()" class="logout-btn" style="background: none; border: none; color: inherit; cursor: pointer; text-decoration: underline;">Logout</button>
-        </div>
-    </header>
+    <%- include('partials/topnav', { active: 'admin', quickLogout: true }) %>
 
     <main class="container">
         <!-- Narrow Screen Mobile Switch Button -->
@@ -844,18 +776,32 @@
             const status = document.getElementById('study-index-status');
             btn.disabled = true;
             let total = 0;
+            let skipped = 0;
+            let failures = 0;
             try {
-                for (let i = 0; i < 25; i++) {
-                    const res = await fetch('/api/admin/study-index', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{}' });
-                    const r = await res.json();
-                    if (!res.ok) throw new Error(r.error || 'Indexing failed');
+                // Each request does a few seconds of work; keep asking until nothing is left.
+                for (let i = 0; i < 500; i++) {
+                    let r = null;
+                    try {
+                        const res = await fetch('/api/admin/study-index', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{}' });
+                        r = await res.json().catch(() => null);
+                        if (res.status === 401) throw new Error('Your session ended. Sign in again and retry.');
+                        if (!res.ok || !r) throw Object.assign(new Error((r && r.error) || `The server timed out (${res.status}).`), { retry: true });
+                    } catch (err) {
+                        if (!err.retry || ++failures > 3) throw err;
+                        status.textContent = `${err.message} Retrying…`;
+                        await new Promise(done => setTimeout(done, 1500));
+                        continue;
+                    }
+                    failures = 0;
                     total += r.indexed;
+                    skipped += r.skipped;
                     status.textContent = `Indexed ${total} so far, ${r.remaining} left…`;
                     if (r.remaining === 0) break;
                 }
-                status.textContent = `Done. Indexed ${total} file(s).`;
+                status.textContent = `Done. Indexed ${total} file(s)` + (skipped ? `; ${skipped} couldn't be read (images, slides or scanned PDFs).` : '.');
             } catch (err) {
-                status.textContent = err.message;
+                status.textContent = `${err.message} Indexed ${total} before stopping; press the button again to continue.`;
             } finally {
                 btn.disabled = false;
             }

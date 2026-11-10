@@ -1,805 +1,711 @@
-// Integrations Management JavaScript
+// Integrations page: connect note apps, import notes into Terp Notes, export files back.
+// Imported notes get the same class details and checks as an upload (see utils/note-details.js).
 
-// Helper function to get API URL
-// Always use relative URLs for API calls to ensure same-origin requests
-// This fixes CORS issues and ensures session cookies work correctly
-function getApiUrl(path) {
-    // Remove leading slash from path if present, then add it back for relative URL
-    const cleanPath = path.startsWith('/') ? path : `/${path}`;
+const SEMESTERS = ['Fall', 'Spring', 'Summer', 'Winter', 'Unknown'];
+const CATEGORIES = [
+    ['Lecture Notes', '📚 Lecture Notes'],
+    ['Study Guide', '📖 Study Guide'],
+    ['Exam', '📝 Exam'],
+    ['Homework', '✏️ Homework'],
+    ['Cheat Sheet', '🗒️ Cheat Sheet'],
+    ['Practice Problems', '🔢 Practice Problems'],
+    ['Project', '💻 Project'],
+    ['Lab', '🧪 Lab'],
+    ['Textbook', '📕 Textbook'],
+    ['Other', '📎 Other']
+];
+const COURSE_CODE = /^[A-Z]{2,5}\d{3}[A-Z]?$/;
 
-    // Always use relative URLs for API calls - this ensures:
-    // 1. Same-origin requests (no CORS issues)
-    // 2. Session cookies work correctly
-    // 3. Works on localhost, Vercel preview, and production
-    return cleanPath;
+/** Escapes text for HTML. Names of docs and accounts come from other apps. */
+function esc(value) {
+    return String(value ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+}
+
+async function getJson(url, options = {}) {
+    const response = await fetch(url, { credentials: 'include', headers: { Accept: 'application/json', ...(options.body ? { 'Content-Type': 'application/json' } : {}) }, ...options });
+    const data = await response.json().catch(() => null);
+    if (response.status === 401) throw new Error('Your session ended. Sign in again to continue.');
+    if (!data) throw new Error(`The server didn't answer properly (${response.status}). Try again in a moment.`);
+    return { ok: response.ok && data.success !== false, status: response.status, data };
+}
+
+function debounce(fn, ms) {
+    let timer;
+    return (...args) => {
+        clearTimeout(timer);
+        timer = setTimeout(() => fn(...args), ms);
+    };
 }
 
 class IntegrationsManager {
     constructor() {
+        const page = document.querySelector('.integrations-page');
+        this.hasCatalog = page?.dataset.catalog === 'true';
+        this.term = { semester: page?.dataset.semester || '', year: page?.dataset.year || String(new Date().getFullYear()) };
         this.integrations = [];
-        this.connectedIntegrations = new Set();
         this.init();
     }
 
     async init() {
-        await this.loadIntegrations();
-        this.renderIntegrations();
         this.setupEventListeners();
         this.handleUrlParameters();
+        await this.refresh();
+    }
+
+    async refresh() {
+        const grid = document.getElementById('integrationsGrid');
+        try {
+            const { ok, data } = await getJson('/api/integrations');
+            if (!ok) throw new Error(data.error || 'Could not load your integrations.');
+            this.integrations = data.integrations || [];
+            this.renderIntegrations();
+        } catch (error) {
+            grid.innerHTML = `
+                <div class="integrations-empty" role="alert">
+                    <p>${esc(error.message)}</p>
+                    <button class="btn btn-secondary" onclick="integrationsManager.refresh()">Try again</button>
+                </div>`;
+        } finally {
+            grid.setAttribute('aria-busy', 'false');
+        }
     }
 
     handleUrlParameters() {
-        const urlParams = new URLSearchParams(window.location.search);
-        const success = urlParams.get('success');
-        const error = urlParams.get('error');
-
-        const successMessages = {
-            connected: 'Integration connected successfully!',
-            google_connected: 'Google Drive connected successfully!',
-            microsoft_connected: 'OneNote connected successfully!',
-            notion_connected: 'Notion connected successfully!'
+        const params = new URLSearchParams(window.location.search);
+        const success = params.get('success');
+        const error = params.get('error');
+        const messages = {
+            connected: 'Connected. You can import notes now.',
+            google_connected: 'Google Drive connected. You can import notes now.',
+            microsoft_connected: 'OneNote connected. You can import notes now.',
+            notion_connected: 'Notion connected. You can import notes now.'
         };
-
-        if (success && successMessages[success]) {
-            this.showNotification(successMessages[success], 'success');
-            window.history.replaceState({}, document.title, window.location.pathname);
-        } else if (error) {
-            this.showNotification(`Connection failed: ${decodeURIComponent(error)}`, 'error');
-            window.history.replaceState({}, document.title, window.location.pathname);
-        }
+        if (success && messages[success]) this.showNotification(messages[success], 'success');
+        else if (error) this.showNotification(`Couldn't connect: ${error}`, 'error');
+        if (success || error) window.history.replaceState({}, document.title, window.location.pathname);
     }
 
-    async loadIntegrations() {
-        try {
-            const apiUrl = getApiUrl('api/integrations');
-            const response = await fetch(apiUrl, {
-                credentials: 'include',
-                headers: {
-                    'Accept': 'application/json'
-                }
-            });
-
-            // Check if response is actually JSON
-            const contentType = response.headers.get('content-type');
-            if (!contentType || !contentType.includes('application/json')) {
-                const text = await response.text();
-                console.error('API returned non-JSON response:', text.substring(0, 200));
-                this.showNotification('Failed to load integrations: Server returned HTML instead of JSON', 'error');
-                return;
-            }
-
-            if (!response.ok) {
-                const errorData = await response.json().catch(() => ({ error: `HTTP ${response.status}` }));
-                console.error('API error:', errorData);
-                this.showNotification(`Failed to load integrations: ${errorData.error || `HTTP ${response.status}`}`, 'error');
-                return;
-            }
-
-            const data = await response.json();
-
-            if (data.success) {
-                this.integrations = data.integrations;
-            } else {
-                this.showNotification('Failed to load integrations', 'error');
-            }
-        } catch (error) {
-            console.error('Error loading integrations:', error);
-            this.showNotification(`Error loading integrations: ${error.message}`, 'error');
-        }
-    }
+    // ---------- cards ----------
 
     renderIntegrations() {
         const grid = document.getElementById('integrationsGrid');
-        grid.innerHTML = '';
-
-        this.integrations.forEach(integration => {
-            const card = this.createIntegrationCard(integration);
-            grid.appendChild(card);
-        });
-    }
-
-    createIntegrationCard(integration) {
-        const card = document.createElement('div');
-        card.className = `integration-card ${integration.isConnected ? 'connected' : ''}`;
-
-        const connectedLabel = this.formatConnectedAccount(integration.connectedAccount);
-        const connectedAccountInfo = connectedLabel ?
-            `<div class="connected-account">
-                <small>✅ Connected as: ${connectedLabel}</small>
-            </div>` : '';
-
-        card.innerHTML = `
-            <div class="integration-header">
-                <div class="integration-icon ${this.getIconClass(integration.id)}">${this.getIconText(integration.id)}</div>
-                <h3 class="integration-title">${integration.name}</h3>
-                ${integration.isConnected ? '<span class="status-indicator status-connected">✅ Connected</span>' : ''}
-            </div>
-            <p class="integration-description">${integration.description}</p>
-            ${connectedAccountInfo}
-            <div class="integration-features">
-                ${integration.features.map(feature =>
-                    `<span class="feature-badge ${feature}">${feature.charAt(0).toUpperCase() + feature.slice(1)}</span>`
-                ).join('')}
-                ${integration.oauthSupported ? '<span class="feature-badge" style="background: #dbeafe; color: #1e40af;">OAuth</span>' : ''}
-            </div>
-            <div class="integration-actions">
-                ${this.createActionButtons(integration)}
-            </div>
-        `;
-
-        return card;
-    }
-
-    createActionButtons(integration) {
-        const isConnected = integration.isConnected;
-
-        if (isConnected) {
-            return `
-                <button class="btn btn-success" onclick="integrationsManager.showActionModal('${integration.id}', 'import')">
-                    📥 Import
-                </button>
-                <button class="btn btn-primary" onclick="integrationsManager.showActionModal('${integration.id}', 'export')">
-                    📤 Export
-                </button>
-                <button class="btn btn-danger" onclick="integrationsManager.disconnectIntegration('${integration.id}')">
-                    Disconnect
-                </button>
-            `;
-        } else if (integration.unavailable) {
-            return `
-                <button class="btn btn-secondary" disabled>
-                    Not available on the web
-                </button>
-            `;
-        } else if (integration.oauthSupported) {
-            if (integration.oauthConfigured === false) {
-                return `
-                    <button class="btn btn-secondary" disabled title="OAuth app credentials are not configured on the server">
-                        Connect unavailable
-                    </button>
-                `;
-            }
-            const label = integration.connectLabel || 'Connect';
-            return `
-                <button class="btn btn-primary" onclick="integrationsManager.startOAuthFlow('${integration.id}')">
-                    ${label}
-                </button>
-            `;
-        } else {
-            return `
-                <button class="btn btn-primary" onclick="integrationsManager.showConnectModal('${integration.id}')">
-                    Connect
-                </button>
-            `;
+        if (!this.integrations.length) {
+            grid.innerHTML = '<div class="integrations-empty"><p>No integrations are available right now.</p></div>';
+            return;
         }
+        // Connected apps first, then ones you can connect, then unavailable ones.
+        const order = i => (i.isConnected ? 0 : i.unavailable || i.oauthConfigured === false ? 2 : 1);
+        grid.innerHTML = [...this.integrations].sort((a, b) => order(a) - order(b)).map(i => this.cardHTML(i)).join('');
     }
 
-    showConnectModal(integrationId) {
-        const integration = this.integrations.find(i => i.id === integrationId);
-        if (!integration) return;
-
-        const modal = document.getElementById('integrationModal');
-        const modalTitle = document.getElementById('modalTitle');
-        const modalBody = document.getElementById('modalBody');
-
-        modalTitle.textContent = `Connect ${integration.name}`;
-        modalBody.innerHTML = this.getConnectFormHTML(integration);
-
-        modal.classList.add('show');
+    cardHTML(integration) {
+        const account = this.formatConnectedAccount(integration.connectedAccount);
+        const status = integration.isConnected
+            ? '<span class="status-indicator status-connected">Connected</span>'
+            : '';
+        return `
+            <article class="integration-card ${integration.isConnected ? 'connected' : ''}">
+                <div class="integration-header">
+                    <div class="integration-icon ${this.getIconClass(integration.id)}" aria-hidden="true">${this.getIconText(integration.id)}</div>
+                    <h3 class="integration-title">${esc(integration.name)}</h3>
+                    ${status}
+                </div>
+                <p class="integration-description">${esc(integration.description)}</p>
+                ${account ? `<p class="connected-account">Signed in as ${esc(account)}</p>` : ''}
+                <div class="integration-actions">${this.actionButtons(integration)}</div>
+            </article>`;
     }
 
-    getConnectFormHTML(integration) {
-        switch (integration.id) {
-            case 'notion':
-                return `
-                    <div class="form-group">
-                        <label class="form-label" for="notionToken">Notion Integration Token</label>
-                        <input type="password" id="notionToken" class="form-input" placeholder="Enter your Notion integration token">
-                        <div class="form-help">
-                            Get your integration token from <a href="https://www.notion.so/my-integrations" target="_blank">Notion Integrations</a>
-                        </div>
-                    </div>
-                    <div class="form-actions">
-                        <button class="btn btn-primary" onclick="integrationsManager.connectIntegration('notion')">
-                            Connect
-                        </button>
-                        <button class="btn btn-secondary" onclick="integrationsManager.closeModal()">
-                            Cancel
-                        </button>
-                    </div>
-                `;
-            case 'onenote':
-                return `
-                    <div class="form-group">
-                        <label class="form-label" for="onenoteToken">Microsoft Access Token</label>
-                        <input type="password" id="onenoteToken" class="form-input" placeholder="Enter your Microsoft access token">
-                        <div class="form-help">
-                            Get your access token from <a href="https://developer.microsoft.com/en-us/graph/quick-start" target="_blank">Microsoft Graph</a>
-                        </div>
-                    </div>
-                    <div class="form-actions">
-                        <button class="btn btn-primary" onclick="integrationsManager.connectIntegration('onenote')">
-                            Connect
-                        </button>
-                        <button class="btn btn-secondary" onclick="integrationsManager.closeModal()">
-                            Cancel
-                        </button>
-                    </div>
-                `;
-            case 'google-docs':
-                return `
-                    <div class="form-group">
-                        <label class="form-label" for="googleClientId">Google Client ID</label>
-                        <input type="text" id="googleClientId" class="form-input" placeholder="Enter your Google Client ID">
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label" for="googleClientSecret">Google Client Secret</label>
-                        <input type="password" id="googleClientSecret" class="form-input" placeholder="Enter your Google Client Secret">
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label" for="googleRedirectUri">Redirect URI</label>
-                        <input type="text" id="googleRedirectUri" class="form-input" placeholder="Enter your redirect URI">
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label" for="googleAccessToken">Access Token</label>
-                        <input type="password" id="googleAccessToken" class="form-input" placeholder="Enter your access token">
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label" for="googleRefreshToken">Refresh Token</label>
-                        <input type="password" id="googleRefreshToken" class="form-input" placeholder="Enter your refresh token">
-                    </div>
-                    <div class="form-actions">
-                        <button class="btn btn-primary" onclick="integrationsManager.connectIntegration('google-docs')">
-                            Connect
-                        </button>
-                        <button class="btn btn-secondary" onclick="integrationsManager.closeModal()">
-                            Cancel
-                        </button>
-                    </div>
-                `;
-            case 'obsidian':
-                return `
-                    <div class="form-group">
-                        <label class="form-label" for="obsidianPath">Obsidian Vault Path</label>
-                        <div class="form-input-group">
-                            <input type="text" id="obsidianPath" class="form-input" placeholder="/path/to/your/obsidian/vault">
-                            <button type="button" class="btn btn-secondary" onclick="integrationsManager.openFolderPicker()">
-                                📁 Browse
-                            </button>
-                        </div>
-                        <div class="form-help">
-                            Enter the full path to your Obsidian vault folder or click Browse to select it
-                        </div>
-                    </div>
-                    <div class="form-actions">
-                        <button class="btn btn-primary" onclick="integrationsManager.connectIntegration('obsidian')">
-                            Connect
-                        </button>
-                        <button class="btn btn-secondary" onclick="integrationsManager.closeModal()">
-                            Cancel
-                        </button>
-                    </div>
-                `;
-            default:
-                return '<p>Integration not supported yet.</p>';
+    actionButtons(integration) {
+        const id = esc(integration.id);
+        if (integration.isConnected) {
+            const canExport = (integration.features || []).includes('export');
+            return `
+                <button class="btn btn-primary" onclick="integrationsManager.showActionModal('${id}', 'import')">Import notes</button>
+                ${canExport ? `<button class="btn btn-secondary" onclick="integrationsManager.showActionModal('${id}', 'export')">Export a file</button>` : ''}
+                <button class="btn btn-link" onclick="integrationsManager.disconnectIntegration('${id}')">Disconnect</button>`;
         }
+        if (integration.unavailable) return '<button class="btn btn-secondary" disabled>Not available on the web</button>';
+        if (integration.oauthSupported) {
+            if (integration.oauthConfigured === false) return '<button class="btn btn-secondary" disabled>Coming soon</button>';
+            return `<button class="btn btn-primary" onclick="integrationsManager.startOAuthFlow('${id}')">${esc(integration.connectLabel || `Connect ${integration.name}`)}</button>`;
+        }
+        return `<button class="btn btn-primary" onclick="integrationsManager.showConnectModal('${id}')">Connect</button>`;
     }
 
     formatConnectedAccount(account) {
         if (!account) return '';
         if (typeof account === 'string') return account;
-        return account.email || account.name || 'Connected';
+        return account.email || account.name || '';
     }
 
-    async startOAuthFlow(integrationId) {
-        try {
-            const integration = this.integrations.find(i => i.id === integrationId);
-            const providerMap = {
-                'notion': 'notion',
-                'onenote': 'microsoft',
-                'google-docs': 'google'
-            };
+    // ---------- connecting ----------
 
-            const provider = integration?.oauthProvider || providerMap[integrationId];
-            if (!provider) {
-                this.showNotification('OAuth not supported for this integration', 'error');
-                return;
-            }
-
-            window.location.href = `/auth/${provider}`;
-        } catch (error) {
-            console.error('Error starting OAuth flow:', error);
-            this.showNotification('Error starting OAuth flow', 'error');
-        }
+    startOAuthFlow(integrationId) {
+        const integration = this.integrations.find(i => i.id === integrationId);
+        const provider = integration?.oauthProvider || { notion: 'notion', onenote: 'microsoft', 'google-docs': 'google' }[integrationId];
+        if (!provider) return this.showNotification('This app can\'t be connected yet.', 'error');
+        window.location.href = `/auth/${provider}`;
     }
 
-    async connectIntegration(integrationId) {
+    showConnectModal(integrationId) {
         const integration = this.integrations.find(i => i.id === integrationId);
         if (!integration) return;
+        const fields = {
+            notion: [['integrationToken', 'Notion integration token', 'password', 'Create one at notion.so/my-integrations, then share your pages with it.']],
+            onenote: [['accessToken', 'Microsoft access token', 'password', 'From Microsoft Graph Explorer.']],
+            obsidian: [['vaultPath', 'Obsidian vault path', 'text', 'The folder that holds your vault.']]
+        }[integrationId];
+        document.getElementById('modalTitle').textContent = `Connect ${integration.name}`;
+        document.getElementById('modalBody').innerHTML = fields
+            ? `<form id="connectForm" novalidate>
+                ${fields.map(([name, label, type, help]) => `
+                    <div class="form-group">
+                        <label class="form-label" for="cf-${name}">${esc(label)}</label>
+                        <input id="cf-${name}" name="${name}" type="${type}" class="form-input" required autocomplete="off">
+                        <div class="form-help">${esc(help)}</div>
+                    </div>`).join('')}
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary">Connect</button>
+                    <button type="button" class="btn btn-secondary" onclick="integrationsManager.closeModal()">Cancel</button>
+                </div>
+            </form>`
+            : '<p>This app connects with a sign-in button instead.</p>';
+        const form = document.getElementById('connectForm');
+        form?.addEventListener('submit', e => {
+            e.preventDefault();
+            this.connectIntegration(integrationId, Object.fromEntries(new FormData(form)));
+        });
+        this.openModal('integrationModal');
+    }
 
-        let credentials = {};
-
-        switch (integrationId) {
-            case 'notion':
-                const notionToken = document.getElementById('notionToken').value;
-                if (!notionToken) {
-                    this.showNotification('Please enter your Notion integration token', 'error');
-                    return;
-                }
-                credentials = { integrationToken: notionToken };
-                break;
-            case 'onenote':
-                const onenoteToken = document.getElementById('onenoteToken').value;
-                if (!onenoteToken) {
-                    this.showNotification('Please enter your Microsoft access token', 'error');
-                    return;
-                }
-                credentials = { accessToken: onenoteToken };
-                break;
-            case 'google-docs':
-                const clientId = document.getElementById('googleClientId').value;
-                const clientSecret = document.getElementById('googleClientSecret').value;
-                const redirectUri = document.getElementById('googleRedirectUri').value;
-                const accessToken = document.getElementById('googleAccessToken').value;
-                const refreshToken = document.getElementById('googleRefreshToken').value;
-
-                if (!clientId || !clientSecret || !accessToken || !refreshToken) {
-                    this.showNotification('Please fill in all required fields', 'error');
-                    return;
-                }
-                credentials = { clientId, clientSecret, redirectUri, accessToken, refreshToken };
-                break;
-            case 'obsidian':
-                const vaultPath = document.getElementById('obsidianPath').value;
-                if (!vaultPath) {
-                    this.showNotification('Please enter your Obsidian vault path', 'error');
-                    return;
-                }
-                credentials = { vaultPath };
-                break;
-        }
-
+    async connectIntegration(integrationId, credentials) {
+        if (Object.values(credentials).some(v => !String(v).trim())) return this.showNotification('Fill in every field to connect.', 'error');
         try {
-            const apiUrl = getApiUrl(`api/integrations/${integrationId}/initialize`);
-            const response = await fetch(apiUrl, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json'
-                },
-                credentials: 'include',
-                body: JSON.stringify({ credentials })
-            });
-
-            const result = await response.json();
-
-            if (result.success) {
-                this.showNotification(`${integration.name} connected successfully!`, 'success');
-                this.closeModal();
-                this.loadIntegrations(); // Reload to get updated status
-            } else {
-                this.showNotification(result.error || 'Failed to connect integration', 'error');
-            }
+            const { ok, data } = await getJson(`/api/integrations/${integrationId}/initialize`, { method: 'POST', body: JSON.stringify({ credentials }) });
+            if (!ok) throw new Error(data.error || 'Could not connect.');
+            this.showNotification('Connected. You can import notes now.', 'success');
+            this.closeModal();
+            await this.refresh();
         } catch (error) {
-            console.error('Error connecting integration:', error);
-            this.showNotification('Error connecting integration', 'error');
-        }
-    }
-
-    async showActionModal(integrationId, action) {
-        const integration = this.integrations.find(i => i.id === integrationId);
-        if (!integration) return;
-
-        const modal = document.getElementById('actionModal');
-        const modalTitle = document.getElementById('actionModalTitle');
-        const modalBody = document.getElementById('actionModalBody');
-
-        modalTitle.textContent = `${action.charAt(0).toUpperCase() + action.slice(1)} from ${integration.name}`;
-        modalBody.innerHTML = await this.getActionFormHTML(integrationId, action);
-
-        modal.classList.add('show');
-    }
-
-    async getActionFormHTML(integrationId, action) {
-        try {
-            const apiUrl = getApiUrl(`api/integrations/${integrationId}/data`);
-            const response = await fetch(apiUrl, {
-                credentials: 'include',
-                headers: {
-                    'Accept': 'application/json'
-                }
-            });
-
-            // Check if response is actually JSON
-            const contentType = response.headers.get('content-type');
-            if (!contentType || !contentType.includes('application/json')) {
-                const text = await response.text();
-                console.error('API returned non-JSON response:', text.substring(0, 200));
-                return `<p class="form-error">Failed to load ${integrationId} data: Server returned HTML instead of JSON</p>`;
-            }
-
-            if (!response.ok) {
-                const errorData = await response.json().catch(() => ({ error: `HTTP ${response.status}` }));
-                return `<p class="form-error">Failed to load ${integrationId} data: ${errorData.error || `HTTP ${response.status}`}</p>`;
-            }
-
-            const data = await response.json();
-
-            if (!data.success) {
-                return `<p class="form-error">Failed to load ${integrationId} data: ${data.error}</p>`;
-            }
-
-            const payload = data.data || {};
-            let sources = Array.isArray(payload.sources) ? payload.sources : [];
-            if (!sources.length && Array.isArray(payload.documents)) {
-                sources = payload.documents.map(doc => ({ id: doc.id, name: doc.name }));
-            }
-            if (!sources.length && Array.isArray(payload.databases)) {
-                sources = payload.databases.map(db => ({ id: db.id, name: db.title }));
-            }
-            if (!sources.length && Array.isArray(payload.notebooks)) {
-                sources = payload.notebooks.map(notebook => ({ id: notebook.id, name: notebook.displayName }));
-            }
-
-            if (!sources.length) {
-                const emptyHints = {
-                    notion: 'No Notion pages or databases were shared with Terp Notes. In Notion, open a page and add the Terp Notes connection.',
-                    onenote: 'No OneNote sections were found on this Microsoft account.',
-                    'google-docs': 'No Google Docs or PDFs were found. Try creating a Doc, then reconnect Google.'
-                };
-                return `<p class="form-error">${emptyHints[integrationId] || 'No notes were found for this account.'}</p>`;
-            }
-
-            const sourceLabel = integrationId === 'onenote' ? 'Section'
-                : integrationId === 'notion' ? 'Page or database'
-                : 'Document';
-            const optionsHTML = sources.map(source =>
-                `<option value="${source.id}">${source.name}</option>`
-            ).join('');
-
-            if (action === 'import') {
-                return `
-                    <div class="form-group">
-                        <label class="form-label" for="sourceSelect">Select ${sourceLabel}</label>
-                        <select id="sourceSelect" class="form-input">
-                            ${optionsHTML}
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label" for="classCode">Class Code</label>
-                        <input type="text" id="classCode" class="form-input" placeholder="e.g., CMSC330" required>
-                        <div class="form-help">Required so the notes show up on the dashboard.</div>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label" for="professor">Professor (Optional)</label>
-                        <input type="text" id="professor" class="form-input" placeholder="Professor name">
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label" for="semester">Semester (Optional)</label>
-                        <select id="semester" class="form-input">
-                            <option value="">Select semester</option>
-                            <option value="Spring">Spring</option>
-                            <option value="Summer">Summer</option>
-                            <option value="Fall">Fall</option>
-                            <option value="Winter">Winter</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label" for="year">Year (Optional)</label>
-                        <input type="number" id="year" class="form-input" placeholder="2024" min="2020" max="2030">
-                    </div>
-                    <div class="form-actions">
-                        <button class="btn btn-success" onclick="integrationsManager.performImport('${integrationId}')">
-                            📥 Import Notes
-                        </button>
-                        <button class="btn btn-secondary" onclick="integrationsManager.closeActionModal()">
-                            Cancel
-                        </button>
-                    </div>
-                `;
-            } else {
-                const filesResponse = await fetch(getApiUrl('api/my-files'), {
-                    credentials: 'include',
-                    headers: { 'Accept': 'application/json' }
-                });
-                const filesData = await filesResponse.json().catch(() => ({ files: [] }));
-                const fileOptions = (filesData.files || []).map(file =>
-                    `<option value="${file._id}">${file.originalName}${file.classCode ? ` (${file.classCode})` : ''}</option>`
-                ).join('') || '<option value="">No uploaded files yet</option>';
-
-                return `
-                    <div class="form-group">
-                        <label class="form-label" for="fileSelect">Select File to Export</label>
-                        <select id="fileSelect" class="form-input">
-                            ${fileOptions}
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label" for="targetSelect">Target ${sourceLabel}</label>
-                        <select id="targetSelect" class="form-input">
-                            ${optionsHTML}
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label" for="exportTitle">Export Title (Optional)</label>
-                        <input type="text" id="exportTitle" class="form-input" placeholder="Custom title for exported content">
-                    </div>
-                    <div class="form-actions">
-                        <button class="btn btn-primary" onclick="integrationsManager.performExport('${integrationId}')">
-                            📤 Export Notes
-                        </button>
-                        <button class="btn btn-secondary" onclick="integrationsManager.closeActionModal()">
-                            Cancel
-                        </button>
-                    </div>
-                `;
-            }
-        } catch (error) {
-            console.error('Error loading action form:', error);
-            return `<p class="form-error">Error loading form: ${error.message}</p>`;
-        }
-    }
-
-    buildObsidianOptions(structure, prefix = '') {
-        let options = '';
-        for (const item of structure) {
-            if (item.type === 'folder') {
-                const path = prefix + item.name;
-                options += `<option value="${path}">${path}</option>`;
-                if (item.children) {
-                    options += this.buildObsidianOptions(item.children, path + '/');
-                }
-            }
-        }
-        return options;
-    }
-
-    async performImport(integrationId) {
-        const sourceId = document.getElementById('sourceSelect').value;
-        if (!sourceId) {
-            this.showNotification('Please select a source', 'error');
-            return;
-        }
-
-        const classCode = document.getElementById('classCode').value.trim();
-        if (!classCode) {
-            this.showNotification('Enter a class code so the notes can appear on the dashboard', 'error');
-            return;
-        }
-
-        const options = {
-            classCode,
-            professor: document.getElementById('professor').value,
-            semester: document.getElementById('semester').value,
-            year: document.getElementById('year').value
-        };
-
-        try {
-            const apiUrl = getApiUrl(`api/integrations/${integrationId}/import`);
-            const response = await fetch(apiUrl, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json'
-                },
-                credentials: 'include',
-                body: JSON.stringify({ sourceId, options })
-            });
-
-            const result = await response.json();
-
-            if (result.success) {
-                const failedCount = (result.failed || []).length;
-                const message = failedCount
-                    ? `Imported ${result.count} file(s); ${failedCount} failed.`
-                    : `Imported ${result.count || 1} file(s) to the dashboard.`;
-                this.showNotification(message, failedCount ? 'warning' : 'success');
-                this.closeActionModal();
-            } else {
-                this.showNotification(result.error || 'Import failed', 'error');
-            }
-        } catch (error) {
-            console.error('Error importing:', error);
-            this.showNotification('Error importing files', 'error');
-        }
-    }
-
-    async performExport(integrationId) {
-        const fileId = document.getElementById('fileSelect').value;
-        const targetId = document.getElementById('targetSelect').value;
-        const title = document.getElementById('exportTitle').value;
-
-        if (!fileId) {
-            this.showNotification('Please select a file to export', 'error');
-            return;
-        }
-
-        if (!targetId) {
-            this.showNotification('Please select a target', 'error');
-            return;
-        }
-
-        try {
-            const apiUrl = getApiUrl(`api/integrations/${integrationId}/export`);
-            const response = await fetch(apiUrl, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json'
-                },
-                credentials: 'include',
-                body: JSON.stringify({ fileId, targetId, title })
-            });
-
-            const result = await response.json();
-
-            if (result.success) {
-                this.showNotification('File exported successfully!', 'success');
-                this.closeActionModal();
-            } else {
-                this.showNotification(result.error || 'Export failed', 'error');
-            }
-        } catch (error) {
-            console.error('Error exporting:', error);
-            this.showNotification('Error exporting file', 'error');
+            this.showNotification(error.message, 'error');
         }
     }
 
     async disconnectIntegration(integrationId) {
-        if (!confirm('Are you sure you want to disconnect this integration?')) {
+        const integration = this.integrations.find(i => i.id === integrationId);
+        const name = integration?.name || 'this app';
+        if (!confirm(`Disconnect ${name}? Notes you already imported stay on Terp Notes.`)) return;
+        try {
+            const { ok, data } = await getJson(`/api/integrations/${integrationId}`, { method: 'DELETE' });
+            if (!ok) throw new Error(data.error || 'Could not disconnect.');
+            this.showNotification(`${name} disconnected.`, 'success');
+            await this.refresh();
+        } catch (error) {
+            this.showNotification(error.message, 'error');
+        }
+    }
+
+    // ---------- import / export ----------
+
+    async showActionModal(integrationId, action) {
+        const integration = this.integrations.find(i => i.id === integrationId);
+        if (!integration) return;
+        const body = document.getElementById('actionModalBody');
+        document.getElementById('actionModalTitle').textContent = action === 'import'
+            ? `Import from ${integration.name}`
+            : `Export to ${integration.name}`;
+        body.innerHTML = `<p class="loading-line">Loading your ${esc(integration.name)} notes…</p>`;
+        this.openModal('actionModal');
+
+        let sources;
+        try {
+            sources = await this.loadSources(integrationId);
+        } catch (error) {
+            body.innerHTML = `<p class="form-error">${esc(error.message)}</p>
+                <div class="form-actions"><button class="btn btn-secondary" onclick="integrationsManager.showActionModal('${esc(integrationId)}', '${action}')">Try again</button></div>`;
             return;
         }
-
-        try {
-            const apiUrl = getApiUrl(`api/integrations/${integrationId}`);
-            const response = await fetch(apiUrl, {
-                method: 'DELETE',
-                credentials: 'include',
-                headers: {
-                    'Accept': 'application/json'
-                }
-            });
-
-            const result = await response.json();
-
-            if (result.success) {
-                this.connectedIntegrations.delete(integrationId);
-                this.showNotification('Integration disconnected', 'success');
-                // Reload integrations data from server and re-render
-                await this.loadIntegrations();
-                this.renderIntegrations();
-            } else {
-                this.showNotification('Failed to disconnect integration', 'error');
-            }
-        } catch (error) {
-            console.error('Error disconnecting integration:', error);
-            this.showNotification('Error disconnecting integration', 'error');
+        if (!sources.length) {
+            const hints = {
+                notion: 'No Notion pages were shared with Terp Notes. In Notion, open a page, choose ••• → Connections, and add Terp Notes.',
+                onenote: 'No OneNote sections were found on this Microsoft account.',
+                'google-docs': 'No Google Docs, Word files or PDFs were found in your Drive.'
+            };
+            body.innerHTML = `<p class="form-error">${esc(hints[integrationId] || 'No notes were found for this account.')}</p>`;
+            return;
         }
+        if (action === 'import') this.renderImportForm(integrationId, integration, sources);
+        else await this.renderExportForm(integrationId, sources);
+    }
+
+    async loadSources(integrationId) {
+        const { ok, data } = await getJson(`/api/integrations/${integrationId}/data`);
+        if (!ok) throw new Error(data.error || 'Could not load your notes from this app.');
+        const payload = data.data || {};
+        if (Array.isArray(payload.sources) && payload.sources.length) return payload.sources;
+        if (Array.isArray(payload.documents)) return payload.documents.map(d => ({ id: d.id, name: d.name }));
+        if (Array.isArray(payload.databases)) return payload.databases.map(d => ({ id: d.id, name: d.title }));
+        if (Array.isArray(payload.notebooks)) return payload.notebooks.map(n => ({ id: n.id, name: n.displayName }));
+        return [];
+    }
+
+    sourceLabel(integrationId) {
+        return integrationId === 'onenote' ? 'Section' : integrationId === 'notion' ? 'Page' : 'Document';
+    }
+
+    renderImportForm(integrationId, integration, sources) {
+        const body = document.getElementById('actionModalBody');
+        const label = this.sourceLabel(integrationId);
+        const thisYear = Number(this.term.year) || new Date().getFullYear();
+        const years = [];
+        for (let y = thisYear + 1; y >= thisYear - 10; y--) years.push(y);
+        const many = sources.length > 8;
+
+        body.innerHTML = `
+            <form id="importForm" class="import-form" novalidate>
+                <fieldset>
+                    <legend>${esc(label)}</legend>
+                    ${many ? `<input type="search" id="sourceFilter" class="form-input" placeholder="Filter ${sources.length} items…" aria-label="Filter">` : ''}
+                    <select id="sourceSelect" name="sourceId" class="form-input" ${many ? 'size="6"' : ''} required aria-label="${esc(label)} to import">
+                        ${sources.map((s, i) => `<option value="${esc(s.id)}" ${i === 0 ? 'selected' : ''}>${esc(s.name || 'Untitled')}</option>`).join('')}
+                    </select>
+                </fieldset>
+
+                <fieldset>
+                    <legend>Class details</legend>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label" for="classCode">Class code <span class="required">*</span></label>
+                            <div class="combo">
+                            <input type="text" id="classCode" name="classCode" class="form-input" placeholder="e.g. CMSC330"
+                                autocomplete="off" autocapitalize="characters" spellcheck="false" maxlength="12"
+                                role="combobox" aria-expanded="false" aria-controls="courseList" aria-autocomplete="list" required>
+                            <ul class="combo-list" id="courseList" role="listbox" hidden></ul>
+                            </div>
+                            <div class="form-help" id="courseInfo">${this.hasCatalog ? 'Start typing to search UMD courses.' : 'Your course code, e.g. CMSC331.'}</div>
+                            <div class="field-error" data-for="classCode"></div>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="professor">Professor <span class="required">*</span></label>
+                            <div class="combo">
+                            <input type="text" id="professor" name="professor" class="form-input" placeholder="Professor's name"
+                                autocomplete="off" maxlength="80" role="combobox" aria-expanded="false" aria-controls="professorList" aria-autocomplete="list" required>
+                            <ul class="combo-list" id="professorList" role="listbox" hidden></ul>
+                            </div>
+                            <div class="form-help" id="professorHelp">${this.hasCatalog ? 'Pick a course to see who teaches it.' : ''}</div>
+                            <div class="field-error" data-for="professor"></div>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label" for="semester">Semester <span class="required">*</span></label>
+                            <select id="semester" name="semester" class="form-input" required>
+                                <option value="">Select semester</option>
+                                ${SEMESTERS.map(s => `<option value="${s}" ${s === this.term.semester ? 'selected' : ''}>${s}</option>`).join('')}
+                            </select>
+                            <div class="field-error" data-for="semester"></div>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="year">Year <span class="required">*</span></label>
+                            <select id="year" name="year" class="form-input" required>
+                                <option value="">Select year</option>
+                                ${years.map(y => `<option value="${y}" ${String(y) === String(thisYear) ? 'selected' : ''}>${y}</option>`).join('')}
+                            </select>
+                            <div class="field-error" data-for="year"></div>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="category">Category <span class="required">*</span></label>
+                            <select id="category" name="category" class="form-input" required>
+                                ${CATEGORIES.map(([v, text]) => `<option value="${v}">${text}</option>`).join('')}
+                            </select>
+                            <div class="field-error" data-for="category"></div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="description">Description <span class="required">*</span></label>
+                        <input type="text" id="description" name="description" class="form-input" maxlength="300"
+                            placeholder="e.g. Week 3 lecture notes, Midterm 1 review" required>
+                        <div class="field-error" data-for="description"></div>
+                    </div>
+                </fieldset>
+
+                <label class="checkbox-label">
+                    <input type="checkbox" id="academicIntegrity" required>
+                    <span><strong>Academic integrity</strong> <span class="required">*</span><br>
+                    <span class="form-help">These notes are my own work or properly cited, and sharing them doesn't break UMD's academic integrity rules.</span></span>
+                </label>
+                <div class="field-error" data-for="academicIntegrity"></div>
+
+                <p class="form-help">Imported notes are checked the same way as uploads. Anything that looks like personal information waits for an admin before others can see it.</p>
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary" id="importSubmit">Import and share</button>
+                    <button type="button" class="btn btn-secondary" onclick="integrationsManager.closeActionModal()">Cancel</button>
+                </div>
+            </form>`;
+
+        const form = document.getElementById('importForm');
+        const select = document.getElementById('sourceSelect');
+        const description = document.getElementById('description');
+        // Default the description to the note's name until the student types their own.
+        const syncDescription = () => {
+            if (!description.dataset.edited) description.value = select.selectedOptions[0]?.textContent.trim().slice(0, 300) || '';
+        };
+        syncDescription();
+        select.addEventListener('change', syncDescription);
+        description.addEventListener('input', () => { description.dataset.edited = '1'; });
+
+        const filter = document.getElementById('sourceFilter');
+        filter?.addEventListener('input', () => {
+            const q = filter.value.trim().toLowerCase();
+            let first = null;
+            for (const option of select.options) {
+                const show = !q || option.textContent.toLowerCase().includes(q);
+                option.hidden = !show;
+                if (show && !first) first = option;
+            }
+            if (select.selectedOptions[0]?.hidden && first) { first.selected = true; syncDescription(); }
+        });
+
+        this.setupCourseFields();
+        form.addEventListener('submit', e => {
+            e.preventDefault();
+            this.performImport(integrationId, integration);
+        });
+        document.getElementById('classCode').focus();
+    }
+
+    /** Course and professor suggestions, like the upload form (UMD catalog only). */
+    setupCourseFields() {
+        const classInput = document.getElementById('classCode');
+        const profInput = document.getElementById('professor');
+        const courseInfo = document.getElementById('courseInfo');
+        const profHelp = document.getElementById('professorHelp');
+        let professors = [];
+        let lastCourse = '';
+
+        const loadCourse = async code => {
+            if (!this.hasCatalog || code === lastCourse) return;
+            lastCourse = code;
+            professors = [];
+            if (!COURSE_CODE.test(code)) {
+                courseInfo.textContent = this.hasCatalog ? 'Start typing to search UMD courses.' : '';
+                courseInfo.className = 'form-help';
+                return;
+            }
+            try {
+                const res = await fetch(`/api/course-suggest/${encodeURIComponent(code)}`, { credentials: 'include' });
+                if (code !== lastCourse) return;
+                if (!res.ok) {
+                    courseInfo.textContent = "We couldn't find this course in the UMD catalog. You can still import it.";
+                    courseInfo.className = 'form-help';
+                    profHelp.textContent = '';
+                    return;
+                }
+                const course = await res.json();
+                courseInfo.textContent = `${course.id}: ${course.name}`;
+                courseInfo.className = 'form-help ok';
+                professors = course.professors.map(p => ({
+                    value: p.name,
+                    label: p.name,
+                    detail: p.terms.length ? `Taught ${p.terms.slice(0, 2).map(t => `${t.semester} ${t.year}`).join(', ')}` : ''
+                }));
+                profHelp.textContent = professors.length ? `${professors.length} professor${professors.length === 1 ? '' : 's'} taught ${course.id}. Pick one or type a name.` : '';
+                // Picking a course moves focus here before the list arrives: open it now.
+                if (document.activeElement === profInput && !profInput.value) profInput._combo?.show(professors.slice(0, 8));
+            } catch {
+                courseInfo.textContent = 'Course search is unavailable right now. You can still import.';
+            }
+        };
+
+        if (this.hasCatalog) {
+            const searchCourses = debounce(async q => {
+                if (q.length < 2) return courseCombo.show([]);
+                try {
+                    const res = await fetch(`/api/course-suggest?q=${encodeURIComponent(q)}`, { credentials: 'include' });
+                    const data = await res.json();
+                    if (classInput.value.trim() === q) courseCombo.show((data.courses || []).map(c => ({ value: c.id, label: c.id, detail: c.name })));
+                } catch {
+                    courseCombo.show([]);
+                }
+            }, 150);
+            var courseCombo = this.combobox(classInput, document.getElementById('courseList'), {
+                onInput: q => searchCourses(q.toUpperCase().replace(/\s+/g, '')),
+                onPick: item => { classInput.value = item.value; loadCourse(item.value); profInput.focus(); }
+            });
+            this.combobox(profInput, document.getElementById('professorList'), {
+                onInput: q => {
+                    const term = q.toLowerCase();
+                    profCombo.show(professors.filter(p => !term || p.label.toLowerCase().includes(term)).slice(0, 8));
+                },
+                onFocus: () => profCombo.show(professors.slice(0, 8)),
+                onPick: item => { profInput.value = item.value; document.getElementById('semester').focus(); }
+            });
+            var profCombo = profInput._combo;
+        }
+
+        classInput.addEventListener('input', () => {
+            const caret = classInput.selectionStart;
+            classInput.value = classInput.value.toUpperCase().replace(/\s+/g, '');
+            classInput.setSelectionRange(caret, caret);
+        });
+        classInput.addEventListener('change', () => loadCourse(classInput.value.trim()));
+        classInput.addEventListener('blur', () => setTimeout(() => loadCourse(classInput.value.trim()), 150));
+    }
+
+    /** A small accessible autocomplete: arrow keys, Enter to pick, Escape to close. */
+    combobox(input, list, { onInput, onPick, onFocus }) {
+        let items = [];
+        let active = -1;
+        const close = () => { list.hidden = true; input.setAttribute('aria-expanded', 'false'); active = -1; };
+        const highlight = i => {
+            active = i;
+            [...list.children].forEach((li, n) => li.setAttribute('aria-selected', String(n === i)));
+            if (i >= 0) { list.children[i].scrollIntoView({ block: 'nearest' }); input.setAttribute('aria-activedescendant', list.children[i].id); }
+        };
+        const combo = {
+            show(next) {
+                items = next;
+                if (!items.length || document.activeElement !== input) return close();
+                list.innerHTML = items.map((item, i) => `
+                    <li id="${list.id}-${i}" role="option" aria-selected="false" data-i="${i}">
+                        <span class="combo-main">${esc(item.label)}</span>${item.detail ? `<span class="combo-detail">${esc(item.detail)}</span>` : ''}
+                    </li>`).join('');
+                list.hidden = false;
+                input.setAttribute('aria-expanded', 'true');
+                active = -1;
+            }
+        };
+        input._combo = combo;
+        input.addEventListener('input', () => onInput(input.value.trim()));
+        if (onFocus) {
+            input.addEventListener('focus', onFocus);
+            input.addEventListener('click', () => { if (list.hidden) onFocus(); });
+        }
+        input.addEventListener('keydown', e => {
+            if (list.hidden) return;
+            if (e.key === 'ArrowDown') { e.preventDefault(); highlight(Math.min(active + 1, items.length - 1)); }
+            else if (e.key === 'ArrowUp') { e.preventDefault(); highlight(Math.max(active - 1, 0)); }
+            else if (e.key === 'Enter' && active >= 0) { e.preventDefault(); const item = items[active]; close(); onPick(item); }
+            else if (e.key === 'Escape') { e.stopPropagation(); close(); }
+        });
+        list.addEventListener('mousedown', e => {
+            const li = e.target.closest('li[data-i]');
+            if (!li) return;
+            e.preventDefault();
+            const item = items[Number(li.dataset.i)];
+            close();
+            onPick(item);
+        });
+        input.addEventListener('blur', () => setTimeout(close, 120));
+        return combo;
+    }
+
+    showFieldErrors(fields = {}) {
+        document.querySelectorAll('#importForm .field-error').forEach(el => {
+            const message = fields[el.dataset.for] || '';
+            el.textContent = message;
+            const input = document.getElementById(el.dataset.for);
+            if (input) input.setAttribute('aria-invalid', message ? 'true' : 'false');
+        });
+        const first = Object.keys(fields)[0];
+        if (first) document.getElementById(first)?.focus();
+    }
+
+    validateImport(values) {
+        const errors = {};
+        if (!values.classCode) errors.classCode = 'Enter the class code, e.g. CMSC330.';
+        else if (!COURSE_CODE.test(values.classCode)) errors.classCode = 'Use a class code like CMSC330 or HIST289I.';
+        if (!values.professor) errors.professor = "Enter the professor's name.";
+        if (!values.semester) errors.semester = 'Pick a semester.';
+        if (!values.year) errors.year = 'Pick a year.';
+        if (!values.category) errors.category = 'Pick a category.';
+        if (!values.description) errors.description = 'Add a short description.';
+        if (!document.getElementById('academicIntegrity').checked) errors.academicIntegrity = 'Confirm the academic integrity statement to share these notes.';
+        return errors;
+    }
+
+    async performImport(integrationId, integration) {
+        const form = document.getElementById('importForm');
+        const raw = Object.fromEntries(new FormData(form));
+        const sourceId = raw.sourceId;
+        const sourceName = document.getElementById('sourceSelect').selectedOptions[0]?.textContent.trim() || 'your note';
+        const options = {
+            classCode: (raw.classCode || '').trim().toUpperCase(),
+            professor: (raw.professor || '').trim(),
+            semester: raw.semester,
+            year: raw.year,
+            category: raw.category,
+            description: (raw.description || '').trim()
+        };
+        const errors = this.validateImport(options);
+        if (!sourceId) errors.sourceSelect = 'Pick something to import.';
+        this.showFieldErrors(errors);
+        if (Object.keys(errors).length) return;
+
+        const button = document.getElementById('importSubmit');
+        button.disabled = true;
+        button.textContent = 'Importing…';
+        try {
+            const { ok, data } = await getJson(`/api/integrations/${integrationId}/import`, { method: 'POST', body: JSON.stringify({ sourceId, options }) });
+            if (!ok) {
+                if (data.fields) this.showFieldErrors(data.fields);
+                throw new Error(data.error || 'Import failed.');
+            }
+            this.renderImportResult(integrationId, integration, data, sourceName);
+        } catch (error) {
+            this.showNotification(error.message, 'error');
+            button.disabled = false;
+            button.textContent = 'Import and share';
+        }
+    }
+
+    renderImportResult(integrationId, integration, result, sourceName) {
+        const count = result.count || 0;
+        const held = result.held || [];
+        const failed = result.failed || [];
+        const duplicates = result.duplicates || [];
+        const classCode = result.classCode || '';
+        const lines = [];
+        if (count) lines.push(`<p class="result-main">${count === 1 ? `"${esc(sourceName)}" is` : `${count} files are`} now on Terp Notes${classCode ? ` under ${esc(classCode)}` : ''}.</p>`);
+        if (held.length) lines.push(`<p class="result-note warn">${esc(held.join(', '))} may contain personal information, so an admin will review ${held.length === 1 ? 'it' : 'them'} before other students can see ${held.length === 1 ? 'it' : 'them'}.</p>`);
+        if (duplicates.length) lines.push(`<p class="result-note">${esc(duplicates.join(', '))} ${duplicates.length === 1 ? 'was' : 'were'} already shared for this class and term, so ${duplicates.length === 1 ? 'it was' : 'they were'} skipped.</p>`);
+        if (failed.length) lines.push(`<p class="result-note error">${esc(failed.join(', '))} couldn't be imported. Try exporting ${failed.length === 1 ? 'it' : 'them'} as a PDF and uploading instead.</p>`);
+        if (!count && !held.length && !duplicates.length && !failed.length) lines.push('<p class="result-main">Nothing was imported: that item had no content we could read.</p>');
+
+        document.getElementById('actionModalBody').innerHTML = `
+            <div class="import-result" role="status">
+                <div class="result-icon" aria-hidden="true">${count ? '✓' : 'i'}</div>
+                ${lines.join('')}
+                <div class="form-actions">
+                    ${count && classCode ? `<a class="btn btn-primary" href="/dashboard?q=${encodeURIComponent(classCode)}">View ${esc(classCode)} notes</a>` : ''}
+                    ${count && classCode ? `<a class="btn btn-secondary" href="/study?course=${encodeURIComponent(classCode)}">Study with them</a>` : ''}
+                    <button class="btn btn-secondary" onclick="integrationsManager.showActionModal('${esc(integrationId)}', 'import')">Import another</button>
+                </div>
+            </div>`;
+        if (count) this.showNotification(`Imported from ${integration.name}.`, 'success');
+    }
+
+    async renderExportForm(integrationId, sources) {
+        const body = document.getElementById('actionModalBody');
+        let files = [];
+        try {
+            const { data } = await getJson('/api/my-files');
+            files = data.files || [];
+        } catch {
+            files = [];
+        }
+        if (!files.length) {
+            body.innerHTML = '<p class="form-error">You haven\'t uploaded any files yet. Upload one from the dashboard, then export it here.</p>';
+            return;
+        }
+        body.innerHTML = `
+            <form id="exportForm" novalidate>
+                <div class="form-group">
+                    <label class="form-label" for="fileSelect">Your file</label>
+                    <select id="fileSelect" name="fileId" class="form-input">
+                        ${files.map(f => `<option value="${esc(f._id)}">${esc(f.originalName)}${f.classCode ? ` (${esc(f.classCode)})` : ''}</option>`).join('')}
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="targetSelect">Send to ${esc(this.sourceLabel(integrationId).toLowerCase())}</label>
+                    <select id="targetSelect" name="targetId" class="form-input">
+                        ${sources.map(s => `<option value="${esc(s.id)}">${esc(s.name || 'Untitled')}</option>`).join('')}
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="exportTitle">Title (optional)</label>
+                    <input type="text" id="exportTitle" name="title" class="form-input" maxlength="120" placeholder="Leave empty to keep the file's name">
+                </div>
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary" id="exportSubmit">Export</button>
+                    <button type="button" class="btn btn-secondary" onclick="integrationsManager.closeActionModal()">Cancel</button>
+                </div>
+            </form>`;
+        document.getElementById('exportForm').addEventListener('submit', e => {
+            e.preventDefault();
+            this.performExport(integrationId, Object.fromEntries(new FormData(e.target)));
+        });
+    }
+
+    async performExport(integrationId, { fileId, targetId, title }) {
+        const button = document.getElementById('exportSubmit');
+        button.disabled = true;
+        button.textContent = 'Exporting…';
+        try {
+            const { ok, data } = await getJson(`/api/integrations/${integrationId}/export`, { method: 'POST', body: JSON.stringify({ fileId, targetId, title }) });
+            if (!ok) throw new Error(data.error || 'Export failed.');
+            this.showNotification('Exported.', 'success');
+            this.closeActionModal();
+        } catch (error) {
+            this.showNotification(error.message, 'error');
+            button.disabled = false;
+            button.textContent = 'Export';
+        }
+    }
+
+    // ---------- modals and notices ----------
+
+    openModal(id) {
+        const modal = document.getElementById(id);
+        this.lastFocus = document.activeElement;
+        modal.classList.add('show');
+        document.body.classList.add('modal-open');
     }
 
     closeModal() {
         document.getElementById('integrationModal').classList.remove('show');
+        this.afterClose();
     }
 
     closeActionModal() {
         document.getElementById('actionModal').classList.remove('show');
+        this.afterClose();
     }
 
-    getIconClass(integrationId) {
-        const iconMap = {
-            'notion': 'notion-icon',
-            'onenote': 'onenote-icon',
-            'google-docs': 'google-icon',
-            'obsidian': 'obsidian-icon'
-        };
-        return iconMap[integrationId] || 'integration-icon';
+    afterClose() {
+        if (!document.querySelector('.modal.show')) {
+            document.body.classList.remove('modal-open');
+            this.lastFocus?.focus?.();
+        }
     }
 
-    getIconText(integrationId) {
-        const textMap = {
-            'notion': 'N',
-            'onenote': '📓',
-            'google-docs': 'G',
-            'obsidian': '⚡'
-        };
-        return textMap[integrationId] || '📝';
+    getIconClass(id) {
+        return { notion: 'notion-icon', onenote: 'onenote-icon', 'google-docs': 'google-icon', obsidian: 'obsidian-icon' }[id] || '';
+    }
+
+    getIconText(id) {
+        return { notion: 'N', onenote: '📓', 'google-docs': 'G', obsidian: '⚡' }[id] || '📝';
     }
 
     showNotification(message, type = 'info') {
-        // Create notification element
-        const notification = document.createElement('div');
-        notification.className = `notification notification-${type}`;
-        notification.textContent = message;
-
-        // Style the notification
-        notification.style.cssText = `
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            padding: 1rem 1.5rem;
-            border-radius: 8px;
-            color: white;
-            font-weight: 500;
-            z-index: 10000;
-            animation: slideInRight 0.3s ease;
-        `;
-
-        // Set background color based on type
-        switch (type) {
-            case 'success':
-                notification.style.backgroundColor = '#10b981';
-                break;
-            case 'error':
-                notification.style.backgroundColor = '#ef4444';
-                break;
-            case 'warning':
-                notification.style.backgroundColor = '#f59e0b';
-                break;
-            default:
-                notification.style.backgroundColor = '#3b82f6';
-        }
-
-        document.body.appendChild(notification);
-
-        // Remove after 3 seconds
+        const note = document.createElement('div');
+        note.className = `notification notification-${type}`;
+        note.setAttribute('role', type === 'error' ? 'alert' : 'status');
+        note.textContent = message;
+        document.body.appendChild(note);
         setTimeout(() => {
-            notification.style.animation = 'slideOutRight 0.3s ease';
-            setTimeout(() => {
-                if (notification.parentNode) {
-                    notification.parentNode.removeChild(notification);
-                }
-            }, 300);
-        }, 3000);
+            note.classList.add('leaving');
+            setTimeout(() => note.remove(), 300);
+        }, type === 'error' ? 6000 : 3500);
     }
 
     setupEventListeners() {
-        // Close modals when clicking outside
-        document.addEventListener('click', (e) => {
+        document.addEventListener('click', e => {
             if (e.target.classList.contains('modal')) {
                 this.closeModal();
                 this.closeActionModal();
             }
         });
-
-        // Close modals with Escape key
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape') {
+        document.addEventListener('keydown', e => {
+            if (e.key === 'Escape' && document.querySelector('.modal.show')) {
                 this.closeModal();
                 this.closeActionModal();
             }
         });
     }
-
-    openFolderPicker() {
-        // Create a hidden file input for folder selection
-        const input = document.createElement('input');
-        input.type = 'file';
-        input.webkitdirectory = true; // Allow directory selection
-        input.directory = true;
-        input.multiple = true;
-
-        input.onchange = (event) => {
-            const files = event.target.files;
-            if (files.length > 0) {
-                // Get the directory path from the first file
-                const firstFile = files[0];
-
-                // Set the path in the input field
-                const pathInput = document.getElementById('obsidianPath');
-                if (pathInput) {
-                    // Extract the full path (remove the filename part)
-                    const fullPath = firstFile.path || firstFile.webkitRelativePath.split('/').slice(0, -1).join('/');
-                    pathInput.value = fullPath;
-                }
-            }
-        };
-
-        // Trigger the file picker
-        input.click();
-    }
 }
 
-// Global functions for modal management
 function closeModal() {
     integrationsManager.closeModal();
 }
@@ -808,9 +714,6 @@ function closeActionModal() {
     integrationsManager.closeActionModal();
 }
 
-// Initialize when DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
     window.integrationsManager = new IntegrationsManager();
 });
-
-// CSS animations are now handled in integrations.css

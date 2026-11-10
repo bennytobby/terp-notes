@@ -31,20 +31,36 @@ function withExtension(name, mimeType) {
     return `${base}${ext}`;
 }
 
+const TIMED_OUT = Symbol("timed out");
+
 /**
  * Scans a note. A duplicate of an existing file reuses its result (same bytes).
  * Returns { confidentialScan, quarantined, text } - `text` is for indexing, never for storage.
+ *
+ * With `timeoutMs`, a scan that runs long (a big PDF on a serverless request) is left as
+ * status "pending" instead of failing the upload; the admin "Index older notes" job finishes it.
  */
-async function assessNote({ buffer, mimetype, name, existingFile, scan = scanUpload }) {
+async function assessNote({ buffer, mimetype, name, existingFile, scan = scanUpload, timeoutMs = 0 }) {
     let confidentialScan;
     let text = null;
-    if (existingFile && existingFile.confidentialScan) {
+    if (existingFile && existingFile.confidentialScan && existingFile.confidentialScan.status !== "pending") {
         confidentialScan = existingFile.confidentialScan;
     } else {
         try {
-            const { text: extracted, ...result } = await scan(buffer, mimetype, name);
-            confidentialScan = result;
-            text = extracted;
+            const run = Promise.resolve().then(() => scan(buffer, mimetype, name));
+            let timer;
+            const result = timeoutMs
+                ? await Promise.race([run, new Promise((resolve) => { timer = setTimeout(() => resolve(TIMED_OUT), timeoutMs); })])
+                : await run;
+            clearTimeout(timer);
+            if (result === TIMED_OUT) {
+                run.catch(() => {});
+                confidentialScan = { status: "pending", level: "none", findings: [], reason: "scan took too long during upload" };
+            } else {
+                const { text: extracted, ...rest } = result;
+                confidentialScan = rest;
+                text = extracted;
+            }
         } catch (err) {
             confidentialScan = { status: "error", level: "none", findings: [] };
         }

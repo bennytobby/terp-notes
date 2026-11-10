@@ -16,122 +16,59 @@
     <link rel="stylesheet" href="/styles/main.css?v=<%= Date.now() %>">
 
     <style>
-        /* Navigation Styles - copied from dashboard.ejs */
-        .main-nav {
-            display: flex;
-            gap: 1rem;
-            align-items: center;
-        }
-
-        .nav-link {
-            padding: 0.5rem 1rem;
-            border-radius: 6px;
-            text-decoration: none;
-            color: rgba(255, 255, 255, 0.9);
-            font-weight: 500;
-            transition: all 0.2s ease;
-            border: 1px solid transparent;
-        }
-
-        .nav-link:hover {
-            background: rgba(255, 255, 255, 0.15);
-            color: white;
-            border-color: rgba(255, 255, 255, 0.3);
-        }
-
-        .nav-link.active {
-            background: rgba(255, 255, 255, 0.2);
-            color: white;
-            border-color: rgba(255, 255, 255, 0.4);
-            font-weight: 600;
-        }
-
-        .welcome-text {
-            font-size: 0.9rem;
-            color: rgba(255, 255, 255, 0.9);
-        }
-
-        /* Active navigation highlighting */
-        .nav-integrations.active {
-            background: rgba(255, 255, 255, 0.25);
-        }
-
-        /* Fix navigation centering */
-        .topbar {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .main-nav {
-            position: absolute;
-            left: 50%;
-            transform: translateX(-50%);
-        }
     </style>
 </head>
 <body>
-    <header class="topbar">
-        <h2><a href="/dashboard" style="text-decoration: none; color: inherit; display: flex; align-items: center; cursor: pointer; transition: opacity 0.2s ease;" onmouseover="this.style.opacity='0.8'" onmouseout="this.style.opacity='1'">
-            <img src="/logo.png" alt="Terp Notes Logo" style="width: 32px; height: 32px; vertical-align: middle; margin-right: 8px; pointer-events: none;" />
-            Terp Notes
-        </a></h2>
+    <%- include('partials/topnav', { active: 'integrations', quickLogout: true }) %>
 
-        <!-- Navigation Links -->
-        <nav class="main-nav">
-            <a href="/dashboard" class="nav-link nav-dashboard">Dashboard</a>
-            <a href="/profile" class="nav-link nav-profile">Profile</a>
-            <a href="/integrations" class="nav-link nav-integrations">Integrations</a>
-            <% if (user.role==='admin' ) { %>
-                <a href="/admin" class="nav-link nav-admin">Admin Panel</a>
-            <% } %>
-        </nav>
-
-        <div class="user-info">
-            <span class="welcome-text">Welcome, <strong><%= firstname %></strong></span>
-            <span class="user-role role-<%= user.role %>">
-                <%= user.role %>
-            </span>
-            <button onclick="showQuickLogout()" class="logout-btn" style="background: none; border: none; color: inherit; cursor: pointer; text-decoration: underline;">Logout</button>
-        </div>
-    </header>
-
-    <main class="container">
+    <main class="container integrations-page"
+          data-catalog="<%= hasCourseCatalog ? 'true' : 'false' %>"
+          data-semester="<%= currentTerm.semester %>"
+          data-year="<%= currentTerm.year %>">
         <div class="page-header">
-            <h1>📱 Integrations</h1>
-            <p>Connect Google Drive, Notion, or OneNote in one click, then import and export notes.</p>
+            <h1>Integrations</h1>
+            <p>Bring notes in from Google Drive, Notion or OneNote and share them with your classmates, or send Terp Notes files back to your own apps.</p>
         </div>
 
-        <!-- Integration Cards -->
-        <div class="integrations-grid" id="integrationsGrid">
-            <!-- Integration cards will be loaded here -->
+        <ol class="how-it-works" aria-label="How importing works">
+            <li><span class="step-num">1</span><div><strong>Connect</strong><span>Sign in to the app once. Terp Notes only reads what you pick.</span></div></li>
+            <li><span class="step-num">2</span><div><strong>Pick a note</strong><span>Choose a doc, page or section to import.</span></div></li>
+            <li><span class="step-num">3</span><div><strong>Add class details</strong><span>Course, professor and term, the same as an upload.</span></div></li>
+            <li><span class="step-num">4</span><div><strong>Share</strong><span>It's checked like any upload, then shows up on the dashboard and in Study Buddy.</span></div></li>
+        </ol>
+
+        <div class="integrations-grid" id="integrationsGrid" aria-busy="true">
+            <div class="integration-card skeleton" aria-hidden="true"></div>
+            <div class="integration-card skeleton" aria-hidden="true"></div>
+            <div class="integration-card skeleton" aria-hidden="true"></div>
         </div>
 
-                <!-- Integration Modal -->
-                <div class="modal" id="integrationModal">
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <h3 id="modalTitle">Connect Integration</h3>
-                            <button class="modal-close" onclick="closeModal()">&times;</button>
-                        </div>
-                        <div class="modal-body" id="modalBody">
-                            <!-- Dynamic content will be loaded here -->
-                        </div>
-                    </div>
-                </div>
+        <p class="integrations-footnote">
+            Using ChatGPT or Claude? <a href="/ai-access">Connect your notes to your AI app</a>.
+            Prefer to upload a file? <a href="/dashboard#upload">Upload from the dashboard</a>.
+        </p>
 
-                <!-- Import/Export Modal -->
-                <div class="modal" id="actionModal">
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <h3 id="actionModalTitle">Import/Export</h3>
-                            <button class="modal-close" onclick="closeActionModal()">&times;</button>
-                        </div>
-                        <div class="modal-body" id="actionModalBody">
-                            <!-- Dynamic content will be loaded here -->
-                        </div>
-                    </div>
+        <!-- Connect modal (token-based integrations) -->
+        <div class="modal" id="integrationModal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3 id="modalTitle">Connect</h3>
+                    <button class="modal-close" onclick="closeModal()" aria-label="Close">&times;</button>
                 </div>
+                <div class="modal-body" id="modalBody"></div>
+            </div>
+        </div>
+
+        <!-- Import / export modal -->
+        <div class="modal" id="actionModal" role="dialog" aria-modal="true" aria-labelledby="actionModalTitle">
+            <div class="modal-content modal-wide">
+                <div class="modal-header">
+                    <h3 id="actionModalTitle">Import</h3>
+                    <button class="modal-close" onclick="closeActionModal()" aria-label="Close">&times;</button>
+                </div>
+                <div class="modal-body" id="actionModalBody"></div>
+            </div>
+        </div>
     </main>
 
     <!-- Scripts -->

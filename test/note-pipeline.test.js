@@ -42,3 +42,21 @@ test("a scanner failure never blocks the note", async () => {
     assert.equal(r.confidentialScan.status, "error");
     assert.equal(r.quarantined, false);
 });
+
+test("a scan that runs out of time is left pending instead of failing the upload", async () => {
+    const slow = () => new Promise((resolve) => setTimeout(() => resolve({ status: "clean", level: "none", findings: [], text: "x" }), 200));
+    const r = await assessNote({ buffer: Buffer.from("x"), mimetype: "text/plain", name: "big.txt", scan: slow, timeoutMs: 20 });
+    assert.equal(r.confidentialScan.status, "pending");
+    assert.equal(r.quarantined, false);
+    assert.equal(r.text, null);
+
+    const fast = await assessNote({ buffer: Buffer.from("Recursion"), mimetype: "text/plain", name: "r.txt", timeoutMs: 2000 });
+    assert.equal(fast.confidentialScan.status, "clean");
+    assert.equal(fast.text, "Recursion");
+});
+
+test("a copy of a file whose scan is still pending gets scanned instead of inheriting 'pending'", async () => {
+    const existingFile = { confidentialScan: { status: "pending", level: "none", findings: [] } };
+    const r = await assessNote({ buffer: Buffer.from("Recursion"), mimetype: "text/plain", name: "r.txt", existingFile });
+    assert.equal(r.confidentialScan.status, "clean");
+});
