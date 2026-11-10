@@ -778,6 +778,7 @@
             let total = 0;
             let skipped = 0;
             let failures = 0;
+            const reasons = {};
             try {
                 // Each request does a few seconds of work; keep asking until nothing is left.
                 for (let i = 0; i < 500; i++) {
@@ -796,10 +797,16 @@
                     failures = 0;
                     total += r.indexed;
                     skipped += r.skipped;
+                    for (const [kind, info] of Object.entries(r.reasons || {})) {
+                        reasons[kind] = reasons[kind] || { count: 0, example: info.example };
+                        reasons[kind].count += info.count;
+                    }
                     status.textContent = `Indexed ${total} so far, ${r.remaining} left…`;
                     if (r.remaining === 0) break;
                 }
-                status.textContent = `Done. Indexed ${total} file(s)` + (skipped ? `; ${skipped} couldn't be read (images, slides or scanned PDFs).` : '.');
+                const labels = { unsupported: 'not a text, PDF or Word file', empty: 'no text inside (scanned or image-only)', error: 'failed to read' };
+                const why = Object.entries(reasons).map(([kind, info]) => `${info.count} ${labels[kind] || kind} (e.g. ${info.example})`).join('; ');
+                status.textContent = `Done. Indexed ${total} file(s).` + (skipped ? ` Skipped ${skipped}: ${why || 'see server logs'}.` : '');
             } catch (err) {
                 status.textContent = `${err.message} Indexed ${total} before stopping; press the button again to continue.`;
             } finally {

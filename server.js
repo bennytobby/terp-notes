@@ -85,7 +85,7 @@ const s3 = new AWS.S3({
 const AWS_BUCKET = process.env.AWS_S3_BUCKET;
 
 /* VirusTotal Configuration */
-const { scanUpload: scanForConfidentialInfo, extractText, scanText: scanConfidentialText } = require('./utils/confidential-scanner');
+const { scanUpload: scanForConfidentialInfo, extractText, readText, scanText: scanConfidentialText } = require('./utils/confidential-scanner');
 const courseStaff = require('./utils/course-staff');
 const schools = require('./utils/schools');
 const notePipeline = require('./utils/note-pipeline');
@@ -5073,6 +5073,9 @@ app.post('/api/study/ask', apiLimiter, async (req, res) => {
 // time during an upload. Works in small slices: Vercel stops a request after 10 seconds.
 const STUDY_INDEX_BUDGET_MS = 7000;
 const STUDY_INDEX_MAX_ATTEMPTS = 3;
+// Bump when text extraction improves, so files it couldn't read before are tried again.
+// 2: PDFs read with unpdf (pdf-parse failed on every PDF in production).
+const STUDY_INDEX_EXTRACTOR = 2;
 app.post('/api/admin/study-index', apiLimiter, async (req, res) => {
     if (!req.session.user || req.session.user.role !== 'admin') {
         return res.status(401).json({ error: 'Unauthorized' });
@@ -5087,11 +5090,18 @@ app.post('/api/admin/study-index', apiLimiter, async (req, res) => {
         // Retry files skipped before skip reasons existed: most of them hit the time limit, not a bad file.
         const candidates = await files
             .find(
-                { $or: [{ studyIndexSkipped: { $ne: true } }, { studyIndexSkipReason: { $exists: false } }] },
-                { projection: { filename: 1, originalName: 1, mimetype: 1, classCode: 1, fileHash: 1, quarantined: 1, school: 1, confidentialScan: 1, studyIndexAttempts: 1 } }
+                { $or: [
+                    { studyIndexSkipped: { $ne: true } },
+                    { studyIndexSkipReason: { $exists: false } },
+                    { studyIndexSkipReason: { $in: ['unreadable', 'error'] }, studyIndexExtractor: { $ne: STUDY_INDEX_EXTRACTOR } }
+                ] },
+                { projection: { filename: 1, originalName: 1, mimetype: 1, classCode: 1, fileHash: 1, quarantined: 1, school: 1, confidentialScan: 1, studyIndexAttempts: 1, studyIndexExtractor: 1 } }
             )
             .toArray();
         const todo = candidates.filter(f => !done.has(String(f._id)) || f.confidentialScan?.status === 'pending');
+        const reasons = {};
+        // A file retried after an extractor upgrade starts its error count again.
+        const attemptsOf = f => (f.studyIndexExtractor === STUDY_INDEX_EXTRACTOR ? f.studyIndexAttempts || 0 : 0);
         let indexed = 0;
         let skipped = 0;
         let processed = 0;
@@ -5103,9 +5113,10 @@ app.post('/api/admin/study-index', apiLimiter, async (req, res) => {
                 const twin = f.fileHash ? await db.collection('noteTexts').findOne({ fileHash: f.fileHash }) : null;
                 const needsScan = f.confidentialScan?.status === 'pending';
                 let text = twin && !needsScan ? twin.chunks.join('\n\n') : null;
+                let reason = null;
                 if (text === null) {
                     const obj = await s3.getObject({ Bucket: AWS_BUCKET, Key: f.filename }).promise();
-                    text = await extractText(obj.Body, f.mimetype, f.originalName);
+                    ({ text, reason } = await readText(obj.Body, f.mimetype, f.originalName));
                 }
                 if (needsScan) {
                     const { level, findings } = text === null ? { level: 'none', findings: [] } : scanConfidentialText(text);
@@ -5117,24 +5128,29 @@ app.post('/api/admin/study-index', apiLimiter, async (req, res) => {
                 }
                 if (!done.has(String(f._id)) && text && (await studyBuddy.indexFile(db, f, text)) > 0) {
                     indexed++;
-                    await files.updateOne({ _id: f._id }, { $set: { studyIndexSkipped: false, studyIndexSkipReason: 'indexed' } });
+                    await files.updateOne({ _id: f._id }, { $set: { studyIndexSkipped: false, studyIndexSkipReason: 'indexed', studyIndexExtractor: STUDY_INDEX_EXTRACTOR } });
                 } else if (!done.has(String(f._id))) {
                     skipped++;
-                    await files.updateOne({ _id: f._id }, { $set: { studyIndexSkipped: true, studyIndexSkipReason: 'unreadable' } });
+                    // "unsupported" (an image, slides...), "empty" (no text, e.g. a scanned PDF) or the parser's error.
+                    const why = reason || (text === null ? 'unsupported' : 'empty');
+                    const kind = why.startsWith('error') ? 'error' : why;
+                    reasons[kind] = reasons[kind] || { count: 0, example: `${f.originalName}: ${why}` };
+                    reasons[kind].count++;
+                    await files.updateOne({ _id: f._id }, { $set: { studyIndexSkipped: true, studyIndexSkipReason: 'unreadable', studyIndexDetail: why, studyIndexExtractor: STUDY_INDEX_EXTRACTOR } });
                 }
             } catch (err) {
                 // S3 or parser trouble: try again on a later run, and give up after a few attempts.
-                const attempts = (f.studyIndexAttempts || 0) + 1;
+                const attempts = attemptsOf(f) + 1;
                 console.error(`Study index failed for ${f.originalName} (attempt ${attempts}):`, err.message);
                 await files.updateOne({ _id: f._id }, {
                     $set: attempts >= STUDY_INDEX_MAX_ATTEMPTS
-                        ? { studyIndexAttempts: attempts, studyIndexSkipped: true, studyIndexSkipReason: 'error' }
-                        : { studyIndexAttempts: attempts, studyIndexSkipped: false }
+                        ? { studyIndexAttempts: attempts, studyIndexSkipped: true, studyIndexSkipReason: 'error', studyIndexDetail: String(err.message).slice(0, 200), studyIndexExtractor: STUDY_INDEX_EXTRACTOR }
+                        : { studyIndexAttempts: attempts, studyIndexSkipped: false, studyIndexExtractor: STUDY_INDEX_EXTRACTOR }
                 });
                 if (attempts >= STUDY_INDEX_MAX_ATTEMPTS) skipped++;
             }
         }
-        res.json({ indexed, skipped, remaining: Math.max(todo.length - processed, 0) });
+        res.json({ indexed, skipped, reasons, remaining: Math.max(todo.length - processed, 0) });
     } catch (err) {
         console.error('Study index error:', err);
         res.status(500).json({ error: 'Indexing failed' });

@@ -29,16 +29,16 @@ test.beforeAll(async () => {
 });
 
 /** What the dashboard does: the browser PUTs the file to S3, then confirms it. */
-async function directUpload(page, name, text) {
-    const body = Buffer.from(text);
+async function directUpload(page, name, text, type = "text/plain") {
+    const body = Buffer.isBuffer(text) ? text : Buffer.from(text);
     const s3Key = `${Date.now()}_e2e_${name}`;
-    await s3.putObject({ Bucket: bucket, Key: s3Key, Body: body, ContentType: "text/plain" }).promise();
+    await s3.putObject({ Bucket: bucket, Key: s3Key, Body: body, ContentType: type }).promise();
     const res = await page.request.post("/api/confirm-upload", {
         data: {
             s3Key,
             s3Url: `${process.env.AWS_S3_ENDPOINT}/${bucket}/${s3Key}`,
             filename: name,
-            filetype: "text/plain",
+            filetype: type,
             filesize: body.length,
             fileHash: crypto.createHash("sha256").update(body).digest("hex"),
             classCode: "CMSC216",
@@ -70,6 +70,18 @@ test("a direct upload is indexed for the study buddy, scanned and tagged with th
     // And it shows up as a course on the study page.
     await page.goto("/study");
     await expect(page.getByLabel("Course").locator("option", { hasText: "CMSC216" })).toHaveCount(1);
+});
+
+test("a PDF upload is read and indexed (PDF reading must not need native modules)", async ({ page }) => {
+    const password = await seedUser(user);
+    await signIn(page, user.userid, password);
+    const pdf = require("node:fs").readFileSync(require("node:path").join(__dirname, "..", "test", "fixtures", "stack-notes.pdf"));
+    const result = await directUpload(page, "stack-notes.pdf", pdf, "application/pdf");
+    expect(result.success).toBe(true);
+    const file = await withDb((db) => db.collection("files").findOne({ uploadedBy: user.userid, mimetype: "application/pdf" }, { sort: { uploadDate: -1 } }));
+    expect(file.confidentialScan.status).toBe("clean");
+    const indexed = await withDb((db) => db.collection("noteTexts").findOne({ fileHash: file.fileHash }));
+    expect(indexed.chunks.join(" ")).toContain("last-in first-out");
 });
 
 test("a direct upload with an ID roster is held for review", async ({ page }) => {

@@ -25,21 +25,29 @@ const MAX_TEXT = 2_000_000; // characters scanned per file
 const TEXT_TYPES = /^(text\/|application\/(json|xml|csv|x-tex|rtf))/;
 const TEXT_EXT = /\.(txt|md|markdown|csv|tsv|json|tex|rtf|html?|xml)$/i;
 
+let unpdf;
+/** unpdf: PDF.js built for serverless, with no native modules (pdf-parse needed @napi-rs/canvas,
+ * which Vercel's bundle didn't include, so every PDF failed in production). */
+async function pdfText(buffer) {
+    unpdf ||= import("unpdf");
+    const { getDocumentProxy, extractText: pdfExtract } = await unpdf;
+    const pdf = await getDocumentProxy(new Uint8Array(buffer));
+    try {
+        const { text } = await pdfExtract(pdf, { mergePages: true });
+        return text || "";
+    } finally {
+        await Promise.resolve(pdf.destroy?.()).catch(() => {});
+    }
+}
+
 /**
- * Best-effort text from an upload. Returns null for formats we can't read (images,
- * archives, slides), which the caller records as "skipped".
+ * Text from an upload, with why it failed. `reason` is "unsupported" for formats we don't read
+ * (images, archives, slides) and "error: <message>" when reading a supported format failed.
  */
-async function extractText(buffer, mimetype = "", name = "") {
+async function readText(buffer, mimetype = "", name = "") {
     try {
         if (mimetype === "application/pdf" || /\.pdf$/i.test(name)) {
-            const { PDFParse } = require("pdf-parse");
-            const parser = new PDFParse({ data: new Uint8Array(buffer) });
-            try {
-                const result = await parser.getText();
-                return result.text || "";
-            } finally {
-                await parser.destroy().catch(() => {});
-            }
+            return { text: await pdfText(buffer), reason: null };
         }
         if (
             mimetype === "application/vnd.openxmlformats-officedocument.wordprocessingml.document" ||
@@ -47,16 +55,24 @@ async function extractText(buffer, mimetype = "", name = "") {
         ) {
             const mammoth = require("mammoth");
             const { value } = await mammoth.extractRawText({ buffer });
-            return value || "";
+            return { text: value || "", reason: null };
         }
         if (TEXT_TYPES.test(mimetype) || TEXT_EXT.test(name)) {
-            return buffer.toString("utf8");
+            return { text: buffer.toString("utf8"), reason: null };
         }
+        return { text: null, reason: "unsupported" };
     } catch (err) {
         // Corrupt or password-protected files: report as unreadable rather than failing the upload.
-        return null;
+        return { text: null, reason: `error: ${String(err && err.message ? err.message : err).slice(0, 200)}` };
     }
-    return null;
+}
+
+/**
+ * Best-effort text from an upload. Returns null for formats we can't read (images,
+ * archives, slides) and for files that fail to parse, which the caller records as "skipped".
+ */
+async function extractText(buffer, mimetype = "", name = "") {
+    return (await readText(buffer, mimetype, name)).text;
 }
 
 // ---------- detectors ----------
@@ -222,4 +238,4 @@ async function scanUpload(buffer, mimetype, name) {
     return { status: level === "none" ? "clean" : "flagged", level, findings, text };
 }
 
-module.exports = { extractText, scanText, scanUpload, luhn, mask };
+module.exports = { extractText, readText, scanText, scanUpload, luhn, mask };
