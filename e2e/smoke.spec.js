@@ -7,10 +7,10 @@ test("home, sign-in, sign-up and health check work @live", async ({ page, reques
     expect((await health.json()).status).toBe("OK");
 
     await page.goto("/");
-    await expect(page.getByRole("heading", { level: 1, name: /Share Notes/ })).toBeVisible();
+    await expect(page.getByRole("heading", { level: 1, name: /Notes from Terps/ })).toBeVisible();
 
     await page.goto("/login");
-    await expect(page.getByRole("heading", { name: "Login to Terp Notes" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Log in to Terp Notes" })).toBeVisible();
     await expect(page.getByLabel("Username")).toBeVisible();
     await expect(page.getByLabel("Password")).toBeVisible();
 
@@ -26,7 +26,7 @@ test("home, sign-in, sign-up and health check work @live", async ({ page, reques
 test("home page works at phone width (390 px) @live", async ({ page }) => {
     await page.setViewportSize({ width: 390, height: 844 });
     await page.goto("/");
-    await expect(page.getByRole("heading", { level: 1, name: /Share Notes/ })).toBeVisible();
+    await expect(page.getByRole("heading", { level: 1, name: /Notes from Terps/ })).toBeVisible();
     const overflow = await page.evaluate(
         () => document.documentElement.scrollWidth - document.documentElement.clientWidth,
     );

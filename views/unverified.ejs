@@ -1,70 +1,32 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>
-        <%= title %> - Terp Notes
-    </title>
-    <link rel="icon" type="image/png" href="/favicon.png" />
-    <link rel="stylesheet" href="/styles/main.css" />
-    <link rel="stylesheet" href="/stylesheets/app.css" />
+    <%- include('partials/head', { title: 'Confirm your email - Terp Notes' }) %>
 </head>
-
 <body class="tn-app">
-    <header class="topbar tn-header">
-        <h2><a href="/" style="text-decoration: none; color: inherit; display: flex; align-items: center; cursor: pointer; transition: opacity 0.2s ease;" onmouseover="this.style.opacity='0.8'" onmouseout="this.style.opacity='1'">
-            <img src="/logo.png" alt="Terp Notes Logo" style="width: 32px; height: 32px; vertical-align: middle; margin-right: 8px; pointer-events: none;" />
-            Terp Notes
-        </a></h2>
-    </header>
+    <%- include('partials/publicnav', { hideAuth: true }) %>
 
-    <main class="centered">
-        <div class="message-box warning-box" style="max-width: 600px; padding: 3rem;">
-            <div class="message-icon" style="margin-bottom: 1.5rem;"><img src="/images/icons/mail-envelope.png" alt="Email" style="width: 100px; height: 100px;" /></div>
-            <h1 style="color: #DC2626; margin-bottom: 1rem;">
-                <%= title %>
-            </h1>
-            <p style="margin-bottom: 1rem; font-size: 1.1rem;">
-                Your account needs to be verified before you can login.
-            </p>
-            <p style="margin-bottom: 2rem;">
-                Please check your email <strong>
-                    <%= email %>
-                </strong> for a verification link.
-            </p>
-
-            <div
-                style="background: #FEF3C7; padding: 1.5rem; border-radius: 0.5rem; margin-bottom: 2rem; text-align: left;">
-                <h3 style="margin-bottom: 1rem; color: #B45309;">Didn't receive the email?</h3>
-                <ul style="margin-left: 1.5rem; line-height: 1.8;">
-                    <li>Check your spam/junk folder</li>
-                    <li>Wait a few minutes for delivery</li>
-                    <li>Make sure you used the correct email</li>
-                </ul>
+    <main class="tn-center" id="main">
+        <div class="tn-card tn-card-wide tn-status">
+            <div class="tn-status-icon is-warn" aria-hidden="true">
+                <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg>
             </div>
-
-            <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; margin-bottom: 1.5rem;">
-                <form action="/resend-verification" method="POST" style="display: inline;">
+            <h1>Confirm your email</h1>
+            <p class="tn-sub">We sent a link to <strong><%= email %></strong>. Open it to finish setting up your account.</p>
+            <div class="tn-alert">
+                <div><strong>No email?</strong> Check spam and "Other" or "Promotions" tabs, and give it a few minutes. UMD mail can be slow.</div>
+            </div>
+            <div class="tn-actions">
+                <form action="/resend-verification" method="POST">
                     <input type="hidden" name="email" value="<%= email %>" />
-                    <button type="submit" class="button primary">
-                        Resend Verification
-                    </button>
+                    <button type="submit" class="tn-btn tn-btn-primary">Resend the email</button>
                 </form>
-                <a href="/contact" class="button secondary" style="background: #6B7280;">
-                    Need Help?
-                </a>
+                <a href="/contact" class="tn-btn tn-btn-outline">Get help</a>
             </div>
-
-            <p>
-                <a href="/register">Register with different email</a> |
-                <a href="/login">Back to Login</a>
-            </p>
+            <p class="tn-alt"><a href="/register">Sign up with a different email</a> · <a href="/login">Log in</a></p>
         </div>
     </main>
 
     <%- include('partials/footer') %>
 </body>
-
 </html>

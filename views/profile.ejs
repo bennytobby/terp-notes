@@ -17,21 +17,20 @@
 <body class="tn-app">
     <%- include('partials/topnav', { active: 'profile' }) %>
 
-    <main class="container">
+    <main class="tn-page" id="main">
         <div class="profile-page">
-            <h1>My Profile</h1>
-            <p class="profile-subtitle">Manage your account information</p>
+            <div class="tn-page-head" style="margin-bottom: 1.5rem;"><div>
+                <h1>Profile</h1>
+                <p class="tn-sub">Your name, email and password.</p>
+            </div></div>
 
             <% if (typeof error !== 'undefined' && error) { %>
-                <div style="background: #FEF2F2; border: 1px solid #FECACA; color: #DC2626; padding: 12px 16px; border-radius: 8px; margin-bottom: 1rem; font-size: 0.875rem; display: flex; align-items: center;">
-                    <span style="margin-right: 8px;">⚠️</span>
-                    <%= error %>
-                </div>
+                <div class="tn-alert tn-alert-error" role="alert"><%= error %></div>
             <% } %>
 
             <!-- Profile Information -->
             <section class="profile-section">
-                <h2>Profile Information</h2>
+                <h2>Your details</h2>
                 <form action="/update-profile" method="POST" class="profile-form">
                     <div class="form-row">
                         <div class="form-group">
@@ -70,7 +69,7 @@
                     </div>
 
                     <div class="form-actions">
-                        <button type="submit" class="button primary">Update Profile</button>
+                        <button type="submit" class="button primary">Save changes</button>
                         <a href="/dashboard" class="button secondary">Cancel</a>
                     </div>
                 </form>
@@ -78,7 +77,7 @@
 
             <!-- Change Password -->
             <section class="profile-section">
-                <h2>Change Password</h2>
+                <h2>Password</h2>
                 <form action="/change-password" method="POST" class="profile-form">
                     <div class="form-group">
                         <label for="currentPassword">Current Password</label>
@@ -98,14 +97,14 @@
                     </div>
 
                     <div class="form-actions">
-                        <button type="submit" class="button primary">Change Password</button>
+                        <button type="submit" class="button primary">Update password</button>
                     </div>
                 </form>
             </section>
 
             <!-- Account Information -->
             <section class="profile-section info-section">
-                <h2>Account Information</h2>
+                <h2>Account</h2>
                 <div class="info-grid">
                     <div class="info-item">
                         <strong>Account Created:</strong>
@@ -133,23 +132,14 @@
             <!-- DANGER ZONE -->
             <% if (!user.isProtected) { %>
                 <section class="profile-section danger-zone">
-                    <h2 class="danger-zone-title">🚨 DANGER ZONE</h2>
-
-
-                    <!-- Delete Account -->
+                    <h2 class="danger-zone-title">Delete account</h2>
                     <div class="danger-section">
-                        <h3>Delete Account</h3>
                         <div class="danger-warning">
-                            <p><strong><img src="/images/icons/warning-triangle.png" alt="Warning" style="width: 40px; height: 40px; vertical-align: middle; margin-right: 10px;" /> Warning:</strong> This action cannot be undone. Deleting your account will permanently remove:</p>
-                            <ul>
-                                <li>Your profile and account information</li>
-                                <li>Your download history and statistics</li>
-                            </ul>
-                            <p><strong>Note:</strong> Your uploaded files will be preserved for the community but attributed to "Deleted User" to protect your privacy.</p>
-                            <p>If you're sure you want to delete your account, click the button below.</p>
+                            <p>This permanently removes your profile and download history. It can't be undone.</p>
+                            <p>Notes you uploaded stay up for other students, credited to "Deleted User".</p>
                         </div>
                         <button type="button" id="deleteAccountBtn" class="button danger">
-                            Delete My Account
+                            Delete my account
                         </button>
                     </div>
                 </section>

@@ -1,158 +1,83 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>
-        <%= title %>
-    </title>
-    <link rel="icon" type="image/png" href="/favicon.png" />
-    <link rel="stylesheet" href="/styles/main.css" />
-    <link rel="stylesheet" href="/stylesheets/app.css" />
+    <%- include('partials/head', { title: 'Log in - Terp Notes' }) %>
 </head>
-
 <body class="tn-app">
-    <header class="topbar tn-header">
-        <h2><a href="/" style="text-decoration: none; color: inherit; display: flex; align-items: center; cursor: pointer; transition: opacity 0.2s ease;" onmouseover="this.style.opacity='0.8'" onmouseout="this.style.opacity='1'">
-            <img src="/logo.png" alt="Terp Notes Logo" style="width: 32px; height: 32px; vertical-align: middle; margin-right: 8px; pointer-events: none;" />
-            Terp Notes
-        </a></h2>
-        <div class="user-info">
-            <a href="/" class="logout-btn" onclick="console.log('Home button clicked'); return true;">Home</a>
-            <a href="/register" class="logout-btn" style="margin-left: 1rem;">Register</a>
-        </div>
-    </header>
+    <%- include('partials/publicnav', { hideAuth: true }) %>
 
-    <main class="centered">
-        <div class="auth-form">
-            <h1>Login to Terp Notes</h1>
+    <main class="tn-center" id="main">
+        <div class="tn-card">
+            <h1>Log in to Terp Notes</h1>
+            <p class="tn-sub">Welcome back. Your notes are where you left them.</p>
 
-            <!-- Session Expired Message -->
-            <div id="sessionExpiredMessage" style="display: none; background: #FEF3C7; border: 1px solid #F59E0B; color: #92400E; padding: 12px 16px; border-radius: 8px; margin-bottom: 1rem; font-size: 0.875rem;">
-                <strong><img src="/images/icons/clock-warning.png" alt="Warning" style="width: 40px; height: 40px; vertical-align: middle; margin-right: 10px;" /> Session Expired</strong>
-                <p style="margin: 0.5rem 0 0 0;" id="expiryMessage"></p>
+            <div id="sessionExpiredMessage" class="tn-alert tn-alert-warn" role="status" hidden>
+                <span id="expiryMessage">Your session expired. Log in again to continue.</span>
+            </div>
+            <div id="notificationContainer" aria-live="polite">
+                <% if (locals.error) { %><div class="tn-alert tn-alert-error" role="alert"><%= error %></div><% } %>
             </div>
 
-            <form action="/loginSubmit" method="POST" novalidate>
-                <div class="form-group">
-                    <label for="userid">Username<span class="req">*</span></label>
-                    <input type="text" name="userid" id="userid" placeholder="Enter your username" autocomplete="username" />
-                </div>
-                <div class="form-group">
-                    <label for="password">Password<span class="req">*</span></label>
-                    <input type="password" name="password" id="password" placeholder="Enter your password" autocomplete="current-password" />
-                </div>
-                <div class="form-group">
-                    <label class="checkbox-label">
-                        <input type="checkbox" name="rememberMe" id="rememberMe" />
-                        <span class="checkmark"></span>
-                        Remember me for 30 days
-                    </label>
-                </div>
-                <div class="form-buttons">
-                    <input type="submit" value="Login" class="button danger" id="loginBtn" />
-                    <input type="reset" value="Clear" class="button secondary" />
-                </div>
-
-                <!-- Notification container -->
-                <div id="notificationContainer" style="margin-top: 1rem;"></div>
+            <form action="/loginSubmit" method="POST" class="tn-form" novalidate>
+                <label class="tn-label" for="userid">Username
+                    <input class="tn-input" type="text" name="userid" id="userid" autocomplete="username" autocapitalize="none" spellcheck="false" required value="<%= locals.userid || '' %>" />
+                </label>
+                <label class="tn-label" for="password">
+                    <span class="tn-label-row">Password <a href="/forgot-password">Forgot password?</a></span>
+                    <input class="tn-input" type="password" name="password" id="password" autocomplete="current-password" required />
+                </label>
+                <label class="tn-check">
+                    <input type="checkbox" name="rememberMe" id="rememberMe" />
+                    Keep me logged in for 30 days
+                </label>
+                <button type="submit" class="tn-btn tn-btn-primary tn-btn-lg tn-btn-block" id="loginBtn">Log in</button>
             </form>
-            <div class="alt-link">
-                <p><a href="/forgot-password">Forgot your password?</a></p>
-                <p>Don't have an account? <a href="/register">Sign up here</a></p>
-            </div>
+            <p class="tn-alt">New to Terp Notes? <a href="/register">Create an account</a></p>
         </div>
     </main>
 
     <%- include('partials/footer') %>
 
     <script>
-        // Notification system
-        function showNotification(message, type = 'error') {
-            const container = document.getElementById('notificationContainer');
-            const notification = document.createElement('div');
-
-            const bgColor = type === 'error' ? '#FEF2F2' : '#F0FDF4';
-            const borderColor = type === 'error' ? '#FECACA' : '#BBF7D0';
-            const textColor = type === 'error' ? '#DC2626' : '#16A34A';
-            const icon = type === 'error' ? '⚠️' : '✅';
-
-            notification.style.cssText = `
-                background: ${bgColor};
-                border: 1px solid ${borderColor};
-                color: ${textColor};
-                padding: 12px 16px;
-                border-radius: 8px;
-                margin-bottom: 0.5rem;
-                font-size: 0.875rem;
-                display: flex;
-                align-items: center;
-                animation: slideDown 0.3s ease;
-            `;
-
-            notification.innerHTML = `
-                <span style="margin-right: 8px; font-size: 1rem;">${icon}</span>
-                <span>${message}</span>
-            `;
-
-            container.innerHTML = '';
-            container.appendChild(notification);
-
-            // Auto-hide after 5 seconds
-            setTimeout(() => {
-                if (notification.parentNode) {
-                    notification.style.animation = 'slideUp 0.3s ease';
-                    setTimeout(() => {
-                        if (notification.parentNode) {
-                            notification.remove();
-                        }
-                    }, 300);
-                }
-            }, 5000);
+        function showNotification(message) {
+            const box = document.getElementById('notificationContainer');
+            box.innerHTML = '';
+            const el = document.createElement('div');
+            el.className = 'tn-alert tn-alert-error';
+            el.setAttribute('role', 'alert');
+            el.textContent = message;
+            box.appendChild(el);
         }
 
-        // Check for session expired message in URL
-        const urlParams = new URLSearchParams(window.location.search);
-        if (urlParams.get('session_expired') === 'true') {
-            const message = urlParams.get('message') || 'Your session has expired. Please login again.';
-            const messageDiv = document.getElementById('sessionExpiredMessage');
-            const messageText = document.getElementById('expiryMessage');
-
-            if (messageDiv && messageText) {
-                messageText.textContent = message;
-                messageDiv.style.display = 'block';
-
-                // Auto-hide after 10 seconds
-                setTimeout(() => {
-                    messageDiv.style.display = 'none';
-                }, 10000);
-            }
-
-            // Clean URL (remove query params)
+        const params = new URLSearchParams(window.location.search);
+        if (params.get('session_expired') === 'true') {
+            const box = document.getElementById('sessionExpiredMessage');
+            if (params.get('message')) document.getElementById('expiryMessage').textContent = params.get('message');
+            box.hidden = false;
             window.history.replaceState({}, document.title, '/login');
         }
 
-        // Login form validation
-        document.addEventListener('DOMContentLoaded', function () {
-            // Form submission validation
-            document.querySelector('form').addEventListener('submit', function(e) {
-                const username = document.getElementById('userid').value.trim();
-                const password = document.getElementById('password').value;
-
-                const missingFields = [];
-
-                if (!username) missingFields.push('Username');
-                if (!password) missingFields.push('Password');
-
-                if (missingFields.length > 0) {
-                    e.preventDefault(); // Prevent form submission
-                    showNotification('Please complete the following required fields:<br>• ' + missingFields.join('<br>• '));
-                    return false;
-                }
-            });
+        document.querySelector('form').addEventListener('submit', function (e) {
+            const user = document.getElementById('userid');
+            const pass = document.getElementById('password');
+            user.classList.toggle('is-invalid', !user.value.trim());
+            pass.classList.toggle('is-invalid', !pass.value);
+            if (!user.value.trim() || !pass.value) {
+                e.preventDefault();
+                showNotification('Enter your username and password.');
+                (user.value.trim() ? pass : user).focus();
+                return;
+            }
+            const btn = document.getElementById('loginBtn');
+            btn.disabled = true;
+            btn.textContent = 'Logging in…';
+        });
+        // Re-enable the button if the browser restores this page from its back/forward cache.
+        window.addEventListener('pageshow', () => {
+            const btn = document.getElementById('loginBtn');
+            btn.disabled = false;
+            btn.textContent = 'Log in';
         });
     </script>
 </body>
-
 </html>

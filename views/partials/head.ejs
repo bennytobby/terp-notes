@@ -1,0 +1,22 @@
+<%#
+  Shared <head> contents for every page. Locals: title (optional), description (optional).
+%>
+<% const pageTitle = (locals.title || 'Terp Notes').trim(); %>
+<% const pageDesc = locals.description || 'Free class notes, study guides and exam prep shared by UMD students. Search by course, professor and term. Sign up with your UMD email.'; %>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<title><%= pageTitle %></title>
+<meta name="description" content="<%= pageDesc %>" />
+<meta property="og:site_name" content="Terp Notes" />
+<meta property="og:title" content="<%= pageTitle %>" />
+<meta property="og:description" content="<%= pageDesc %>" />
+<meta property="og:type" content="website" />
+<meta property="og:image" content="https://terp-notes.org/android-chrome-512x512.png" />
+<meta name="twitter:card" content="summary" />
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+<link rel="manifest" href="/site.webmanifest" />
+<meta name="theme-color" content="#ffffff" />
+<link rel="stylesheet" href="/styles/main.css" />
+<link rel="stylesheet" href="/stylesheets/app.css" />

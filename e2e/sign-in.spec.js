@@ -30,13 +30,13 @@ test("a verified student signs in, sees the dashboard, and gets a real 404", asy
     await page.goto("/login");
     await page.getByLabel("Username").fill(user.userid);
     await page.getByLabel("Password").fill("wrong password");
-    await page.getByRole("button", { name: "Login" }).click();
+    await page.getByRole("button", { name: "Log in", exact: true }).click();
     await expect(page).not.toHaveURL(/\/dashboard/);
 
     await page.goto("/login");
     await page.getByLabel("Username").fill(user.userid);
     await page.getByLabel("Password").fill(password);
-    await page.getByRole("button", { name: "Login" }).click();
+    await page.getByRole("button", { name: "Log in", exact: true }).click();
     await expect(page).toHaveURL(/\/dashboard$/);
     await expect(page.getByText(`Welcome, ${user.firstname}`)).toBeVisible();
 

@@ -2431,7 +2431,7 @@ app.post('/contact/submit', async function (req, res) {
         }
 
         // Send email to admin using template
-        const adminEmail = process.env.ADMIN_EMAIL || 'paramraj15@gmail.com'; // fallback to your email
+        const adminEmail = process.env.ADMIN_EMAIL || 'pmachre@terpmail.umd.edu';
 
         sendEmail(
             adminEmail,
@@ -3520,7 +3520,7 @@ app.get("/delete/:filename", async (req, res) => {
         ).catch((err) => console.error("Failed to send file deletion confirmation:", err.message));
 
         // Send admin notification email with file attachment (async, no await needed)
-        const adminEmail = process.env.ADMIN_EMAIL || 'paramraj15@gmail.com';
+        const adminEmail = process.env.ADMIN_EMAIL || 'pmachre@terpmail.umd.edu';
         const deleterInfo = {
             firstname: req.session.user.firstname,
             lastname: req.session.user.lastname,
@@ -3746,7 +3746,7 @@ app.post("/api/bulk-delete", apiLimiter, async (req, res) => {
             ).catch((err) => console.error("Failed to send bulk deletion confirmation:", err.message));
 
             // Send admin notification email for bulk deletion with zip attachment (async, no await needed)
-            const adminEmail = process.env.ADMIN_EMAIL || 'paramraj15@gmail.com';
+            const adminEmail = process.env.ADMIN_EMAIL || 'pmachre@terpmail.umd.edu';
             const deleterInfo = {
                 firstname: req.session.user.firstname,
                 lastname: req.session.user.lastname,
@@ -4143,39 +4143,39 @@ app.get("/bulk-download-progress/:downloadId", (req, res) => {
 });
 
 app.post('/registerSubmit', registerLimiter, async function (req, res) {
+    // Problems the student can fix go back to the form with what they typed (never the passwords).
+    const backToForm = (message) => res.status(400).render('register', {
+        title: 'Sign up - Terp Notes',
+        error: message,
+        userid: String(req.body.userid || '').trim().slice(0, 64),
+        first_name: String(req.body.first_name || '').trim().slice(0, 64),
+        last_name: String(req.body.last_name || '').trim().slice(0, 64),
+        email: String(req.body.email || '').trim().slice(0, 254)
+    });
     try {
+        if (!req.body.agreeTerms) {
+            return backToForm('Please agree to the Terms of Service and Privacy Policy to create an account.');
+        }
+        if (!String(req.body.userid || '').trim() || !String(req.body.first_name || '').trim() || !String(req.body.last_name || '').trim()) {
+            return backToForm('Fill in your name and a username.');
+        }
         // Validate the school email domain FIRST (before any DB queries)
         const email = String(req.body.email || '').trim().toLowerCase();
         const school = schools.schoolForEmail(email);
 
         if (!school) {
-            return res.render('error', {
-                title: "Invalid Email Domain",
-                message: `Please use your ${schools.namesList()} email (${schools.domainsList()}) to register.`,
-                link: "/register",
-                linkText: "Back to Registration"
-            });
+            return backToForm(`Use your ${schools.namesList()} email (${schools.domainsList()}) to sign up.`);
         }
 
         // Password match validation
         if (req.body.password !== req.body.confirm_pass) {
-            return res.render('error', {
-                title: "Password Mismatch",
-                message: "The passwords entered do not match.",
-                link: "/register",
-                linkText: "Try Again"
-            });
+            return backToForm('The two passwords don\'t match.');
         }
 
         // Password strength validation
         const passwordValidation = validatePassword(req.body.password);
         if (!passwordValidation.isValid) {
-            return res.render('error', {
-                title: "Weak Password",
-                message: "Your password does not meet security requirements:\n\n" + passwordValidation.errors.join('\n'),
-                link: "/register",
-                linkText: "Try Again"
-            });
+            return backToForm('Choose a stronger password. ' + passwordValidation.errors.join('. ') + '.');
         }
 
         // Normalize email to prevent duplicates (@umd.edu and @terpmail.umd.edu are the same)
@@ -4194,8 +4194,8 @@ app.post('/registerSubmit', registerLimiter, async function (req, res) {
             await validateContent(lastname, 'Last name');
             // Note: Email validation skipped as requested (UMD verified)
         } catch (contentError) {
-            return res.render('register', {
-                title: 'Register',
+            return res.status(400).render('register', {
+                title: 'Sign up - Terp Notes',
                 error: contentError.message,
                 userid: userid,
                 first_name: firstname,
@@ -4231,20 +4231,10 @@ app.post('/registerSubmit', registerLimiter, async function (req, res) {
             // Any form of the same mailbox counts (x@umd.edu == x@terpmail.umd.edu). The old check
             // compared only two forms, so re-registering with the other form slipped through.
             if (schools.equivalentEmails(email).includes(String(result.email).toLowerCase())) {
-                return res.render('error', {
-                    title: "Email Already Registered",
-                    message: "This email is already registered. Try logging in or use forgot password.",
-                    link: "/login",
-                    linkText: "Go to Login"
-                });
+                return backToForm('That email already has an account. Log in, or reset your password if you forgot it.');
             }
             if (result.userid === userid) {
-                return res.render('error', {
-                    title: "Username Taken",
-                    message: "Please choose a different username.",
-                    link: "/register",
-                    linkText: "Back to Registration"
-                });
+                return backToForm('That username is taken. Try another one.');
             }
         }
 
@@ -4326,24 +4316,16 @@ app.post('/loginSubmit', loginLimiter, async function (req, res) {
             .collection(userCollection.collection)
             .findOne(filter);
 
-        if (!result) {
-            return res.render('error', {
-                title: "User Not Found",
-                message: "No account found with that username.",
-                link: "/login",
-                linkText: "Try Again"
-            });
-        }
+        // One message for both cases, so the form never reveals which usernames exist.
+        const badLogin = () => res.status(401).render('login', {
+            title: "Log in - Terp Notes",
+            error: "That username and password don't match. Check both and try again.",
+            userid: String(req.body.userid || '').slice(0, 64)
+        });
+        if (!result) return badLogin();
 
-        const passwordMatch = await bcrypt.compare(req.body.password, result.pass);
-        if (!passwordMatch) {
-            return res.render('error', {
-                title: "Incorrect Password",
-                message: "The password is incorrect. Please try again.",
-                link: "/login",
-                linkText: "Back to Login"
-            });
-        }
+        const passwordMatch = await bcrypt.compare(String(req.body.password || ''), result.pass);
+        if (!passwordMatch) return badLogin();
 
         // Check if email is verified
         if (!result.isVerified && !result.isProtected) {
@@ -6347,7 +6329,8 @@ app.use((req, res) => {
         return res.status(404).json({ error: 'API endpoint not found' });
     }
     res.status(404).render('404', {
-        title: "Page Not Found - Terp Notes"
+        title: "Page Not Found - Terp Notes",
+        user: (req.session && req.session.user) || null
     });
 });
 

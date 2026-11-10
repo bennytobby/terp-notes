@@ -1,363 +1,136 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>
-        <%= title %>
-    </title>
-    <link rel="icon" type="image/png" href="/favicon.png" />
-    <link rel="stylesheet" href="/styles/main.css" />
-    <link rel="stylesheet" href="/stylesheets/app.css" />
+    <%- include('partials/head', { title: 'Sign up - Terp Notes' }) %>
 </head>
-
 <body class="tn-app">
-    <header class="topbar tn-header">
-        <h2><a href="/" style="text-decoration: none; color: inherit; display: flex; align-items: center; cursor: pointer; transition: opacity 0.2s ease;" onmouseover="this.style.opacity='0.8'" onmouseout="this.style.opacity='1'">
-            <img src="/logo.png" alt="Terp Notes Logo" style="width: 32px; height: 32px; vertical-align: middle; margin-right: 8px; pointer-events: none;" />
-            Terp Notes
-        </a></h2>
-        <div class="user-info">
-            <a href="/" class="logout-btn">Home</a>
-            <a href="/login" class="logout-btn" style="margin-left: 1rem;">Login</a>
-        </div>
-    </header>
+    <%- include('partials/publicnav', { hideAuth: true }) %>
 
-    <main class="centered">
-        <div class="auth-form">
+    <main class="tn-center" id="main">
+        <div class="tn-card tn-card-wide">
             <h1>Join Terp Notes</h1>
-            <% if (typeof error !== 'undefined' && error) { %>
-                <div style="background: #FEF2F2; border: 1px solid #FECACA; color: #DC2626; padding: 12px 16px; border-radius: 8px; margin-bottom: 1rem; font-size: 0.875rem; display: flex; align-items: center;">
-                    <span style="margin-right: 8px;">⚠️</span>
-                    <%= error %>
-                </div>
-            <% } %>
-            <form action="/registerSubmit" method="POST" novalidate>
-                <div class="form-group">
-                    <label for="first_name">First Name<span class="req">*</span></label>
-                    <input type="text" name="first_name" id="first_name" placeholder="John" value="<%= typeof first_name !== 'undefined' ? first_name : '' %>" />
-                </div>
-                <div class="form-group">
-                    <label for="last_name">Last Name<span class="req">*</span></label>
-                    <input type="text" name="last_name" id="last_name" placeholder="Doe" value="<%= typeof last_name !== 'undefined' ? last_name : '' %>" />
-                </div>
-                <div class="form-group">
-                    <label for="userid">Username<span class="req">*</span></label>
-                    <input type="text" name="userid" id="userid" placeholder="johndoe" value="<%= typeof userid !== 'undefined' ? userid : '' %>" />
-                    <div class="username-warning">
-                        <strong><img src="/images/icons/warning-triangle.png" alt="Warning" style="width: 40px; height: 40px; vertical-align: middle; margin-right: 10px;" /> Important:</strong> Your username is <strong>permanent</strong> and cannot be changed
-                        later. Choose carefully!
-                    </div>
-                </div>
-                <div class="form-group">
-                    <label for="email">School email<span class="req">*</span></label>
-                    <input type="email" name="email" id="email" placeholder="testudo@terpmail.umd.edu" autocomplete="email" value="<%= typeof email !== 'undefined' ? email : '' %>" aria-describedby="email-help" />
-                    <small id="email-help" style="color: #6B7280;">Use your UMD email (@umd.edu or @terpmail.umd.edu).</small>
-                </div>
-                <div class="form-group">
-                    <label for="password">Password<span class="req">*</span></label>
-                    <input type="password" name="password" id="password"
-                        placeholder="Enter a secure password" autocomplete="new-password" />
-                    <div class="password-requirements" style="margin-top: 0.5rem; padding: 0.75rem; background: #F3F4F6; border-radius: 6px; font-size: 0.813rem;">
-                        <strong style="color: #374151;">Password must include:</strong>
-                        <ul style="margin: 0.5rem 0 0 1.25rem; padding: 0; color: #6B7280;">
-                            <li id="req-length">At least 8 characters</li>
-                            <li id="req-uppercase">At least one uppercase letter (A-Z)</li>
-                            <li id="req-lowercase">At least one lowercase letter (a-z)</li>
-                            <li id="req-number">At least one number (0-9)</li>
-                            <li id="req-special">At least one special character (!@#$%^&*...)</li>
-                        </ul>
-                    </div>
-                    <div id="password-strength" style="margin-top: 0.5rem; display: none;">
-                        <div style="height: 4px; background: #E5E7EB; border-radius: 4px; overflow: hidden;">
-                            <div id="strength-bar" style="height: 100%; width: 0%; transition: all 0.3s;"></div>
-                        </div>
-                        <p id="strength-text" style="margin: 0.25rem 0 0 0; font-size: 0.75rem;"></p>
-                    </div>
-                </div>
-                <div class="form-group">
-                    <label for="confirm_pass">Confirm Password<span class="req">*</span></label>
-                    <input type="password" name="confirm_pass" id="confirm_pass"
-                        placeholder="Re-enter your password" autocomplete="new-password" />
-                </div>
-                <div class="form-group terms-agreement">
-                    <div class="terms-box">
-                        <h4><img src="/images/icons/document.png" alt="Document" style="width: 36px; height: 36px; vertical-align: middle; margin-right: 10px;" /> Legal Agreement</h4>
-                        <p class="terms-text">
-                            By creating an account, you must read and accept:
-                        </p>
+            <p class="tn-sub">Free for UMD students. You'll confirm your email once, then you're in.</p>
 
-                        <label class="checkbox-label" style="margin: 1rem 0; display: flex; align-items: flex-start;">
-                            <input type="checkbox" id="agreeTerms" name="agreeTerms"
-                                style="margin-top: 0.25rem; flex-shrink: 0;">
-                            <span style="margin-left: 0.5rem;">I have read and accept the
-                                <a href="/terms" target="_blank"
-                                    style="color: var(--umd-red); font-weight: 600; text-decoration: underline;">Terms
-                                    of Service</a>
-                            </span>
-                        </label>
-
-                        <label class="checkbox-label" style="margin: 1rem 0; display: flex; align-items: flex-start;">
-                            <input type="checkbox" id="agreePrivacy" name="agreePrivacy"
-                                style="margin-top: 0.25rem; flex-shrink: 0;">
-                            <span style="margin-left: 0.5rem;">I have read and accept the
-                                <a href="/privacy" target="_blank"
-                                    style="color: var(--umd-red); font-weight: 600; text-decoration: underline;">Privacy
-                                    Policy</a>
-                            </span>
-                        </label>
-
-                        <div
-                            style="background: #FEF3C7; padding: 1rem; border-radius: 8px; margin-top: 1rem; font-size: 0.875rem; line-height: 1.6; border: 1px solid #F59E0B;">
-                            <strong><img src="/images/icons/info-circle.png" alt="Info" style="width: 40px; height: 40px; vertical-align: middle; margin-right: 10px;" /> Quick Summary:</strong>
-                            <ul style="margin: 0.5rem 0 0 1.25rem; padding: 0;">
-                                <li>Educational purposes only</li>
-                                <li>No unauthorized exam/project sharing</li>
-                                <li>Respect academic integrity</li>
-                                <li>Independent platform (NOT affiliated with UMD)</li>
-                            </ul>
-                        </div>
-                    </div>
-                </div>
-                <div class="form-buttons">
-                    <input type="submit" value="Sign Up" class="button danger" id="submitBtn" />
-                    <input type="reset" value="Clear" class="button secondary" />
-                </div>
-
-                <!-- Notification container -->
-                <div id="notificationContainer" style="margin-top: 1rem;"></div>
-            </form>
-            <div class="alt-link">
-                <p>Already have an account? <a href="/login">Login here</a></p>
+            <div id="notificationContainer" aria-live="polite">
+                <% if (locals.error) { %><div class="tn-alert tn-alert-error" role="alert"><%= error %></div><% } %>
             </div>
+
+            <form action="/registerSubmit" method="POST" class="tn-form" novalidate>
+                <div class="tn-form-row">
+                    <label class="tn-label" for="first_name">First name
+                        <input class="tn-input" type="text" name="first_name" id="first_name" autocomplete="given-name" required maxlength="64" value="<%= locals.first_name || '' %>" />
+                    </label>
+                    <label class="tn-label" for="last_name">Last name
+                        <input class="tn-input" type="text" name="last_name" id="last_name" autocomplete="family-name" required maxlength="64" value="<%= locals.last_name || '' %>" />
+                    </label>
+                </div>
+                <label class="tn-label" for="email">UMD email
+                    <input class="tn-input" type="email" name="email" id="email" placeholder="testudo@terpmail.umd.edu" autocomplete="email" autocapitalize="none" spellcheck="false" inputmode="email" required value="<%= locals.email || '' %>" aria-describedby="email-help" />
+                    <span class="tn-help" id="email-help">@umd.edu or @terpmail.umd.edu. We'll send a confirmation link.</span>
+                </label>
+                <label class="tn-label" for="userid">Username
+                    <input class="tn-input" type="text" name="userid" id="userid" autocomplete="username" autocapitalize="none" spellcheck="false" required maxlength="64" value="<%= locals.userid || '' %>" aria-describedby="userid-help" />
+                    <span class="tn-help" id="userid-help">Shown on your uploads. You can't change it later.</span>
+                </label>
+                <label class="tn-label" for="password">Password
+                    <input class="tn-input" type="password" name="password" id="password" autocomplete="new-password" required aria-describedby="password-rules" />
+                    <ul class="tn-rules" id="password-rules" aria-live="polite">
+                        <li id="req-length">8+ characters</li>
+                        <li id="req-uppercase">An uppercase letter</li>
+                        <li id="req-lowercase">A lowercase letter</li>
+                        <li id="req-number">A number</li>
+                        <li id="req-special">A symbol (!@#$…)</li>
+                    </ul>
+                </label>
+                <label class="tn-label" for="confirm_pass">Confirm password
+                    <input class="tn-input" type="password" name="confirm_pass" id="confirm_pass" autocomplete="new-password" required />
+                    <span class="tn-help" id="match-help" aria-live="polite"></span>
+                </label>
+                <label class="tn-check">
+                    <input type="checkbox" id="agreeTerms" name="agreeTerms" value="yes" required />
+                    <span>I agree to the <a href="/terms" target="_blank">Terms of Service</a> and <a href="/privacy" target="_blank">Privacy Policy</a>, and I'll only share material I'm allowed to share.</span>
+                </label>
+                <button type="submit" class="tn-btn tn-btn-primary tn-btn-lg tn-btn-block" id="submitBtn">Create account</button>
+                <p class="tn-help" style="text-align: center; margin: 0;">Terp Notes is run by students and isn't affiliated with UMD.</p>
+            </form>
+            <p class="tn-alt">Already have an account? <a href="/login">Log in</a></p>
         </div>
     </main>
 
+    <%- include('partials/footer') %>
+
     <script>
-        // Notification system
-        function showNotification(message, type = 'error') {
-            const container = document.getElementById('notificationContainer');
-            const notification = document.createElement('div');
+        // Keep this list in step with utils/passwordValidator.js.
+        const rules = {
+            length: (p) => p.length >= 8,
+            uppercase: (p) => /[A-Z]/.test(p),
+            lowercase: (p) => /[a-z]/.test(p),
+            number: (p) => /[0-9]/.test(p),
+            special: (p) => /[!@#$%^&*()_+\-=\[\]{}|;:,.<>?]/.test(p),
+        };
+        const pass = document.getElementById('password');
+        const confirmPass = document.getElementById('confirm_pass');
+        const matchHelp = document.getElementById('match-help');
 
-            const bgColor = type === 'error' ? '#FEF2F2' : '#F0FDF4';
-            const borderColor = type === 'error' ? '#FECACA' : '#BBF7D0';
-            const textColor = type === 'error' ? '#DC2626' : '#16A34A';
-            const icon = type === 'error' ? '⚠️' : '✅';
+        function update() {
+            let ok = true;
+            for (const [name, test] of Object.entries(rules)) {
+                const met = test(pass.value);
+                document.getElementById('req-' + name).classList.toggle('is-met', met);
+                ok = ok && met;
+            }
+            if (!confirmPass.value) matchHelp.textContent = '';
+            else matchHelp.textContent = confirmPass.value === pass.value ? '✓ Passwords match' : "Passwords don't match yet";
+            matchHelp.style.color = confirmPass.value && confirmPass.value === pass.value ? 'var(--tn-ok)' : '';
+            return ok;
+        }
+        pass.addEventListener('input', update);
+        confirmPass.addEventListener('input', update);
 
-            notification.style.cssText = `
-                background: ${bgColor};
-                border: 1px solid ${borderColor};
-                color: ${textColor};
-                padding: 12px 16px;
-                border-radius: 8px;
-                margin-bottom: 0.5rem;
-                font-size: 0.875rem;
-                display: flex;
-                align-items: center;
-                animation: slideDown 0.3s ease;
-            `;
-
-            notification.innerHTML = `
-                <span style="margin-right: 8px; font-size: 1rem;">${icon}</span>
-                <span>${message}</span>
-            `;
-
-            container.innerHTML = '';
-            container.appendChild(notification);
-
-            // Auto-hide after 5 seconds
-            setTimeout(() => {
-                if (notification.parentNode) {
-                    notification.style.animation = 'slideUp 0.3s ease';
-                    setTimeout(() => {
-                        if (notification.parentNode) {
-                            notification.remove();
-                        }
-                    }, 300);
-                }
-            }, 5000);
+        function showProblems(list) {
+            const box = document.getElementById('notificationContainer');
+            box.innerHTML = '';
+            const el = document.createElement('div');
+            el.className = 'tn-alert tn-alert-error';
+            el.setAttribute('role', 'alert');
+            const ul = document.createElement('ul');
+            for (const item of list) {
+                const li = document.createElement('li');
+                li.textContent = item;
+                ul.appendChild(li);
+            }
+            el.append('Almost there:', ul);
+            box.appendChild(el);
+            box.scrollIntoView({ block: 'center', behavior: 'smooth' });
         }
 
-        // Password match validation for registration
-        document.addEventListener('DOMContentLoaded', function () {
-            const passwordInput = document.getElementById('password');
-            const confirmPasswordInput = document.getElementById('confirm_pass');
-            const termsCheckbox = document.getElementById('agreeTerms');
-            const privacyCheckbox = document.getElementById('agreePrivacy');
-            const submitBtn = document.getElementById('submitBtn');
-
-            // Password strength checking
-            function checkPasswordStrength(password) {
-                const requirements = {
-                    length: password.length >= 8,
-                    uppercase: /[A-Z]/.test(password),
-                    lowercase: /[a-z]/.test(password),
-                    number: /[0-9]/.test(password),
-                    special: /[!@#$%^&*()_+\-=\[\]{}|;:,.<>?]/.test(password)
-                };
-
-                // Update requirement checkmarks
-                document.getElementById('req-length').style.color = requirements.length ? '#10B981' : '#6B7280';
-                document.getElementById('req-uppercase').style.color = requirements.uppercase ? '#10B981' : '#6B7280';
-                document.getElementById('req-lowercase').style.color = requirements.lowercase ? '#10B981' : '#6B7280';
-                document.getElementById('req-number').style.color = requirements.number ? '#10B981' : '#6B7280';
-                document.getElementById('req-special').style.color = requirements.special ? '#10B981' : '#6B7280';
-
-                document.getElementById('req-length').innerHTML = requirements.length ? '✓ At least 8 characters' : 'At least 8 characters';
-                document.getElementById('req-uppercase').innerHTML = requirements.uppercase ? '✓ At least one uppercase letter (A-Z)' : 'At least one uppercase letter (A-Z)';
-                document.getElementById('req-lowercase').innerHTML = requirements.lowercase ? '✓ At least one lowercase letter (a-z)' : 'At least one lowercase letter (a-z)';
-                document.getElementById('req-number').innerHTML = requirements.number ? '✓ At least one number (0-9)' : 'At least one number (0-9)';
-                document.getElementById('req-special').innerHTML = requirements.special ? '✓ At least one special character (!@#$%^&*...)' : 'At least one special character (!@#$%^&*...)';
-
-                // Calculate strength score
-                let score = 0;
-                if (password.length >= 8) score += 20;
-                if (password.length >= 12) score += 10;
-                if (requirements.uppercase) score += 20;
-                if (requirements.lowercase) score += 20;
-                if (requirements.number) score += 15;
-                if (requirements.special) score += 15;
-
-                // If all requirements are met, ensure 100% score
-                const allRequirementsMet = Object.values(requirements).every(req => req);
-                if (allRequirementsMet) {
-                    score = 100;
-                }
-
-                // Show strength indicator
-                const strengthBar = document.getElementById('strength-bar');
-                const strengthText = document.getElementById('strength-text');
-                const strengthContainer = document.getElementById('password-strength');
-
-                if (password.length > 0) {
-                    strengthContainer.style.display = 'block';
-                    strengthBar.style.width = score + '%';
-
-                    // Show "Strong" only if ALL requirements are met
-                    if (allRequirementsMet) {
-                        strengthBar.style.background = '#10B981'; // Green
-                        strengthText.textContent = 'Strong password';
-                        strengthText.style.color = '#10B981';
-                    } else if (score >= 50) {
-                        strengthBar.style.background = '#F59E0B'; // Yellow
-                        strengthText.textContent = 'Medium password';
-                        strengthText.style.color = '#F59E0B';
-                    } else {
-                        strengthBar.style.background = '#EF4444'; // Red
-                        strengthText.textContent = 'Weak password';
-                        strengthText.style.color = '#EF4444';
-                    }
-                } else {
-                    strengthContainer.style.display = 'none';
-                }
-
-                // Return if all requirements met
-                return Object.values(requirements).every(req => req);
+        document.querySelector('form').addEventListener('submit', function (e) {
+            const v = (id) => document.getElementById(id).value.trim();
+            const problems = [];
+            const invalid = [];
+            if (!v('first_name') || !v('last_name')) { problems.push('Add your first and last name.'); invalid.push('first_name', 'last_name'); }
+            if (!/@(terpmail\.)?umd\.edu$/i.test(v('email'))) { problems.push('Use your @umd.edu or @terpmail.umd.edu email.'); invalid.push('email'); }
+            if (!v('userid')) { problems.push('Pick a username.'); invalid.push('userid'); }
+            if (!update()) { problems.push('Your password needs everything in the checklist.'); invalid.push('password'); }
+            if (pass.value !== confirmPass.value) { problems.push("The two passwords don't match."); invalid.push('confirm_pass'); }
+            if (!document.getElementById('agreeTerms').checked) problems.push('Agree to the Terms and Privacy Policy.');
+            for (const id of ['first_name', 'last_name', 'email', 'userid', 'password', 'confirm_pass']) {
+                document.getElementById(id).classList.toggle('is-invalid', invalid.includes(id));
             }
-
-            function checkFormValidity() {
-                const password = passwordInput.value;
-                const confirmPassword = confirmPasswordInput.value;
-                const termsAgreed = termsCheckbox.checked;
-                const privacyAgreed = privacyCheckbox.checked;
-
-                // Check password strength
-                const passwordStrong = checkPasswordStrength(password);
-
-                // Remove existing error message
-                const existingError = confirmPasswordInput.parentElement.querySelector('.password-match-error');
-                if (existingError) existingError.remove();
-
-                let passwordsValid = passwordStrong;
-
-                // Only show error if confirm password field has content
-                if (confirmPassword && password !== confirmPassword) {
-                    const errorDiv = document.createElement('small');
-                    errorDiv.className = 'password-match-error';
-                    errorDiv.style.color = '#EF4444';
-                    errorDiv.style.display = 'block';
-                    errorDiv.style.marginTop = '0.5rem';
-                    errorDiv.textContent = 'Passwords do not match';
-                    confirmPasswordInput.parentElement.appendChild(errorDiv);
-                    passwordsValid = false;
-                } else if (confirmPassword && password === confirmPassword) {
-                    const successDiv = document.createElement('small');
-                    successDiv.className = 'password-match-error';
-                    successDiv.style.color = '#10B981';
-                    successDiv.style.display = 'block';
-                    successDiv.style.marginTop = '0.5rem';
-                    successDiv.textContent = '✓ Passwords match';
-                    confirmPasswordInput.parentElement.appendChild(successDiv);
-                }
-
-                // Update button styling based on form validity
-                if (!passwordsValid || !termsAgreed || !privacyAgreed) {
-                    submitBtn.disabled = false; // Keep button enabled for better UX
-                    submitBtn.style.opacity = '1';
-                    submitBtn.style.cursor = 'pointer';
-                    submitBtn.style.background = '#6B7280'; // Gray when not ready
-                    submitBtn.style.border = '1px solid #6B7280';
-                } else {
-                    submitBtn.disabled = false;
-                    submitBtn.style.opacity = '1';
-                    submitBtn.style.cursor = 'pointer';
-                    submitBtn.style.background = 'var(--umd-red)'; // Red when ready
-                    submitBtn.style.border = '1px solid var(--umd-red)';
-                }
+            if (problems.length) {
+                e.preventDefault();
+                showProblems(problems);
+                return;
             }
-
-            passwordInput.addEventListener('input', checkFormValidity);
-            confirmPasswordInput.addEventListener('input', checkFormValidity);
-            termsCheckbox.addEventListener('change', checkFormValidity);
-            privacyCheckbox.addEventListener('change', checkFormValidity);
-
-            // Initial check
-            checkFormValidity();
-
-            // Form submission validation
-            document.querySelector('form').addEventListener('submit', function(e) {
-                const firstName = document.getElementById('first_name').value.trim();
-                const lastName = document.getElementById('last_name').value.trim();
-                const username = document.getElementById('userid').value.trim();
-                const email = document.getElementById('email').value.trim();
-                const password = document.getElementById('password').value;
-                const confirmPassword = document.getElementById('confirm_pass').value;
-                const termsAgreed = document.getElementById('agreeTerms').checked;
-                const privacyAgreed = document.getElementById('agreePrivacy').checked;
-
-                const missingFields = [];
-
-                if (!firstName) missingFields.push('First Name');
-                if (!lastName) missingFields.push('Last Name');
-                if (!username) missingFields.push('Username');
-                if (!email) missingFields.push('Email');
-                if (!password) missingFields.push('Password');
-                if (!confirmPassword) missingFields.push('Confirm Password');
-                if (!termsAgreed) missingFields.push('Terms of Service agreement');
-                if (!privacyAgreed) missingFields.push('Privacy Policy agreement');
-
-                // Check password strength
-                const passwordStrong = checkPasswordStrength(password);
-                if (!passwordStrong) {
-                    missingFields.push('Password does not meet all requirements');
-                }
-
-                // Check password match
-                if (password && confirmPassword && password !== confirmPassword) {
-                    missingFields.push('Passwords do not match');
-                }
-
-                if (missingFields.length > 0) {
-                    e.preventDefault(); // Prevent form submission
-                    showNotification('Please complete the following required fields:<br>• ' + missingFields.join('<br>• '));
-                    return false;
-                }
-            });
+            const btn = document.getElementById('submitBtn');
+            btn.disabled = true;
+            btn.textContent = 'Creating your account…';
+        });
+        window.addEventListener('pageshow', () => {
+            const btn = document.getElementById('submitBtn');
+            btn.disabled = false;
+            btn.textContent = 'Create account';
         });
     </script>
-
-    <%- include('partials/footer') %>
 </body>
-
 </html>
