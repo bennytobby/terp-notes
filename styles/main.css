@@ -200,6 +200,101 @@ a:hover {
 }
 
 
+/* Shared top nav (views/partials/topnav.ejs) */
+.topbar-home {
+  text-decoration: none;
+  color: inherit;
+  display: flex;
+  align-items: center;
+  transition: opacity 0.2s ease;
+}
+
+.topbar-home:hover {
+  opacity: 0.8;
+}
+
+.main-nav {
+  display: flex;
+  flex: 1 1 auto;
+  justify-content: center;
+  gap: 0.25rem;
+  align-items: center;
+  margin: 0 1rem;
+  min-width: 0;
+}
+
+.nav-link {
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  text-decoration: none;
+  color: rgba(255, 255, 255, 0.9);
+  font-weight: 500;
+  transition: all 0.2s ease;
+  border: 1px solid transparent;
+  white-space: nowrap;
+}
+
+.nav-link:hover {
+  background: rgba(255, 255, 255, 0.15);
+  color: white;
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+.nav-link.active {
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+  border-color: rgba(255, 255, 255, 0.4);
+  font-weight: 600;
+}
+
+.welcome-text {
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+/* Below desktop width the links get their own row and scroll sideways instead of overlapping. */
+@media (max-width: 1100px) {
+  .topbar {
+    flex-wrap: wrap;
+  }
+
+  .main-nav {
+    flex: 1 1 100%;
+    justify-content: flex-start;
+    margin: 0;
+    order: 3;
+    width: 100%;
+    gap: 0.25rem;
+    overflow-x: auto;
+    padding-top: 0.5rem;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .nav-link {
+    padding: 0.4rem 0.75rem;
+    font-size: 0.9rem;
+  }
+
+  /* Keep name, role and logout on one line beside the logo. */
+  header.topbar .user-info {
+    flex-direction: row;
+    align-items: center;
+    gap: 0.5rem;
+    max-width: none;
+  }
+
+  header.topbar .user-info .user-role.role-admin {
+    background: white;
+    color: var(--umd-red);
+  }
+}
+
+@media (max-width: 480px) {
+  header.topbar .welcome-text {
+    display: none;
+  }
+}
+
 .topbar .user-info {
   font-size: var(--font-size-sm);
   display: flex;

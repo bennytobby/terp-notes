@@ -20,12 +20,7 @@
     </style>
 </head>
 <body>
-    <header class="topbar">
-        <h2><a href="/dashboard" style="text-decoration: none; color: inherit; display: flex; align-items: center;">
-            <img src="/logo.png" alt="Terp Notes Logo" style="width: 32px; height: 32px; margin-right: 8px;" />
-            Terp Notes
-        </a></h2>
-    </header>
+    <%- include('partials/topnav', { active: 'staff', isCourseStaff: true }) %>
     <main class="staff-wrap">
         <h1>Course staff</h1>
         <p class="muted">Courses you help run. Moderation here only affects these courses.</p>

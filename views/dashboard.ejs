@@ -101,59 +101,6 @@
             display: block !important;
         }
 
-        /* Navigation Styles */
-        .main-nav {
-            display: flex;
-            gap: 1rem;
-            align-items: center;
-        }
-
-        .nav-link {
-            padding: 0.5rem 1rem;
-            border-radius: 6px;
-            text-decoration: none;
-            color: rgba(255, 255, 255, 0.9);
-            font-weight: 500;
-            transition: all 0.2s ease;
-            border: 1px solid transparent;
-        }
-
-        .nav-link:hover {
-            background: rgba(255, 255, 255, 0.15);
-            color: white;
-            border-color: rgba(255, 255, 255, 0.3);
-        }
-
-        .nav-link.active {
-            background: rgba(255, 255, 255, 0.2);
-            color: white;
-            border-color: rgba(255, 255, 255, 0.4);
-            font-weight: 600;
-        }
-
-        .welcome-text {
-            font-size: 0.9rem;
-            color: rgba(255, 255, 255, 0.9);
-        }
-
-        /* Active navigation highlighting */
-        .nav-dashboard.active {
-            background: rgba(255, 255, 255, 0.25);
-        }
-
-        /* Fix navigation centering */
-        .topbar {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .main-nav {
-            position: absolute;
-            left: 50%;
-            transform: translateX(-50%);
-        }
-
         .file-list-item .file-select-checkbox {
             display: block !important;
         }
@@ -527,34 +474,7 @@
 </head>
 
 <body>
-    <header class="topbar">
-        <h2><a href="/dashboard" style="text-decoration: none; color: inherit; display: flex; align-items: center; cursor: pointer; transition: opacity 0.2s ease;" onmouseover="this.style.opacity='0.8'" onmouseout="this.style.opacity='1'">
-            <img src="/logo.png" alt="Terp Notes Logo" style="width: 32px; height: 32px; vertical-align: middle; margin-right: 8px; pointer-events: none;" />
-            Terp Notes
-        </a></h2>
-
-        <!-- Navigation Links -->
-        <nav class="main-nav">
-            <a href="/dashboard" class="nav-link nav-dashboard">Dashboard</a>
-            <% if (typeof isCourseStaff !== 'undefined' && isCourseStaff) { %>
-                <a href="/staff" class="nav-link nav-staff">Course Staff</a>
-            <% } %>
-            <a href="/study" class="nav-link nav-study">Study Buddy</a>
-            <a href="/profile" class="nav-link nav-profile">Profile</a>
-            <a href="/integrations" class="nav-link nav-integrations">Integrations</a>
-            <% if (user.role==='admin' ) { %>
-                <a href="/admin" class="nav-link nav-admin">Admin Panel</a>
-            <% } %>
-        </nav>
-
-        <div class="user-info">
-            <span class="welcome-text">Welcome, <strong><%= firstname %></strong></span>
-            <span class="user-role role-<%= user.role %>">
-                <%= user.role %>
-            </span>
-            <button onclick="showQuickLogout()" class="logout-btn" style="background: none; border: none; color: inherit; cursor: pointer; text-decoration: underline;">Logout</button>
-        </div>
-    </header>
+    <%- include('partials/topnav', { active: 'dashboard', isCourseStaff: typeof isCourseStaff !== 'undefined' && isCourseStaff, quickLogout: true }) %>
 
     <main class="container">
         <!-- Mobile View Notice (hidden on desktop) -->
@@ -1091,7 +1011,7 @@
                                     <!-- Empty state will be handled by JavaScript -->
                         </section>
 
-                        <section class="upload-section">
+                        <section class="upload-section" id="upload">
                             <% if (user.role==='viewer' ) { %>
                                 <div class="upload-disabled">
                                     <div class="upload-disabled-content">
@@ -4911,6 +4831,7 @@
                         const progressEl = document.getElementById('uploadProgress');
 
                         let successCount = 0;
+                        const heldNames = [];
                         let errorCount = 0;
 
                         // Helper function for fetch with timeout
@@ -5028,6 +4949,7 @@
                                     throw new Error(`Failed to parse confirm upload response: ${jsonError.message}`);
                                 }
 
+                                if (result.held) heldNames.push(file.name);
                                 if (result.duplicate) {
                                     statusEl.textContent = `${file.name} already exists (skipped)`;
                                 } else if (result.reusedFromDifferentContext) {
@@ -5087,9 +5009,14 @@
                             showNotification('Upload failed - please try again', 'error', 4000);
                         }
 
+                        // Files the confidential scanner held stay hidden until an admin reviews them.
+                        if (heldNames.length) {
+                            showNotification(`${heldNames.join(', ')} may contain personal information, so an admin will review ${heldNames.length > 1 ? 'them' : 'it'} before other students can see ${heldNames.length > 1 ? 'them' : 'it'}.`, 'info', 8000);
+                        }
+
                         setTimeout(() => {
                             window.location.reload();
-                        }, 1500);
+                        }, heldNames.length ? 6000 : 1500);
                     });
                 }
 
@@ -5139,6 +5066,12 @@
                     const searchInput = document.getElementById('searchInput');
                     if (searchInput) {
                         searchInput.addEventListener('input', applyFilters);
+                        // /dashboard?q=CMSC330 opens with that search (used after an import).
+                        const initialQuery = new URLSearchParams(window.location.search).get('q');
+                        if (initialQuery) {
+                            searchInput.value = initialQuery.slice(0, 100);
+                            applyFilters();
+                        }
                     }
 
                     // Load UMD.io course data for custom dropdown

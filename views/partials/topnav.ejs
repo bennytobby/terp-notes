@@ -1,0 +1,32 @@
+<%#
+  Shared top bar for signed-in desktop pages, so every page links to every other one.
+  Locals: user (required), active ('dashboard' | 'staff' | 'study' | 'profile' | 'integrations' | 'admin'),
+  isCourseStaff (optional; shows Course Staff), quickLogout (optional; the page defines showQuickLogout()).
+%>
+<% const navActive = locals.active || ''; const navUser = locals.user || {}; %>
+<% const navLink = (key, href, label) => `<a href="${href}" class="nav-link nav-${key}${navActive === key ? ' active' : ''}"${navActive === key ? ' aria-current="page"' : ''}>${label}</a>`; %>
+<header class="topbar">
+    <h2><a href="/dashboard" class="topbar-home">
+        <img src="/logo.png" alt="Terp Notes Logo" style="width: 32px; height: 32px; vertical-align: middle; margin-right: 8px; pointer-events: none;" />
+        Terp Notes
+    </a></h2>
+
+    <nav class="main-nav" aria-label="Main">
+        <%- navLink('dashboard', '/dashboard', 'Dashboard') %>
+        <% if (locals.isCourseStaff) { %><%- navLink('staff', '/staff', 'Course Staff') %><% } %>
+        <%- navLink('study', '/study', 'Study Buddy') %>
+        <%- navLink('profile', '/profile', 'Profile') %>
+        <%- navLink('integrations', '/integrations', 'Integrations') %>
+        <% if (navUser.role === 'admin') { %><%- navLink('admin', '/admin', 'Admin Panel') %><% } %>
+    </nav>
+
+    <div class="user-info">
+        <span class="welcome-text">Welcome, <strong><%= navUser.firstname || locals.firstname || '' %></strong></span>
+        <span class="user-role role-<%= navUser.role %>"><%= navUser.role %></span>
+        <% if (locals.quickLogout) { %>
+            <button onclick="showQuickLogout()" class="logout-btn" style="background: none; border: none; color: inherit; cursor: pointer; text-decoration: underline;">Logout</button>
+        <% } else { %>
+            <a href="/logout" class="logout-btn">Logout</a>
+        <% } %>
+    </div>
+</header>

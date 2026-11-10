@@ -85,10 +85,11 @@ const s3 = new AWS.S3({
 const AWS_BUCKET = process.env.AWS_S3_BUCKET;
 
 /* VirusTotal Configuration */
-const { scanUpload: scanForConfidentialInfo, extractText } = require('./utils/confidential-scanner');
+const { scanUpload: scanForConfidentialInfo, extractText, scanText: scanConfidentialText } = require('./utils/confidential-scanner');
 const courseStaff = require('./utils/course-staff');
 const schools = require('./utils/schools');
 const notePipeline = require('./utils/note-pipeline');
+const noteDetails = require('./utils/note-details');
 const studyBuddy = require('./utils/study-buddy');
 const mcp = require('./utils/mcp');
 const { StreamableHTTPServerTransport } = require('@modelcontextprotocol/sdk/server/streamableHttp.js');
@@ -2316,6 +2317,21 @@ app.post('/api/confirm-upload', async (req, res) => {
             shouldDeleteNewS3File = true;
         }
 
+        // Same checks as /upload and imports: confidential scan, school, study index. The bytes are
+        // already in S3, so read them back once (a duplicate reuses the original's scan and chunks).
+        const reuse = existingFileDifferentContext;
+        let buffer = null;
+        if (!(reuse && reuse.confidentialScan && reuse.confidentialScan.status !== 'pending')) {
+            try {
+                buffer = (await s3.getObject({ Bucket: AWS_BUCKET, Key: s3Key }).promise()).Body;
+            } catch (readErr) {
+                console.error('Confirm upload: could not read file back for scanning:', readErr.message);
+            }
+        }
+        const { confidentialScan, quarantined, text: extractedText } = buffer || reuse
+            ? await notePipeline.assessNote({ buffer, mimetype: filetype, name: filename, existingFile: reuse, timeoutMs: 6000 })
+            : { confidentialScan: { status: 'pending', level: 'none', findings: [], reason: 'file not readable yet', scannedAt: new Date() }, quarantined: false, text: null };
+
         // Save file metadata
         const fileMeta = {
             filename: finalS3Key,
@@ -2336,13 +2352,27 @@ app.post('/api/confirm-upload', async (req, res) => {
             virusScanStatus: existingFileDifferentContext ? existingFileDifferentContext.virusScanStatus : 'pending',
             virusScanDate: existingFileDifferentContext ? existingFileDifferentContext.virusScanDate : null,
             virusScanDetails: existingFileDifferentContext ? existingFileDifferentContext.virusScanDetails : null,
-            scanAttempts: existingFileDifferentContext ? (existingFileDifferentContext.scanAttempts || 0) : 0
+            scanAttempts: existingFileDifferentContext ? (existingFileDifferentContext.scanAttempts || 0) : 0,
+            downloadCount: 0,
+            confidentialScan: confidentialScan,
+            quarantined: quarantined,
+            school: schools.schoolOf(req.session.user)
         };
 
         const insertResult = await client
             .db(fileCollection.db)
             .collection(fileCollection.collection)
             .insertOne(fileMeta);
+
+        // Index the text for the study buddy (a duplicate reuses the original's chunks).
+        try {
+            const db = client.db(fileCollection.db);
+            const indexText = extractedText
+                || (reuse ? ((await db.collection('noteTexts').findOne({ fileHash: fileHash }))?.chunks || []).join('\n\n') : '');
+            if (indexText) await studyBuddy.indexFile(db, { ...fileMeta, _id: insertResult.insertedId }, indexText);
+        } catch (indexErr) {
+            console.error('Study index failed:', indexErr.message);
+        }
 
         // Delete the newly uploaded S3 file if we're reusing an existing one
         if (shouldDeleteNewS3File) {
@@ -2355,7 +2385,7 @@ app.post('/api/confirm-upload', async (req, res) => {
 
         // Trigger background virus scan only for new files (not reused ones)
         if (VIRUSTOTAL_ENABLED && !existingFileDifferentContext) {
-            s3.getObject({ Bucket: AWS_BUCKET, Key: finalS3Key }).promise()
+            (buffer ? Promise.resolve({ Body: buffer }) : s3.getObject({ Bucket: AWS_BUCKET, Key: finalS3Key }).promise())
                 .then(s3Data => {
                     scanFileWithVirusTotal(insertResult.insertedId, s3Data.Body, filename).catch(err => {
                         console.error('Background virus scan error:', err);
@@ -2368,7 +2398,10 @@ app.post('/api/confirm-upload', async (req, res) => {
             success: true,
             duplicate: false,
             fileId: insertResult.insertedId,
-            message: existingFileDifferentContext ? 'File uploaded successfully (reused from different context)' : 'File uploaded successfully',
+            held: quarantined,
+            message: quarantined
+                ? 'Uploaded. It looks like it may contain personal information, so an admin will review it before other students can see it.'
+                : existingFileDifferentContext ? 'File uploaded successfully (reused from different context)' : 'File uploaded successfully',
             reusedFromDifferentContext: !!existingFileDifferentContext
         });
     } catch (error) {
@@ -2955,6 +2988,23 @@ app.post('/resend-verification', async (req, res) => {
     }
 });
 
+// Course look-ups for forms (from the bundled UMD course cache). Schools without a catalog get nothing.
+app.get('/api/course-suggest', (req, res) => {
+    if (!req.session.user) return res.status(401).json({ error: 'Unauthorized' });
+    if (!schools.getSchool(schools.schoolOf(req.session.user)).courseCatalog) return res.json({ courses: [] });
+    res.set('Cache-Control', 'private, max-age=3600');
+    res.json({ courses: noteDetails.suggestCourses(req.query.q) });
+});
+
+app.get('/api/course-suggest/:code', (req, res) => {
+    if (!req.session.user) return res.status(401).json({ error: 'Unauthorized' });
+    if (!schools.getSchool(schools.schoolOf(req.session.user)).courseCatalog) return res.status(404).json({ error: 'No catalog' });
+    const course = noteDetails.courseDetails(req.params.code);
+    if (!course) return res.status(404).json({ error: 'Course not found' });
+    res.set('Cache-Control', 'private, max-age=3600');
+    res.json(course);
+});
+
 app.get('/integrations', (req, res) => {
     if (!req.session.user) {
         return res.redirect('/login');
@@ -2963,6 +3013,8 @@ app.get('/integrations', (req, res) => {
         title: 'Integrations - Terp Notes',
         firstname: req.session.user.firstname,
         user: req.session.user,
+        hasCourseCatalog: Boolean(schools.getSchool(schools.schoolOf(req.session.user)).courseCatalog),
+        currentTerm: noteDetails.currentTerm(),
         baseUrl: process.env.BASE_URL || 'http://localhost:3000'
     });
 });
@@ -4938,7 +4990,7 @@ app.get('/ai-access', async (req, res) => {
     try {
         await ensureConnection();
         const tokens = await mcp.listTokens(client.db(fileCollection.db), req.session.user.userid);
-        res.render('ai-access', { tokens, baseUrl: process.env.BASE_URL || `${req.protocol}://${req.get('host')}` });
+        res.render('ai-access', { tokens, user: req.session.user, baseUrl: process.env.BASE_URL || `${req.protocol}://${req.get('host')}` });
     } catch (err) {
         console.error('AI access page error:', err);
         res.status(500).render('error', { title: 'Something went wrong', message: 'Could not load your access tokens.', link: '/dashboard', linkText: 'Go to Dashboard' });
@@ -5017,38 +5069,72 @@ app.post('/api/study/ask', apiLimiter, async (req, res) => {
     }
 });
 
-// Admin: index notes uploaded before the study buddy existed. Runs in batches (serverless time limits).
+// Admin: index notes uploaded before the study buddy existed, and finish scans that ran out of
+// time during an upload. Works in small slices: Vercel stops a request after 10 seconds.
+const STUDY_INDEX_BUDGET_MS = 7000;
+const STUDY_INDEX_MAX_ATTEMPTS = 3;
 app.post('/api/admin/study-index', apiLimiter, async (req, res) => {
     if (!req.session.user || req.session.user.role !== 'admin') {
         return res.status(401).json({ error: 'Unauthorized' });
     }
-    const batch = Math.min(Math.max(Number(req.body?.limit) || 20, 1), 50);
+    const started = Date.now();
+    const batch = Math.min(Math.max(Number(req.body?.limit) || 10, 1), 50);
     try {
         await ensureConnection();
         const db = client.db(fileCollection.db);
+        const files = db.collection(fileCollection.collection);
         const done = new Set((await db.collection('noteTexts').distinct('fileId')).map(String));
-        const files = await db.collection(fileCollection.collection)
-            .find({ studyIndexSkipped: { $ne: true } }, { projection: { filename: 1, originalName: 1, mimetype: 1, classCode: 1, fileHash: 1, quarantined: 1, school: 1 } })
+        // Retry files skipped before skip reasons existed: most of them hit the time limit, not a bad file.
+        const candidates = await files
+            .find(
+                { $or: [{ studyIndexSkipped: { $ne: true } }, { studyIndexSkipReason: { $exists: false } }] },
+                { projection: { filename: 1, originalName: 1, mimetype: 1, classCode: 1, fileHash: 1, quarantined: 1, school: 1, confidentialScan: 1, studyIndexAttempts: 1 } }
+            )
             .toArray();
-        const todo = files.filter(f => !done.has(String(f._id)));
+        const todo = candidates.filter(f => !done.has(String(f._id)) || f.confidentialScan?.status === 'pending');
         let indexed = 0;
         let skipped = 0;
+        let processed = 0;
         for (const f of todo.slice(0, batch)) {
+            if (Date.now() - started > STUDY_INDEX_BUDGET_MS) break;
+            processed++;
             try {
-                const obj = await s3.getObject({ Bucket: AWS_BUCKET, Key: f.filename }).promise();
-                const text = await extractText(obj.Body, f.mimetype, f.originalName);
-                if (text && (await studyBuddy.indexFile(db, f, text)) > 0) indexed++;
-                else {
+                // A copy of an already indexed file reuses its chunks: no download needed.
+                const twin = f.fileHash ? await db.collection('noteTexts').findOne({ fileHash: f.fileHash }) : null;
+                const needsScan = f.confidentialScan?.status === 'pending';
+                let text = twin && !needsScan ? twin.chunks.join('\n\n') : null;
+                if (text === null) {
+                    const obj = await s3.getObject({ Bucket: AWS_BUCKET, Key: f.filename }).promise();
+                    text = await extractText(obj.Body, f.mimetype, f.originalName);
+                }
+                if (needsScan) {
+                    const { level, findings } = text === null ? { level: 'none', findings: [] } : scanConfidentialText(text);
+                    const confidentialScan = {
+                        status: text === null ? 'skipped' : level === 'none' ? 'clean' : 'flagged',
+                        level, findings, scannedAt: new Date()
+                    };
+                    await files.updateOne({ _id: f._id }, { $set: { confidentialScan, quarantined: level === 'high' } });
+                }
+                if (!done.has(String(f._id)) && text && (await studyBuddy.indexFile(db, f, text)) > 0) {
+                    indexed++;
+                    await files.updateOne({ _id: f._id }, { $set: { studyIndexSkipped: false, studyIndexSkipReason: 'indexed' } });
+                } else if (!done.has(String(f._id))) {
                     skipped++;
-                    await db.collection(fileCollection.collection).updateOne({ _id: f._id }, { $set: { studyIndexSkipped: true } });
+                    await files.updateOne({ _id: f._id }, { $set: { studyIndexSkipped: true, studyIndexSkipReason: 'unreadable' } });
                 }
             } catch (err) {
-                skipped++;
-                console.error(`Study index skipped ${f.originalName}:`, err.message);
-                await db.collection(fileCollection.collection).updateOne({ _id: f._id }, { $set: { studyIndexSkipped: true } });
+                // S3 or parser trouble: try again on a later run, and give up after a few attempts.
+                const attempts = (f.studyIndexAttempts || 0) + 1;
+                console.error(`Study index failed for ${f.originalName} (attempt ${attempts}):`, err.message);
+                await files.updateOne({ _id: f._id }, {
+                    $set: attempts >= STUDY_INDEX_MAX_ATTEMPTS
+                        ? { studyIndexAttempts: attempts, studyIndexSkipped: true, studyIndexSkipReason: 'error' }
+                        : { studyIndexAttempts: attempts, studyIndexSkipped: false }
+                });
+                if (attempts >= STUDY_INDEX_MAX_ATTEMPTS) skipped++;
             }
         }
-        res.json({ indexed, skipped, remaining: Math.max(todo.length - batch, 0) });
+        res.json({ indexed, skipped, remaining: Math.max(todo.length - processed, 0) });
     } catch (err) {
         console.error('Study index error:', err);
         res.status(500).json({ error: 'Indexing failed' });
@@ -5185,7 +5271,7 @@ app.get('/staff', async (req, res) => {
                 files: await files.find({ classCode: c.classCode, ...mySchool }).sort({ uploadDate: -1 }).limit(50).toArray()
             });
         }
-        res.render('staff', { courses });
+        res.render('staff', { courses, user: req.session.user });
     } catch (err) {
         console.error('Staff page error:', err);
         res.status(500).render('error', { title: 'Something went wrong', message: 'Could not load your courses.', link: '/dashboard', linkText: 'Go to Dashboard' });
@@ -6470,15 +6556,18 @@ async function ensureIntegrationCredentials(userId, integrationId) {
 }
 
 async function persistImportedNotes(user, files, options = {}) {
-    const classCode = (options.classCode || '').trim().toUpperCase();
-    if (!classCode) {
-        return { success: false, error: 'Class code is required to publish imported notes' };
+    // Same details and rules as an upload (see utils/note-details.js).
+    const { details, errors } = noteDetails.normalizeNoteDetails(options, {
+        fallbackDescription: `Imported from ${files?.[0]?.metadata?.source || 'an integration'}`
+    });
+    if (Object.keys(errors).length) {
+        return { success: false, error: Object.values(errors)[0], fields: errors };
     }
-
-    const major = classCode.replace(/[0-9]/g, '').trim() || classCode;
+    const { classCode, major } = details;
     const published = [];
     const failed = [];
     const held = [];
+    const duplicates = [];
 
     await ensureConnection();
 
@@ -6497,6 +6586,16 @@ async function persistImportedNotes(user, files, options = {}) {
                 .db(fileCollection.db)
                 .collection(fileCollection.collection)
                 .findOne({ fileHash });
+
+            // Already filed under the same course, professor and term: don't list it twice.
+            const sameContext = await client
+                .db(fileCollection.db)
+                .collection(fileCollection.collection)
+                .findOne({ fileHash, classCode, professor: details.professor, semester: details.semester, year: details.year });
+            if (sameContext) {
+                duplicates.push(originalName);
+                continue;
+            }
 
             let s3Key;
             let s3Url;
@@ -6526,13 +6625,13 @@ async function persistImportedNotes(user, files, options = {}) {
                     fileHash,
                     uploadDate: new Date(),
                     uploadedBy: user.userid,
-                    description: options.description || `Imported from ${file.metadata?.source || 'integration'}`,
+                    description: details.description,
                     classCode,
                     major,
-                    semester: options.semester || '',
-                    year: options.year || '',
-                    professor: options.professor || '',
-                    category: options.category || 'Lecture Notes',
+                    semester: details.semester,
+                    year: details.year,
+                    professor: details.professor,
+                    category: details.category,
                     downloadCount: 0,
                     virusScanStatus: existingFile ? existingFile.virusScanStatus : 'pending',
                     virusScanDate: existingFile ? existingFile.virusScanDate : null,
@@ -6565,7 +6664,7 @@ async function persistImportedNotes(user, files, options = {}) {
         }
     }
 
-    return { success: true, published, failed, held };
+    return { success: true, published, failed, held, duplicates };
 }
 
 // Register integration API routes
@@ -6859,8 +6958,9 @@ function registerIntegrationRoutes() {
                 return res.status(400).json({ error: 'Source ID required' });
             }
 
-            if (!options?.classCode) {
-                return res.status(400).json({ error: 'Class code is required so imported notes can appear on the dashboard' });
+            const check = noteDetails.normalizeNoteDetails(options || {}, { fallbackDescription: 'Imported note' });
+            if (Object.keys(check.errors).length) {
+                return res.status(400).json({ error: Object.values(check.errors)[0], fields: check.errors });
             }
 
             const userIntegrations = await userIntegrationsModel.getUserIntegrations(req.session.user.userid);
@@ -6889,7 +6989,7 @@ function registerIntegrationRoutes() {
 
             const persistResult = await persistImportedNotes(req.session.user, result.files || [], options);
             if (!persistResult.success) {
-                return res.status(400).json({ success: false, error: persistResult.error });
+                return res.status(400).json({ success: false, error: persistResult.error, fields: persistResult.fields });
             }
 
             res.json({
@@ -6897,7 +6997,9 @@ function registerIntegrationRoutes() {
                 count: persistResult.published.length,
                 files: persistResult.published,
                 failed: persistResult.failed,
-                held: persistResult.held
+                held: persistResult.held,
+                duplicates: persistResult.duplicates,
+                classCode: noteDetails.normalizeNoteDetails(options).details.classCode
             });
         } catch (error) {
             console.error('Import error:', error);

@@ -27,12 +27,7 @@
     </style>
 </head>
 <body>
-    <header class="topbar">
-        <h2><a href="/dashboard" style="text-decoration: none; color: inherit; display: flex; align-items: center;">
-            <img src="/logo.png" alt="Terp Notes Logo" style="width: 32px; height: 32px; margin-right: 8px;" />
-            Terp Notes
-        </a></h2>
-    </header>
+    <%- include('partials/topnav', { active: 'study' }) %>
     <main class="study">
         <h1>Study Buddy</h1>
         <p class="muted">
