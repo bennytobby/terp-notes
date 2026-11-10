@@ -29,14 +29,6 @@ async function getJson(url, options = {}) {
     return { ok: response.ok && data.success !== false, status: response.status, data };
 }
 
-function debounce(fn, ms) {
-    let timer;
-    return (...args) => {
-        clearTimeout(timer);
-        timer = setTimeout(() => fn(...args), ms);
-    };
-}
-
 class IntegrationsManager {
     constructor() {
         const page = document.querySelector('.integrations-page');
@@ -367,138 +359,21 @@ class IntegrationsManager {
             if (select.selectedOptions[0]?.hidden && first) { first.selected = true; syncDescription(); }
         });
 
-        this.setupCourseFields();
+        CoursePicker.attach({
+            classInput: document.getElementById('classCode'),
+            classList: document.getElementById('courseList'),
+            profInput: document.getElementById('professor'),
+            profList: document.getElementById('professorList'),
+            courseInfo: document.getElementById('courseInfo'),
+            profHelp: document.getElementById('professorHelp'),
+            hasCatalog: this.hasCatalog,
+            next: document.getElementById('semester')
+        });
         form.addEventListener('submit', e => {
             e.preventDefault();
             this.performImport(integrationId, integration);
         });
         document.getElementById('classCode').focus();
-    }
-
-    /** Course and professor suggestions, like the upload form (UMD catalog only). */
-    setupCourseFields() {
-        const classInput = document.getElementById('classCode');
-        const profInput = document.getElementById('professor');
-        const courseInfo = document.getElementById('courseInfo');
-        const profHelp = document.getElementById('professorHelp');
-        let professors = [];
-        let lastCourse = '';
-
-        const loadCourse = async code => {
-            if (!this.hasCatalog || code === lastCourse) return;
-            lastCourse = code;
-            professors = [];
-            if (!COURSE_CODE.test(code)) {
-                courseInfo.textContent = this.hasCatalog ? 'Start typing to search UMD courses.' : '';
-                courseInfo.className = 'form-help';
-                return;
-            }
-            try {
-                const res = await fetch(`/api/course-suggest/${encodeURIComponent(code)}`, { credentials: 'include' });
-                if (code !== lastCourse) return;
-                if (!res.ok) {
-                    courseInfo.textContent = "We couldn't find this course in the UMD catalog. You can still import it.";
-                    courseInfo.className = 'form-help';
-                    profHelp.textContent = '';
-                    return;
-                }
-                const course = await res.json();
-                courseInfo.textContent = `${course.id}: ${course.name}`;
-                courseInfo.className = 'form-help ok';
-                professors = course.professors.map(p => ({
-                    value: p.name,
-                    label: p.name,
-                    detail: p.terms.length ? `Taught ${p.terms.slice(0, 2).map(t => `${t.semester} ${t.year}`).join(', ')}` : ''
-                }));
-                profHelp.textContent = professors.length ? `${professors.length} professor${professors.length === 1 ? '' : 's'} taught ${course.id}. Pick one or type a name.` : '';
-                // Picking a course moves focus here before the list arrives: open it now.
-                if (document.activeElement === profInput && !profInput.value) profInput._combo?.show(professors.slice(0, 8));
-            } catch {
-                courseInfo.textContent = 'Course search is unavailable right now. You can still import.';
-            }
-        };
-
-        if (this.hasCatalog) {
-            const searchCourses = debounce(async q => {
-                if (q.length < 2) return courseCombo.show([]);
-                try {
-                    const res = await fetch(`/api/course-suggest?q=${encodeURIComponent(q)}`, { credentials: 'include' });
-                    const data = await res.json();
-                    if (classInput.value.trim() === q) courseCombo.show((data.courses || []).map(c => ({ value: c.id, label: c.id, detail: c.name })));
-                } catch {
-                    courseCombo.show([]);
-                }
-            }, 150);
-            var courseCombo = this.combobox(classInput, document.getElementById('courseList'), {
-                onInput: q => searchCourses(q.toUpperCase().replace(/\s+/g, '')),
-                onPick: item => { classInput.value = item.value; loadCourse(item.value); profInput.focus(); }
-            });
-            this.combobox(profInput, document.getElementById('professorList'), {
-                onInput: q => {
-                    const term = q.toLowerCase();
-                    profCombo.show(professors.filter(p => !term || p.label.toLowerCase().includes(term)).slice(0, 8));
-                },
-                onFocus: () => profCombo.show(professors.slice(0, 8)),
-                onPick: item => { profInput.value = item.value; document.getElementById('semester').focus(); }
-            });
-            var profCombo = profInput._combo;
-        }
-
-        classInput.addEventListener('input', () => {
-            const caret = classInput.selectionStart;
-            classInput.value = classInput.value.toUpperCase().replace(/\s+/g, '');
-            classInput.setSelectionRange(caret, caret);
-        });
-        classInput.addEventListener('change', () => loadCourse(classInput.value.trim()));
-        classInput.addEventListener('blur', () => setTimeout(() => loadCourse(classInput.value.trim()), 150));
-    }
-
-    /** A small accessible autocomplete: arrow keys, Enter to pick, Escape to close. */
-    combobox(input, list, { onInput, onPick, onFocus }) {
-        let items = [];
-        let active = -1;
-        const close = () => { list.hidden = true; input.setAttribute('aria-expanded', 'false'); active = -1; };
-        const highlight = i => {
-            active = i;
-            [...list.children].forEach((li, n) => li.setAttribute('aria-selected', String(n === i)));
-            if (i >= 0) { list.children[i].scrollIntoView({ block: 'nearest' }); input.setAttribute('aria-activedescendant', list.children[i].id); }
-        };
-        const combo = {
-            show(next) {
-                items = next;
-                if (!items.length || document.activeElement !== input) return close();
-                list.innerHTML = items.map((item, i) => `
-                    <li id="${list.id}-${i}" role="option" aria-selected="false" data-i="${i}">
-                        <span class="combo-main">${esc(item.label)}</span>${item.detail ? `<span class="combo-detail">${esc(item.detail)}</span>` : ''}
-                    </li>`).join('');
-                list.hidden = false;
-                input.setAttribute('aria-expanded', 'true');
-                active = -1;
-            }
-        };
-        input._combo = combo;
-        input.addEventListener('input', () => onInput(input.value.trim()));
-        if (onFocus) {
-            input.addEventListener('focus', onFocus);
-            input.addEventListener('click', () => { if (list.hidden) onFocus(); });
-        }
-        input.addEventListener('keydown', e => {
-            if (list.hidden) return;
-            if (e.key === 'ArrowDown') { e.preventDefault(); highlight(Math.min(active + 1, items.length - 1)); }
-            else if (e.key === 'ArrowUp') { e.preventDefault(); highlight(Math.max(active - 1, 0)); }
-            else if (e.key === 'Enter' && active >= 0) { e.preventDefault(); const item = items[active]; close(); onPick(item); }
-            else if (e.key === 'Escape') { e.stopPropagation(); close(); }
-        });
-        list.addEventListener('mousedown', e => {
-            const li = e.target.closest('li[data-i]');
-            if (!li) return;
-            e.preventDefault();
-            const item = items[Number(li.dataset.i)];
-            close();
-            onPick(item);
-        });
-        input.addEventListener('blur', () => setTimeout(close, 120));
-        return combo;
     }
 
     showFieldErrors(fields = {}) {

@@ -1940,25 +1940,6 @@ input[type="reset"] {
 }
 
 /* ===== FOOTER ===== */
-footer {
-  background: var(--gray-100);
-  border-top: 2px solid var(--umd-gold);
-  padding: var(--space-6) 0;
-  text-align: center;
-  color: var(--color-text-light);
-  font-size: var(--font-size-sm);
-}
-
-footer a {
-  color: var(--umd-red);
-  text-decoration: underline;
-  margin: 0 0.5rem;
-  font-weight: 600;
-}
-
-footer a:hover {
-  color: #991B1B;
-}
 
 /* ===== ANIMATIONS ===== */
 @keyframes fadeIn {
@@ -4685,39 +4666,6 @@ button:disabled {
   color: white !important;
 }
 
-/* Footer - Restore dark gradient */
-footer {
-  background: linear-gradient(135deg, #1F2937 0%, #000000 100%) !important;
-  border-top: 4px solid var(--umd-red);
-  box-shadow: 0 -10px 30px rgba(0, 0, 0, 0.1);
-  position: relative;
-  padding: 3rem 2rem;
-  color: white;
-  text-align: center;
-}
-
-footer::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 2px;
-  background: linear-gradient(90deg, var(--umd-red), var(--umd-gold));
-}
-
-footer a {
-  color: var(--umd-gold) !important;
-  font-weight: 600;
-  transition: all 0.2s;
-  text-decoration: none;
-}
-
-footer a:hover {
-  color: var(--gold-400) !important;
-  transform: translateY(-2px);
-}
-
 /* Page Headers - Cleaner Layout */
 main h1 {
   margin-top: 2rem;
@@ -5008,3 +4956,30 @@ main > .container > p:first-of-type {
 
 /* Revert to original - no width constraints */
 
+
+
+/* ===== Slim footer (views/partials/footer.ejs), used on every page ===== */
+footer.tn-footer {
+  background: #fff;
+  color: #6b717a;
+  border-top: 1px solid #e8e6e1;
+  padding: 1.5rem clamp(1rem, 3vw, 2rem) max(1.5rem, env(safe-area-inset-bottom));
+  margin-top: 0;
+  font-size: 0.85rem;
+  text-align: left;
+}
+footer.tn-footer::before { display: none; content: none; }
+footer.tn-footer .tn-footer-inner {
+  max-width: 1080px;
+  margin: 0 auto;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 1.25rem;
+}
+footer.tn-footer a { color: #3f454d; text-decoration: none; }
+footer.tn-footer a:hover { color: #14161a; text-decoration: underline; text-underline-offset: 3px; }
+footer.tn-footer .tn-footer-brand { display: inline-flex; align-items: center; gap: 0.4rem; font-weight: 600; color: #14161a; }
+footer.tn-footer .tn-footer-brand img { width: 22px; height: 22px; }
+footer.tn-footer .tn-footer-note { flex: 1 1 260px; }
+footer.tn-footer nav { display: flex; gap: 1rem; }

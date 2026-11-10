@@ -1,18 +1,13 @@
-<footer>
-    <div style="max-width: 1200px; margin: 0 auto; text-align: center;">
-        <div style="font-size: 2rem; margin-bottom: 1.5rem;">
-            <img src="/logo.png" alt="Terp Notes Logo" style="width: 80px; height: 80px; vertical-align: middle; margin-right: 6px;" />
-            Terp Notes
-        </div>
-        <p style="color: #9CA3AF; margin-bottom: 2rem;">Built for Terps, by Terps</p>
-        <div style="display: flex; gap: 2rem; justify-content: center; flex-wrap: wrap; margin-bottom: 2rem;">
-            <a href="/privacy">Privacy Policy</a>
-            <a href="/terms">Terms of Service</a>
-            <a href="/contact">Contact & Support</a>
-        </div>
-        <p style="color: #6B7280; font-size: 0.875rem;">
-            &copy; <%= new Date().getFullYear() %> Terp Notes. All rights reserved.
-        </p>
+<footer class="tn-footer">
+    <div class="tn-footer-inner">
+        <a class="tn-footer-brand" href="/"><img src="/logo.png" alt="" width="22" height="22" /> Terp Notes</a>
+        <span class="tn-footer-note">Built by Terps, for Terps. Not affiliated with the University of Maryland.</span>
+        <nav aria-label="Footer">
+            <a href="/privacy">Privacy</a>
+            <a href="/terms">Terms</a>
+            <a href="/contact">Contact</a>
+        </nav>
+        <span class="tn-footer-copy">&copy; <%= new Date().getFullYear() %> Terp Notes</span>
     </div>
 </footer>
 
