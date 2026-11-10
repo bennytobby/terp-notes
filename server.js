@@ -3638,6 +3638,12 @@ app.post("/api/bulk-delete", apiLimiter, async (req, res) => {
         // First pass: download files and store details
         for (const file of deletableFiles) {
             try {
+                // Check if file is deduplicated (counted first: the details below need it)
+                const duplicateFiles = await client
+                    .db(fileCollection.db)
+                    .collection(fileCollection.collection)
+                    .countDocuments({ fileHash: file.fileHash });
+
                 // Store file details for admin notification
                 deletedFilesDetails.push({
                     filename: file.filename,
@@ -3654,13 +3660,6 @@ app.post("/api/bulk-delete", apiLimiter, async (req, res) => {
                     isDeduplicated: duplicateFiles > 1,
                     remainingInstances: duplicateFiles - 1
                 });
-
-                // Check if file is deduplicated
-                const fileHash = file.fileHash;
-                const duplicateFiles = await client
-                    .db(fileCollection.db)
-                    .collection(fileCollection.collection)
-                    .countDocuments({ fileHash: fileHash });
 
                 // Download file for zip if it will be deleted from S3
                 if (duplicateFiles === 1) {

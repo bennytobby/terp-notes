@@ -80,8 +80,8 @@ test("students only see their own school's notes", async ({ browser }) => {
     // Only UMD emails can register; UMBC isn't open.
     for (const email of ["someone@gmail.com", "someone@umbc.edu"]) {
         const reg = await a.request.post("/registerSubmit", {
-            form: { email, userid: `x_${email.split("@")[1].split(".")[0]}`, first_name: "X", last_name: "Y", password: "Aa1!aaaaaaaa", confirm_pass: "Aa1!aaaaaaaa" },
+            form: { agreeTerms: "yes", email, userid: `x_${email.split("@")[1].split(".")[0]}`, first_name: "X", last_name: "Y", password: "Aa1!aaaaaaaa", confirm_pass: "Aa1!aaaaaaaa" },
         });
-        expect(await reg.text()).toContain("Please use your UMD email (@umd.edu or @terpmail.umd.edu) to register.");
+        expect(await reg.text()).toContain("Use your UMD email (@umd.edu or @terpmail.umd.edu) to sign up.");
     }
 });
