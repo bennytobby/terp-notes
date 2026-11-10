@@ -558,7 +558,6 @@ app.get('/api/cron/scan-pending-files', async (req, res) => {
 
 // Session timeout middleware - MUST come after session initialization
 app.use(sessionTimeout);
-app.use(mobileRedirect);
 
 /* UMD.io Data Cache Helper */
 async function getCachedData(filename) {
@@ -1814,6 +1813,20 @@ const ALLOWED_FILE_TYPES = {
     'application/x-zip-compressed': ['.zip']
 };
 
+const ALLOWED_EXTENSIONS = [...new Set(Object.values(ALLOWED_FILE_TYPES).flat())];
+const MAX_UPLOAD_BYTES = 100 * 1024 * 1024;
+
+/** Same rule as the /upload form: a listed type, or a listed extension (browsers often send a wrong type). */
+function uploadTypeProblem(filename, filetype, filesize) {
+    const ext = ('.' + String(filename || '').split('.').pop()).toLowerCase();
+    const byType = ALLOWED_FILE_TYPES[String(filetype || '').toLowerCase()];
+    if (!(byType && byType.includes(ext)) && !ALLOWED_EXTENSIONS.includes(ext)) {
+        return `File type not allowed: ${ext}. Only documents, images, code files, and .zip archives are supported.`;
+    }
+    if (Number(filesize) > MAX_UPLOAD_BYTES) return 'Files can be up to 100 MB.';
+    return null;
+}
+
 const upload = multer({
     storage: storage,
     limits: {
@@ -1843,46 +1856,17 @@ const upload = multer({
     }
 });
 
-/* MOBILE DETECTION MIDDLEWARE */
-function isMobileDevice(req) {
-    const userAgent = req.headers['user-agent'] || '';
-    return /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini|Mobile|mobile|CriOS/i.test(userAgent);
-}
 
 // Mobile redirect middleware
-function mobileRedirect(req, res, next) {
-    // Skip mobile redirect for API routes, static files, mobile routes, auth routes, and download routes
-    if (req.path.startsWith('/api/') ||
-        req.path.startsWith('/mobile/') ||
-        req.path.startsWith('/static/') ||
-        req.path.startsWith('/download/') ||
-        req.path.startsWith('/bulk-download') ||
-        req.path.startsWith('/login') ||
-        req.path.startsWith('/register') ||
-        req.path.startsWith('/logout') ||
-        req.path.startsWith('/forgot-password') ||
-        req.path.startsWith('/reset-password') ||
-        req.path.startsWith('/verify/') ||
-        req.path.includes('.')) {
-        return next();
-    }
-
-    // Check if user is on mobile and not already on mobile route
-    if (isMobileDevice(req)) {
-        // Only redirect main pages, not auth pages or root
-        // Add a small delay to prevent rapid redirects that might interfere with navigation
-        if (req.path === '/dashboard' || req.path === '/admin' || req.path === '/profile') {
-            // Check if this is a direct navigation (not a redirect from another page)
-            if (!req.headers.referer || !req.headers.referer.includes('/mobile')) {
-                return res.redirect('/mobile' + req.path);
-            }
-        }
-    }
-
-    next();
-}
 
 /* ROUTES */
+// One responsive site now. Old /mobile links (bookmarks, home-screen icons) go to the same page.
+const MOBILE_PATHS = { '': '/', 'dashboard': '/dashboard', 'upload': '/dashboard#upload', 'profile': '/profile', 'admin': '/admin', 'login': '/login', 'register': '/register' };
+app.get(['/mobile', '/mobile/:page'], (req, res) => {
+    res.redirect(301, MOBILE_PATHS[req.params.page || ''] || '/dashboard');
+});
+
+
 
 app.get('/', function (req, res) {
     // Debug logging
@@ -2193,11 +2177,14 @@ app.post('/api/get-upload-url', async (req, res) => {
         return res.status(403).json({ error: 'No upload permission' });
     }
 
-    const { filename, filetype } = req.body;
+    const { filename, filetype, filesize } = req.body;
 
     if (!filename || !filetype) {
         return res.status(400).json({ error: 'Filename and filetype required' });
     }
+    // Direct uploads follow the same file-type allow-list as the /upload form.
+    const typeProblem = uploadTypeProblem(filename, filetype, filesize);
+    if (typeProblem) return res.status(400).json({ error: typeProblem });
 
     // Generate unique S3 key
     const s3Key = `${Date.now()}_${Math.random().toString(36).substring(7)}_${filename}`;
@@ -2262,6 +2249,9 @@ app.post('/api/confirm-upload', async (req, res) => {
     if (!s3Key || !s3Url || !filename || !classCode || !fileHash) {
         return res.status(400).json({ error: 'Missing required fields' });
     }
+    const confirmTypeProblem = uploadTypeProblem(filename, filetype, filesize);
+    // Reject without touching S3: s3Key comes from the client, so never delete by it here.
+    if (confirmTypeProblem) return res.status(400).json({ error: confirmTypeProblem });
 
     try {
         await ensureConnection();
@@ -2489,98 +2479,16 @@ app.get('/login', function (req, res) {
 });
 
 // Mobile Login
-app.get('/mobile/login', function (req, res) {
-    if (req.session.user) {
-        return res.redirect('/mobile/dashboard');
-    }
-    res.render('mobile/login', { title: "Login - Terp Notes Mobile" });
-});
 
 // Mobile Register
-app.get('/mobile/register', function (req, res) {
-    if (req.session.user) {
-        return res.redirect('/mobile/dashboard');
-    }
-    res.render('mobile/register', { title: "Register - Terp Notes Mobile" });
-});
 
 // Mobile Index
-app.get('/mobile/', function (req, res) {
-    if (req.session.user) {
-        return res.redirect('/mobile/dashboard');
-    }
-    res.render('mobile/index', { title: "Terp Notes Mobile" });
-});
 
 // Mobile Upload
-app.get('/mobile/upload', function (req, res) {
-    if (!req.session.user) {
-        return res.redirect('/mobile/login');
-    }
-    res.render('mobile/upload', { title: "Upload - Terp Notes Mobile" });
-});
 
 // Mobile Profile
-app.get('/mobile/profile', function (req, res) {
-    if (!req.session.user) {
-        return res.redirect('/mobile/login');
-    }
-    res.render('mobile/profile', {
-        title: "Profile - Terp Notes Mobile",
-        user: req.session.user
-    });
-});
 
 // Mobile Admin
-app.get('/mobile/admin', async (req, res) => {
-    if (!req.session.user) {
-        return res.redirect('/mobile/login');
-    }
-
-    if (req.session.user.role !== 'admin') {
-        return res.status(403).render('error', {
-            title: "Access Restricted",
-            message: "You don't have permission to access the admin panel.",
-            link: "/mobile/dashboard",
-            linkText: "Go to Dashboard"
-        });
-    }
-
-    try {
-        await ensureConnection();
-
-        // Get basic admin stats for mobile
-        const totalUsers = await client.db(fileCollection.db).collection('users').countDocuments();
-        const totalFiles = await client.db(fileCollection.db).collection('files').countDocuments();
-        const activeReports = await client.db(fileCollection.db).collection('reports').countDocuments({ status: 'pending' });
-
-        // Get recent users (limited for mobile performance)
-        const recentUsers = await client.db(fileCollection.db).collection('users')
-            .find({})
-            .sort({ createdAt: -1 })
-            .limit(20)
-            .toArray();
-
-        // Get active announcements
-        const announcements = await client.db(fileCollection.db).collection('announcements')
-            .find({ isActive: true })
-            .sort({ createdAt: -1 })
-            .toArray();
-
-        res.render('mobile/admin', {
-            firstname: req.session.user.firstname,
-            user: req.session.user,
-            totalUsers,
-            totalFiles,
-            activeReports,
-            users: recentUsers,
-            announcements
-        });
-    } catch (e) {
-        console.error(e);
-        res.status(500).send("Failed to load mobile admin panel.");
-    }
-});
 
 // API endpoint to check session status
 app.get('/api/session-status', function (req, res) {
@@ -3072,7 +2980,10 @@ app.get('/dashboard', async (req, res) => {
             years: uniqueYears,
             announcements: announcements,
             staffBadges: staffBadges,
-            isCourseStaff: isCourseStaff
+            isCourseStaff: isCourseStaff,
+            hasCourseCatalog: Boolean(schools.getSchool(schools.schoolOf(req.session.user)).courseCatalog),
+            currentTerm: noteDetails.currentTerm(),
+            allowedExtensions: ALLOWED_EXTENSIONS
         });
     } catch (e) {
         console.error(e);
@@ -3081,49 +2992,6 @@ app.get('/dashboard', async (req, res) => {
 });
 
 // Mobile Dashboard - Optimized for mobile devices
-app.get('/mobile/dashboard', async (req, res) => {
-    if (!req.session.user) {
-        return res.redirect('/mobile/login');
-    }
-
-    try {
-        await ensureConnection();
-
-        // Load files with mobile-optimized query (limit to recent files for performance)
-        const recentFiles = await client
-            .db(fileCollection.db)
-            .collection(fileCollection.collection)
-            .find(visibleFilesFilter(req.session.user))
-            .sort({ uploadDate: -1 })
-            .limit(50) // Limit for mobile performance
-            .toArray();
-
-        // Get unique values for mobile filters (simplified)
-        const uniqueMajors = [...new Set(recentFiles.map(f => f.major).filter(Boolean))].sort();
-        const uniqueSemesters = [...new Set(recentFiles.map(f => f.semester).filter(Boolean))];
-
-        // Get active announcements
-        const announcements = await client
-            .db(fileCollection.db)
-            .collection('announcements')
-            .find({ isActive: true })
-            .sort({ createdAt: -1 })
-            .toArray();
-
-        res.render('mobile/dashboard', {
-            firstname: req.session.user.firstname,
-            email: req.session.user.email,
-            user: req.session.user,
-            files: recentFiles,
-            majors: uniqueMajors,
-            semesters: uniqueSemesters,
-            announcements: announcements
-        });
-    } catch (e) {
-        console.error(e);
-        res.status(500).send("Failed to load mobile dashboard.");
-    }
-});
 
 app.get('/profile', async (req, res) => {
     if (!req.session.user) {

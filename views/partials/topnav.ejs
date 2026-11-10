@@ -5,7 +5,7 @@
 %>
 <% const navActive = locals.active || ''; const navUser = locals.user || {}; %>
 <% const navLink = (key, href, label) => `<a href="${href}" class="nav-link nav-${key}${navActive === key ? ' active' : ''}"${navActive === key ? ' aria-current="page"' : ''}>${label}</a>`; %>
-<header class="topbar">
+<header class="topbar tn-header">
     <h2><a href="/dashboard" class="topbar-home">
         <img src="/logo.png" alt="Terp Notes Logo" style="width: 32px; height: 32px; vertical-align: middle; margin-right: 8px; pointer-events: none;" />
         Terp Notes

@@ -1,35 +1,5 @@
 /* Integrations Page Styles - Clean and Minimal */
 
-/* Ensure header uses main CSS styling - force override if needed */
-body header.topbar {
-    background: linear-gradient(135deg, #E21833 0%, #C42F31 100%) !important;
-    color: white !important;
-    padding: 1rem 1.5rem !important;
-    display: flex !important;
-    justify-content: space-between !important;
-    align-items: center !important;
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06) !important;
-    position: sticky !important;
-    top: 0 !important;
-    z-index: 50 !important;
-}
-
-/* Additional override for any conflicting styles */
-.topbar {
-    background: linear-gradient(135deg, #E21833 0%, #C42F31 100%) !important;
-}
-
-/* Nuclear option - override everything */
-html body header.topbar,
-html body .topbar,
-body header.topbar,
-body .topbar,
-header.topbar,
-.topbar {
-    background: linear-gradient(135deg, #E21833 0%, #C42F31 100%) !important;
-    background-image: linear-gradient(135deg, #E21833 0%, #C42F31 100%) !important;
-}
-
 /* Page header styling to match other pages */
 .page-header {
     text-align: center;

@@ -103,7 +103,7 @@ test("admin invites a professor, who adds a TA; staff moderate only their course
 
     // 6. Students see who uploaded official material.
     await stu.goto("/dashboard");
-    await expect(stu.locator('.file-card[data-name="official-slides.txt"] .staff-badge')).toHaveText(/From the professor/);
+    await expect(stu.locator('.tn-file[data-name="official-slides.txt"] .staff-badge')).toHaveText(/From the professor/);
 
     // 7. The professor removes the TA; the TA loses access.
     pr.on("dialog", (d) => d.accept());

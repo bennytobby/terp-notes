@@ -17,8 +17,9 @@
 
     <style>
     </style>
+    <link rel="stylesheet" href="/stylesheets/app.css" />
 </head>
-<body>
+<body class="tn-app">
     <%- include('partials/topnav', { active: 'integrations', quickLogout: true }) %>
 
     <main class="container integrations-page"
@@ -154,38 +155,8 @@
         // Set BASE_URL before loading integrations.js
         window.BASE_URL = '<%= baseUrl %>';
     </script>
+    <script src="/javascripts/course-picker.js"></script>
     <script src="/javascripts/integrations.js"></script>
 
-    <!-- Force header styling with JavaScript -->
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            // Set active navigation link (copied from dashboard.ejs)
-            const currentPath = window.location.pathname;
-            document.querySelectorAll('.nav-link').forEach(link => {
-                link.classList.remove('active');
-                if (link.getAttribute('href') === currentPath) {
-                    link.classList.add('active');
-                }
-            });
-
-            // Force header gradient
-            const header = document.querySelector('header.topbar');
-            if (header) {
-                header.style.setProperty('background', 'linear-gradient(135deg, #E21833 0%, #C42F31 100%)', 'important');
-                header.style.setProperty('background-image', 'linear-gradient(135deg, #E21833 0%, #C42F31 100%)', 'important');
-                header.style.setProperty('background-color', '#E21833', 'important');
-            }
-        });
-
-        // Also run after a short delay to catch any late-loading styles
-        setTimeout(function() {
-            const header = document.querySelector('header.topbar');
-            if (header) {
-                header.style.setProperty('background', 'linear-gradient(135deg, #E21833 0%, #C42F31 100%)', 'important');
-                header.style.setProperty('background-image', 'linear-gradient(135deg, #E21833 0%, #C42F31 100%)', 'important');
-                header.style.setProperty('background-color', '#E21833', 'important');
-            }
-        }, 100);
-    </script>
 </body>
 </html>

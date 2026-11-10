@@ -56,13 +56,13 @@ test("a roster is held for review; an answer key is flagged but visible; an admi
     // The uploader sees their held file, with a badge.
     await up.goto("/dashboard");
     // Cards sit in collapsible course groups, so check they're on the page rather than visible.
-    await expect(up.locator('.file-card[data-name="roster.txt"] .held-for-review')).toHaveCount(1);
+    await expect(up.locator('.tn-file[data-name="roster.txt"] .held-for-review')).toHaveCount(1);
 
     // A classmate can't see or download it, but does see the answer key.
     const mate = await browser.newPage();
     await signIn(mate, classmate.userid, pw);
-    await expect(mate.locator('.file-card[data-name="midterm-key.txt"]')).not.toHaveCount(0);
-    await expect(mate.locator('.file-card[data-name="roster.txt"]')).toHaveCount(0);
+    await expect(mate.locator('.tn-file[data-name="midterm-key.txt"]')).not.toHaveCount(0);
+    await expect(mate.locator('.tn-file[data-name="roster.txt"]')).toHaveCount(0);
     const dl = await mate.request.get(`/download/${encodeURIComponent(held.filename)}`, { maxRedirects: 0 });
     expect(dl.status()).toBe(403);
     expect(await dl.text()).toContain("File Under Review");
@@ -84,5 +84,5 @@ test("a roster is held for review; an answer key is flagged but visible; an admi
 
     // Now the classmate sees the approved roster.
     await mate.goto("/dashboard");
-    await expect(mate.locator('.file-card[data-name="roster.txt"]')).not.toHaveCount(0);
+    await expect(mate.locator('.tn-file[data-name="roster.txt"]')).not.toHaveCount(0);
 });

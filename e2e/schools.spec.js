@@ -59,9 +59,9 @@ test("students only see their own school's notes", async ({ browser }) => {
     expect(uploaded.school).toBe("umbc");
 
     await b.goto("/dashboard");
-    await expect(b.locator('.file-card[data-name="umbc-only.txt"]')).not.toHaveCount(0);
-    await expect(b.locator('.file-card[data-name="umbc-upload.txt"]')).not.toHaveCount(0);
-    await expect(b.locator('.file-card[data-name="umd-legacy.txt"]')).toHaveCount(0);
+    await expect(b.locator('.tn-file[data-name="umbc-only.txt"]')).not.toHaveCount(0);
+    await expect(b.locator('.tn-file[data-name="umbc-upload.txt"]')).not.toHaveCount(0);
+    await expect(b.locator('.tn-file[data-name="umd-legacy.txt"]')).toHaveCount(0);
     expect((await b.request.get(`/download/${encodeURIComponent(legacy.filename)}`, { maxRedirects: 0 })).status()).toBe(404);
 
     // The study buddy only offers the UMBC student their school's courses.
@@ -72,9 +72,9 @@ test("students only see their own school's notes", async ({ browser }) => {
     // A UMD student sees the legacy UMD file but none of UMBC's.
     const a = await browser.newPage();
     await signIn(a, umd.userid, pw);
-    await expect(a.locator('.file-card[data-name="umd-legacy.txt"]')).not.toHaveCount(0);
-    await expect(a.locator('.file-card[data-name="umbc-only.txt"]')).toHaveCount(0);
-    await expect(a.locator('.file-card[data-name="umbc-upload.txt"]')).toHaveCount(0);
+    await expect(a.locator('.tn-file[data-name="umd-legacy.txt"]')).not.toHaveCount(0);
+    await expect(a.locator('.tn-file[data-name="umbc-only.txt"]')).toHaveCount(0);
+    await expect(a.locator('.tn-file[data-name="umbc-upload.txt"]')).toHaveCount(0);
     expect((await a.request.get(`/download/${encodeURIComponent(theirs.filename)}`, { maxRedirects: 0 })).status()).toBe(404);
 
     // Only UMD emails can register; UMBC isn't open.
