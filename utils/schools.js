@@ -1,9 +1,14 @@
 /**
- * Schools Terp Notes serves. A user's school comes from their email domain (no migration
- * needed); every file is tagged with its uploader's school, and students only see their own
- * school's notes. Files from before multi-school support have no tag and count as UMD.
+ * Schools. Terp Notes is for UMD students only; the rest of this file keeps the door open for
+ * other schools later (most likely each on its own site, since "Terp Notes" is a UMD name).
  *
- * To add a school: append an entry here, then deploy. That's all.
+ * A user's school comes from their email domain; every file is tagged with its uploader's
+ * school, and students only see their own school's notes. Files from before multi-school
+ * support have no tag and count as UMD.
+ *
+ * Only `enabled` schools can sign up. A disabled school is still known, so any account or
+ * file already tagged with it keeps working and stays separate from UMD's notes.
+ * To open a school: set `enabled: true` (and give it its own site if it gets one), then deploy.
  */
 const SCHOOLS = [
     {
@@ -14,6 +19,7 @@ const SCHOOLS = [
         // @umd.edu and @terpmail.umd.edu are the same mailbox; store one form.
         storageDomain: "terpmail.umd.edu",
         courseCatalog: true, // course and professor autocomplete from UMD.io
+        enabled: true,
     },
     {
         id: "umbc",
@@ -22,6 +28,8 @@ const SCHOOLS = [
         domains: ["umbc.edu"],
         storageDomain: "umbc.edu",
         courseCatalog: false,
+        // Not open yet: Param plans other schools as separate sites, not part of terp-notes.org.
+        enabled: false,
     },
 ];
 
@@ -39,11 +47,16 @@ function splitEmail(email) {
     return { local: e.slice(0, at), domain: e.slice(at + 1) };
 }
 
-/** The school for an email address, or null if no school we serve uses that domain. */
-function schoolForEmail(email) {
+const ENABLED = SCHOOLS.filter((s) => s.enabled);
+
+/**
+ * The school for an email address, or null if no school that's open for sign-up uses that
+ * domain. `includeDisabled` also matches known schools that aren't open (existing accounts).
+ */
+function schoolForEmail(email, { includeDisabled = false } = {}) {
     const parts = splitEmail(email);
     if (!parts) return null;
-    return SCHOOLS.find((s) => s.domains.includes(parts.domain)) || null;
+    return (includeDisabled ? SCHOOLS : ENABLED).find((s) => s.domains.includes(parts.domain)) || null;
 }
 
 /** The address we store (e.g. x@umd.edu -> x@terpmail.umd.edu), or null for other domains. */
@@ -65,7 +78,7 @@ function equivalentEmails(email) {
 /** A signed-in user's school id. Users from before multi-school support are UMD. */
 function schoolOf(user) {
     if (user && user.school && byId[user.school]) return user.school;
-    const s = user && schoolForEmail(user.email);
+    const s = user && schoolForEmail(user.email, { includeDisabled: true });
     return s ? s.id : DEFAULT_SCHOOL;
 }
 
@@ -78,14 +91,14 @@ function docSchool(doc) {
     return (doc && doc.school) || DEFAULT_SCHOOL;
 }
 
-/** "UMD or UMBC" and "@umd.edu, @terpmail.umd.edu or @umbc.edu", for copy. */
+/** Open schools for copy: "UMD" and "@umd.edu or @terpmail.umd.edu" (more as schools open). */
 function namesList() {
-    const shorts = SCHOOLS.map((s) => s.short);
+    const shorts = ENABLED.map((s) => s.short);
     return shorts.length > 1 ? `${shorts.slice(0, -1).join(", ")} or ${shorts.at(-1)}` : shorts[0];
 }
 
 function domainsList() {
-    const all = SCHOOLS.flatMap((s) => s.domains).map((d) => `@${d}`);
+    const all = ENABLED.flatMap((s) => s.domains).map((d) => `@${d}`);
     return all.length > 1 ? `${all.slice(0, -1).join(", ")} or ${all.at(-1)}` : all[0];
 }
 
