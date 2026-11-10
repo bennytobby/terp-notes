@@ -1,40 +1,22 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>
-        <%= title %>
-    </title>
-    <link rel="icon" type="image/png" href="/favicon.png" />
-    <link rel="stylesheet" href="/styles/main.css" />
-    <link rel="stylesheet" href="/stylesheets/app.css" />
+    <%- include('partials/head', { title: (locals.title || 'Done') + ' - Terp Notes' }) %>
 </head>
-
 <body class="tn-app">
-    <header class="topbar tn-header">
-        <h2><a href="/" style="text-decoration: none; color: inherit; display: flex; align-items: center; cursor: pointer; transition: opacity 0.2s ease;" onmouseover="this.style.opacity='0.8'" onmouseout="this.style.opacity='1'">
-            <img src="/logo.png" alt="Terp Notes Logo" style="width: 32px; height: 32px; vertical-align: middle; margin-right: 8px; pointer-events: none;" />
-            Terp Notes
-        </a></h2>
-    </header>
+    <%- include('partials/publicnav', { user: locals.user, hideAuth: true }) %>
 
-    <main class="centered">
-        <div class="alert">
-            <h1 style="color: #10B981;">
-                <%= title %>
-            </h1>
-            <p>
-                <%= message %>
-            </p>
-            <a href="<%= link %>" class="button primary">
-                <%= linkText %>
-            </a>
+    <main class="tn-center" id="main">
+        <div class="tn-card tn-status" role="status">
+            <div class="tn-status-icon is-ok" aria-hidden="true"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 5 5 9-10"/></svg></div>
+            <h1><%= title %></h1>
+            <p class="tn-sub"><%= message %></p>
+            <div class="tn-actions">
+                <a href="<%= locals.link || '/' %>" class="tn-btn tn-btn-primary tn-btn-lg"><%= locals.linkText || 'Continue' %></a>
+            </div>
         </div>
     </main>
 
     <%- include('partials/footer') %>
 </body>
-
 </html>

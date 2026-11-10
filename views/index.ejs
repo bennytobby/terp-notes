@@ -1,618 +1,168 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>
-        <%= title %>
-    </title>
-    <!-- Favicon and App Icons -->
-    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
-    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
-    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
-    <link rel="shortcut icon" href="/favicon.ico" />
-    <meta name="msapplication-TileColor" content="#E21833" />
-    <meta name="theme-color" content="#E21833" />
-    <link rel="manifest" href="/site.webmanifest" />
-    <link rel="stylesheet" href="/styles/main.css" />
-    <style>
-        .landing-page {
-            min-height: 100vh;
-            background: linear-gradient(135deg, #FFFFFF 0%, #FEF2F2 100%);
-        }
-
-        .landing-header {
-            background: linear-gradient(135deg, #F3F4F6 0%, #E5E7EB 100%);
-            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
-            padding: 1.5rem 0;
-            border-bottom: 2px solid #D1D5DB;
-        }
-
-        .landing-nav {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 0 2rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .landing-logo {
-            font-size: 1.75rem;
-            font-weight: 800;
-            color: #DC2626;
-        }
-
-        .landing-nav-links {
-            display: flex;
-            gap: 1rem;
-        }
-
-        .hero-section {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 5rem 2rem 4rem;
-            text-align: center;
-        }
-
-        .hero-title {
-            font-size: 3.5rem;
-            font-weight: 900;
-            color: #1F2937;
-            margin-bottom: 1.5rem;
-            line-height: 1.2;
-        }
-
-        .hero-subtitle {
-            font-size: 1.5rem;
-            color: #6B7280;
-            margin-bottom: 3rem;
-            max-width: 700px;
-            margin-left: auto;
-            margin-right: auto;
-            line-height: 1.6;
-        }
-
-        .hero-cta, .cta-buttons {
-            display: flex;
-            gap: 1.5rem;
-            justify-content: center;
-            align-items: center;
-            flex-wrap: wrap;
-        }
-
-        /* Mobile-specific spacing for buttons */
-        @media (max-width: 768px) {
-            .hero-cta, .cta-buttons {
-                gap: 1rem;
-                flex-direction: column;
-                align-items: stretch;
-            }
-
-            .cta-primary, .cta-secondary {
-                width: 100%;
-                text-align: center;
-                margin-bottom: 0.75rem;
-            }
-
-            .cta-secondary {
-                margin-bottom: 0;
-            }
-        }
-
-        @media (max-width: 480px) {
-            .hero-cta, .cta-buttons {
-                gap: 0.75rem;
-            }
-
-            /* Header fits a 390 px phone: tighter spacing, one-line buttons, shorter label */
-            .landing-nav {
-                padding: 0 1rem;
-                gap: 0.5rem;
-            }
-
-            .landing-logo {
-                font-size: 1.35rem;
-            }
-
-            .landing-nav-links {
-                gap: 0.5rem;
-            }
-
-            .landing-nav-links .button {
-                padding: 0.5rem 0.85rem;
-                font-size: 0.9rem;
-                white-space: nowrap;
-            }
-
-            .nav-label-long {
-                display: none;
-            }
-
-            .cta-primary, .cta-secondary {
-                padding: 1rem 2rem;
-                font-size: 1.1rem;
-            }
-        }
-
-        .cta-primary {
-            background: linear-gradient(135deg, #DC2626 0%, #B91C1C 100%);
-            color: white;
-            padding: 1.25rem 3rem;
-            border-radius: 12px;
-            font-size: 1.25rem;
-            font-weight: 700;
-            text-decoration: none;
-            transition: transform 0.2s, box-shadow 0.2s;
-            box-shadow: 0 4px 14px rgba(220, 38, 38, 0.4);
-        }
-
-        .cta-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(220, 38, 38, 0.5);
-        }
-
-        .cta-secondary {
-            background: white;
-            color: #DC2626;
-            padding: 1.25rem 3rem;
-            border-radius: 12px;
-            font-size: 1.25rem;
-            font-weight: 700;
-            text-decoration: none;
-            border: 2px solid #DC2626;
-            transition: all 0.2s;
-        }
-
-        .cta-secondary:hover {
-            background: #FEE2E2;
-        }
-
-        .trust-badges {
-            margin-top: 4rem;
-            padding: 2rem;
-            background: white;
-            border-radius: 16px;
-            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
-            display: flex;
-            justify-content: center;
-            gap: 3rem;
-            flex-wrap: wrap;
-        }
-
-        .trust-item {
-            text-align: center;
-        }
-
-        .trust-icon {
-            font-size: 2.5rem;
-            margin-bottom: 0.5rem;
-        }
-
-        .trust-text {
-            font-size: 0.9rem;
-            color: #6B7280;
-            font-weight: 600;
-        }
-
-        .features-section {
-            max-width: 1200px;
-            margin: 4rem auto;
-            padding: 0 2rem;
-        }
-
-        .features-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 2rem;
-            margin-top: 3rem;
-        }
-
-        .feature-card {
-            background: white;
-            padding: 2.5rem;
-            border-radius: 16px;
-            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
-            transition: transform 0.3s, box-shadow 0.3s;
-        }
-
-        .feature-card:hover {
-            transform: translateY(-8px);
-            box-shadow: 0 12px 32px rgba(220, 38, 38, 0.15);
-        }
-
-        .feature-icon-large {
-            font-size: 3rem;
-            margin-bottom: 1.5rem;
-            text-align: center;
-        }
-
-        .feature-title {
-            font-size: 1.5rem;
-            font-weight: 700;
-            color: #1F2937;
-            margin-bottom: 1rem;
-        }
-
-        .feature-desc {
-            color: #6B7280;
-            line-height: 1.6;
-        }
-
-        .how-it-works {
-            background: linear-gradient(135deg, #DC2626 0%, #B91C1C 100%);
-            color: white;
-            padding: 5rem 2rem;
-            margin: 4rem 0;
-        }
-
-        .how-it-works-content {
-            max-width: 1000px;
-            margin: 0 auto;
-            text-align: center;
-        }
-
-        .how-it-works h2 {
-            font-size: 2.5rem;
-            margin-bottom: 1rem;
-        }
-
-        .steps {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 2rem;
-            margin-top: 3rem;
-        }
-
-        .step {
-            background: rgba(255, 255, 255, 0.1);
-            padding: 2rem;
-            border-radius: 12px;
-            backdrop-filter: blur(10px);
-        }
-
-        .step-number {
-            font-size: 3rem;
-            font-weight: 900;
-            opacity: 0.5;
-            margin-bottom: 1rem;
-        }
-
-        .step h3 {
-            font-size: 1.25rem;
-            margin-bottom: 0.75rem;
-        }
-
-        .final-cta {
-            max-width: 800px;
-            margin: 5rem auto;
-            padding: 0 2rem;
-            text-align: center;
-        }
-
-        .final-cta h2 {
-            font-size: 2.5rem;
-            color: #1F2937;
-            margin-bottom: 1.5rem;
-        }
-
-        .final-cta p {
-            font-size: 1.25rem;
-            color: #6B7280;
-            margin-bottom: 2.5rem;
-        }
-    </style>
+    <%- include('partials/head', { title: 'Terp Notes: class notes and study guides from UMD students' }) %>
 </head>
+<body class="tn-app tn-home">
+    <%- include('partials/publicnav') %>
 
-<body class="landing-page">
-    <header class="landing-header">
-        <nav class="landing-nav">
-            <div class="landing-logo">
-                <a href="/" style="text-decoration: none; color: inherit; display: flex; align-items: center; cursor: pointer; transition: opacity 0.2s ease;" onmouseover="this.style.opacity='0.8'" onmouseout="this.style.opacity='1'">
-                    <img src="/logo.png" alt="Terp Notes Logo" style="width: 40px; height: 40px; vertical-align: middle; margin-right: 4px; pointer-events: none;" />
-                    Terp Notes
-                </a>
+    <main id="main">
+        <section class="tn-hero">
+            <% if (loggedout) { %>
+                <div class="tn-alert tn-alert-ok" role="status" style="max-width: 420px; margin: 0 auto 1.5rem;">You're logged out. See you next time.</div>
+            <% } %>
+            <span class="tn-eyebrow"><i aria-hidden="true"></i> Free for every Terp</span>
+            <h1>Notes from Terps who already took your class.</h1>
+            <p>Lecture notes, study guides and exam prep for UMD courses, shared by students. Search by course, professor or term and download what you need.</p>
+            <div class="tn-actions">
+                <a href="/register" class="tn-btn tn-btn-primary tn-btn-lg">Sign up with your UMD email</a>
+                <a href="/login" class="tn-btn tn-btn-outline tn-btn-lg">Log in</a>
             </div>
-            <div class="landing-nav-links">
-                <a href="/login" class="button secondary">Login</a>
-                <a href="/register" class="button danger">Get Started <span class="nav-label-long">For Free</span></a>
-            </div>
-        </nav>
-    </header>
+            <p class="tn-fine">Takes a minute. Only @umd.edu and @terpmail.umd.edu addresses can join.</p>
+        </section>
 
-    <!-- Hero Section -->
-    <section class="hero-section">
-        <h1 class="hero-title">
-            Share Notes.<br>
-            Ace Your Classes.<img src="/images/icons/graduation-cap.png" alt="Graduation" style="width: 64px; height: 64px; vertical-align: middle; margin-left: 12px;" />
-        </h1>
-        <p class="hero-subtitle">
-            The easiest way to share and discover class notes, study guides, and course materials.
-            Built by students, for students.
-        </p>
-        <div class="hero-cta">
-            <a href="/register" class="cta-primary">Get Started For Free</a>
-            <a href="/login" class="cta-secondary">I Have an Account</a>
+        <div class="tn-preview" aria-hidden="true">
+            <div class="tn-preview-frame">
+                <div class="tn-preview-bar">
+                    <div class="tn-fake-search">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+                        <b>CMSC132</b>&nbsp;recursion
+                    </div>
+                </div>
+                <ul class="tn-files">
+                    <li class="tn-file">
+                        <span class="tn-file-type tn-type-pdf">PDF</span>
+                        <div class="tn-file-main">
+                            <span class="tn-file-name">Lecture 7: Recursion and the call stack.pdf</span>
+                            <div class="tn-file-meta"><span class="tn-chip">CMSC132</span><span class="tn-cat">Lecture Notes</span><span>Spring 2026</span></div>
+                            <div class="tn-file-sub"><span>2 days ago</span><span>840 KB</span><span>38 downloads</span></div>
+                        </div>
+                        <span class="tn-btn tn-btn-outline tn-btn-sm">Download</span>
+                    </li>
+                    <li class="tn-file">
+                        <span class="tn-file-type tn-type-docx">DOCX</span>
+                        <div class="tn-file-main">
+                            <span class="tn-file-name">Midterm 2 study guide, worked examples.docx</span>
+                            <div class="tn-file-meta"><span class="tn-chip">CMSC132</span><span class="tn-cat">Study Guide</span><span>Fall 2025</span></div>
+                            <div class="tn-file-sub"><span>Oct 29</span><span>120 KB</span><span>64 downloads</span></div>
+                        </div>
+                        <span class="tn-btn tn-btn-outline tn-btn-sm">Download</span>
+                    </li>
+                    <li class="tn-file">
+                        <span class="tn-file-type tn-type-pdf">PDF</span>
+                        <div class="tn-file-main">
+                            <span class="tn-file-name">Practice problems: recursive backtracking.pdf</span>
+                            <div class="tn-file-meta"><span class="tn-chip">CMSC132</span><span class="tn-cat">Homework</span><span>Spring 2026</span></div>
+                            <div class="tn-file-sub"><span>Nov 2</span><span>410 KB</span><span>21 downloads</span></div>
+                        </div>
+                        <span class="tn-btn tn-btn-outline tn-btn-sm">Download</span>
+                    </li>
+                </ul>
+            </div>
         </div>
 
-        <!-- Trust Badges -->
-        <div class="trust-badges">
-            <div class="trust-item">
-                <div class="trust-icon"><img src="/images/icons/security-shield-check.png" alt="Security" style="width: 56px; height: 56px;" /></div>
-                <div class="trust-text">Virus Scanned</div>
+        <section class="tn-section" aria-labelledby="features">
+            <div class="tn-section-head">
+                <p class="tn-kicker">Why Terp Notes</p>
+                <h2 id="features">Find the right notes in seconds.</h2>
+                <p>Everything is organized by UMD course code, so you skip the group-chat scroll and the dead Google Drive links.</p>
             </div>
-            <div class="trust-item">
-                <div class="trust-icon"><img src="/images/icons/email-verified.png" alt="Email" style="width: 56px; height: 56px;" /></div>
-                <div class="trust-text">UMD Verified Emails</div>
+            <div class="tn-grid">
+                <div class="tn-feature">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+                    <h3>Search that knows your schedule</h3>
+                    <p>Filter by course, professor, term and type: lecture notes, study guides, exams and homework.</p>
+                </div>
+                <div class="tn-feature">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 16V4M6 10l6-6 6 6M4 20h16"/></svg>
+                    <h3>Upload in a few taps</h3>
+                    <p>Drag in PDFs, slides, docs or photos from your phone. Add the course once for a whole batch.</p>
+                </div>
+                <div class="tn-feature">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3 4 6v6c0 4.5 3.4 8.3 8 9 4.6-.7 8-4.5 8-9V6l-8-3Z"/><path d="m9 12 2 2 4-4"/></svg>
+                    <h3>Every file is scanned</h3>
+                    <p>Uploads are checked by 70+ antivirus engines before anyone can download them.</p>
+                </div>
+                <div class="tn-feature">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg>
+                    <h3>Terps only</h3>
+                    <p>Every account is verified with a UMD email, and reported files are reviewed by moderators.</p>
+                </div>
+                <div class="tn-feature">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 4h6v6H4zM14 4h6v6h-6zM4 14h6v6H4z"/><path d="M17 14v6M14 17h6"/></svg>
+                    <h3>Bring notes from your apps</h3>
+                    <p>Import from Google Drive, Notion or OneNote, and use your notes in ChatGPT or Claude.</p>
+                </div>
+                <div class="tn-feature">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="7" y="2" width="10" height="20" rx="2"/><path d="M11 18h2"/></svg>
+                    <h3>Works on your phone</h3>
+                    <p>Check a study guide on the Shuttle-UM or download a whole course at once on your laptop.</p>
+                </div>
             </div>
-            <div class="trust-item">
-                <div class="trust-icon"><img src="/images/icons/lightning-bolt.png" alt="Speed" style="width: 56px; height: 56px;" /></div>
-                <div class="trust-text">Instant Search</div>
-            </div>
-            <div class="trust-item">
-                <div class="trust-icon"><img src="/images/icons/free-badge.png" alt="Free" style="width: 56px; height: 56px;" /></div>
-                <div class="trust-text">100% Free</div>
-            </div>
+        </section>
+
+        <div class="tn-band">
+            <section class="tn-section" aria-labelledby="how">
+                <div class="tn-section-head">
+                    <p class="tn-kicker">How it works</p>
+                    <h2 id="how">Three steps, then you're studying.</h2>
+                </div>
+                <ol class="tn-steps">
+                    <li><h3>Sign up</h3><p>Use your @umd.edu or @terpmail.umd.edu address and confirm the email we send.</p></li>
+                    <li><h3>Find your course</h3><p>Search a course code like CMSC131 or a professor, then filter by term.</p></li>
+                    <li><h3>Share back</h3><p>Upload your own notes when you can. That's what keeps it free for everyone.</p></li>
+                </ol>
+            </section>
         </div>
-    </section>
 
-    <!-- Features Section -->
-    <section class="features-section">
-        <div style="text-align: center; margin-bottom: 3rem;">
-            <h2 style="font-size: 2.5rem; color: #1F2937; margin-bottom: 1rem;">Everything You Need to Succeed</h2>
-            <p style="font-size: 1.25rem; color: #6B7280;">Powerful features designed for students</p>
+        <section class="tn-section" aria-labelledby="faq">
+            <div class="tn-section-head">
+                <p class="tn-kicker">Questions</p>
+                <h2 id="faq">Good to know</h2>
+            </div>
+            <div class="tn-faq">
+                <details>
+                    <summary>Is it really free?</summary>
+                    <p>Yes. No ads, no paywall and no credit card. Terp Notes is a student project run by Terps.</p>
+                </details>
+                <details>
+                    <summary>Is this run by the University of Maryland?</summary>
+                    <p>No. Terp Notes is independent and not affiliated with or endorsed by UMD. We ask for a UMD email only to keep the community to Terps.</p>
+                </details>
+                <details>
+                    <summary>What can I share?</summary>
+                    <p>Your own notes, study guides and summaries. Don't upload anything your instructor has said not to share, and follow UMD's Code of Academic Integrity. The full rules are in our <a href="/terms">Terms</a>.</p>
+                </details>
+                <details>
+                    <summary>What file types work?</summary>
+                    <p>PDFs, Word, PowerPoint and Excel files, images, text and code files, and zip archives, up to 100 MB each.</p>
+                </details>
+                <details>
+                    <summary>What do you do with my data?</summary>
+                    <p>We store your name, UMD email and the files you upload. We never sell data. Details are in the <a href="/privacy">Privacy Policy</a>.</p>
+                </details>
+            </div>
+        </section>
+
+        <div class="tn-band">
+            <section class="tn-section tn-cta">
+                <h2>Your next exam is easier with better notes.</h2>
+                <p>Join with your UMD email and start searching in under a minute.</p>
+                <div class="tn-actions">
+                    <a href="/register" class="tn-btn tn-btn-primary tn-btn-lg">Create a free account</a>
+                </div>
+            </section>
         </div>
-
-        <div class="features-grid">
-            <div class="feature-card">
-                <div class="feature-icon-large"><img src="/images/icons/books-stack.png" alt="Organization" style="width: 96px; height: 96px;" /></div>
-                <h3 class="feature-title">Class-Based Organization</h3>
-                <p class="feature-desc">
-                    Find exactly what you need. Files organized by course code (CMSC330, MATH141)
-                    and searchable by semester, professor, and topic.
-                </p>
-            </div>
-
-            <div class="feature-card">
-                <div class="feature-icon-large"><img src="/images/icons/lightning-search.png" alt="Fast Search" style="width: 96px; height: 96px;" /></div>
-                <h3 class="feature-title">Lightning Fast Search</h3>
-                <p class="feature-desc">
-                    Instant client-side filtering. Search by class, major, professor, or filename.
-                    No waiting, no page reloads.
-                </p>
-            </div>
-
-            <div class="feature-card">
-                <div class="feature-icon-large"><img src="/images/icons/security-shield-check.png" alt="Security" style="width: 96px; height: 96px;" /></div>
-                <h3 class="feature-title">Virus Scanned & Secure</h3>
-                <p class="feature-desc">
-                    Every file scanned by 70+ antivirus engines. Email verification required.
-                    Your data is safe with us.
-                </p>
-            </div>
-
-            <div class="feature-card">
-                <div class="feature-icon-large"><img src="/images/icons/upload-cloud.png" alt="Upload" style="width: 96px; height: 96px;" /></div>
-                <h3 class="feature-title">Bulk Upload</h3>
-                <p class="feature-desc">
-                    Upload unlimited files at once with drag-and-drop. Share an entire semester
-                    of notes in seconds.
-                </p>
-            </div>
-
-            <div class="feature-card">
-                <div class="feature-icon-large"><img src="/images/icons/community-users.png" alt="Community" style="width: 96px; height: 96px;" /></div>
-                <h3 class="feature-title">Community Driven</h3>
-                <p class="feature-desc">
-                    Built by UMD students, for UMD students. Report inappropriate content.
-                    Community moderation keeps quality high.
-                </p>
-            </div>
-
-            <div class="feature-card">
-                <div class="feature-icon-large"><img src="/images/icons/devices-responsive.png" alt="Responsive" style="width: 96px; height: 96px;" /></div>
-                <h3 class="feature-title">Works Everywhere</h3>
-                <p class="feature-desc">
-                    Responsive design works on phone, tablet, and desktop. Access your notes
-                    from anywhere.
-                </p>
-            </div>
-        </div>
-    </section>
-
-    <!-- How It Works Section -->
-    <section class="how-it-works">
-        <div class="how-it-works-content">
-            <h2>How It Works</h2>
-            <p style="font-size: 1.25rem; opacity: 0.95; margin-bottom: 1rem;">
-                Share notes in 3 simple steps
-            </p>
-
-            <div class="steps">
-                <div class="step">
-                    <div class="step-number">1</div>
-                    <h3>Sign Up</h3>
-                    <p>Register with your UMD email. Verify your account. That's it!</p>
-                </div>
-                <div class="step">
-                    <div class="step-number">2</div>
-                    <h3>Upload Notes</h3>
-                    <p>Drag and drop your files. Add class code and description. Share with classmates.</p>
-                </div>
-                <div class="step">
-                    <div class="step-number">3</div>
-                    <h3>Discover & Download</h3>
-                    <p>Search by class, major, or professor. Preview files. Download what you need.</p>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Social Proof / Stats Section -->
-    <section class="stats-section">
-        <div class="stats-container">
-            <h2 class="stats-title">Why Students Love Terp Notes</h2>
-            <div class="stats-grid">
-                <div class="homepage-stat-card">
-                    <div class="stat-number">150+</div>
-                    <div class="stat-label">Active Users</div>
-                </div>
-                <div class="homepage-stat-card">
-                    <div class="stat-number">70+</div>
-                    <div class="stat-label">Antivirus Engines</div>
-                </div>
-                <div class="homepage-stat-card">
-                    <div class="stat-number">∞</div>
-                    <div class="stat-label">Unlimited Files</div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Final CTA -->
-    <section class="final-cta">
-        <div class="cta-container">
-            <div class="cta-content">
-                <h2>Ready to Get Started?</h2>
-                <p>Join fellow Terps and start sharing notes today. No credit card required.</p>
-                <div class="cta-buttons">
-                    <a href="/register" class="cta-primary">Create Free Account</a>
-                    <a href="/login" class="cta-secondary">Login</a>
-                </div>
-            </div>
-            <p class="cta-disclaimer">
-                Independent student platform • Not affiliated with the University of Maryland
-            </p>
-        </div>
-    </section>
+    </main>
 
     <%- include('partials/footer') %>
 
-    <!-- Notification Container -->
-    <div id="notificationContainer" style="position: fixed; top: 20px; right: 20px; z-index: 10000; max-width: 400px;"></div>
-
     <script>
-        // Notification function
-        function showNotification(message, type = 'info') {
-            const container = document.getElementById('notificationContainer');
-            const notification = document.createElement('div');
-
-            const colors = {
-                success: '#10B981',
-                error: '#EF4444',
-                info: '#3B82F6',
-                warning: '#F59E0B'
-            };
-
-            notification.style.cssText = `
-                background: white;
-                border-left: 4px solid ${colors[type]};
-                border-radius: 8px;
-                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-                padding: 1rem;
-                margin-bottom: 0.5rem;
-                transform: translateX(100%);
-                transition: transform 0.3s ease;
-                font-size: 0.9rem;
-                color: #374151;
-            `;
-
-            notification.innerHTML = `
-                <div style="display: flex; align-items: center; gap: 0.5rem;">
-                    <div style="width: 8px; height: 8px; background: ${colors[type]}; border-radius: 50%;"></div>
-                    ${message}
-                </div>
-            `;
-
-            container.appendChild(notification);
-
-            // Animate in
-            setTimeout(() => {
-                notification.style.transform = 'translateX(0)';
-            }, 10);
-
-            // Auto remove after 3 seconds
-            setTimeout(() => {
-                notification.style.transform = 'translateX(100%)';
-                setTimeout(() => {
-                    if (container.contains(notification)) {
-                        container.removeChild(notification);
-                    }
-                }, 300);
-            }, 3000);
-        }
-
-        // Handle automatic login for existing sessions
-        document.addEventListener('DOMContentLoaded', function() {
-            // Show logout confirmation if user just logged out
-            <% if (loggedout) { %>
-                showNotification('You have been successfully logged out of all tabs.', 'success');
-            <% } %>
-
-            // Check session status immediately on page load
-            checkSessionStatus();
-
-            // Add click handlers to login buttons to show loading state
-            const loginButtons = document.querySelectorAll('a[href="/login"]');
-
-            loginButtons.forEach(button => {
-                button.addEventListener('click', function(e) {
-                    // Add loading state
-                    const originalText = this.textContent;
-                    this.textContent = 'Checking...';
-                    this.style.opacity = '0.7';
-                    this.style.pointerEvents = 'none';
-
-                    // Show notification
-                    showNotification('Checking for existing session...', 'info');
-
-                    // Check session status when login button is clicked
-                    checkSessionStatus();
-
-                    // If we're still here after a short delay, restore the button
-                    setTimeout(() => {
-                        if (this.textContent === 'Checking...') {
-                            this.textContent = originalText;
-                            this.style.opacity = '1';
-                            this.style.pointerEvents = 'auto';
-                        }
-                    }, 2000);
-                });
-            });
-        });
-
-        // Function to check session status and redirect if logged in
-        async function checkSessionStatus() {
-            try {
-                const response = await fetch('/api/session-status', {
-                    credentials: 'include', // Ensure cookies are sent
-                    headers: {
-                        'Content-Type': 'application/json'
-                    }
-                });
-
-                if (!response.ok) {
-                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-                }
-
-                const data = await response.json();
-
-                if (data.loggedIn) {
-                    // User is already logged in, show notification and redirect
-                    showNotification(`Welcome back, ${data.user.firstname}! Redirecting to dashboard...`, 'success');
-
-                    // Redirect after a short delay to show the notification
-                    setTimeout(() => {
-                        window.location.href = '/dashboard';
-                    }, 1500);
-                }
-            } catch (error) {
-                console.error('Error checking session status:', error);
-                // Don't redirect on error - let user stay on login page
-            }
-        }
+        // A signed-in student who lands here from the back button goes straight to their notes.
+        fetch('/api/session-status', { credentials: 'include' })
+            .then(r => (r.ok ? r.json() : null))
+            .then(d => { if (d && d.loggedIn) window.location.replace('/dashboard'); })
+            .catch(() => {});
     </script>
 </body>
-
 </html>

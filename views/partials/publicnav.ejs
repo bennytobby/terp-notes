@@ -1,0 +1,20 @@
+<%#
+  Header for signed-out and shared pages (home, sign-in, legal, contact, status pages).
+  Locals: user (optional; shows Dashboard instead of Log in / Sign up), hideAuth (optional).
+%>
+<header class="tn-pubnav">
+    <a href="<%= locals.user ? '/dashboard' : '/' %>" class="tn-brand" aria-label="Terp Notes home">
+        <img src="/logo.png" alt="" width="28" height="28" />
+        <span>Terp Notes</span>
+    </a>
+    <% if (!locals.hideAuth) { %>
+        <nav class="tn-pubnav-links" aria-label="Account">
+            <% if (locals.user) { %>
+                <a href="/dashboard" class="tn-btn tn-btn-primary tn-btn-sm">Dashboard</a>
+            <% } else { %>
+                <a href="/login" class="tn-pubnav-link">Log in</a>
+                <a href="/register" class="tn-btn tn-btn-primary tn-btn-sm">Sign up</a>
+            <% } %>
+        </nav>
+    <% } %>
+</header>

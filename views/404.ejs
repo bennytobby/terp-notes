@@ -1,42 +1,27 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Page Not Found - Terp Notes</title>
-    <link rel="icon" type="image/png" href="/favicon.png" />
-    <link rel="stylesheet" href="/styles/main.css" />
-    <link rel="stylesheet" href="/stylesheets/app.css" />
+    <%- include('partials/head', { title: 'Page not found - Terp Notes' }) %>
 </head>
-
 <body class="tn-app">
-    <header class="topbar tn-header">
-        <h2><a href="/" style="text-decoration: none; color: inherit; display: flex; align-items: center; cursor: pointer; transition: opacity 0.2s ease;" onmouseover="this.style.opacity='0.8'" onmouseout="this.style.opacity='1'">
-            <img src="/logo.png" alt="Terp Notes Logo" style="width: 32px; height: 32px; vertical-align: middle; margin-right: 8px; pointer-events: none;" />
-            Terp Notes
-        </a></h2>
-        <div class="user-info">
-            <a href="/" class="logout-btn">Home</a>
-        </div>
-    </header>
+    <%- include('partials/publicnav', { user: locals.user }) %>
 
-    <main class="centered">
-        <div class="alert" style="max-width: 600px;">
-            <h1 style="color: #6B7280; font-size: 6rem; margin: 0;">404</h1>
-            <h2 style="color: var(--umd-red); margin-top: 1rem;">Page Not Found</h2>
-            <p style="color: #6B7280; margin: 1.5rem 0; font-size: 1.1rem;">
-                The page you're looking for doesn't exist or has been moved.
-            </p>
-            <div style="display: flex; gap: 1rem; justify-content: center; margin-top: 2rem; flex-wrap: wrap;">
-                <a href="/" class="button primary">Go Home</a>
-                <a href="/dashboard" class="button secondary">Dashboard</a>
-                <a href="/contact" class="button secondary">Contact Support</a>
+    <main class="tn-center" id="main">
+        <div class="tn-card tn-status">
+            <p class="tn-fine" style="font-weight: 700; letter-spacing: 0.08em; margin-bottom: 0.75rem;">404</p>
+            <h1>Page Not Found</h1>
+            <p class="tn-sub">That link is broken or the page moved. The notes are still where you left them.</p>
+            <div class="tn-actions">
+                <% if (locals.user) { %>
+                    <a href="/dashboard" class="tn-btn tn-btn-primary tn-btn-lg">Go to your notes</a>
+                <% } else { %>
+                    <a href="/" class="tn-btn tn-btn-primary tn-btn-lg">Go home</a>
+                <% } %>
+                <a href="/contact" class="tn-btn tn-btn-outline tn-btn-lg">Report a broken link</a>
             </div>
         </div>
     </main>
 
     <%- include('partials/footer') %>
 </body>
-
 </html>

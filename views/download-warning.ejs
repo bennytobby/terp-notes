@@ -1,120 +1,36 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>
-        <%= title %> - Terp Notes
-    </title>
-    <link rel="icon" type="image/png" href="/favicon.png" />
-    <link rel="stylesheet" href="/styles/main.css" />
-    <link rel="stylesheet" href="/stylesheets/app.css" />
+    <%- include('partials/head', { title: 'Before you download - Terp Notes' }) %>
 </head>
-
 <body class="tn-app">
-    <div class="message-page">
-        <div class="message-container warning">
-            <div class="message-icon" style="font-size: 4rem; color: #F59E0B;"><img src="/images/icons/warning-triangle.png" alt="Warning" style="width: 80px; height: 80px;" /></div>
-            <h1>Compressed File Warning</h1>
-            <p class="message-text">
-                You're about to download a compressed file: <strong>
-                    <%= originalName %>
-                </strong>
-            </p>
-            <div class="warning-box">
-                <h3>Important Security Notice</h3>
-                <p><strong>Before opening this file:</strong></p>
-                <ul style="text-align: left; margin: 1rem auto; max-width: 500px;">
-                    <li>Scan the file with antivirus software</li>
-                    <li>Extract and inspect contents before opening any files</li>
-                    <li>Be cautious of .exe, .bat, .sh, or other executable files</li>
-                    <li>Only open if you trust the uploader</li>
-                </ul>
-                <p style="margin-top: 1rem; color: #DC2626; font-weight: bold;">
-                    Terp Notes is not responsible for file contents. Users upload at their own discretion.
-                </p>
+    <%- include('partials/publicnav', { hideAuth: true }) %>
+
+    <main class="tn-center" id="main">
+        <div class="tn-card tn-card-wide tn-status">
+            <div class="tn-status-icon is-warn" aria-hidden="true">
+                <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z"/><path d="M12 9v4M12 17h.01"/></svg>
             </div>
-            <div class="message-actions"
-                style="margin-top: 2rem; display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
-                <a href="/download/<%= encodeURIComponent(filename) %>?warn=skip" class="button primary">
-                    I Understand - Download File
-                </a>
-                <a href="/dashboard" class="button secondary">
-                    Cancel - Go Back
-                </a>
-                <a href="/contact" class="button secondary" style="background: #6B7280;">
-                    Need Help?
-                </a>
+            <h1>This is a zip file</h1>
+            <p class="tn-sub"><strong><%= originalName %></strong> passed our virus scan, but archives can hide files a scan misses.</p>
+            <div class="tn-alert tn-alert-warn">
+                <div>
+                    <strong>Before you open it</strong>
+                    <ul>
+                        <li>Unzip it and look inside before opening anything.</li>
+                        <li>Don't run programs (.exe, .bat, .sh, .app) from it.</li>
+                        <li>If something looks off, report the file from the dashboard.</li>
+                    </ul>
+                </div>
             </div>
+            <div class="tn-actions">
+                <a href="/download/<%= encodeURIComponent(filename) %>?warn=skip" class="tn-btn tn-btn-primary tn-btn-lg">Download anyway</a>
+                <a href="/dashboard" class="tn-btn tn-btn-outline tn-btn-lg">Back to notes</a>
+            </div>
+            <p class="tn-alt" style="font-size: 0.82rem;">Files are uploaded by students. Terp Notes doesn't review every file's contents.</p>
         </div>
-    </div>
+    </main>
 
-    <style>
-        .message-page {
-            padding: 2rem 1rem;
-            min-height: calc(100vh - 200px);
-        }
-
-        .message-container {
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 2rem;
-        }
-
-        .warning-box {
-            background: #FEF3C7;
-            border: 2px solid #F59E0B;
-            border-radius: 0.75rem;
-            padding: 2rem;
-            margin: 2rem 0;
-        }
-
-        .warning-box h3 {
-            color: #B45309;
-            margin-bottom: 1.5rem;
-            font-size: 1.25rem;
-        }
-
-        .warning-box ul {
-            line-height: 1.8;
-            margin: 1rem 0;
-        }
-
-        .warning-box li {
-            margin-bottom: 0.5rem;
-        }
-
-        .message-actions {
-            margin-top: 3rem !important;
-            padding-top: 1rem;
-        }
-
-        .message-text {
-            margin: 1.5rem 0;
-            font-size: 1.1rem;
-        }
-
-        h1 {
-            margin-bottom: 1rem;
-        }
-
-        @media (max-width: 768px) {
-            .message-page {
-                padding: 1rem 0.5rem;
-            }
-
-            .message-container {
-                padding: 1.5rem;
-            }
-
-            .warning-box {
-                padding: 1.5rem;
-                margin: 1.5rem 0;
-            }
-        }
-    </style>
     <%- include('partials/footer') %>
 </body>
-
 </html>

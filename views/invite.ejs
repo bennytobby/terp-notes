@@ -1,46 +1,40 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title><%= title %></title>
-    <link rel="icon" type="image/png" href="/favicon.png" />
-    <link rel="stylesheet" href="/styles/main.css" />
-    <link rel="stylesheet" href="/stylesheets/app.css" />
+    <%- include('partials/head', { title: locals.title || 'Course invite - Terp Notes' }) %>
 </head>
 <body class="tn-app">
-    <header class="topbar tn-header">
-        <h2><a href="/" style="text-decoration: none; color: inherit; display: flex; align-items: center;">
-            <img src="/logo.png" alt="Terp Notes Logo" style="width: 32px; height: 32px; margin-right: 8px;" />
-            Terp Notes
-        </a></h2>
-    </header>
-    <main class="centered">
-        <div class="alert" style="max-width: 560px;">
+    <%- include('partials/publicnav', { user: locals.user, hideAuth: true }) %>
+
+    <main class="tn-center" id="main">
+        <div class="tn-card tn-card-wide">
             <% if (error) { %>
                 <h1>Invite unavailable</h1>
-                <p><%= error %></p>
-                <a href="/dashboard" class="button primary">Go to Dashboard</a>
+                <p class="tn-sub"><%= error %></p>
+                <a href="/dashboard" class="tn-btn tn-btn-primary tn-btn-lg">Go to your notes</a>
             <% } else if (!user) { %>
-                <h1>You're invited to teach <%= invite.classCode %></h1>
-                <p>This invite makes <strong><%= invite.email %></strong> the <%= invite.role === 'ta' ? 'TA' : 'professor' %> for <strong><%= invite.classCode %></strong> on Terp Notes, so you can moderate the course's notes and add TAs.</p>
-                <p>Sign in with that account (or create it) to accept. You'll come back here after signing in.</p>
-                <a href="/login" class="button primary">Sign in</a>
-                <a href="/register" class="button">Create an account</a>
+                <h1>You're invited to <%= invite.classCode %></h1>
+                <p class="tn-sub">This invite makes <strong><%= invite.email %></strong> the <%= invite.role === 'ta' ? 'TA' : 'professor' %> for <strong><%= invite.classCode %></strong>, so you can moderate the course's notes<%= invite.role === 'ta' ? '' : ' and add TAs' %>.</p>
+                <p class="tn-help" style="margin: 0 0 1.25rem;">Log in with that email's account, or create it. You'll come back here afterwards.</p>
+                <div class="tn-actions" style="justify-content: flex-start;">
+                    <a href="/login" class="tn-btn tn-btn-primary tn-btn-lg">Log in</a>
+                    <a href="/register" class="tn-btn tn-btn-outline tn-btn-lg">Create an account</a>
+                </div>
             <% } else { %>
                 <h1>Accept your invite to <%= invite.classCode %></h1>
-                <p>You'll become the <strong><%= invite.role === 'ta' ? 'TA' : 'professor' %></strong> for <strong><%= invite.classCode %></strong>. You can then:</p>
-                <ul style="text-align: left; line-height: 1.8;">
+                <p class="tn-sub">You'll become the <strong><%= invite.role === 'ta' ? 'TA' : 'professor' %></strong> for <strong><%= invite.classCode %></strong>. Then you can:</p>
+                <ul style="margin: 0 0 1.5rem; padding-left: 1.2rem; line-height: 1.8; color: var(--tn-ink-2);">
                     <li>remove notes for your course that shouldn't be shared,</li>
                     <li>review files flagged for personal or confidential information,</li>
-                    <li>add and remove your TAs.</li>
+                    <% if (invite.role !== 'ta') { %><li>add and remove your TAs.</li><% } %>
                 </ul>
                 <form method="POST" action="/invite/<%= token %>/accept">
-                    <button type="submit" class="button primary">Accept invite</button>
+                    <button type="submit" class="tn-btn tn-btn-primary tn-btn-lg">Accept invite</button>
                 </form>
             <% } %>
         </div>
     </main>
+
     <%- include('partials/footer') %>
 </body>
 </html>

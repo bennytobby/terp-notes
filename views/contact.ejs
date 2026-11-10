@@ -1,208 +1,79 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Contact & Support - Terp Notes</title>
-    <link rel="icon" type="image/png" href="/favicon.png" />
-    <link rel="stylesheet" href="/styles/main.css" />
-    <link rel="stylesheet" href="/stylesheets/app.css" />
+    <%- include('partials/head', { title: 'Help and contact - Terp Notes' }) %>
 </head>
-
 <body class="tn-app">
-    <header class="topbar tn-header">
-        <% if (user) { %>
-            <h2><a href="/dashboard" style="text-decoration: none; color: inherit; display: flex; align-items: center; cursor: pointer; transition: opacity 0.2s ease;" onmouseover="this.style.opacity='0.8'" onmouseout="this.style.opacity='1'">
-                <img src="/logo.png" alt="Terp Notes Logo" style="width: 32px; height: 32px; vertical-align: middle; margin-right: 8px; pointer-events: none;" />
-                Terp Notes
-            </a></h2>
-        <% } else { %>
-            <h2><a href="/" style="text-decoration: none; color: inherit; display: flex; align-items: center; cursor: pointer; transition: opacity 0.2s ease;" onmouseover="this.style.opacity='0.8'" onmouseout="this.style.opacity='1'">
-                <img src="/logo.png" alt="Terp Notes Logo" style="width: 32px; height: 32px; vertical-align: middle; margin-right: 8px; pointer-events: none;" />
-                Terp Notes
-            </a></h2>
-        <% } %>
-        <div class="user-info">
-            <% if (user) { %>
-                Welcome, <strong>
-                    <%= user.firstname %>
-                </strong> |
-                <a href="/dashboard" class="logout-btn">Dashboard</a> |
-                <a href="/logout" class="logout-btn">Logout</a>
-                <% } else { %>
-                    <a href="/" class="logout-btn">Home</a> |
-                    <a href="/login" class="logout-btn">Login</a> |
-                    <a href="/register" class="logout-btn">Register</a>
+    <% const user = locals.user || null; %>
+    <%- include('partials/publicnav', { user }) %>
+    <% const v = (k) => (typeof locals[k] === 'string' ? locals[k] : ''); %>
+
+    <main class="tn-prose" id="main">
+        <h1>Help and contact</h1>
+        <p class="tn-meta">Most answers are below. For anything else, send a message and a real Terp replies within a day or two.</p>
+
+        <section class="tn-faq" aria-label="Common questions">
+            <details>
+                <summary>I didn't get the confirmation email</summary>
+                <p>Check spam and any "Other" or "Promotions" tab, then wait a few minutes. Try to log in and use <strong>Resend the email</strong> on the page that appears.</p>
+            </details>
+            <details>
+                <summary>I forgot my password</summary>
+                <p>Use <a href="/forgot-password">Reset your password</a> with your UMD email. The link works for one hour.</p>
+            </details>
+            <details>
+                <summary>Can I change my username?</summary>
+                <p>No. Usernames are permanent so uploads stay accountable. You can change your name on your profile.</p>
+            </details>
+            <details>
+                <summary>What files can I upload?</summary>
+                <p>PDFs, Word, PowerPoint and Excel files, images, text and code files, and .zip archives, up to 100 MB each.</p>
+            </details>
+            <details>
+                <summary>How do I report a file?</summary>
+                <p>On the dashboard, open the ⋯ menu next to the file and choose <strong>Report</strong>. A moderator reviews every report.</p>
+            </details>
+            <details>
+                <summary>Why can't I upload anymore?</summary>
+                <p>A moderator set your account to view-only, usually after a policy issue. Send a message below to ask for a review.</p>
+            </details>
+            <details>
+                <summary>Is Terp Notes part of UMD?</summary>
+                <p>No. It's an independent, student-run site and isn't affiliated with or endorsed by the University of Maryland.</p>
+            </details>
+        </section>
+
+        <h2 id="message">Send a message</h2>
+        <% if (locals.error) { %><div class="tn-alert tn-alert-error" role="alert"><%= error %></div><% } %>
+        <form action="/contact/submit" method="POST" class="tn-form" style="margin-top: 1rem;">
+            <div class="tn-form-row">
+                <label class="tn-label" for="name">Name
+                    <input class="tn-input" type="text" id="name" name="name" required autocomplete="name"
+                        <% if (user) { %>value="<%= `${user.firstname || ''} ${user.lastname || ''}`.trim() %>" readonly<% } else { %>value="<%= v('name') %>"<% } %> />
+                </label>
+                <label class="tn-label" for="email">Email
+                    <input class="tn-input" type="email" id="email" name="email" required autocomplete="email" inputmode="email"
+                        <% if (user) { %>value="<%= user.email %>" readonly<% } else { %>value="<%= v('email') %>"<% } %> />
+                </label>
+            </div>
+            <label class="tn-label" for="subject">Topic
+                <select class="tn-input" id="subject" name="subject" required>
+                    <% const topics = [['', 'Choose a topic'], ['account', 'My account'], ['upload', 'Uploading files'], ['bug', 'Something is broken'], ['content', 'Report content'], ['feature', 'Idea or feature request'], ['other', 'Something else']]; %>
+                    <% for (const [val, label] of topics) { %>
+                        <option value="<%= val %>" <%= v('subject') === val && val ? 'selected' : '' %><%= val ? '' : ' disabled' %><%= !v('subject') && !val ? ' selected' : '' %>><%= label %></option>
                     <% } %>
-        </div>
-    </header>
+                </select>
+            </label>
+            <label class="tn-label" for="message">Message
+                <textarea class="tn-input" id="message" name="message" required rows="6" placeholder="What happened, and what did you expect? Include the course code or file name if it's about a file."><%= v('message') %></textarea>
+            </label>
+            <div><button type="submit" class="tn-btn tn-btn-primary tn-btn-lg">Send message</button></div>
+        </form>
 
-    <main class="container" style="max-width: 800px; padding: 3rem 2rem;">
-        <h1>Contact & Support</h1>
-        <p style="color: #6B7280; margin-bottom: 2rem;">
-            Need help? Have questions? We're here to assist!
-        </p>
-
-        <div class="legal-content">
-            <!-- FAQ Section -->
-            <section style="background: #F3F4F6; padding: 2rem; border-radius: 12px; margin-bottom: 2rem;">
-                <h2>Frequently Asked Questions</h2>
-
-                <div style="margin-top: 1.5rem;">
-                    <h3>How do I verify my email?</h3>
-                    <p>After registration, check your inbox (and spam folder) for a verification email. Click the link
-                        to activate your account. If you didn't receive it, click "Resend Verification" on the
-                        unverified page.</p>
-                </div>
-
-                <div style="margin-top: 1.5rem;">
-                    <h3>I forgot my password. What do I do?</h3>
-                    <p>Click "Forgot Password?" on the login page, enter your email, and we'll send you a password reset
-                        link.</p>
-                </div>
-
-                <div style="margin-top: 1.5rem;">
-                    <h3>Can I change my username?</h3>
-                    <p>No, usernames are permanent once created. This is to maintain accountability for uploaded
-                        content.</p>
-                </div>
-
-                <div style="margin-top: 1.5rem;">
-                    <h3>What file types can I upload?</h3>
-                    <p>We support: PDFs, Office documents (.docx, .pptx, .xlsx), images (.jpg, .png, .gif, .svg), text
-                        files (.txt, .md), code files (.py, .java, .c, .cpp, .js, .html, .css), and .zip archives.</p>
-                </div>
-
-                <div style="margin-top: 1.5rem;">
-                    <h3>How do I report inappropriate content?</h3>
-                    <p>Click the "🚩 Report" button on any file card and select a reason. Admins will review and take
-                        action.</p>
-                </div>
-
-                <div style="margin-top: 1.5rem;">
-                    <h3>My account is in "view-only" mode. Why?</h3>
-                    <p>Your upload privileges have been restricted by an admin, typically due to policy violations.
-                        Contact support to request a review.</p>
-                </div>
-
-                <div style="margin-top: 1.5rem;">
-                    <h3>Is this platform affiliated with UMD?</h3>
-                    <p><strong>No.</strong> Terp Notes is an independent, student-run platform. We are not affiliated
-                        with, endorsed by, or officially connected to the University of Maryland or any educational
-                        institution.</p>
-                </div>
-            </section>
-
-            <!-- Contact Form -->
-            <section>
-                <h2>Send Us a Message</h2>
-                <p style="margin-bottom: 1.5rem;">
-                    For issues not covered in the FAQ, fill out the form below and we'll get back to you within 24-48
-                    hours.
-                </p>
-
-                <% if (typeof error !== 'undefined' && error) { %>
-                    <div style="background: #FEF2F2; border: 1px solid #FECACA; color: #DC2626; padding: 12px 16px; border-radius: 8px; margin-bottom: 1rem; font-size: 0.875rem; display: flex; align-items: center;">
-                        <span style="margin-right: 8px;">⚠️</span>
-                        <%= error %>
-                    </div>
-                <% } %>
-
-                <form action="/contact/submit" method="POST" class="contact-form"
-                    style="background: white; padding: 2rem; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
-                    <div class="form-group">
-                        <label for="name">Your Name <span style="color: var(--umd-red);">*</span></label>
-                        <input type="text" id="name" name="name" required <% if (user) { %>
-                        value="<%= user.firstname %>
-                            <%= user.lastname %>"
-                                readonly
-                                style="width: 100%; padding: 0.75rem; border: 1px solid #D1D5DB; border-radius: 8px;
-                                font-size: 1rem; background: #F3F4F6; cursor: not-allowed;"
-                                <% } else { %>
-                                    placeholder="Enter your name"
-                                    value="<%= typeof name !== 'undefined' ? name : '' %>"
-                                    style="width: 100%; padding: 0.75rem; border: 1px solid #D1D5DB; border-radius: 8px;
-                                    font-size: 1rem;"
-                                    <% } %>>
-                    </div>
-
-                    <div class="form-group" style="margin-top: 1.5rem;">
-                        <label for="email">Your Email <span style="color: var(--umd-red);">*</span></label>
-                        <input type="email" id="email" name="email" required <% if (user) { %>
-                        value="<%= user.email %>"
-                            readonly
-                            style="width: 100%; padding: 0.75rem; border: 1px solid #D1D5DB; border-radius: 8px;
-                            font-size: 1rem; background: #F3F4F6; cursor: not-allowed;"
-                            <% } else { %>
-                                placeholder="your.email@umd.edu"
-                                value="<%= typeof email !== 'undefined' ? email : '' %>"
-                                style="width: 100%; padding: 0.75rem; border: 1px solid #D1D5DB; border-radius: 8px;
-                                font-size: 1rem;"
-                                <% } %>>
-                    </div>
-
-                    <div class="form-group" style="margin-top: 1.5rem;">
-                        <label for="subject">Subject <span style="color: var(--umd-red);">*</span></label>
-                        <select id="subject" name="subject" required
-                            style="width: 100%; padding: 0.75rem; border: 1px solid #D1D5DB; border-radius: 8px; font-size: 1rem;">
-                            <option value="">Select a topic...</option>
-                            <option value="account" <%= (typeof subject !== 'undefined' && subject === 'account') ? 'selected' : '' %>>Account Issues</option>
-                            <option value="upload" <%= (typeof subject !== 'undefined' && subject === 'upload') ? 'selected' : '' %>>Upload Problems</option>
-                            <option value="bug" <%= (typeof subject !== 'undefined' && subject === 'bug') ? 'selected' : '' %>>Bug Report</option>
-                            <option value="content" <%= (typeof subject !== 'undefined' && subject === 'content') ? 'selected' : '' %>>Content Violation</option>
-                            <option value="feature" <%= (typeof subject !== 'undefined' && subject === 'feature') ? 'selected' : '' %>>Feature Request</option>
-                            <option value="other" <%= (typeof subject !== 'undefined' && subject === 'other') ? 'selected' : '' %>>Other</option>
-                        </select>
-                    </div>
-
-                    <div class="form-group" style="margin-top: 1.5rem;">
-                        <label for="message">Message <span style="color: var(--umd-red);">*</span></label>
-                        <textarea id="message" name="message" required rows="6"
-                            placeholder="Describe your issue or question in detail..."
-                            style="width: 100%; padding: 0.75rem; border: 1px solid #D1D5DB; border-radius: 8px; font-size: 1rem; resize: vertical;"><%= typeof message !== 'undefined' ? message : '' %></textarea>
-                    </div>
-
-                    <button type="submit" class="button danger" style="margin-top: 1.5rem; width: 100%;">
-                        Send Message
-                    </button>
-                </form>
-            </section>
-
-            <!-- Direct Contact Info -->
-            <section style="margin-top: 3rem; background: #EFF6FF; padding: 2rem; border-radius: 12px;">
-                <h2>Direct Contact</h2>
-                <p>
-                    For urgent security issues or abuse reports, you can also email us directly at:
-                </p>
-                <p style="font-size: 1.25rem; font-weight: 600; color: var(--umd-red); margin-top: 1rem;">
-                    <a href="mailto:<%= process.env.EMAIL_USER || 'pmachre@terpmail.umd.edu' %>"
-                        style="color: var(--umd-red);">
-                        <%= process.env.EMAIL_USER || 'pmachre@terpmail.umd.edu' %>
-                    </a>
-                </p>
-                <p style="margin-top: 1rem; font-size: 0.875rem; color: #6B7280;">
-                    <strong>Note:</strong> Please include your username and a detailed description of the issue.
-                </p>
-            </section>
-
-            <!-- Platform Status -->
-            <section
-                style="margin-top: 2rem; text-align: center; padding: 1.5rem; background: #D1FAE5; border-radius: 12px;">
-                <h3>Platform Status</h3>
-                <p style="margin-top: 0.5rem;">
-                    <span
-                        style="display: inline-block; width: 16px; height: 16px; background: #10B981; border-radius: 50%; margin-right: 10px;"></span>
-                    All Systems Operational
-                </p>
-                <p style="font-size: 0.875rem; color: #6B7280; margin-top: 0.5rem;">
-                    Check back here for maintenance updates and known issues.
-                </p>
-            </section>
-        </div>
+        <h2>Security or urgent issues</h2>
+        <p>Email <a href="mailto:pmachre@terpmail.umd.edu">pmachre@terpmail.umd.edu</a> with your username and what you found.</p>
     </main>
 
     <%- include('partials/footer') %>
 </body>
-
 </html>

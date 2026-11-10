@@ -60,11 +60,11 @@ test("admin invites a professor, who adds a TA; staff moderate only their course
     // 3. The professor opens it signed out, signs in, comes back and accepts.
     const pr = await browser.newPage();
     await pr.goto(path);
-    await expect(pr.getByRole("heading", { name: "You're invited to teach CMSC131" })).toBeVisible();
-    await pr.getByRole("link", { name: "Sign in" }).click();
+    await expect(pr.getByRole("heading", { name: "You're invited to CMSC131" })).toBeVisible();
+    await pr.getByRole("main").getByRole("link", { name: "Log in" }).click();
     await pr.getByLabel("Username").fill(prof.userid);
     await pr.getByLabel("Password").fill(pw);
-    await pr.getByRole("button", { name: "Login" }).click();
+    await pr.getByRole("button", { name: "Log in", exact: true }).click();
     await expect(pr).toHaveURL(new RegExp(`${path}$`));
     await pr.getByRole("button", { name: "Accept invite" }).click();
     await expect(pr).toHaveURL(/\/staff$/);
