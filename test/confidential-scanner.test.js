@@ -139,3 +139,24 @@ test("images and broken files are skipped, not failed", async () => {
     const broken = await scanUpload(Buffer.from("not a pdf"), "application/pdf", "bad.pdf");
     assert.equal(broken.status, "skipped");
 });
+
+const fs = require("node:fs");
+const path = require("node:path");
+const { readText } = require("../utils/confidential-scanner");
+
+test("PDFs are read without native modules (unpdf), so they work on Vercel", async () => {
+    const pdf = fs.readFileSync(path.join(__dirname, "fixtures", "stack-notes.pdf"));
+    const r = await readText(pdf, "application/pdf", "stack-notes.pdf");
+    assert.equal(r.reason, null);
+    assert.match(r.text, /last-in first-out/);
+    // A PDF without the right MIME type is still recognised by its name.
+    assert.match((await readText(pdf, "application/octet-stream", "notes.PDF")).text, /call stack/);
+});
+
+test("unreadable files say why", async () => {
+    assert.deepEqual(await readText(Buffer.from([0x89, 0x50, 0x4e, 0x47]), "image/png", "photo.png"), { text: null, reason: "unsupported" });
+    const broken = await readText(Buffer.from("not really a pdf"), "application/pdf", "broken.pdf");
+    assert.equal(broken.text, null);
+    assert.match(broken.reason, /^error: /);
+    assert.equal((await readText(Buffer.from("hello"), "text/plain", "a.txt")).text, "hello");
+});
