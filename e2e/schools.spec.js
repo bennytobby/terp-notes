@@ -1,4 +1,5 @@
-// Multi-school: UMD and UMBC students each see only their own school's notes.
+// Multi-school groundwork: notes stay separated by school. Only UMD can sign up today;
+// the UMBC user here is seeded straight into the database to exercise the separation.
 // Needs MongoDB and an S3-compatible store (CI).
 const { expect, test } = require("@playwright/test");
 const AWS = require("aws-sdk");
@@ -76,9 +77,11 @@ test("students only see their own school's notes", async ({ browser }) => {
     await expect(a.locator('.file-card[data-name="umbc-upload.txt"]')).toHaveCount(0);
     expect((await a.request.get(`/download/${encodeURIComponent(theirs.filename)}`, { maxRedirects: 0 })).status()).toBe(404);
 
-    // Registration explains which schools are supported.
-    const reg = await a.request.post("/registerSubmit", {
-        form: { email: "someone@gmail.com", userid: "x_gmail", first_name: "X", last_name: "Y", password: "Aa1!aaaaaaaa", confirm_pass: "Aa1!aaaaaaaa" },
-    });
-    expect(await reg.text()).toContain("UMD or UMBC");
+    // Only UMD emails can register; UMBC isn't open.
+    for (const email of ["someone@gmail.com", "someone@umbc.edu"]) {
+        const reg = await a.request.post("/registerSubmit", {
+            form: { email, userid: `x_${email.split("@")[1].split(".")[0]}`, first_name: "X", last_name: "Y", password: "Aa1!aaaaaaaa", confirm_pass: "Aa1!aaaaaaaa" },
+        });
+        expect(await reg.text()).toContain("Please use your UMD email (@umd.edu or @terpmail.umd.edu) to register.");
+    }
 });
