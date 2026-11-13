@@ -1,18 +1,10 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-    <title>Notes - Terp Notes</title>
-    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
-    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
-    <link rel="manifest" href="/site.webmanifest" />
-    <meta name="theme-color" content="#ffffff" />
-    <link rel="stylesheet" href="/styles/main.css" />
-    <link rel="stylesheet" href="/stylesheets/app.css" />
+    <%- include('partials/head', { title: 'Notes - Terp Notes' }) %>
 </head>
 <body class="tn-app">
-    <%- include('partials/topnav', { active: 'dashboard', isCourseStaff: typeof isCourseStaff !== 'undefined' && isCourseStaff }) %>
+    <%- include('partials/topnav', { active: 'dashboard' }) %>
 
     <%
         // Only what the page needs. Escaping "<" keeps a file name like "</script>" from ending this tag.
@@ -42,7 +34,8 @@
             canUpload,
             hasCourseCatalog: typeof hasCourseCatalog === 'undefined' ? true : hasCourseCatalog,
             term: typeof currentTerm === 'undefined' ? null : currentTerm,
-            allowedExtensions: typeof allowedExtensions === 'undefined' ? [] : allowedExtensions
+            allowedExtensions: typeof allowedExtensions === 'undefined' ? [] : allowedExtensions,
+            pinnedCourses: (locals.shell && locals.shell.pinnedCourses) || []
         };
         const courseCount = new Set(clientFiles.map(f => f.classCode).filter(Boolean)).size;
     %>
@@ -106,6 +99,7 @@
         <div class="tn-results-head">
             <p id="resultCount" aria-live="polite"></p>
             <div class="tn-results-actions">
+                <button type="button" class="tn-link" id="pinCourse" aria-pressed="false" hidden></button>
                 <button type="button" class="tn-link" id="clearFilters" hidden>Clear filters</button>
                 <button type="button" class="tn-link" id="selectToggle">Select</button>
             </div>
@@ -122,15 +116,10 @@
         <div>
             <button type="button" class="tn-btn tn-btn-outline" id="bulkCancel">Cancel</button>
             <button type="button" class="tn-btn tn-btn-outline tn-danger-text" id="bulkDelete" hidden>Delete</button>
+            <button type="button" class="tn-btn tn-btn-outline" id="bulkBuddy" disabled>Study with Buddy</button>
             <button type="button" class="tn-btn tn-btn-primary" id="bulkDownload" disabled>Download .zip</button>
         </div>
     </div>
-
-    <% if (canUpload) { %>
-        <button type="button" class="tn-fab" id="uploadFab" aria-label="Upload notes">
-            <svg aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
-        </button>
-    <% } %>
 
     <!-- Upload / edit (one form) -->
     <dialog class="tn-dialog" id="noteDialog" aria-labelledby="noteDialogTitle">

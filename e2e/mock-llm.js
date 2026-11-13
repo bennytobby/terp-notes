@@ -12,9 +12,12 @@ http.createServer((req, res) => {
         const user = messages.find((m) => m.role === "user")?.content || "";
         const source = (user.match(/\[1\] ([^\n]+)/) || [])[1] || "no sources";
         const quiz = /practice quiz/.test(user);
+        const sheet = /cheat sheet/.test(user);
         const content = quiz
             ? `1. What does LIFO stand for? (mock quiz from ${source})\n\nAnswer key: 1. Last in, first out [1]`
-            : `Mock answer based on ${source} [1].`;
+            : sheet
+              ? `## Stacks (mock cheat sheet from ${source})\n- **LIFO**: last in, first out [1]`
+              : `Mock answer based on ${source} [1].`;
         res.setHeader("Content-Type", "application/json");
         res.end(JSON.stringify({ choices: [{ message: { role: "assistant", content } }] }));
     });

@@ -54,7 +54,7 @@ test("search, filters and course chips narrow the list, and the URL keeps them",
     await page.getByRole("button", { name: "Clear filters" }).first().click();
 
     await page.locator('.tn-file[data-name="graphs-dash.txt"] .tn-chip').click();
-    await expect(page.getByLabel("Course")).toHaveValue("CMSC351");
+    await expect(page.getByLabel("Course", { exact: true })).toHaveValue("CMSC351");
     await expect(page.locator('.tn-file[data-name="parsing-dash.txt"]')).toHaveCount(0);
 
     await page.goto("/dashboard?course=CMSC330&type=Study%20Guide");

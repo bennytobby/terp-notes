@@ -67,9 +67,9 @@ test("a direct upload is indexed for the study buddy, scanned and tagged with th
     const indexed = await withDb((db) => db.collection("noteTexts").findOne({ fileId: String(file._id) }));
     expect(indexed.chunks.join(" ")).toContain("memory address");
 
-    // And it shows up as a course on the study page.
+    // And it shows up as a course in the study buddy (old /study links open the panel).
     await page.goto("/study");
-    await expect(page.getByLabel("Course").locator("option", { hasText: "CMSC216" })).toHaveCount(1);
+    await expect(page.getByLabel("Study Buddy course").locator("option", { hasText: "CMSC216" })).toHaveCount(1);
 });
 
 test("a PDF upload is read and indexed (PDF reading must not need native modules)", async ({ page }) => {
@@ -94,18 +94,54 @@ test("a direct upload with an ID roster is held for review", async ({ page }) =>
     expect(file.quarantined).toBe(true);
 });
 
-test("every signed-in page links to the study buddy, and the study page links back", async ({ page }) => {
+test("the study buddy opens on every signed-in page, and settings holds profile, integrations and AI apps", async ({ page }) => {
     const password = await seedUser(user);
     await signIn(page, user.userid, password);
-    for (const path of ["/profile", "/integrations", "/ai-access"]) {
-        await page.goto(path);
-        await expect(page.getByRole("navigation", { name: "Main" }).getByRole("link", { name: "Study Buddy" })).toBeVisible();
+    const panel = page.getByRole("dialog", { name: "Study Buddy" });
+    // Old addresses still work and land on the matching settings tab.
+    for (const [old, now] of [["/profile", "/settings"], ["/integrations", "/settings/apps"], ["/ai-access", "/settings/ai"]]) {
+        await page.goto(old);
+        await expect(page).toHaveURL(new RegExp(`${now}$`));
+        await expect(page.getByRole("heading", { level: 1, name: "Settings" })).toBeVisible();
+        // The buddy opens over the page instead of navigating away from it.
+        await page.getByRole("navigation", { name: "Main" }).getByRole("link", { name: "Study Buddy" }).click();
+        await expect(panel).toBeVisible();
+        await expect(page).toHaveURL(new RegExp(`${now}$`));
+        await panel.getByRole("button", { name: "Close Study Buddy" }).click();
+        await expect(panel).toBeHidden();
     }
-    await page.goto("/study");
-    const nav = page.getByRole("navigation", { name: "Main" });
-    await expect(nav.getByRole("link", { name: "Study Buddy" })).toHaveAttribute("aria-current", "page");
-    await nav.getByRole("link", { name: "Integrations" }).click();
-    await expect(page).toHaveURL(/\/integrations$/);
+    await page.getByRole("navigation", { name: "Settings" }).getByRole("link", { name: "Integrations" }).click();
+    await expect(page).toHaveURL(/\/settings\/apps$/);
+
+    // The panel stays open, with its chat, when moving to another page.
+    await page.getByRole("navigation", { name: "Main" }).getByRole("link", { name: "Study Buddy" }).click();
+    await expect(panel).toBeVisible();
+    await page.goto("/dashboard");
+    await expect(panel).toBeVisible();
+    await panel.getByRole("button", { name: "Close Study Buddy" }).click();
+
+    // A link can no longer delete a file: deleting is POST-only.
+    expect((await page.request.get("/delete/anything.txt")).status()).toBe(404);
+});
+
+test("a student keeps their courses in the sidebar", async ({ page }) => {
+    const password = await seedUser(user);
+    await signIn(page, user.userid, password);
+    const add = page.getByLabel("Add a course to My courses");
+    await add.fill("cmsc216");
+    await add.press("Enter");
+    const link = page.locator('.tn-side-course[data-course-link="CMSC216"]');
+    await expect(link).toBeVisible();
+    await add.fill("not a course");
+    await add.press("Enter");
+    await expect(page.locator("#sideAddError")).toHaveText("Use a class code like CMSC330.");
+    // It is saved to the account, so it is still there after a reload, and opens that course's notes.
+    await page.reload();
+    await link.click();
+    await expect(page).toHaveURL(/course=CMSC216/);
+    await page.getByRole("button", { name: "Remove CMSC216 from My courses" }).click();
+    await expect(link).toHaveCount(0);
+    expect((await page.request.post("/api/courses/pin", { data: { classCode: "nope!" } })).status()).toBe(400);
 });
 
 test("imports need the same class details as an upload, and course look-ups work", async ({ page }) => {

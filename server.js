@@ -1,5 +1,4 @@
 /* Terp Notes Server - UMD Resource Sharing Platform */
-process.stdin.setEncoding("utf8");
 
 /* MongoDB Connections */
 const path = require("path");
@@ -27,45 +26,30 @@ const uri = process.env.MONGO_CONNECTION_STRING;
 const fileCollection = { db: process.env.MONGO_DB_NAME, collection: process.env.MONGO_FILECOLLECTION };
 const userCollection = { db: process.env.MONGO_DB_NAME, collection: process.env.MONGO_USERCOLLECTION };
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
-const client = new MongoClient(uri, { serverApi: ServerApiVersion.v1 });
+// One client for the whole process. The driver keeps a connection pool, so concurrent requests
+// share connections instead of opening their own. The pool is kept small because every warm
+// serverless instance holds its own.
+const client = new MongoClient(uri, {
+    serverApi: ServerApiVersion.v1,
+    maxPoolSize: Number(process.env.MONGO_MAX_POOL) || 10,
+    minPoolSize: 0,
+    maxIdleTimeMS: 60_000,
+    serverSelectionTimeoutMS: 8_000,
+    retryWrites: true
+});
 
-// Dashboard Configuration (removed - using inline config)
-
-// Helper function to safely connect to MongoDB
-async function ensureConnection() {
-    try {
-        // Check if client is already connected
-        if (client.topology && client.topology.isConnected()) {
-            return;
-        }
-
-        // If not connected, establish connection
-        await client.connect();
-    } catch (error) {
-        // If connection fails, try to create a new client
-        if (error.message.includes('Topology is closed') || error.message.includes('topology')) {
-            try {
-                // Close the old client first
-                if (client && typeof client.close === 'function') {
-                    await client.close().catch(() => {}); // Ignore close errors
-                }
-
-                // Create a completely new client instance
-                const newClient = new MongoClient(uri, { serverApi: ServerApiVersion.v1 });
-                await newClient.connect();
-
-                // Replace the global client reference
-                Object.setPrototypeOf(client, Object.getPrototypeOf(newClient));
-                Object.assign(client, newClient);
-
-            } catch (newConnectionError) {
-                console.error('Failed to create new MongoDB connection:', newConnectionError);
-                throw newConnectionError;
-            }
-        } else {
+// Connects once and reuses the same promise for every caller, so a burst of requests on a cold
+// start makes one connection attempt instead of one each. A failed attempt is forgotten so the
+// next request tries again; the driver reconnects by itself after that.
+let connectPromise = null;
+function ensureConnection() {
+    if (!connectPromise) {
+        connectPromise = client.connect().catch((error) => {
+            connectPromise = null;
             throw error;
-        }
+        });
     }
+    return connectPromise;
 }
 
 /* AWS Connection */
@@ -130,60 +114,28 @@ const UMD_API_ENABLED = true; // Public API, always available
 
 // Helper: Fetch UMD.io data with caching & fallback
 async function fetchUMDData(endpoint, cacheKey, cacheDuration = 24 * 60 * 60 * 1000) {
+    let cache = null;
     try {
-        const cacheClient = new MongoClient(uri, { serverApi: ServerApiVersion.v1 });
-        await cacheClient.connect();
-
-        // Check cache first
-        const cached = await cacheClient
-            .db(fileCollection.db)
-            .collection('api_cache')
-            .findOne({ key: cacheKey });
-
+        await ensureConnection();
+        cache = client.db(fileCollection.db).collection('api_cache');
+        const cached = await cache.findOne({ key: cacheKey });
         const now = new Date();
-        if (cached && (now - new Date(cached.timestamp)) < cacheDuration) {
-            await cacheClient.close();
-            return cached.data;
-        }
+        if (cached && (now - new Date(cached.timestamp)) < cacheDuration) return cached.data;
 
-        // Fetch from API
-        const response = await fetch(`${UMD_API_BASE}${endpoint}`);
+        const response = await fetch(`${UMD_API_BASE}${endpoint}`, { signal: AbortSignal.timeout(8000) });
         if (!response.ok) throw new Error(`API returned ${response.status}`);
-
         const data = await response.json();
-
-        // Update cache
-        await cacheClient
-            .db(fileCollection.db)
-            .collection('api_cache')
-            .updateOne(
-                { key: cacheKey },
-                { $set: { key: cacheKey, data: data, timestamp: now } },
-                { upsert: true }
-            );
-
-        await cacheClient.close();
+        await cache.updateOne({ key: cacheKey }, { $set: { key: cacheKey, data, timestamp: now } }, { upsert: true });
         return data;
     } catch (error) {
         console.error(`UMD.io API error (${endpoint}):`, error.message);
-
-        // Fallback to stale cache if available
+        // Fall back to a stale copy if there is one.
         try {
-            const fallbackClient = new MongoClient(uri, { serverApi: ServerApiVersion.v1 });
-            await fallbackClient.connect();
-            const staleCache = await fallbackClient
-                .db(fileCollection.db)
-                .collection('api_cache')
-                .findOne({ key: cacheKey });
-            await fallbackClient.close();
-
-            if (staleCache) {
-                return staleCache.data;
-            }
+            const stale = cache && await cache.findOne({ key: cacheKey });
+            if (stale) return stale.data;
         } catch (fallbackError) {
-            console.error('Fallback cache error:', fallbackError);
+            console.error('Fallback cache error:', fallbackError.message);
         }
-
         return null;
     }
 }
@@ -207,7 +159,6 @@ const { sessionTimeout } = require('./middleware/sessionTimeout');
 const NotionIntegration = require('./integrations/notion');
 const OneNoteIntegration = require('./integrations/onenote');
 const GoogleDocsIntegration = require('./integrations/google-docs');
-const ObsidianIntegration = require('./integrations/obsidian');
 const OAuthManager = require('./integrations/oauth-manager');
 const UserIntegrationsModel = require('./models/user-integrations');
 
@@ -223,33 +174,73 @@ app.use(helmet({
     contentSecurityPolicy: false // Allow inline scripts for EJS
 }));
 
-// Rate limiters
+// Rate limiters. Counts live in MongoDB so one limit holds across every serverless instance.
+// Signed-in requests are counted per account, not per IP: most of campus shares a handful of
+// public IP addresses, so a per-IP limit would let one busy lecture hall lock everyone out.
+const { MongoRateLimitStore } = require('./utils/rate-limit-store');
+const rateLimitCollection = async () => {
+    await ensureConnection();
+    return client.db(fileCollection.db).collection('rate_limits');
+};
+const limiterStore = (prefix) => new MongoRateLimitStore(rateLimitCollection, prefix);
+const userOrIp = (req) => (req.session && req.session.user ? `u:${req.session.user.userid}` : `ip:${req.ip}`);
+const tooMany = (message) => (req, res) => {
+    if (req.path.startsWith('/api/') || req.xhr || (req.get('accept') || '').includes('application/json')) {
+        return res.status(429).json({ error: message });
+    }
+    return res.status(429).render('error', { title: 'Slow down', message, link: '/', linkText: 'Back' });
+};
+
 const loginLimiter = rateLimit({
-    windowMs: 2 * 60 * 1000, // 2 minutes
-    // 5 login attempts. LOGIN_RATE_LIMIT_MAX raises it only where many sign-ins come from
-    // one IP on purpose (the end-to-end tests); production leaves it unset.
-    max: Number(process.env.LOGIN_RATE_LIMIT_MAX) || 5,
-    message: 'Too many login attempts. Please try again in 5 minutes.',
+    windowMs: 5 * 60 * 1000,
+    // Attempts per username from one address. LOGIN_RATE_LIMIT_MAX raises it only where many
+    // sign-ins come from one place on purpose (the end-to-end tests); production leaves it unset.
+    max: Number(process.env.LOGIN_RATE_LIMIT_MAX) || 8,
+    keyGenerator: (req) => `${req.ip}|${String((req.body && req.body.userid) || '').trim().toLowerCase().slice(0, 64)}`,
+    handler: tooMany('Too many login attempts. Please try again in 5 minutes.'),
+    store: limiterStore('login'),
     standardHeaders: true,
     legacyHeaders: false,
 });
 
 const registerLimiter = rateLimit({
-    windowMs: 60 * 60 * 1000, // 1 hour
-    max: 1000, // Generous limit for testing/mistakes FINDABLE
-    message: 'Too many registration attempts. Please try again in an hour.',
+    windowMs: 60 * 60 * 1000,
+    max: Number(process.env.REGISTER_RATE_LIMIT_MAX) || 40, // per IP; campus Wi-Fi shares addresses
+    handler: tooMany('Too many sign-ups from this network. Please try again in an hour.'),
+    store: limiterStore('register'),
+    standardHeaders: true,
+    legacyHeaders: false,
 });
 
 const uploadLimiter = rateLimit({
-    windowMs: 60 * 60 * 1000, // 1 hour
-    max: 20, // 20 upload sessions per hour
-    message: 'Upload limit reached. Please try again in an hour.',
+    windowMs: 60 * 60 * 1000,
+    max: 30, // upload sessions per account per hour
+    keyGenerator: userOrIp,
+    handler: tooMany('Upload limit reached. Please try again in an hour.'),
+    store: limiterStore('upload'),
+    standardHeaders: true,
+    legacyHeaders: false,
 });
 
 const apiLimiter = rateLimit({
-    windowMs: 15 * 60 * 1000, // 15 minutes
-    max: 100, // 100 API requests
-    message: 'Too many requests. Please slow down.',
+    windowMs: 15 * 60 * 1000,
+    max: 300, // per account
+    keyGenerator: userOrIp,
+    handler: tooMany('Too many requests. Please slow down.'),
+    store: limiterStore('api'),
+    standardHeaders: true,
+    legacyHeaders: false,
+});
+
+// The study buddy calls a paid model, so it gets its own, tighter limit.
+const studyLimiter = rateLimit({
+    windowMs: 60 * 1000,
+    max: 12,
+    keyGenerator: userOrIp,
+    handler: tooMany('You are asking faster than the study buddy can answer. Give it a few seconds.'),
+    store: limiterStore('study'),
+    standardHeaders: true,
+    legacyHeaders: false,
 });
 
 // Per-user daily limits (uploads and reports)
@@ -442,8 +433,9 @@ async function validateContent(content, fieldName) {
 }
 
 // Increased body size limits for file uploads
-app.use(express.urlencoded({ extended: false, limit: '50mb' }));
-app.use(express.json({ limit: '50mb' }));
+// Files go straight to S3 (or through multer), so form and JSON bodies are small.
+app.use(express.urlencoded({ extended: false, limit: '200kb' }));
+app.use(express.json({ limit: '1mb' }));
 app.use(cookieParser());
 app.set("views", path.resolve(__dirname, "views"));
 app.set("view engine", "ejs");
@@ -459,36 +451,56 @@ const jwt = require('jsonwebtoken');
 // Configure session store for Vercel compatibility
 const MongoStore = require('connect-mongo');
 
+if (!process.env.SECRET_KEY) {
+    const message = 'SECRET_KEY is not set. Sessions cannot be signed safely without it.';
+    if (process.env.NODE_ENV === 'production' || process.env.VERCEL === '1') throw new Error(message);
+    console.error(message);
+}
+
+// How long a browser stays signed in without "Remember me": until half a day goes by unused.
+const SESSION_IDLE_MS = 12 * 60 * 60 * 1000;
+const SESSION_REMEMBER_MS = 30 * 24 * 60 * 60 * 1000;
+
+// The session store waits for the shared client; a slow cold start gets a few tries.
+const sessionClientPromise = (async () => {
+    for (let attempt = 1; ; attempt++) {
+        try {
+            await ensureConnection();
+            return client;
+        } catch (error) {
+            if (attempt >= 5) throw error;
+            await new Promise(resolve => setTimeout(resolve, 400 * attempt));
+        }
+    }
+})();
+sessionClientPromise.catch(error => console.error('Session store could not connect:', error.message));
+
 app.use(session({
-    secret: process.env.SECRET_KEY,
+    secret: process.env.SECRET_KEY || 'dev-only-secret',
     resave: false,
     saveUninitialized: false,
     rolling: true,
     name: 'terpnotes.sid',
+    // Sessions use the app's own connection pool instead of opening a second one.
     store: MongoStore.create({
-        mongoUrl: process.env.MONGO_CONNECTION_STRING,
-        touchAfter: 24 * 3600, // lazy session update
-        ttl: 24 * 60 * 60 // 24 hours
+        clientPromise: sessionClientPromise,
+        dbName: process.env.MONGO_DB_NAME,
+        touchAfter: 10 * 60, // write "still active" at most every 10 minutes
+        ttl: SESSION_IDLE_MS / 1000
     }),
     cookie: {
-        // Secure flag: true for HTTPS (Vercel always uses HTTPS), false for HTTP (localhost)
-        // Vercel sets VERCEL env var, or we can check if BASE_URL is HTTPS
-        // Note: On Vercel preview domains, cookies MUST use secure=true because they're HTTPS
+        // HTTPS-only wherever the site is served over HTTPS (Vercel, or a BASE_URL that says so).
         secure: process.env.VERCEL === '1' ||
                 (process.env.BASE_URL && process.env.BASE_URL.startsWith('https')) ||
                 process.env.NODE_ENV === 'production' ||
                 false,
         httpOnly: true,
-        maxAge: 24 * 60 * 60 * 1000, // 24 hours
+        maxAge: SESSION_IDLE_MS,
         sameSite: 'lax',
         path: '/'
-        // Don't set domain - let it default to the request host
-        // This ensures cookies work on both preview and production Vercel domains
+        // No domain: it defaults to the request host, which works on preview and production.
     },
-    // Force new session for each login to prevent conflicts
-    genid: function(req) {
-        return require('crypto').randomBytes(16).toString('hex');
-    }
+    genid: () => require('crypto').randomBytes(24).toString('hex')
 }));
 
 /* CRON ENDPOINTS - Must be before session middleware */
@@ -502,6 +514,9 @@ app.get('/api/cron/scan-pending-files', async (req, res) => {
     if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
         return res.status(401).json({ error: 'Unauthorized' });
     }
+
+    // Daily housekeeping rides along with the scan job.
+    await cleanupUnverifiedAccounts().catch(err => console.error('Cleanup failed:', err));
 
     if (!VIRUSTOTAL_ENABLED) {
         return res.json({ message: 'VirusTotal disabled' });
@@ -1114,8 +1129,15 @@ function sanitizeForHeader(filename) {
         .trim();
 }
 
+// Courses a student keeps in their sidebar.
+const MAX_PINNED_COURSES = 12;
+
 // Session validation middleware
 app.use(async (req, res, next) => {
+    // Every template can read these, signed in or not.
+    res.locals.user = (req.session && req.session.user) || null;
+    res.locals.shell = { pinnedCourses: [], isCourseStaff: false, aiEnabled: false };
+
     const publicRoutes = ['/', '/health', '/login', '/register', '/loginSubmit', '/registerSubmit', '/forgot-password', '/resend-verification', '/privacy', '/terms', '/contact', '/contact/submit', '/api/umd/professors', '/api/umd/courses', '/api/umd/professor-courses', '/api/professor-cache', '/api/course-cache', '/api/semester-year-cache', '/api/optimized-cache'];
     const publicRoutesRegex = /^\/(verify|reset-password)\/.+|^\/invite\/[^/]+$/; // /verify/:token, /reset-password/:token, /invite/:token (not /accept)
     const isOAuthCallback = /^\/auth\/[a-z]+\/callback$/.test(req.path);
@@ -1137,10 +1159,6 @@ app.use(async (req, res, next) => {
     if (!sessionUser && req.path !== '/logout') {
         // For API routes, return JSON error instead of redirecting
         if (isApiRoute) {
-            console.log('🔧 API route without session:', req.path);
-            console.log('🔧 Session data:', req.session);
-            console.log('🔧 Cookies:', req.headers.cookie);
-            console.log('🔧 Session user:', req.session.user);
             return res.status(401).json({ error: 'Unauthorized' });
         }
         return res.redirect('/login');
@@ -1154,6 +1172,28 @@ app.use(async (req, res, next) => {
                 .db(userCollection.db)
                 .collection(userCollection.collection)
                 .findOne({ userid: sessionUser.userid });
+
+            // The account was deleted while this browser was still signed in.
+            if (!user) {
+                return req.session.destroy(() => {
+                    res.clearCookie('terpnotes.sid');
+                    if (isApiRoute) return res.status(401).json({ error: 'Unauthorized' });
+                    res.redirect('/login');
+                });
+            }
+
+            // A role change by an admin applies on the next request, not the next sign-in.
+            if (user.role && user.role !== sessionUser.role) req.session.user.role = user.role;
+
+            // What the app shell (sidebar, tab bar, study buddy) needs on every page.
+            if (!isApiRoute) {
+                const staffCourses = await courseStaff.coursesFor(client.db(fileCollection.db), user.userid).catch(() => []);
+                res.locals.shell = {
+                    pinnedCourses: Array.isArray(user.pinnedCourses) ? user.pinnedCourses.slice(0, MAX_PINNED_COURSES) : [],
+                    isCourseStaff: staffCourses.length > 0,
+                    aiEnabled: Boolean(studyBuddy.aiConfig())
+                };
+            }
 
             if (user && user.banStatus && user.banStatus.isBanned) {
                 // Check if timed ban has expired
@@ -1330,115 +1370,58 @@ const crypto = require('crypto');
 // All users register as contributors
 console.log('No default accounts - manually set admin via MongoDB');
 
-// Create database indexes for performance
+// Database indexes. createIndex does nothing when the index already exists, so this is safe to
+// run on every cold start, in every environment. Each index is created by itself so one failure
+// (for example a unique index over old duplicate rows) doesn't stop the rest.
 async function createDatabaseIndexes() {
-    const indexClient = new MongoClient(uri, { serverApi: ServerApiVersion.v1 });
-    try {
-        await indexClient.connect();
-
-        // Users collection indexes
-        await indexClient
-            .db(userCollection.db)
-            .collection(userCollection.collection)
-            .createIndex({ userid: 1 }, { unique: true });
-
-        await indexClient
-            .db(userCollection.db)
-            .collection(userCollection.collection)
-            .createIndex({ email: 1 }, { unique: true });
-
-        await indexClient
-            .db(userCollection.db)
-            .collection(userCollection.collection)
-            .createIndex({ role: 1 });
-
-        await indexClient
-            .db(userCollection.db)
-            .collection(userCollection.collection)
-            .createIndex({ isVerified: 1, createdAt: 1 }); // For cleanup queries
-
-        // Files collection indexes
-        await indexClient
-            .db(fileCollection.db)
-            .collection(fileCollection.collection)
-            .createIndex({ classCode: 1 });
-
-        await indexClient
-            .db(fileCollection.db)
-            .collection(fileCollection.collection)
-            .createIndex({ major: 1 });
-
-        await indexClient
-            .db(fileCollection.db)
-            .collection(fileCollection.collection)
-            .createIndex({ uploadedBy: 1 });
-
-        await indexClient
-            .db(fileCollection.db)
-            .collection(fileCollection.collection)
-            .createIndex({ fileHash: 1 }); // For deduplication
-
-        await indexClient
-            .db(fileCollection.db)
-            .collection(fileCollection.collection)
-            .createIndex({ uploadDate: -1 }); // For sorting by newest
-
-        await indexClient
-            .db(fileCollection.db)
-            .collection(fileCollection.collection)
-            .createIndex({ virusScanStatus: 1 }); // For filtering scanned files
-
-        // Confidential-scan review queue and course staff
-        await indexClient
-            .db(fileCollection.db)
-            .collection(fileCollection.collection)
-            .createIndex({ 'confidentialScan.status': 1, quarantined: 1 });
-        await courseStaff.ensureIndexes(indexClient.db(fileCollection.db));
-
-        // Reports collection indexes
-        await indexClient
-            .db(fileCollection.db)
-            .collection('reports')
-            .createIndex({ status: 1, reportedAt: -1 }); // For admin dashboard
-
-        await indexClient
-            .db(fileCollection.db)
-            .collection('reports')
-            .createIndex({ filename: 1 }); // For cascading deletes
-
-        // Per-user/day indexes
-        await indexClient
-            .db(fileCollection.db)
-            .collection(fileCollection.collection)
-            .createIndex({ uploadedBy: 1, uploadDate: -1 });
-
-        await indexClient
-            .db(fileCollection.db)
-            .collection('reports')
-            .createIndex({ reportedBy: 1, reportedAt: -1 });
-
-        // Announcements collection indexes
-        await indexClient
-            .db(fileCollection.db)
-            .collection('announcements')
-            .createIndex({ isActive: 1, createdAt: -1 }); // For dashboard queries
-
-        console.log('Database indexes created successfully');
-    } catch (error) {
-        // Indexes may already exist, that's fine
-        if (error.code !== 85 && error.code !== 86) {
-            console.error('Error creating indexes:', error.message);
+    await ensureConnection();
+    const db = client.db(fileCollection.db);
+    const users = userCollection.collection;
+    const files = fileCollection.collection;
+    const indexes = [
+        // The unique indexes are what stop two simultaneous sign-ups from taking the same name.
+        [users, { userid: 1 }, { unique: true }],
+        [users, { email: 1 }, { unique: true }],
+        [users, { role: 1 }],
+        [users, { isVerified: 1, createdAt: 1 }],
+        [files, { filename: 1 }],
+        [files, { classCode: 1, uploadDate: -1 }],
+        [files, { school: 1, uploadDate: -1 }],
+        [files, { major: 1 }],
+        [files, { uploadedBy: 1, uploadDate: -1 }],
+        [files, { fileHash: 1 }],
+        [files, { uploadDate: -1 }],
+        [files, { virusScanStatus: 1 }],
+        [files, { 'confidentialScan.status': 1, quarantined: 1 }],
+        ['reports', { status: 1, reportedAt: -1 }],
+        ['reports', { filename: 1 }],
+        ['reports', { reportedBy: 1, reportedAt: -1 }],
+        ['announcements', { isActive: 1, createdAt: -1 }],
+        ['noteTexts', { fileId: 1 }, { unique: true }],
+        ['noteTexts', { classCode: 1, school: 1 }],
+        ['studyUsage', { userid: 1, day: 1 }, { unique: true }],
+        ['account_history', { userId: 1, timestamp: -1 }],
+        ['api_cache', { key: 1 }],
+        // Rate-limit counters delete themselves when their window ends.
+        ['rate_limits', { expiresAt: 1 }, { expireAfterSeconds: 0 }]
+    ];
+    let failed = 0;
+    for (const [collection, keys, options] of indexes) {
+        try {
+            await db.collection(collection).createIndex(keys, options || {});
+        } catch (error) {
+            failed++;
+            console.error(`Index ${collection} ${JSON.stringify(keys)} failed:`, error.message);
         }
-    } finally {
-        await indexClient.close();
     }
+    if (failed) console.error(`${failed} database index(es) could not be created; see the errors above.`);
 }
 
 // Cleanup function: Delete unverified accounts older than 7 days
 async function cleanupUnverifiedAccounts() {
-    const cleanupClient = new MongoClient(uri, { serverApi: ServerApiVersion.v1 });
+    const cleanupClient = client;
     try {
-        await cleanupClient.connect();
+        await ensureConnection();
 
         const sevenDaysAgo = new Date();
         sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
@@ -1456,8 +1439,6 @@ async function cleanupUnverifiedAccounts() {
         }
     } catch (error) {
         console.error('Error cleaning up unverified accounts:', error);
-    } finally {
-        await cleanupClient.close();
     }
 }
 
@@ -1467,9 +1448,9 @@ async function retryStuckScans() {
         return;
     }
 
-    const scanRetryClient = new MongoClient(uri, { serverApi: ServerApiVersion.v1 });
+    const scanRetryClient = client;
     try {
-        await scanRetryClient.connect();
+        await ensureConnection();
 
         // Find files stuck in "pending" or "error" status for more than 10 minutes
         const tenMinutesAgo = new Date();
@@ -1513,23 +1494,20 @@ async function retryStuckScans() {
         }
     } catch (error) {
         console.error('Error retrying stuck scans:', error);
-    } finally {
-        await scanRetryClient.close();
     }
 }
 
-// Run on server startup (non-blocking for Vercel serverless)
-// These run in the background and won't block requests
-if (process.env.NODE_ENV !== 'production') {
-    // Only run these in development - Vercel Cron handles them in production
-    createDatabaseIndexes().catch(err => console.error('Index creation failed:', err));
+// Indexes are checked on every cold start, in the background, so requests aren't held up.
+createDatabaseIndexes().catch(err => console.error('Index creation failed:', err.message));
+
+// Housekeeping. On Vercel the daily cron (/api/cron/scan-pending-files) does this; a long-running
+// server does it at startup and once a day.
+if (process.env.VERCEL !== '1') {
     cleanupUnverifiedAccounts().catch(err => console.error('Cleanup failed:', err));
     retryStuckScans().catch(err => console.error('Retry scans failed:', err));
-
-    // Run cleanup every 24 hours (dev only)
     setInterval(() => {
         cleanupUnverifiedAccounts().catch(err => console.error('Cleanup failed:', err));
-    }, 24 * 60 * 60 * 1000);
+    }, 24 * 60 * 60 * 1000).unref();
 }
 
 /* VirusTotal Scanning Function */
@@ -1861,7 +1839,7 @@ const upload = multer({
 
 /* ROUTES */
 // One responsive site now. Old /mobile links (bookmarks, home-screen icons) go to the same page.
-const MOBILE_PATHS = { '': '/', 'dashboard': '/dashboard', 'upload': '/dashboard#upload', 'profile': '/profile', 'admin': '/admin', 'login': '/login', 'register': '/register' };
+const MOBILE_PATHS = { '': '/', 'dashboard': '/dashboard', 'upload': '/dashboard#upload', 'profile': '/settings', 'admin': '/admin', 'login': '/login', 'register': '/register' };
 app.get(['/mobile', '/mobile/:page'], (req, res) => {
     res.redirect(301, MOBILE_PATHS[req.params.page || ''] || '/dashboard');
 });
@@ -2913,7 +2891,16 @@ app.get('/api/course-suggest/:code', (req, res) => {
     res.json(course);
 });
 
-app.get('/integrations', (req, res) => {
+// Settings is one place with three tabs. The old addresses still work.
+const settingsRedirect = (to) => (req, res) => {
+    const query = req.originalUrl.includes('?') ? req.originalUrl.slice(req.originalUrl.indexOf('?')) : '';
+    res.redirect(to + query);
+};
+app.get('/profile', settingsRedirect('/settings'));
+app.get('/integrations', settingsRedirect('/settings/apps'));
+app.get('/ai-access', settingsRedirect('/settings/ai'));
+
+app.get('/settings/apps', (req, res) => {
     if (!req.session.user) {
         return res.redirect('/login');
     }
@@ -2940,6 +2927,12 @@ app.get('/dashboard', async (req, res) => {
             .db(fileCollection.db)
             .collection(fileCollection.collection)
             .find(visibleFilesFilter(req.session.user))
+            // Only what the list shows: scan reports and text extracts stay in the database.
+            .project({
+                filename: 1, originalName: 1, classCode: 1, major: 1, professor: 1, semester: 1, year: 1,
+                category: 1, description: 1, uploadedBy: 1, uploadDate: 1, size: 1, downloadCount: 1,
+                mimetype: 1, quarantined: 1, virusScanStatus: 1, s3Missing: 1
+            })
             .sort({ uploadDate: -1 }) // Default sort by newest
             .toArray();
 
@@ -2993,7 +2986,7 @@ app.get('/dashboard', async (req, res) => {
 
 // Mobile Dashboard - Optimized for mobile devices
 
-app.get('/profile', async (req, res) => {
+app.get('/settings', async (req, res) => {
     if (!req.session.user) {
         return res.redirect('/login');
     }
@@ -3057,7 +3050,7 @@ app.post('/update-profile', async (req, res) => {
                 return res.render('error', {
                     title: "Invalid Email Domain",
                     message: `Please use your ${schools.namesList()} email address (${schools.domainsList()}).`,
-                    link: "/profile",
+                    link: "/settings",
                     linkText: "Back to Profile"
                 });
             }
@@ -3065,7 +3058,7 @@ app.post('/update-profile', async (req, res) => {
                 return res.render('error', {
                     title: "Different School",
                     message: "Your new email is at a different school. To move your account to another school, contact support.",
-                    link: "/profile",
+                    link: "/settings",
                     linkText: "Back to Profile"
                 });
             }
@@ -3083,7 +3076,7 @@ app.post('/update-profile', async (req, res) => {
                 return res.render('error', {
                     title: "Email Already Exists",
                     message: "This email is already registered to another account.",
-                    link: "/profile",
+                    link: "/settings",
                     linkText: "Back to Profile"
                 });
             }
@@ -3123,7 +3116,7 @@ app.post('/update-profile', async (req, res) => {
         res.render('success', {
             title: "Profile Updated",
             message: "Your profile has been successfully updated.",
-            link: "/profile",
+            link: "/settings",
             linkText: "Back to Profile"
         });
     } catch (error) {
@@ -3131,7 +3124,7 @@ app.post('/update-profile', async (req, res) => {
         res.render('error', {
             title: "Update Failed",
             message: "Failed to update profile. Please try again.",
-            link: "/profile",
+            link: "/settings",
             linkText: "Back to Profile"
         });
     }
@@ -3158,7 +3151,7 @@ app.post('/change-password', async (req, res) => {
             return res.render('error', {
                 title: "Incorrect Password",
                 message: "Your current password is incorrect.",
-                link: "/profile",
+                link: "/settings",
                 linkText: "Back to Profile"
             });
         }
@@ -3168,7 +3161,7 @@ app.post('/change-password', async (req, res) => {
             return res.render('error', {
                 title: "Password Mismatch",
                 message: "New passwords do not match.",
-                link: "/profile",
+                link: "/settings",
                 linkText: "Back to Profile"
             });
         }
@@ -3179,7 +3172,7 @@ app.post('/change-password', async (req, res) => {
             return res.render('error', {
                 title: "Weak Password",
                 message: "Your new password does not meet security requirements:\n\n" + passwordValidation.errors.join('\n'),
-                link: "/profile",
+                link: "/settings",
                 linkText: "Back to Profile"
             });
         }
@@ -3190,7 +3183,7 @@ app.post('/change-password', async (req, res) => {
             return res.render('error', {
                 title: "Same Password",
                 message: "Your new password must be different from your current password.",
-                link: "/profile",
+                link: "/settings",
                 linkText: "Back to Profile"
             });
         }
@@ -3220,7 +3213,7 @@ app.post('/change-password', async (req, res) => {
         res.render('success', {
             title: "Password Changed",
             message: "Your password has been successfully changed.",
-            link: "/profile",
+            link: "/settings",
             linkText: "Back to Profile"
         });
     } catch (error) {
@@ -3228,7 +3221,7 @@ app.post('/change-password', async (req, res) => {
         res.render('error', {
             title: "Password Change Failed",
             message: "Failed to change password. Please try again.",
-            link: "/profile",
+            link: "/settings",
             linkText: "Back to Profile"
         });
     }
@@ -3446,143 +3439,9 @@ app.post('/edit-file', async (req, res) => {
     }
 });
 
-app.get("/delete/:filename", async (req, res) => {
-    if (!req.session.user) return res.redirect("/login");
+// Deleting is POST-only (/api/bulk-delete). The old GET /delete/:filename is gone: a GET that
+// changes data can be triggered by any link or image tag on another site.
 
-    const filename = decodeURIComponent(req.params.filename);
-
-    try {
-        await ensureConnection();
-
-        // Check if user owns the file or is admin
-        const fileDoc = await client
-            .db(fileCollection.db)
-            .collection(fileCollection.collection)
-            .findOne({ filename });
-
-        if (!fileDoc) {
-            return res.status(404).send("File not found.");
-        }
-
-        if (fileDoc.uploadedBy !== req.session.user.userid && req.session.user.role !== 'admin') {
-            console.log('Permission denied - user cannot delete this file');
-            return res.status(403).send("You don't have permission to delete this file.");
-        }
-
-        // Check if this file is deduplicated (used by other uploads)
-        const fileHash = fileDoc.fileHash;
-        const duplicateFiles = await client
-            .db(fileCollection.db)
-            .collection(fileCollection.collection)
-            .countDocuments({ fileHash: fileHash });
-
-        // Download file for admin email BEFORE deleting from S3
-        let fileBuffer = null;
-        if (duplicateFiles === 1) {
-            try {
-                fileBuffer = await downloadFileFromS3(filename);
-                console.log(`Downloaded file for admin notification: ${filename}`);
-            } catch (downloadErr) {
-                console.log(`Could not download file for admin notification: ${downloadErr.message}`);
-            }
-        }
-
-        // Delete metadata from MongoDB FIRST
-        await client
-            .db(fileCollection.db)
-            .collection(fileCollection.collection)
-            .deleteOne({ filename });
-
-        // Delete all reports for this specific file
-        const deletedReports = await client
-            .db(fileCollection.db)
-            .collection('reports')
-            .deleteMany({ filename: filename });
-
-        if (deletedReports.deletedCount > 0) {
-            console.log(` Dismissed ${deletedReports.deletedCount} report(s) for deleted file`);
-        }
-
-        // NOW do S3 deletion (after MongoDB is done)
-        if (duplicateFiles === 1) {
-            await s3.deleteObject({ Bucket: AWS_BUCKET, Key: filename }).promise();
-            console.log(`Deleted file from S3: ${filename}`);
-        } else {
-            console.log(`File is deduplicated (${duplicateFiles} instances), keeping S3 file`);
-        }
-
-        // Send email notification to user using template (async, no await needed)
-        const originalFilename = filename.split('_').slice(2).join('_'); // Extract original filename from S3 key
-        sendEmail(
-            req.session.user.email,
-            "File Deleted - Terp Notes",
-            emailTemplates.fileDeletionEmail(req.session.user.firstname, originalFilename)
-        ).catch((err) => console.error("Failed to send file deletion confirmation:", err.message));
-
-        // Send admin notification email with file attachment (async, no await needed)
-        const adminEmail = process.env.ADMIN_EMAIL || 'pmachre@terpmail.umd.edu';
-        const deleterInfo = {
-            firstname: req.session.user.firstname,
-            lastname: req.session.user.lastname,
-            email: req.session.user.email,
-            userid: req.session.user.userid,
-            role: req.session.user.role
-        };
-
-        const fileInfo = {
-            filename: filename,
-            originalName: originalFilename,
-            classCode: fileDoc.classCode,
-            semester: fileDoc.semester,
-            year: fileDoc.year,
-            professor: fileDoc.professor,
-            major: fileDoc.major,
-            category: fileDoc.category,
-            uploadDate: fileDoc.uploadDate,
-            downloadCount: fileDoc.downloadCount,
-            size: fileDoc.size,
-            isDeduplicated: duplicateFiles > 1,
-            remainingInstances: duplicateFiles - 1
-        };
-
-        // Send admin notification email with file attachment (if available)
-        (async () => {
-            try {
-                if (fileBuffer) {
-                    const attachment = {
-                        filename: originalFilename,
-                        content: fileBuffer.toString('base64'),
-                        contentType: 'application/octet-stream'
-                    };
-
-                    await sendEmail(
-                        adminEmail,
-                        `[Terp Notes Admin] File Deleted: ${originalFilename}`,
-                        emailTemplates.adminFileDeletionEmail(deleterInfo, fileInfo, 'single'),
-                        [attachment]
-                    );
-                    console.log('Admin notification sent with file attachment');
-                } else {
-                    // Send without attachment if file couldn't be downloaded
-                    await sendEmail(
-                        adminEmail,
-                        `[Terp Notes Admin] File Deleted: ${originalFilename}`,
-                        emailTemplates.adminFileDeletionEmail(deleterInfo, fileInfo, 'single')
-                    );
-                    console.log('Admin notification sent without attachment (file not available)');
-                }
-            } catch (err) {
-                console.error("Failed to send admin file deletion notification:", err.message);
-            }
-        })();
-
-        // Redirect back to dashboard
-        res.redirect("/dashboard");
-    } catch (err) {
-        console.error("Delete failed:", err);
-        res.status(500).send("Error deleting file.");
-    }
-});
 
 // Bulk delete endpoint for multiple files
 app.post("/api/bulk-delete", apiLimiter, async (req, res) => {
@@ -4085,62 +3944,6 @@ app.post("/bulk-download", async (req, res) => {
     }
 });
 
-// Progress tracking endpoint
-app.get("/bulk-download-progress/:downloadId", (req, res) => {
-    const { downloadId } = req.params;
-
-    res.setHeader('Content-Type', 'text/event-stream');
-    res.setHeader('Cache-Control', 'no-cache');
-    res.setHeader('Connection', 'keep-alive');
-    res.setHeader('Access-Control-Allow-Origin', '*');
-
-    const progress = downloadProgress.get(downloadId);
-
-    if (!progress) {
-        res.write(`data: ${JSON.stringify({ error: 'Download not found' })}\n\n`);
-        res.end();
-        return;
-    }
-
-    // Send initial progress
-    res.write(`data: ${JSON.stringify({
-        downloadId,
-        ...progress,
-        percentage: Math.round((progress.processedFiles / progress.totalFiles) * 100),
-        elapsedTime: Date.now() - progress.startTime
-    })}\n\n`);
-
-    // Set up interval to send progress updates
-    const interval = setInterval(() => {
-        const currentProgress = downloadProgress.get(downloadId);
-
-        if (!currentProgress) {
-            clearInterval(interval);
-            res.write(`data: ${JSON.stringify({ completed: true })}\n\n`);
-            res.end();
-            return;
-        }
-
-        res.write(`data: ${JSON.stringify({
-            downloadId,
-            ...currentProgress,
-            percentage: Math.round((currentProgress.processedFiles / currentProgress.totalFiles) * 100),
-            elapsedTime: Date.now() - currentProgress.startTime
-        })}\n\n`);
-
-        // Close connection if download is complete or errored
-        if (currentProgress.status === 'completed' || currentProgress.status === 'error') {
-            clearInterval(interval);
-            res.end();
-        }
-    }, 1000); // Update every second
-
-    // Clean up on client disconnect
-    req.on('close', () => {
-        clearInterval(interval);
-    });
-});
-
 app.post('/registerSubmit', registerLimiter, async function (req, res) {
     // Problems the student can fix go back to the form with what they typed (never the passwords).
     const backToForm = (message) => res.status(400).render('register', {
@@ -4372,13 +4175,7 @@ app.post('/loginSubmit', loginLimiter, async function (req, res) {
             );
 
             // Set session expiration based on remember me option
-            if (req.session.rememberMe) {
-                // 30 days for "Remember Me"
-                req.session.cookie.maxAge = 30 * 24 * 60 * 60 * 1000; // 30 days in milliseconds
-            } else {
-                // Default session timeout (likely 30 minutes or 1 hour)
-                req.session.cookie.maxAge = 30 * 60 * 1000; // 30 minutes in milliseconds
-            }
+            req.session.cookie.maxAge = req.session.rememberMe ? SESSION_REMEMBER_MS : SESSION_IDLE_MS;
 
             // Set a flag to indicate successful login for tab synchronization
             req.session.loginTimestamp = now;
@@ -4810,7 +4607,7 @@ app.post(['/mcp', '/mcp/:token'], mcpLimiter, async (req, res) => {
         const user = await mcp.authenticate(db, userCollection.collection, mcp.tokenFromRequest(req));
         if (!user) {
             res.set('WWW-Authenticate', 'Bearer realm="terp-notes"');
-            return mcpError(res, 401, 'A valid Terp Notes access token is required. Create one at /ai-access.');
+            return mcpError(res, 401, 'A valid Terp Notes access token is required. Create one in Settings, under AI apps.');
         }
         const baseUrl = process.env.BASE_URL || `${req.protocol}://${req.get('host')}`;
         const server = mcp.buildServer({ db, filesCollection: fileCollection.collection, baseUrl, user });
@@ -4834,7 +4631,7 @@ app.all(['/mcp', '/mcp/:token'], (req, res) => {
     mcpError(res, 405, 'Method not allowed');
 });
 
-app.get('/ai-access', async (req, res) => {
+app.get('/settings/ai', async (req, res) => {
     if (!req.session.user) return res.redirect('/login');
     try {
         await ensureConnection();
@@ -4876,37 +4673,61 @@ app.post('/api/ai-access/tokens/:id/revoke', apiLimiter, async (req, res) => {
 
 /* AI STUDY BUDDY (see utils/study-buddy.js) */
 
-app.get('/study', async (req, res) => {
+// The study buddy is a panel that opens on any page, not a page of its own. Old links land on
+// the notes list with the panel open.
+app.get('/study', (req, res) => {
     if (!req.session.user) return res.redirect('/login');
+    const course = courseStaff.normalizeCourse(req.query.course);
+    res.redirect(`/dashboard?${course ? `course=${encodeURIComponent(course)}&` : ''}buddy=open`);
+});
+
+// What the panel can use as context: the courses with readable notes and, for one course, its files.
+app.get('/api/study/context', apiLimiter, async (req, res) => {
+    if (!req.session.user) return res.status(401).json({ error: 'Not signed in' });
     try {
         await ensureConnection();
         const db = client.db(fileCollection.db);
-        const indexed = await db.collection('noteTexts').distinct('classCode', schools.schoolFilter(schools.schoolOf(req.session.user)));
-        res.render('study', {
-            courses: indexed.filter(Boolean).sort(),
-            selected: courseStaff.normalizeCourse(req.query.course) || '',
-            aiEnabled: Boolean(studyBuddy.aiConfig()),
-            user: req.session.user
-        });
+        const school = schools.schoolFilter(schools.schoolOf(req.session.user));
+        const course = courseStaff.normalizeCourse(req.query.course);
+        const courses = (await db.collection('noteTexts').distinct('classCode', school)).filter(Boolean).sort();
+        let files = [];
+        if (course) {
+            const [notes, visible] = await Promise.all([
+                db.collection('noteTexts').find({ classCode: course, ...school }).project({ filename: 1, originalName: 1, fileId: 1 }).limit(500).toArray(),
+                db.collection(fileCollection.collection).find({ classCode: course, quarantined: { $ne: true }, ...school }).project({ _id: 1, category: 1, uploadDate: 1 }).toArray()
+            ]);
+            const info = new Map(visible.map(f => [String(f._id), f]));
+            files = notes
+                .filter(n => info.has(n.fileId))
+                .map(n => ({ filename: n.filename, name: n.originalName, category: info.get(n.fileId).category || '', time: info.get(n.fileId).uploadDate || null }))
+                .sort((x, y) => new Date(y.time || 0) - new Date(x.time || 0));
+        }
+        res.set('Cache-Control', 'private, max-age=30');
+        res.json({ aiEnabled: Boolean(studyBuddy.aiConfig()), courses, files });
     } catch (err) {
-        console.error('Study page error:', err);
-        res.status(500).render('error', { title: 'Something went wrong', message: 'Could not load the study buddy.', link: '/dashboard', linkText: 'Go to Dashboard' });
+        console.error('Study context error:', err.message);
+        res.status(500).json({ error: 'Could not load your courses.' });
     }
 });
 
-app.post('/api/study/ask', apiLimiter, async (req, res) => {
+app.post('/api/study/ask', studyLimiter, async (req, res) => {
     if (!req.session.user) return res.status(401).json({ error: 'Not signed in' });
-    const classCode = courseStaff.normalizeCourse(req.body.classCode);
-    const mode = req.body.mode === 'quiz' ? 'quiz' : 'ask';
-    const question = String(req.body.question || '').trim().slice(0, 1000);
-    if (!classCode) return res.status(400).json({ error: 'Pick a course first.' });
+    const body = req.body || {};
+    const classCode = courseStaff.normalizeCourse(body.classCode);
+    const mode = studyBuddy.modeOf(body.mode);
+    const question = String(body.question || '').trim().slice(0, 1000);
+    const filenames = Array.isArray(body.files)
+        ? body.files.filter(f => typeof f === 'string' && f.length <= 300).slice(0, studyBuddy.MAX_CONTEXT_FILES)
+        : [];
+    if (!classCode && !filenames.length) return res.status(400).json({ error: 'Pick a course or some files first.' });
     if (mode === 'ask' && question.length < 3) return res.status(400).json({ error: 'Ask a question first.' });
     try {
         await ensureConnection();
         const result = await studyBuddy.answer({
             db: client.db(fileCollection.db),
             filesCollection: fileCollection.collection,
-            classCode, question, mode,
+            classCode, question, mode, filenames,
+            history: body.history,
             userid: req.session.user.userid,
             school: schools.schoolOf(req.session.user),
             config: studyBuddy.aiConfig()
@@ -4915,6 +4736,34 @@ app.post('/api/study/ask', apiLimiter, async (req, res) => {
     } catch (err) {
         console.error('Study buddy error:', err.message);
         res.status(502).json({ error: 'The study buddy is having trouble right now. Try again in a minute.' });
+    }
+});
+
+// Courses a student keeps in their sidebar.
+app.post('/api/courses/pin', apiLimiter, async (req, res) => {
+    if (!req.session.user) return res.status(401).json({ error: 'Not signed in' });
+    const classCode = courseStaff.normalizeCourse(req.body && req.body.classCode);
+    if (!classCode) return res.status(400).json({ error: 'Use a class code like CMSC330.' });
+    const pinned = !(req.body && req.body.pinned === false);
+    try {
+        await ensureConnection();
+        const users = client.db(userCollection.db).collection(userCollection.collection);
+        const filter = { userid: req.session.user.userid };
+        if (pinned) {
+            // The size check and the add are one update, so two tabs can't push past the limit.
+            const result = await users.updateOne(
+                { ...filter, [`pinnedCourses.${MAX_PINNED_COURSES - 1}`]: { $exists: false } },
+                { $addToSet: { pinnedCourses: classCode } }
+            );
+            if (!result.matchedCount) return res.status(400).json({ error: `You can keep up to ${MAX_PINNED_COURSES} courses in your sidebar.` });
+        } else {
+            await users.updateOne(filter, { $pull: { pinnedCourses: classCode } });
+        }
+        const user = await users.findOne(filter, { projection: { pinnedCourses: 1 } });
+        res.json({ pinnedCourses: (user && user.pinnedCourses) || [] });
+    } catch (err) {
+        console.error('Pin course error:', err.message);
+        res.status(500).json({ error: 'Could not update your courses.' });
     }
 });
 
@@ -6114,13 +5963,13 @@ function startOAuthFlow(provider) {
             req.session.save((err) => {
                 if (err) {
                     console.error(`${provider} OAuth session save error:`, err);
-                    return res.redirect('/integrations?error=oauth_failed');
+                    return res.redirect('/settings/apps?error=oauth_failed');
                 }
                 res.redirect(authUrl);
             });
         } catch (error) {
             console.error(`${provider} OAuth error:`, error);
-            res.redirect('/integrations?error=oauth_failed');
+            res.redirect('/settings/apps?error=oauth_failed');
         }
     };
 }
@@ -6135,7 +5984,7 @@ app.get('/auth/google/callback', async (req, res) => {
         const { code, state } = req.query;
 
         if (!code) {
-            return res.redirect('/integrations?error=oauth_cancelled');
+            return res.redirect('/settings/apps?error=oauth_cancelled');
         }
 
         // Exchange code for tokens
@@ -6143,7 +5992,7 @@ app.get('/auth/google/callback', async (req, res) => {
 
         if (!tokenResult.success) {
             console.error('Token exchange failed:', tokenResult.error);
-            return res.redirect('/integrations?error=oauth_failed');
+            return res.redirect('/settings/apps?error=oauth_failed');
         }
 
         // If no session, try to get user from state parameter
@@ -6157,7 +6006,7 @@ app.get('/auth/google/callback', async (req, res) => {
                 userId = stateParts[0];
             } catch (error) {
                 console.error('Error decoding state:', error);
-                return res.redirect('/integrations?error=oauth_failed');
+                return res.redirect('/settings/apps?error=oauth_failed');
             }
         }
 
@@ -6186,10 +6035,10 @@ app.get('/auth/google/callback', async (req, res) => {
             connectedAccount: userInfo.email || userInfo.name
         });
 
-        res.redirect('/integrations?success=google_connected');
+        res.redirect('/settings/apps?success=google_connected');
     } catch (error) {
         console.error('Google OAuth callback error:', error);
-        res.redirect('/integrations?error=oauth_failed');
+        res.redirect('/settings/apps?error=oauth_failed');
     }
 });
 
@@ -6198,7 +6047,7 @@ app.get('/auth/microsoft/callback', async (req, res) => {
         const { code, state } = req.query;
 
         if (!code) {
-            return res.redirect('/integrations?error=oauth_cancelled');
+            return res.redirect('/settings/apps?error=oauth_cancelled');
         }
 
         // Exchange code for tokens
@@ -6206,7 +6055,7 @@ app.get('/auth/microsoft/callback', async (req, res) => {
 
         if (!tokenResult.success) {
             console.error('Token exchange failed:', tokenResult.error);
-            return res.redirect('/integrations?error=oauth_failed');
+            return res.redirect('/settings/apps?error=oauth_failed');
         }
 
         // Get user info
@@ -6224,7 +6073,7 @@ app.get('/auth/microsoft/callback', async (req, res) => {
                 userId = stateParts[0];
             } catch (error) {
                 console.error('Error decoding state:', error);
-                return res.redirect('/integrations?error=oauth_failed');
+                return res.redirect('/settings/apps?error=oauth_failed');
             }
         }
 
@@ -6238,10 +6087,10 @@ app.get('/auth/microsoft/callback', async (req, res) => {
             connectedAccount: userInfo.email || userInfo.displayName
         });
 
-        res.redirect('/integrations?success=microsoft_connected');
+        res.redirect('/settings/apps?success=microsoft_connected');
     } catch (error) {
         console.error('Microsoft OAuth callback error:', error);
-        res.redirect('/integrations?error=oauth_failed');
+        res.redirect('/settings/apps?error=oauth_failed');
     }
 });
 
@@ -6253,7 +6102,7 @@ app.get('/auth/notion/callback', async (req, res) => {
         console.log('Notion OAuth callback - session user:', req.session.user ? 'present' : 'missing');
 
         if (!code) {
-            return res.redirect('/integrations?error=oauth_cancelled');
+            return res.redirect('/settings/apps?error=oauth_cancelled');
         }
 
         // If no session, try to get user from state parameter
@@ -6269,7 +6118,7 @@ app.get('/auth/notion/callback', async (req, res) => {
                 console.log('Extracted user ID from state:', userId);
             } catch (error) {
                 console.error('Error decoding state:', error);
-                return res.redirect('/integrations?error=oauth_failed');
+                return res.redirect('/settings/apps?error=oauth_failed');
             }
         }
 
@@ -6278,7 +6127,7 @@ app.get('/auth/notion/callback', async (req, res) => {
 
         if (!tokenResult.success) {
             console.error('Token exchange failed:', tokenResult.error);
-            return res.redirect('/integrations?error=oauth_failed');
+            return res.redirect('/settings/apps?error=oauth_failed');
         }
 
         // Get user info
@@ -6295,20 +6144,27 @@ app.get('/auth/notion/callback', async (req, res) => {
             connectedAccount: userInfo.email || userInfo.name
         });
 
-        res.redirect('/integrations?success=notion_connected');
+        res.redirect('/settings/apps?success=notion_connected');
     } catch (error) {
         console.error('Notion OAuth callback error:', error);
-        res.redirect('/integrations?error=oauth_failed');
+        res.redirect('/settings/apps?error=oauth_failed');
     }
 });
 
 // Health check endpoint
-app.get('/health', (req, res) => {
-    res.json({
-        status: 'OK',
-        timestamp: new Date().toISOString(),
-        service: 'Terp Notes'
-    });
+app.get('/health', async (req, res) => {
+    const body = { status: 'OK', timestamp: new Date().toISOString(), service: 'Terp Notes' };
+    // ?deep=1 also checks the database, for uptime monitors.
+    if (req.query.deep) {
+        try {
+            await ensureConnection();
+            await client.db(fileCollection.db).command({ ping: 1 });
+            body.database = 'OK';
+        } catch (error) {
+            return res.status(503).json({ ...body, status: 'DEGRADED', database: 'unreachable' });
+        }
+    }
+    res.json(body);
 });
 
 
@@ -6386,8 +6242,6 @@ function getIntegrationClass(integrationId) {
             return require('./integrations/onenote');
         case 'google-docs':
             return require('./integrations/google-docs');
-        case 'obsidian':
-            return require('./integrations/obsidian');
         default:
             return null;
     }
@@ -6608,9 +6462,6 @@ function registerIntegrationRoutes() {
                         case 'google-docs':
                             IntegrationClass = require('./integrations/google-docs');
                             break;
-                        case 'obsidian':
-                            IntegrationClass = require('./integrations/obsidian');
-                            break;
                         default:
                             return false;
                     }
@@ -6687,19 +6538,6 @@ function registerIntegrationRoutes() {
                     oauthConfigured: microsoftConfigured,
                     oauthProvider: 'microsoft',
                     connectLabel: 'Connect with Microsoft'
-                },
-                {
-                    id: 'obsidian',
-                    name: 'Obsidian',
-                    description: 'Local vault access is not available on the hosted site. Use dashboard upload for Markdown files.',
-                    icon: '🔗',
-                    features: ['import', 'export'],
-                    authRequired: false,
-                    isConnected: false,
-                    connectedAccount: null,
-                    oauthSupported: false,
-                    oauthConfigured: false,
-                    unavailable: true
                 }
             ];
 
@@ -6745,10 +6583,6 @@ function registerIntegrationRoutes() {
                     break;
                 case 'google-docs':
                     integration = require('./integrations/google-docs');
-                    result = await integration.initialize(credentials);
-                    break;
-                case 'obsidian':
-                    integration = require('./integrations/obsidian');
                     result = await integration.initialize(credentials);
                     break;
                 default:
@@ -6975,6 +6809,5 @@ async function initializeIntegrations() {
 
 
 
-// Store user integration credentials (in production, use encrypted storage)
-const userIntegrations = new Map();
+
 

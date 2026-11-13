@@ -5,9 +5,11 @@
 
 // Timeout configurations (in milliseconds)
 const TIMEOUT_CONFIG = {
-    INACTIVITY_TIMEOUT: 60 * 60 * 1000,  // 60 minutes of inactivity (increased from 30)
-    ABSOLUTE_TIMEOUT: 24 * 60 * 60 * 1000, // 24 hours absolute (even if active)
-    REMEMBER_ME_DURATION: 30 * 24 * 60 * 60 * 1000 // 30 days for "Remember Me"
+    // Students open their notes many times a day, often on a phone. Signing them out after an
+    // hour was the most common reason to see the login page, so idle time is generous.
+    INACTIVITY_TIMEOUT: 12 * 60 * 60 * 1000, // 12 hours unused
+    ABSOLUTE_TIMEOUT: 7 * 24 * 60 * 60 * 1000, // sign in again at least weekly
+    REMEMBER_ME_DURATION: 30 * 24 * 60 * 60 * 1000 // 30 days with "Remember me"
 };
 
 /**
@@ -58,7 +60,7 @@ function sessionTimeout(req, res, next) {
     // Check for inactivity timeout
     const inactivityDuration = now - session.lastActivity;
 
-    if (inactivityDuration > TIMEOUT_CONFIG.INACTIVITY_TIMEOUT) {
+    if (inactivityDuration > (session.rememberMe ? TIMEOUT_CONFIG.REMEMBER_ME_DURATION : TIMEOUT_CONFIG.INACTIVITY_TIMEOUT)) {
         console.log(`🕐 Session expired (inactivity timeout) for user: ${req.session.user?.userid} after ${Math.round(inactivityDuration / 60000)} minutes`);
         return handleSessionExpiry(req, res, 'Your session expired due to inactivity. Please login again.');
     }
@@ -90,7 +92,7 @@ function handleSessionExpiry(req, res, message) {
     });
 
     // Clear session cookie
-    res.clearCookie('connect.sid');
+    res.clearCookie('terpnotes.sid');
 
     // Check if it's an API request
     if (req.xhr || req.headers.accept?.includes('application/json')) {

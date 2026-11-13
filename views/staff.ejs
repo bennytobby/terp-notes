@@ -22,7 +22,7 @@
 </head>
 <body class="tn-app">
     <%- include('partials/topnav', { active: 'staff', isCourseStaff: true }) %>
-    <main class="staff-wrap">
+    <main class="staff-wrap" id="main">
         <h1>Course staff</h1>
         <p class="muted">Courses you help run. Moderation here only affects these courses.</p>
         <% if (courses.length === 0) { %>

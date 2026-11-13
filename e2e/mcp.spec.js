@@ -35,10 +35,10 @@ test("a student connects an AI app to their notes over MCP", async ({ page, base
         return { ok: String(ok.insertedId), held: String(held.insertedId) };
     });
 
-    // Create a token on the AI access page (linked from the study buddy).
+    // Create a token on the AI apps tab in Settings.
     await signIn(page, student.userid, pw);
-    await page.goto("/study");
-    await page.getByRole("link", { name: "Connect your notes to your AI app" }).click();
+    await page.goto("/settings");
+    await page.getByRole("navigation", { name: "Settings" }).getByRole("link", { name: "AI apps" }).click();
     await page.getByLabel("Token name").fill("E2E client");
     const [created] = await Promise.all([
         page.waitForResponse((r) => r.url().endsWith("/api/ai-access/tokens") && r.request().method() === "POST"),
