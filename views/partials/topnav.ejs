@@ -1,32 +1,107 @@
 <%#
-  Shared top bar for signed-in desktop pages, so every page links to every other one.
-  Locals: user (required), active ('dashboard' | 'staff' | 'study' | 'profile' | 'integrations' | 'admin'),
-  isCourseStaff (optional; shows Course Staff), quickLogout (optional; the page defines showQuickLogout()).
-%>
-<% const navActive = locals.active || ''; const navUser = locals.user || {}; %>
-<% const navLink = (key, href, label) => `<a href="${href}" class="nav-link nav-${key}${navActive === key ? ' active' : ''}"${navActive === key ? ' aria-current="page"' : ''}>${label}</a>`; %>
-<header class="topbar tn-header">
-    <h2><a href="/dashboard" class="topbar-home">
-        <img src="/logo.png" alt="Terp Notes Logo" style="width: 32px; height: 32px; vertical-align: middle; margin-right: 8px; pointer-events: none;" />
-        Terp Notes
-    </a></h2>
+  The app shell for every signed-in page: a sidebar on laptops, a slide-in drawer plus a bottom
+  tab bar on phones, and the Study Buddy panel, which opens over whatever page you're on.
 
-    <nav class="main-nav" aria-label="Main">
-        <%- navLink('dashboard', '/dashboard', 'Dashboard') %>
-        <% if (locals.isCourseStaff) { %><%- navLink('staff', '/staff', 'Course Staff') %><% } %>
-        <%- navLink('study', '/study', 'Study Buddy') %>
-        <%- navLink('profile', '/profile', 'Profile') %>
-        <%- navLink('integrations', '/integrations', 'Integrations') %>
-        <% if (navUser.role === 'admin') { %><%- navLink('admin', '/admin', 'Admin Panel') %><% } %>
+  Locals: user (required), active ('dashboard' | 'staff' | 'settings' | 'admin' | ''),
+  shell (set for every page by the server: pinnedCourses, isCourseStaff, aiEnabled).
+%>
+<%
+  const navActive = locals.active || '';
+  const navUser = locals.user || {};
+  const navShell = locals.shell || {};
+  const pinned = navShell.pinnedCourses || [];
+  const showStaff = Boolean(navShell.isCourseStaff || locals.isCourseStaff);
+  const canUploadNav = navUser.role && navUser.role !== 'viewer';
+  const current = (key) => (navActive === key ? ' is-active" aria-current="page' : '');
+  const initials = ((navUser.firstname || '').slice(0, 1) + (navUser.lastname || '').slice(0, 1)).toUpperCase() || '?';
+  const icon = {
+    notes: '<path d="M6 3h9l4 4v14H6z"/><path d="M14 3v5h5M9 13h7M9 17h5"/>',
+    mine: '<path d="M12 16V5M7 10l5-5 5 5M5 20h14"/>',
+    buddy: '<path d="M12 3l1.8 4.6L18.5 9l-4.7 1.4L12 15l-1.8-4.6L5.5 9l4.7-1.4z"/><path d="M18.5 15l.8 2 2 .7-2 .8-.8 2-.7-2-2-.8 2-.7z"/>',
+    staff: '<path d="M3 9l9-5 9 5-9 5z"/><path d="M7 11.5V16c1.5 1.5 3.2 2 5 2s3.500-.5 5-2v-4.500"/>',
+    admin: '<path d="M12 3l7 3v5c0 4.500-3 8-7 10-4-2-7-5.500-7-10V6z"/>',
+    settings: '<circle cx="12" cy="12" r="3"/><path d="M12 3v2.500M12 18.500V21M3 12h2.500M18.500 12H21M5.600 5.600l1.800 1.800M16.600 16.600l1.800 1.800M5.600 18.400l1.800-1.800M16.600 7.400l1.800-1.800"/>',
+    menu: '<path d="M4 7h16M4 12h16M4 17h16"/>',
+    plus: '<path d="M12 5v14M5 12h14"/>',
+    courses: '<path d="M4 5h6v6H4zM14 5h6v6h-6zM4 15h6v4H4zM14 15h6v4h-6z"/>',
+    search: '<circle cx="11" cy="11" r="7"/><path d="m20 20-3.500-3.500"/>',
+    out: '<path d="M10 4H5v16h5M15 8l4 4-4 4M9 12h10"/>'
+  };
+  const svg = (name, size = 18) => `<svg aria-hidden="true" width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${icon[name]}</svg>`;
+%>
+<a class="tn-skip" href="#main">Skip to content</a>
+
+<header class="tn-mobilebar">
+    <button type="button" class="tn-icon-btn" id="sideOpen" aria-label="Open menu" aria-controls="tnSide" aria-expanded="false"><%- svg('menu', 22) %></button>
+    <a href="/dashboard" class="tn-mobilebar-brand"><img src="/logo.png" alt="" width="24" height="24" /> Terp Notes</a>
+    <a href="/settings" class="tn-avatar" aria-label="Settings"><%= initials %></a>
+</header>
+
+<div class="tn-scrim" id="sideScrim" hidden></div>
+
+<aside class="tn-side" id="tnSide">
+    <div class="tn-side-top">
+        <a href="/dashboard" class="tn-side-brand"><img src="/logo.png" alt="" width="26" height="26" /> <span>Terp Notes</span></a>
+        <button type="button" class="tn-icon-btn tn-side-close" id="sideClose" aria-label="Close menu">&times;</button>
+    </div>
+
+    <form class="tn-side-search" action="/dashboard" method="get" role="search">
+        <%- svg('search', 16) %>
+        <input type="search" name="q" placeholder="Search notes" aria-label="Search all notes" autocomplete="off" enterkeyhint="search" maxlength="100" />
+    </form>
+
+    <nav class="tn-side-nav" aria-label="Main">
+        <a href="/dashboard" class="tn-side-link<%- current('dashboard') %>" data-nav="notes"><%- svg('notes') %><span>Notes</span></a>
+        <a href="/dashboard?mine=1" class="tn-side-link" data-nav="mine"><%- svg('mine') %><span>My uploads</span></a>
+        <a href="/study" class="tn-side-link" data-buddy-open><%- svg('buddy') %><span>Study Buddy</span></a>
+
+        <div class="tn-side-group">
+            <h2 class="tn-side-title" id="myCoursesTitle">My courses</h2>
+            <ul class="tn-side-courses" id="sideCourses" aria-labelledby="myCoursesTitle">
+                <% pinned.forEach(code => { %>
+                    <li><a href="/dashboard?course=<%= encodeURIComponent(code) %>" class="tn-side-link tn-side-course" data-course-link="<%= code %>"><span class="tn-course-dot" aria-hidden="true"></span><span><%= code %></span></a></li>
+                <% }) %>
+            </ul>
+            <p class="tn-side-empty" id="sideCoursesEmpty" <%= pinned.length ? 'hidden' : '' %>>Add the courses you're taking to jump straight to their notes.</p>
+            <form class="tn-side-add" id="sideAddCourse" autocomplete="off">
+                <%- svg('plus', 16) %>
+                <input type="text" name="classCode" placeholder="Add a course, e.g. CMSC330" aria-label="Add a course to My courses" maxlength="12" autocapitalize="characters" spellcheck="false" />
+            </form>
+            <p class="tn-side-error" id="sideAddError" role="alert" hidden></p>
+        </div>
+
+        <% if (showStaff || navUser.role === 'admin') { %>
+            <div class="tn-side-group">
+                <h2 class="tn-side-title">Manage</h2>
+                <% if (showStaff) { %><a href="/staff" class="tn-side-link<%- current('staff') %>"><%- svg('staff') %><span>Course Staff</span></a><% } %>
+                <% if (navUser.role === 'admin') { %><a href="/admin" class="tn-side-link<%- current('admin') %>"><%- svg('admin') %><span>Admin</span></a><% } %>
+            </div>
+        <% } %>
     </nav>
 
-    <div class="user-info">
-        <span class="welcome-text">Welcome, <strong><%= navUser.firstname || locals.firstname || '' %></strong></span>
-        <span class="user-role role-<%= navUser.role %>"><%= navUser.role %></span>
-        <% if (locals.quickLogout) { %>
-            <button onclick="showQuickLogout()" class="logout-btn" style="background: none; border: none; color: inherit; cursor: pointer; text-decoration: underline;">Logout</button>
-        <% } else { %>
-            <a href="/logout" class="logout-btn">Logout</a>
-        <% } %>
+    <div class="tn-side-foot">
+        <a href="/settings" class="tn-side-link<%- current('settings') %>"><%- svg('settings') %><span>Settings</span></a>
+        <div class="tn-side-user">
+            <span class="tn-avatar" aria-hidden="true"><%= initials %></span>
+            <span class="tn-side-user-name">
+                <strong><%= [navUser.firstname, navUser.lastname].filter(Boolean).join(' ') || navUser.userid %></strong>
+                <small><%= navUser.role === 'admin' ? 'Admin' : navUser.role === 'viewer' ? 'View only' : (navUser.userid || '') %></small>
+            </span>
+            <a href="/logout" class="tn-icon-btn" aria-label="Log out" title="Log out"><%- svg('out') %></a>
+        </div>
     </div>
-</header>
+</aside>
+
+<nav class="tn-tabbar" aria-label="Quick">
+    <a href="/dashboard" class="tn-tab<%- current('dashboard') %>"><%- svg('notes', 22) %><span>Notes</span></a>
+    <button type="button" class="tn-tab" id="tabCourses" aria-controls="tnSide"><%- svg('courses', 22) %><span>Courses</span></button>
+    <% if (canUploadNav) { %>
+        <a href="/dashboard#upload" class="tn-tab tn-tab-main" data-open-upload aria-label="Upload notes"><span class="tn-tab-plus"><%- svg('plus', 24) %></span></a>
+    <% } %>
+    <a href="/study" class="tn-tab" data-buddy-open><%- svg('buddy', 22) %><span>Buddy</span></a>
+    <a href="/settings" class="tn-tab<%- current('settings') %>"><%- svg('settings', 22) %><span>Settings</span></a>
+</nav>
+
+<%- include('buddy', { aiEnabled: Boolean(navShell.aiEnabled) }) %>
+<script src="/javascripts/shell.js" defer></script>
+<script src="/javascripts/buddy.js" defer></script>

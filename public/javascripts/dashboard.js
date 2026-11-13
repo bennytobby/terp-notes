@@ -79,6 +79,28 @@
         if (els.mine.checked) p.set('mine', '1');
         const qs = p.toString();
         history.replaceState(null, '', qs ? `?${qs}` : location.pathname);
+        window.TerpShell?.markActive();
+    }
+
+    // Hands files to the Study Buddy panel (it lives in the app shell, on every page).
+    function studyWith(list) {
+        const usable = list.filter(f => f && !f.missing && !f.held).slice(0, 20);
+        if (!usable.length || !window.StudyBuddy) return;
+        const courses = [...new Set(usable.map(f => f.classCode).filter(Boolean))];
+        window.StudyBuddy.open({ course: courses.length === 1 ? courses[0] : '', files: usable.map(f => ({ filename: f.filename, name: f.name })) });
+    }
+
+    // "My courses" in the sidebar: offer to add the course being browsed.
+    function updatePin() {
+        const btn = $('pinCourse');
+        if (!btn) return;
+        const course = els.course.value;
+        const pinned = window.TerpShell ? window.TerpShell.pinned() : (data.pinnedCourses || []);
+        btn.hidden = !course;
+        if (!course) return;
+        const on = pinned.includes(course);
+        btn.textContent = on ? `${course} is in My courses` : `Add ${course} to My courses`;
+        btn.setAttribute('aria-pressed', String(on));
     }
 
     function activeFilterCount() {
@@ -167,6 +189,7 @@
                         </summary>
                         <div class="tn-menu-list" role="menu">
                             ${f.missing ? '' : `<a role="menuitem" href="${href}" target="_blank" rel="noopener">Open in new tab</a>`}
+                            ${f.missing || f.held ? '' : '<button type="button" role="menuitem" data-action="buddy">Ask Study Buddy</button>'}
                             <button type="button" role="menuitem" data-action="copy">Copy link</button>
                             ${canManage(f) ? '<button type="button" role="menuitem" data-action="edit">Edit details</button>' : ''}
                             ${f.uploadedBy !== me.userid ? '<button type="button" role="menuitem" data-action="report">Report</button>' : ''}
@@ -207,6 +230,7 @@
         els.filterCount.hidden = !n;
         els.filterCount.textContent = n;
         els.selectToggle.hidden = !files.length;
+        updatePin();
         updateSelectBar();
     }
 
@@ -230,6 +254,7 @@
         els.bulkDownload.title = n > 20 ? 'Up to 20 files per download' : '';
         const manageable = [...state.selected].every(fn => byName.get(fn) && canManage(byName.get(fn)));
         els.bulkDelete.hidden = !n || !manageable;
+        if ($('bulkBuddy')) $('bulkBuddy').disabled = !n || n > 20;
     }
 
     async function bulkDownload() {
@@ -597,7 +622,10 @@
 
     document.addEventListener('click', async e => {
         const t = e.target;
-        if (t.closest('[data-open-upload]')) return openUpload(t.closest('[data-open-upload]').dataset.course || '');
+        if (t.closest('[data-open-upload]')) {
+            e.preventDefault(); // the tab bar's upload button is a link to /dashboard#upload
+            return openUpload(t.closest('[data-open-upload]').dataset.course || '');
+        }
         if (t.closest('[data-clear]')) return clearAll();
         const chip = t.closest('.tn-chip[data-course]');
         if (chip) {
@@ -615,6 +643,7 @@
             if (action.dataset.action === 'edit') openEdit(f);
             if (action.dataset.action === 'report') openReport(f);
             if (action.dataset.action === 'delete') deleteFiles([f.filename]);
+            if (action.dataset.action === 'buddy') studyWith([f]);
             if (action.dataset.action === 'copy') {
                 const url = new URL(`/download/${encodeURIComponent(f.filename)}`, location.origin).href;
                 try { await navigator.clipboard.writeText(url); toast('Link copied. Classmates need to sign in to open it.', 'success'); }
@@ -646,7 +675,32 @@
     document.addEventListener('keydown', e => { if (e.key === 'Escape') closeMenus(); });
 
     $('uploadOpen')?.addEventListener('click', () => openUpload());
-    $('uploadFab')?.addEventListener('click', () => openUpload());
+    $('bulkBuddy')?.addEventListener('click', () => {
+        const picked = [...state.selected].map(fn => byName.get(fn)).filter(Boolean);
+        setSelecting(false);
+        studyWith(picked);
+    });
+    $('pinCourse')?.addEventListener('click', async () => {
+        const course = els.course.value;
+        if (!course || !window.TerpShell) return;
+        const on = window.TerpShell.pinned().includes(course);
+        try {
+            await window.TerpShell.setPinned(course, !on);
+            toast(on ? `Removed ${course} from My courses.` : `Added ${course} to My courses.`, 'success');
+        } catch (err) {
+            toast(err.message, 'error');
+        }
+    });
+    document.addEventListener('terp:pinned', updatePin);
+    // The sidebar's search box filters this list in place, without reloading the page.
+    document.querySelector('.tn-side-search')?.addEventListener('submit', e => {
+        e.preventDefault();
+        els.q.value = e.target.elements.q.value.trim().slice(0, 100);
+        e.target.elements.q.value = '';
+        window.TerpShell?.closeDrawer();
+        rerender();
+        els.q.focus();
+    });
     form.input.addEventListener('change', () => { addFiles(form.input.files); form.input.value = ''; });
     form.fields.description.addEventListener('input', () => { form.fields.description.dataset.edited = '1'; });
     for (const evt of ['dragenter', 'dragover']) form.drop.addEventListener(evt, e => { e.preventDefault(); form.drop.classList.add('is-over'); });

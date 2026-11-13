@@ -1,33 +1,19 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Integrations - Terp Notes</title>
-    <!-- Favicon and App Icons -->
-    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
-    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
-    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
-    <link rel="shortcut icon" href="/favicon.ico" />
-    <meta name="msapplication-TileColor" content="#E21833" />
-    <meta name="theme-color" content="#E21833" />
-    <link rel="manifest" href="/site.webmanifest" />
-    <link rel="stylesheet" href="/stylesheets/integrations.css?v=<%= Date.now() %>">
-    <link rel="stylesheet" href="/styles/main.css?v=<%= Date.now() %>">
-
-    <style>
-    </style>
-    <link rel="stylesheet" href="/stylesheets/app.css" />
+    <%- include('partials/head', { title: 'Integrations - Settings - Terp Notes' }) %>
+    <link rel="stylesheet" href="/stylesheets/integrations.css" />
 </head>
 <body class="tn-app">
-    <%- include('partials/topnav', { active: 'integrations', quickLogout: true }) %>
+    <%- include('partials/topnav', { active: 'settings' }) %>
 
-    <main class="container integrations-page"
+    <main id="main" class="container integrations-page tn-settings"
           data-catalog="<%= hasCourseCatalog ? 'true' : 'false' %>"
           data-semester="<%= currentTerm.semester %>"
           data-year="<%= currentTerm.year %>">
+        <%- include('partials/settings-nav', { tab: 'apps' }) %>
         <div class="page-header">
-            <h1>Integrations</h1>
+            <h2>Integrations</h2>
             <p>Bring notes in from Google Drive, Notion or OneNote and share them with your classmates, or send Terp Notes files back to your own apps.</p>
         </div>
 
@@ -45,7 +31,7 @@
         </div>
 
         <p class="integrations-footnote">
-            Using ChatGPT or Claude? <a href="/ai-access">Connect your notes to your AI app</a>.
+            Using ChatGPT or Claude? <a href="/settings/ai">Connect your notes to your AI app</a>.
             Prefer to upload a file? <a href="/dashboard#upload">Upload from the dashboard</a>.
         </p>
 

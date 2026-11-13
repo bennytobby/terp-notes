@@ -99,3 +99,54 @@ test("a failing model surfaces an error instead of a fake answer", async () => {
         /AI request failed \(401\)/,
     );
 });
+
+test("study material modes cover the notes and get their own prompts", async () => {
+    const passages = Array.from({ length: 40 }, (_, i) => ({ text: `passage ${i} about topic${i}`, originalName: "n.txt", filename: "k" }));
+    const picked = sb.selectPassages({ passages, query: "", mode: "cheatsheet" });
+    assert.equal(picked.length, sb.MODES.cheatsheet.passages);
+    assert.equal(picked[0].text, "passage 0 about topic0");
+    assert.ok(picked.some((p) => /passage 3\d/.test(p.text)), "reaches the end of the notes, not just the start");
+    const withTopic = sb.selectPassages({ passages, query: "topic17", mode: "exam" });
+    assert.equal(withTopic[0].text, "passage 17 about topic17", "the asked-for topic comes first");
+    assert.equal(new Set(withTopic.map((p) => p.text)).size, withTopic.length, "no passage is sent twice");
+
+    for (const [mode, pattern] of [["cheatsheet", /cheat sheet/], ["exam", /practice exam/], ["flashcards", /flashcards/], ["summary", /Summarize/]]) {
+        assert.match(sb.buildMessages({ question: "", passages: [], classCode: "X", mode }).at(-1).content, pattern);
+    }
+    assert.equal(sb.modeOf("constructor"), "ask");
+    assert.equal(sb.modeOf("nope"), "ask");
+});
+
+test("picked files limit what the buddy reads, and earlier turns are passed along", async () => {
+    const db = await seed();
+    const files = db.collection("files");
+    const c = await files.insertOne({ classCode: "CMSC132", originalName: "queues.txt", filename: "k3", fileHash: "h3" });
+    await sb.indexFile(db, { _id: c.insertedId, classCode: "CMSC132", originalName: "queues.txt", filename: "k3", fileHash: "h3" },
+        "A queue is first-in first-out. Enqueue adds at the back.");
+    const calls = [];
+    const fetchImpl = async (url, init) => {
+        calls.push(JSON.parse(init.body));
+        return { ok: true, json: async () => ({ choices: [{ message: { content: "ok [1]" } }] }) };
+    };
+    const config = { baseUrl: "https://ai.example/v1", apiKey: "k", model: "m", dailyLimit: 9 };
+    const r = await sb.answer({
+        db, filesCollection: "files", classCode: "", mode: "cheatsheet", filenames: ["k3", "k2"], userid: "u9", config, fetchImpl,
+        history: [{ role: "user", content: "earlier question" }, { role: "system", content: "sneaky" }, { role: "assistant", content: "earlier answer" }],
+    });
+    assert.equal(r.mode, "ai");
+    assert.equal(r.kind, "cheatsheet");
+    assert.deepEqual(r.sources.map((s) => s.originalName), ["queues.txt"], "only the picked file, and never the held one");
+    const sent = calls[0];
+    assert.equal(sent.max_tokens, sb.MODES.cheatsheet.maxTokens);
+    assert.deepEqual(sent.messages.map((m) => m.role), ["system", "user", "assistant", "user"], "history keeps user and assistant turns only");
+    assert.ok(!JSON.stringify(sent).includes("stack is last-in"), "notes outside the picked files stay out");
+
+    const unreadable = await sb.answer({ db, filesCollection: "files", classCode: "", filenames: ["missing"], question: "anything at all", userid: "u9", config, fetchImpl });
+    assert.match(unreadable.answer, /couldn't read those files/);
+});
+
+test("the daily limit holds when requests arrive together", async () => {
+    const db = fakeDb();
+    const results = await Promise.all(Array.from({ length: 6 }, () => sb.takeDailyQuota(db, "burst", 4)));
+    assert.equal(results.filter(Boolean).length, 4);
+});

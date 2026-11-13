@@ -27,6 +27,9 @@ This platform is **built for students, by a student** (now alum), with zero prof
 ## Features
 
 ### **For Students**
+- **One workspace, no tabs to hunt through** - A sidebar (a drawer and bottom tab bar on phones) with Notes, My uploads and the courses you pin under My courses
+- **Study Buddy everywhere** - A chat panel that opens over any page. Pick a course or tick specific files, then ask questions or get a cheat sheet, practice exam, quiz, flashcards or summary, each with sources
+- **Settings in one place** - Profile, Integrations and AI apps are tabs under Settings
 - **Instant Search** - Find notes by class code, professor, or keyword (no page reloads)
 - **Smart Filtering** - Filter by major, class, semester, year, and professor with intuitive icons
 - **Multiple View Options** - Grid view, List view, or Grouped view for different preferences
@@ -63,7 +66,6 @@ This platform is **built for students, by a student** (now alum), with zero prof
 - **Google Docs Integration** - Connect your Google Drive to import/export notes seamlessly
 - **Notion Integration** - Sync your Notion workspace with Terp Notes
 - **Microsoft OneNote Integration** - Link your OneNote notebooks for easy access
-- **Obsidian Integration** - Connect your Obsidian vault (coming soon)
 - **OAuth 2.0 Security** - Secure authentication with encrypted token storage
 - **One-Click Connect** - Simple OAuth flow to authorize your accounts
 - **Real-Time Status** - See connection status and connected account information
@@ -153,7 +155,7 @@ Filter by major (CMSC, MATH, etc.) → Select class (CMSC330) → Search by prof
 Drag & drop your notes → Add class info & description → Choose category → Upload directly to S3 → Files are virus scanned automatically
 
 ### **4. Connect Integrations** *(NEW)*
-Navigate to Integrations → Connect Google Docs, Notion, OneNote, or Obsidian → Import notes from external apps or export Terp Notes to your preferred tools
+Open Settings → Integrations → connect Google Docs, Notion or OneNote → Import notes from external apps or export Terp Notes to your preferred tools
 
 ### **5. Download & Study**
 Click any file → Preview PDFs inline or download → Help others by uploading your own materials
@@ -192,7 +194,7 @@ Color scheme and styling that reflects University of Maryland branding and pride
 Instead of banning violators, revoke upload privileges ("Viewer" mode). Encourages rehabilitation over punishment.
 
 **OAuth Integration System**
-Secure OAuth 2.0 flow for connecting note-taking apps. Tokens encrypted with AES-256-CBC and stored in MongoDB. Supports Google Drive, Microsoft OneNote, Notion, and Obsidian.
+Secure OAuth 2.0 flow for connecting note-taking apps. Tokens encrypted with AES-256-CBC and stored in MongoDB. Supports Google Drive, Microsoft OneNote and Notion.
 
 **Optimized Course Cache**
 Intelligent caching system for UMD.io course data. 5,000+ courses and 7,000+ professors cached locally for instant autocomplete and filtering. Cache updates automatically when stale.
@@ -241,7 +243,7 @@ User management, file moderation, usage statistics, dynamic announcement system
 Works perfectly on phones, tablets, and desktops with UMD-themed design
 
 **Integrations Page:**
-Connect Google Docs, Notion, OneNote, or Obsidian with secure OAuth 2.0 authentication
+Connect Google Docs, Notion or OneNote with secure OAuth 2.0 authentication
 
 ---
 

@@ -38,7 +38,7 @@ test("a verified student signs in, sees the dashboard, and gets a real 404", asy
     await page.getByLabel("Password").fill(password);
     await page.getByRole("button", { name: "Log in", exact: true }).click();
     await expect(page).toHaveURL(/\/dashboard$/);
-    await expect(page.getByText(`Welcome, ${user.firstname}`)).toBeVisible();
+    await expect(page.locator(".tn-side-user-name")).toContainText(user.firstname);
 
     await page.goto("/this-page-does-not-exist");
     await expect(page.getByRole("heading", { name: "Page Not Found" })).toBeVisible();

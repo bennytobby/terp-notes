@@ -146,7 +146,6 @@ class IntegrationsManager {
         const fields = {
             notion: [['integrationToken', 'Notion integration token', 'password', 'Create one at notion.so/my-integrations, then share your pages with it.']],
             onenote: [['accessToken', 'Microsoft access token', 'password', 'From Microsoft Graph Explorer.']],
-            obsidian: [['vaultPath', 'Obsidian vault path', 'text', 'The folder that holds your vault.']]
         }[integrationId];
         document.getElementById('modalTitle').textContent = `Connect ${integration.name}`;
         document.getElementById('modalBody').innerHTML = fields
@@ -546,11 +545,11 @@ class IntegrationsManager {
     }
 
     getIconClass(id) {
-        return { notion: 'notion-icon', onenote: 'onenote-icon', 'google-docs': 'google-icon', obsidian: 'obsidian-icon' }[id] || '';
+        return { notion: 'notion-icon', onenote: 'onenote-icon', 'google-docs': 'google-icon' }[id] || '';
     }
 
     getIconText(id) {
-        return { notion: 'N', onenote: '📓', 'google-docs': 'G', obsidian: '⚡' }[id] || '📝';
+        return { notion: 'N', onenote: '📓', 'google-docs': 'G' }[id] || '📝';
     }
 
     showNotification(message, type = 'info') {

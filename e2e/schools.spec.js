@@ -66,8 +66,8 @@ test("students only see their own school's notes", async ({ browser }) => {
 
     // The study buddy only offers the UMBC student their school's courses.
     await b.goto("/study");
-    await expect(b.getByLabel("Course").locator("option", { hasText: "CMSC447" })).toHaveCount(1);
-    await expect(b.getByLabel("Course").locator("option", { hasText: "CMSC448" })).toHaveCount(0);
+    await expect(b.getByLabel("Study Buddy course").locator("option", { hasText: "CMSC447" })).toHaveCount(1);
+    await expect(b.getByLabel("Study Buddy course").locator("option", { hasText: "CMSC448" })).toHaveCount(0);
 
     // A UMD student sees the legacy UMD file but none of UMBC's.
     const a = await browser.newPage();

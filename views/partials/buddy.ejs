@@ -1,0 +1,54 @@
+<%#
+  Study Buddy: a chat panel that opens over any signed-in page (bottom right on laptops, full
+  screen on phones). The student picks a course, optionally narrows it to specific files, and
+  asks a question or taps one of the "make me a…" buttons. Behavior is in /javascripts/buddy.js.
+  Locals: aiEnabled.
+%>
+<button type="button" class="tn-buddy-launch" id="buddyLaunch" aria-haspopup="dialog" aria-controls="buddyPanel" aria-expanded="false">
+    <svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.8 4.6L18.500 9l-4.700 1.400L12 15l-1.800-4.600L5.500 9l4.700-1.400z"/><path d="M18.500 15l.8 2 2 .7-2 .8-.8 2-.7-2-2-.8 2-.7z"/></svg>
+    <span>Study Buddy</span>
+</button>
+
+<section class="tn-buddy" id="buddyPanel" role="dialog" aria-modal="false" aria-labelledby="buddyTitle" data-ai="<%= locals.aiEnabled ? '1' : '0' %>" hidden>
+    <header class="tn-buddy-head">
+        <div>
+            <h2 id="buddyTitle">Study Buddy</h2>
+            <p>Answers from your class notes, with sources.</p>
+        </div>
+        <button type="button" class="tn-icon-btn" id="buddyNew" aria-label="Start a new chat" title="New chat">
+            <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
+        </button>
+        <button type="button" class="tn-icon-btn" id="buddyClose" aria-label="Close Study Buddy">&times;</button>
+    </header>
+
+    <div class="tn-buddy-context">
+        <label class="tn-visually-hidden" for="buddyCourse">Study Buddy course</label>
+        <select id="buddyCourse">
+            <option value="">Pick a course</option>
+        </select>
+        <button type="button" class="tn-buddy-files-btn" id="buddyFilesBtn" aria-expanded="false" aria-controls="buddyFiles" disabled>All notes</button>
+        <div class="tn-buddy-chips" id="buddyChips" aria-label="Files the buddy will read"></div>
+        <div class="tn-buddy-files" id="buddyFiles" hidden>
+            <p class="tn-buddy-files-help">Tick the files to study from. Leave them all unticked to use every note in the course.</p>
+            <ul id="buddyFileList"></ul>
+        </div>
+    </div>
+
+    <div class="tn-buddy-thread" id="buddyThread" aria-live="polite" tabindex="0"></div>
+
+    <div class="tn-buddy-make" id="buddyMake" role="group" aria-label="Make study material">
+        <button type="button" data-mode="cheatsheet">Cheat sheet</button>
+        <button type="button" data-mode="exam">Practice exam</button>
+        <button type="button" data-mode="quiz">Quiz me</button>
+        <button type="button" data-mode="flashcards">Flashcards</button>
+        <button type="button" data-mode="summary">Summary</button>
+    </div>
+
+    <form class="tn-buddy-form" id="buddyForm">
+        <label class="tn-visually-hidden" for="buddyQuestion">Your question</label>
+        <textarea id="buddyQuestion" rows="1" maxlength="1000" placeholder="Ask about your notes, or name a topic" enterkeyhint="send"></textarea>
+        <button type="submit" class="tn-btn tn-btn-primary" id="buddySend" aria-label="Ask">
+            <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M6 11l6-6 6 6"/></svg>
+        </button>
+    </form>
+</section>

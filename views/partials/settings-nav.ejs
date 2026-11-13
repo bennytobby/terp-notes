@@ -1,0 +1,13 @@
+<%#
+  Heading and tabs shared by the three settings pages.
+  Locals: tab ('profile' | 'apps' | 'ai').
+%>
+<% const settingsTab = (key, href, label) => `<a href="${href}" class="tn-tab-link${locals.tab === key ? ' is-active" aria-current="page' : ''}">${label}</a>`; %>
+<div class="tn-settings-head">
+    <h1>Settings</h1>
+    <nav class="tn-tabs" aria-label="Settings">
+        <%- settingsTab('profile', '/settings', 'Profile') %>
+        <%- settingsTab('apps', '/settings/apps', 'Integrations') %>
+        <%- settingsTab('ai', '/settings/ai', 'AI apps') %>
+    </nav>
+</div>

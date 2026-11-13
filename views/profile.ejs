@@ -2,27 +2,15 @@
 <html lang="en">
 
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>
-        <%= title %>
-    </title>
-    <link rel="icon" type="image/png" href="/favicon.png" />
-    <link rel="stylesheet" href="/styles/main.css" />
-    <style>
-    </style>
-    <link rel="stylesheet" href="/stylesheets/app.css" />
+    <%- include('partials/head', { title: 'Settings - Terp Notes' }) %>
 </head>
 
 <body class="tn-app">
-    <%- include('partials/topnav', { active: 'profile' }) %>
+    <%- include('partials/topnav', { active: 'settings' }) %>
 
     <main class="tn-page" id="main">
         <div class="profile-page">
-            <div class="tn-page-head" style="margin-bottom: 1.5rem;"><div>
-                <h1>Profile</h1>
-                <p class="tn-sub">Your name, email and password.</p>
-            </div></div>
+            <%- include('partials/settings-nav', { tab: 'profile' }) %>
 
             <% if (typeof error !== 'undefined' && error) { %>
                 <div class="tn-alert tn-alert-error" role="alert"><%= error %></div>
