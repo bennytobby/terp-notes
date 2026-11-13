@@ -126,7 +126,7 @@ It makes a lot of API calls and takes a while. Don't commit regenerated cache fi
 | `server.js` | The Express app: routes, auth, uploads, admin, cron endpoints |
 | `views/` | EJS templates (`views/mobile/` holds the mobile variants) |
 | `public/`, `styles/` | Static assets and CSS |
-| `integrations/` | Google Docs, OneNote, Notion and Obsidian clients plus the OAuth manager |
+| `integrations/` | Google Docs, OneNote and Notion clients plus the OAuth manager |
 | `models/` | MongoDB models (encrypted integration tokens) |
 | `middleware/`, `utils/` | Session timeout, password rules, file conversion |
 | `emails/templates.js` | HTML email templates |
