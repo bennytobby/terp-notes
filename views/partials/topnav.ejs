@@ -1,6 +1,6 @@
 <%#
-  The app shell for every signed-in page: a sidebar on laptops, a slide-in drawer plus a bottom
-  tab bar on phones, and the Study Buddy panel, which opens over whatever page you're on.
+  The app shell for every signed-in page: a sidebar on laptops; on phones a bottom tab bar whose
+  buttons open sheets from the bottom (the menu button, top left, opens the drawer from the left), and the Study Buddy panel, which opens over whatever page you're on.
 
   Locals: user (required), active ('dashboard' | 'staff' | 'settings' | 'admin' | ''),
   shell (set for every page by the server: pinnedCourses, isCourseStaff, aiEnabled).
@@ -57,17 +57,17 @@
 
         <div class="tn-side-group">
             <h2 class="tn-side-title" id="myCoursesTitle">My courses</h2>
-            <ul class="tn-side-courses" id="sideCourses" aria-labelledby="myCoursesTitle">
+            <ul class="tn-side-courses" id="sideCourses" data-courses-list aria-labelledby="myCoursesTitle">
                 <% pinned.forEach(code => { %>
                     <li><a href="/dashboard?course=<%= encodeURIComponent(code) %>" class="tn-side-link tn-side-course" data-course-link="<%= code %>"><span class="tn-course-dot" aria-hidden="true"></span><span><%= code %></span></a></li>
                 <% }) %>
             </ul>
-            <p class="tn-side-empty" id="sideCoursesEmpty" <%= pinned.length ? 'hidden' : '' %>>Add the courses you're taking to jump straight to their notes.</p>
-            <form class="tn-side-add" id="sideAddCourse" autocomplete="off">
+            <p class="tn-side-empty" id="sideCoursesEmpty" data-courses-empty <%= pinned.length ? 'hidden' : '' %>>Add the courses you're taking to jump straight to their notes.</p>
+            <form class="tn-side-add" id="sideAddCourse" data-add-course autocomplete="off">
                 <%- svg('plus', 16) %>
                 <input type="text" name="classCode" placeholder="Add a course, e.g. CMSC330" aria-label="Add a course to My courses" maxlength="12" autocapitalize="characters" spellcheck="false" />
             </form>
-            <p class="tn-side-error" id="sideAddError" role="alert" hidden></p>
+            <p class="tn-side-error" id="sideAddError" data-add-error role="alert" hidden></p>
         </div>
 
         <% if (showStaff || navUser.role === 'admin') { %>
@@ -94,13 +94,33 @@
 
 <nav class="tn-tabbar" aria-label="Quick">
     <a href="/dashboard" class="tn-tab<%- current('dashboard') %>"><%- svg('notes', 22) %><span>Notes</span></a>
-    <button type="button" class="tn-tab" id="tabCourses" aria-controls="tnSide"><%- svg('courses', 22) %><span>Courses</span></button>
+    <button type="button" class="tn-tab" id="tabCourses" aria-haspopup="dialog" aria-controls="coursesSheet" aria-expanded="false"><%- svg('courses', 22) %><span>Courses</span></button>
     <% if (canUploadNav) { %>
         <a href="/dashboard#upload" class="tn-tab tn-tab-main" data-open-upload aria-label="Upload notes"><span class="tn-tab-plus"><%- svg('plus', 24) %></span></a>
     <% } %>
     <a href="/study" class="tn-tab" data-buddy-open><%- svg('buddy', 22) %><span>Buddy</span></a>
     <a href="/settings" class="tn-tab<%- current('settings') %>"><%- svg('settings', 22) %><span>Settings</span></a>
 </nav>
+
+<%# Phones: the Courses tab opens this sheet from the bottom, right above the button that opened it. %>
+<section class="tn-sheet" id="coursesSheet" tabindex="-1" role="dialog" aria-modal="true" aria-labelledby="coursesSheetTitle" hidden>
+    <div class="tn-sheet-grab" aria-hidden="true"></div>
+    <header class="tn-sheet-head">
+        <h2 id="coursesSheetTitle">My courses</h2>
+        <button type="button" class="tn-icon-btn" id="coursesSheetClose" aria-label="Close My courses">&times;</button>
+    </header>
+    <div class="tn-sheet-body">
+        <ul class="tn-side-courses tn-sheet-courses" data-courses-list aria-labelledby="coursesSheetTitle"></ul>
+        <p class="tn-side-empty" data-courses-empty>Add the courses you're taking to jump straight to their notes.</p>
+        <form class="tn-side-add tn-sheet-add" data-add-course autocomplete="off">
+            <%- svg('plus', 18) %>
+            <input type="text" name="classCode" placeholder="Add a course, e.g. CMSC330" aria-label="Add a course" maxlength="12" autocapitalize="characters" spellcheck="false" enterkeyhint="done" />
+            <button type="submit" class="tn-btn tn-btn-primary tn-btn-sm">Add</button>
+        </form>
+        <p class="tn-side-error" data-add-error role="alert" hidden></p>
+        <a href="/dashboard" class="tn-sheet-all">Browse all notes</a>
+    </div>
+</section>
 
 <%- include('buddy', { aiEnabled: Boolean(navShell.aiEnabled) }) %>
 <script src="/javascripts/shell.js" defer></script>

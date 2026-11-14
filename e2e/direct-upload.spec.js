@@ -130,7 +130,7 @@ test("a student keeps their courses in the sidebar", async ({ page }) => {
     const add = page.getByLabel("Add a course to My courses");
     await add.fill("cmsc216");
     await add.press("Enter");
-    const link = page.locator('.tn-side-course[data-course-link="CMSC216"]');
+    const link = page.locator('#sideCourses .tn-side-course[data-course-link="CMSC216"]');
     await expect(link).toBeVisible();
     await add.fill("not a course");
     await add.press("Enter");
@@ -142,6 +142,40 @@ test("a student keeps their courses in the sidebar", async ({ page }) => {
     await page.getByRole("button", { name: "Remove CMSC216 from My courses" }).click();
     await expect(link).toHaveCount(0);
     expect((await page.request.post("/api/courses/pin", { data: { classCode: "nope!" } })).status()).toBe(400);
+});
+
+test("on a phone, the bottom tabs open sheets from the bottom, not the side drawer", async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    const password = await seedUser(user);
+    await signIn(page, user.userid, password);
+    const tabs = page.getByRole("navigation", { name: "Quick" });
+    const drawer = page.locator("#tnSide");
+
+    // Courses: a sheet anchored to the bottom edge; the left drawer stays shut.
+    await tabs.getByRole("button", { name: "Courses" }).click();
+    const sheet = page.getByRole("dialog", { name: "My courses" });
+    await expect(sheet).toBeVisible();
+    await expect(drawer).toBeHidden();
+    await expect.poll(async () => { const b = await sheet.boundingBox(); return Math.round(b.y + b.height); }).toBe(844);
+    await sheet.getByLabel("Add a course").fill("cmsc351");
+    await sheet.getByRole("button", { name: "Add" }).click();
+    await expect(sheet.getByRole("link", { name: "CMSC351" })).toBeVisible();
+    await sheet.getByRole("button", { name: "Remove CMSC351 from My courses" }).click();
+    await expect(sheet.getByRole("link", { name: "CMSC351" })).toHaveCount(0);
+    await sheet.getByRole("button", { name: "Close My courses" }).click();
+    await expect(sheet).toBeHidden();
+
+    // Buddy: also from the bottom, leaving the page visible above it.
+    await tabs.getByRole("link", { name: "Buddy" }).click();
+    const buddy = page.getByRole("dialog", { name: "Study Buddy" });
+    await expect(buddy).toBeVisible();
+    await expect(drawer).toBeHidden();
+    await expect.poll(async () => { const b = await buddy.boundingBox(); return [Math.round(b.y + b.height), b.y > 40]; }).toEqual([844, true]);
+    await buddy.getByRole("button", { name: "Close Study Buddy" }).click();
+
+    // The menu button, top left, is what opens the drawer from the left.
+    await page.getByRole("button", { name: "Open menu" }).click();
+    await expect(drawer).toBeVisible();
 });
 
 test("imports need the same class details as an upload, and course look-ups work", async ({ page }) => {
