@@ -1191,7 +1191,9 @@ app.use(async (req, res, next) => {
                 res.locals.shell = {
                     pinnedCourses: Array.isArray(user.pinnedCourses) ? user.pinnedCourses.slice(0, MAX_PINNED_COURSES) : [],
                     isCourseStaff: staffCourses.length > 0,
-                    aiEnabled: Boolean(studyBuddy.aiConfig())
+                    aiEnabled: Boolean(studyBuddy.aiConfig()),
+                    // "My courses" suggests courses from the school's catalog while you type.
+                    courseCatalog: Boolean(schools.getSchool(schools.schoolOf(user)).courseCatalog)
                 };
             }
 

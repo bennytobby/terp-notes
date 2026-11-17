@@ -63,9 +63,10 @@
                 <% }) %>
             </ul>
             <p class="tn-side-empty" id="sideCoursesEmpty" data-courses-empty <%= pinned.length ? 'hidden' : '' %>>Add the courses you're taking to jump straight to their notes.</p>
-            <form class="tn-side-add" id="sideAddCourse" data-add-course autocomplete="off">
+            <form class="tn-side-add combo" id="sideAddCourse" data-add-course<%= navShell.courseCatalog ? ' data-catalog' : '' %> autocomplete="off">
                 <%- svg('plus', 16) %>
-                <input type="text" name="classCode" placeholder="Add a course, e.g. CMSC330" aria-label="Add a course to My courses" maxlength="12" autocapitalize="characters" spellcheck="false" />
+                <input type="text" name="classCode" placeholder="<%= navShell.courseCatalog ? 'Add a course' : 'Add a course, e.g. CMSC330' %>" aria-label="Add a course to My courses" maxlength="40" autocapitalize="characters" spellcheck="false" role="combobox" aria-expanded="false" aria-controls="sideCourseList" aria-autocomplete="list" />
+                <ul class="combo-list" id="sideCourseList" role="listbox" aria-label="Matching UMD courses" hidden></ul>
             </form>
             <p class="tn-side-error" id="sideAddError" data-add-error role="alert" hidden></p>
         </div>
@@ -112,10 +113,11 @@
     <div class="tn-sheet-body">
         <ul class="tn-side-courses tn-sheet-courses" data-courses-list aria-labelledby="coursesSheetTitle"></ul>
         <p class="tn-side-empty" data-courses-empty>Add the courses you're taking to jump straight to their notes.</p>
-        <form class="tn-side-add tn-sheet-add" data-add-course autocomplete="off">
+        <form class="tn-side-add tn-sheet-add combo" data-add-course<%= navShell.courseCatalog ? ' data-catalog' : '' %> autocomplete="off">
             <%- svg('plus', 18) %>
-            <input type="text" name="classCode" placeholder="Add a course, e.g. CMSC330" aria-label="Add a course" maxlength="12" autocapitalize="characters" spellcheck="false" enterkeyhint="done" />
+            <input type="text" name="classCode" placeholder="<%= navShell.courseCatalog ? 'CMSC330 or a course name' : 'Add a course, e.g. CMSC330' %>" aria-label="Add a course" maxlength="40" autocapitalize="characters" spellcheck="false" enterkeyhint="done" role="combobox" aria-expanded="false" aria-controls="sheetCourseList" aria-autocomplete="list" />
             <button type="submit" class="tn-btn tn-btn-primary tn-btn-sm">Add</button>
+            <ul class="combo-list" id="sheetCourseList" role="listbox" aria-label="Matching UMD courses" hidden></ul>
         </form>
         <p class="tn-side-error" data-add-error role="alert" hidden></p>
         <a href="/dashboard" class="tn-sheet-all">Browse all notes</a>
@@ -123,5 +125,6 @@
 </section>
 
 <%- include('buddy', { aiEnabled: Boolean(navShell.aiEnabled) }) %>
+<script src="/javascripts/course-picker.js" defer></script>
 <script src="/javascripts/shell.js" defer></script>
 <script src="/javascripts/buddy.js" defer></script>

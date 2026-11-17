@@ -583,6 +583,12 @@ body.tn-app:not(:has(.tn-side)) { padding-left: 0; }
 .combo-main { font-weight: 600; font-size: 0.9rem; color: var(--tn-ink); }
 .combo-detail { color: var(--tn-muted); font-size: 0.8rem; }
 
+/* "My courses" add field: suggestions drop down under the field in the sidebar. Course names can
+   be typed too, so the field only looks uppercase when there's no catalog to search. */
+.tn-side-add.combo .combo-list { left: -0.1rem; right: -0.1rem; color: var(--tn-ink); }
+.tn-side-add[data-catalog] input { text-transform: none; }
+.combo-list li .combo-detail { white-space: normal; }
+
 /* toasts */
 .tn-toasts { position: fixed; top: calc(70px + env(safe-area-inset-top)); right: 1rem; left: 1rem; z-index: 60; display: flex; flex-direction: column; align-items: flex-end; gap: 0.5rem; pointer-events: none; }
 .tn-toast {
@@ -990,6 +996,10 @@ textarea.tn-input { min-height: 140px; resize: vertical; line-height: 1.5; }
     .tn-sheet .tn-side-remove { width: 44px; height: 44px; opacity: 0.7; }
     .tn-sheet-add { margin-top: 0.35rem; min-height: 50px; padding-right: 0.3rem; border: 1px solid var(--tn-line-strong); border-radius: 12px; background: #fff; }
     .tn-sheet-add input { font-size: 1rem; }
+    /* In the sheet the keyboard is up: list matches in the flow, right under the field. */
+    .tn-sheet-add { flex-wrap: wrap; row-gap: 0; }
+    .tn-sheet-add .combo-list { position: static; flex-basis: 100%; order: 3; margin: 0.15rem -0.3rem 0.35rem -0.55rem; border: 0; border-top: 1px solid var(--tn-line); border-radius: 0 0 12px 12px; box-shadow: none; max-height: 40vh; }
+    .tn-sheet-add .combo-list li { min-height: 48px; justify-content: center; }
     .tn-sheet .tn-side-empty { margin: 0.4rem 0.55rem 0.7rem; font-size: 0.92rem; }
     .tn-sheet .tn-side-error { font-size: 0.88rem; }
     .tn-sheet-all { display: block; margin: 0.9rem 0.55rem 0; color: var(--tn-ink-2); font-size: 0.95rem; }
