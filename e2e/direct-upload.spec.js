@@ -134,7 +134,12 @@ test("a student keeps their courses in the sidebar", async ({ page }) => {
     await expect(link).toBeVisible();
     await add.fill("not a course");
     await add.press("Enter");
-    await expect(page.locator("#sideAddError")).toHaveText("Use a class code like CMSC330.");
+    await expect(page.locator("#sideAddError")).toHaveText("Pick a course from the list, or type a code like CMSC330.");
+    // UMD courses are suggested by code or by name; picking one adds it.
+    await add.fill("operating systems");
+    await page.locator("#sideCourseList").getByRole("option", { name: /CMSC412/ }).click();
+    await expect(page.locator('#sideCourses [data-course-link="CMSC412"]')).toBeVisible();
+    await expect(add).toHaveValue("");
     // It is saved to the account, so it is still there after a reload, and opens that course's notes.
     await page.reload();
     await link.click();

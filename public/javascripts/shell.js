@@ -127,19 +127,71 @@
 
     for (const addForm of document.querySelectorAll('[data-add-course]')) {
         const addError = addForm.parentElement.querySelector('[data-add-error]');
+        const input = addForm.elements.classCode;
         const fail = (message) => { addError.textContent = message; addError.hidden = false; };
-        addForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const input = addForm.elements.classCode;
-            const code = input.value.toUpperCase().replace(/\s+/g, '');
+        let suggestions = [];
+        let combo = null;
+
+        async function add(code) {
             addError.hidden = true;
-            if (!COURSE_CODE.test(code)) return fail('Use a class code like CMSC330.');
+            if (!COURSE_CODE.test(code)) return fail(addForm.hasAttribute('data-catalog') ? 'Pick a course from the list, or type a code like CMSC330.' : 'Use a class code like CMSC330.');
+            if (pinned.includes(code)) {
+                input.value = '';
+                return fail(`${code} is already in My courses.`);
+            }
             try {
                 await setPinned(code, true);
                 input.value = '';
+                suggestions = [];
+                combo?.close();
             } catch (err) {
                 fail(err.message);
             }
+        }
+
+        // Suggest UMD courses (by code or by name) from the same catalog the upload form uses.
+        const list = addForm.querySelector('.combo-list');
+        if (addForm.hasAttribute('data-catalog') && list && window.CoursePicker) {
+            let timer;
+            let asked = '';
+            combo = window.CoursePicker.combobox(input, list, {
+                onInput: (raw) => {
+                    clearTimeout(timer);
+                    addError.hidden = true;
+                    suggestions = []; // never let Enter pick a match for older text
+                    const q = raw.trim();
+                    asked = q;
+                    if (q.replace(/\s+/g, '').length < 2) {
+                        suggestions = [];
+                        return combo.show([]);
+                    }
+                    timer = setTimeout(async () => {
+                        try {
+                            const res = await fetch(`/api/course-suggest?q=${encodeURIComponent(q)}`, { credentials: 'same-origin' });
+                            const data = await res.json();
+                            if (asked !== q) return; // a newer keystroke is on its way
+                            suggestions = (data.courses || []).map((c) => ({
+                                value: c.id,
+                                label: pinned.includes(c.id) ? `${c.id} (added)` : c.id,
+                                detail: c.name,
+                            }));
+                            combo.show(suggestions);
+                        } catch {
+                            suggestions = [];
+                            combo.show([]);
+                        }
+                    }, 150);
+                },
+                onPick: (item) => add(item.value),
+            });
+        }
+
+        addForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            let code = input.value.toUpperCase().replace(/\s+/g, '');
+            // Typed a name ("organic chem") and pressed Enter: take the top match.
+            if (!COURSE_CODE.test(code) && suggestions.length) code = suggestions[0].value;
+            add(code);
         });
     }
 
