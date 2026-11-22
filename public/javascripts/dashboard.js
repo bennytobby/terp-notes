@@ -190,6 +190,7 @@
                         <div class="tn-menu-list" role="menu">
                             ${f.missing ? '' : `<a role="menuitem" href="${href}" target="_blank" rel="noopener">Open in new tab</a>`}
                             ${f.missing || f.held ? '' : '<button type="button" role="menuitem" data-action="buddy">Ask Study Buddy</button>'}
+                            ${f.missing ? '' : '<button type="button" role="menuitem" data-action="save-folder">Save to folder</button>'}
                             <button type="button" role="menuitem" data-action="copy">Copy link</button>
                             ${canManage(f) ? '<button type="button" role="menuitem" data-action="edit">Edit details</button>' : ''}
                             ${f.uploadedBy !== me.userid ? '<button type="button" role="menuitem" data-action="report">Report</button>' : ''}
@@ -644,6 +645,7 @@
             if (action.dataset.action === 'report') openReport(f);
             if (action.dataset.action === 'delete') deleteFiles([f.filename]);
             if (action.dataset.action === 'buddy') studyWith([f]);
+            if (action.dataset.action === 'save-folder') window.NoteFolders.open(f, action.closest('details').querySelector('summary'));
             if (action.dataset.action === 'copy') {
                 const url = new URL(`/download/${encodeURIComponent(f.filename)}`, location.origin).href;
                 try { await navigator.clipboard.writeText(url); toast('Link copied. Classmates need to sign in to open it.', 'success'); }

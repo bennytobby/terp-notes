@@ -2,14 +2,14 @@
   Study Buddy: a chat panel that opens over any signed-in page (bottom right on laptops, full
   screen on phones). The student picks a course, optionally narrows it to specific files, and
   asks a question or taps one of the "make me a…" buttons. Behavior is in /javascripts/buddy.js.
-  Locals: aiEnabled.
+  Locals: aiEnabled, buddyAccount.
 %>
 <button type="button" class="tn-buddy-launch" id="buddyLaunch" aria-haspopup="dialog" aria-controls="buddyPanel" aria-expanded="false">
     <svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.8 4.6L18.500 9l-4.700 1.400L12 15l-1.800-4.600L5.500 9l4.700-1.400z"/><path d="M18.500 15l.8 2 2 .7-2 .8-.8 2-.7-2-2-.8 2-.7z"/></svg>
     <span>Study Buddy</span>
 </button>
 
-<section class="tn-buddy" id="buddyPanel" role="dialog" aria-modal="false" aria-labelledby="buddyTitle" data-ai="<%= locals.aiEnabled ? '1' : '0' %>" hidden>
+<section class="tn-buddy" id="buddyPanel" role="dialog" aria-modal="false" aria-labelledby="buddyTitle" data-account="<%= locals.buddyAccount %>" data-ai="<%= locals.aiEnabled ? '1' : '0' %>" hidden>
     <header class="tn-buddy-head">
         <div>
             <h2 id="buddyTitle">Study Buddy</h2>
@@ -33,6 +33,10 @@
             <ul id="buddyFileList"></ul>
         </div>
     </div>
+
+    <% if (locals.aiEnabled) { %>
+        <p class="tn-buddy-privacy">AI requests send your prompt, note excerpts, and recent chat for follow-ups to our AI provider. <a href="/privacy#study-buddy">Privacy details</a></p>
+    <% } %>
 
     <div class="tn-buddy-thread" id="buddyThread" aria-live="polite" tabindex="0"></div>
 

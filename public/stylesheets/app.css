@@ -913,8 +913,9 @@ textarea.tn-input { min-height: 140px; resize: vertical; line-height: 1.5; }
 .tn-buddy .source { margin-top: 0.4rem; padding: 0.5rem 0.65rem; border-radius: 9px; background: #fff; border: 1px solid var(--tn-line); }
 .tn-buddy .source a { font-weight: 600; color: var(--tn-ink); overflow-wrap: anywhere; }
 .tn-buddy .source p { margin: 0.2rem 0 0; color: var(--tn-ink-2); }
-.tn-buddy-actions { display: flex; gap: 0.4rem; margin-top: 0.6rem; }
-.tn-buddy-actions button { min-height: 30px; padding: 0 0.7rem; border-radius: 8px; border: 1px solid var(--tn-line-strong); background: #fff; color: var(--tn-ink); font: 500 0.8rem var(--tn-font); cursor: pointer; }
+.tn-buddy-privacy { margin: 0.35rem 1rem; font-size: 0.78rem; color: var(--tn-ink-2); }
+.tn-buddy-actions { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-top: 0.6rem; }
+.tn-buddy-actions button { min-height: 44px; padding: 0 0.7rem; border-radius: 8px; border: 1px solid var(--tn-line-strong); background: #fff; color: var(--tn-ink); font: 500 0.8rem var(--tn-font); cursor: pointer; }
 .tn-buddy-actions button:hover { border-color: var(--tn-ink-2); }
 
 .tn-buddy-make { display: flex; gap: 0.4rem; padding: 0.5rem 0.75rem 0; overflow-x: auto; scrollbar-width: none; }
@@ -1024,3 +1025,17 @@ textarea.tn-input { min-height: 140px; resize: vertical; line-height: 1.5; }
 }
 @media (prefers-reduced-motion: reduce) { .tn-sheet, .tn-buddy, .tn-dialog[open] { animation: none !important; } }
 .tn-sheet:focus { outline: none; }
+
+.tn-folder-form, .tn-folder-links { display: flex; flex-wrap: wrap; align-items: end; gap: 0.75rem; margin-block: 1rem; }
+.tn-folder-form input { width: 100%; min-height: 44px; padding: 0.55rem 0.7rem; border: 1px solid var(--tn-line-strong); border-radius: 8px; background: var(--tn-panel, white); color: var(--tn-ink); font: inherit; }
+.tn-folders .tn-btn, #saveFolderDialog .tn-btn, #saveFolderSelect { min-height: 44px; }
+.tn-folder-links .tn-btn { max-width: 100%; white-space: normal; overflow-wrap: anywhere; }
+.tn-folder-links [aria-current="page"] { border-color: var(--tn-ink); }
+.tn-folder-section { margin-block: 1.5rem; overflow-wrap: anywhere; }
+.tn-folder-notes { padding: 0; list-style: none; }
+.tn-folder-notes li { display: flex; align-items: center; flex-wrap: wrap; gap: 0.5rem; padding-block: 0.75rem; border-top: 1px solid var(--tn-line); }
+.tn-folder-note { flex: 1 0 11rem; min-width: 0; }
+.tn-folder-note small { display: block; color: var(--tn-ink-2); }
+.tn-folder-manage > summary { cursor: pointer; width: fit-content; padding-block: 0.75rem; }
+.tn-folders [role="status"]:not(:empty) { margin-block: 0.75rem; }
+#saveFolderDialog p { margin: 0; overflow-wrap: anywhere; }

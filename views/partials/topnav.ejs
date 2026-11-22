@@ -2,7 +2,7 @@
   The app shell for every signed-in page: a sidebar on laptops; on phones a bottom tab bar whose
   buttons open sheets from the bottom (the menu button, top left, opens the drawer from the left), and the Study Buddy panel, which opens over whatever page you're on.
 
-  Locals: user (required), active ('dashboard' | 'staff' | 'settings' | 'admin' | ''),
+  Locals: user (required), active ('dashboard' | 'folders' | 'staff' | 'settings' | 'admin' | ''),
   shell (set for every page by the server: pinnedCourses, isCourseStaff, aiEnabled).
 %>
 <%
@@ -16,6 +16,7 @@
   const initials = ((navUser.firstname || '').slice(0, 1) + (navUser.lastname || '').slice(0, 1)).toUpperCase() || '?';
   const icon = {
     notes: '<path d="M6 3h9l4 4v14H6z"/><path d="M14 3v5h5M9 13h7M9 17h5"/>',
+    folders: '<path d="M3 6h7l2 2h9v11H3z"/>',
     mine: '<path d="M12 16V5M7 10l5-5 5 5M5 20h14"/>',
     buddy: '<path d="M12 3l1.8 4.6L18.5 9l-4.7 1.4L12 15l-1.8-4.6L5.5 9l4.7-1.4z"/><path d="M18.5 15l.8 2 2 .7-2 .8-.8 2-.7-2-2-.8 2-.7z"/>',
     staff: '<path d="M3 9l9-5 9 5-9 5z"/><path d="M7 11.5V16c1.5 1.5 3.2 2 5 2s3.500-.5 5-2v-4.500"/>',
@@ -53,6 +54,7 @@
     <nav class="tn-side-nav" aria-label="Main">
         <a href="/dashboard" class="tn-side-link<%- current('dashboard') %>" data-nav="notes"><%- svg('notes') %><span>Notes</span></a>
         <a href="/dashboard?mine=1" class="tn-side-link" data-nav="mine"><%- svg('mine') %><span>My uploads</span></a>
+        <a href="/folders" class="tn-side-link<%- current('folders') %>"><%- svg('folders') %><span>Saved folders</span></a>
         <a href="/study" class="tn-side-link" data-buddy-open><%- svg('buddy') %><span>Study Buddy</span></a>
 
         <div class="tn-side-group">
@@ -124,7 +126,7 @@
     </div>
 </section>
 
-<%- include('buddy', { aiEnabled: Boolean(navShell.aiEnabled) }) %>
+<%- include('buddy', { aiEnabled: Boolean(navShell.aiEnabled), buddyAccount: navUser.userid || '' }) %>
 <script src="/javascripts/course-picker.js" defer></script>
 <script src="/javascripts/shell.js" defer></script>
 <script src="/javascripts/buddy.js" defer></script>

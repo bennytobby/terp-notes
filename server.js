@@ -75,6 +75,7 @@ const schools = require('./utils/schools');
 const notePipeline = require('./utils/note-pipeline');
 const noteDetails = require('./utils/note-details');
 const studyBuddy = require('./utils/study-buddy');
+const noteFolders = require('./utils/note-folders');
 const mcp = require('./utils/mcp');
 const { StreamableHTTPServerTransport } = require('@modelcontextprotocol/sdk/server/streamableHttp.js');
 courseStaff.setUsersCollection(process.env.MONGO_USERCOLLECTION);
@@ -4670,6 +4671,67 @@ app.post('/api/ai-access/tokens/:id/revoke', apiLimiter, async (req, res) => {
         if (err instanceof mcp.TokenError) return res.status(err.status).json({ error: err.message });
         console.error('Token revoke error:', err);
         res.status(500).json({ error: 'Could not revoke the token' });
+    }
+});
+
+/* PRIVATE NOTE FOLDERS */
+
+app.get('/folders', async (req, res) => {
+    try {
+        await ensureConnection();
+        const user = req.session.user;
+        const users = client.db(userCollection.db).collection(userCollection.collection);
+        const folders = await noteFolders.list(users, user.userid);
+        const requested = noteFolders.folderId.safeParse(req.query.folder);
+        const activeFolder = req.query.folder === undefined ? folders[0] : folders.find(f => requested.success && String(f.id) === requested.data);
+        if (req.query.folder !== undefined && !activeFolder) {
+            return res.status(404).render('error', {
+                title: 'Folder unavailable', message: 'Open one of your saved folders.', link: '/folders', linkText: 'Saved folders',
+            });
+        }
+        const notes = activeFolder?.notes || [];
+        const docs = notes.length ? await client.db(fileCollection.db).collection(fileCollection.collection)
+            .find({ _id: { $in: notes }, ...visibleFilesFilter(user) })
+            .project({ filename: 1, originalName: 1, classCode: 1, s3Missing: 1 }).toArray() : [];
+        res.set('Cache-Control', 'private, no-store');
+        res.render('folders', { user, folders, activeFolder, byId: new Map(docs.map(doc => [String(doc._id), doc])) });
+    } catch (err) {
+        console.error('Folder page error:', err.message);
+        res.status(500).render('error', {
+            title: 'Could not load folders', message: 'Try opening your folders again.', link: '/folders', linkText: 'Try again',
+        });
+    }
+});
+
+app.get('/api/folders', apiLimiter, async (req, res) => {
+    try {
+        await ensureConnection();
+        const users = client.db(userCollection.db).collection(userCollection.collection);
+        const folders = await noteFolders.list(users, req.session.user.userid);
+        res.set('Cache-Control', 'private, no-store');
+        res.json({ folders: folders.map(({ id, name }) => ({ id, name })) });
+    } catch (err) {
+        console.error('Folder list error:', err.message);
+        res.status(500).json({ error: 'Could not load your folders. Try again.' });
+    }
+});
+
+app.post('/api/folders', apiLimiter, async (req, res) => {
+    if (!req.is('application/json')) return res.status(415).json({ error: 'Send folder changes as JSON.' });
+    const parsed = noteFolders.mutation.safeParse(req.body);
+    if (!parsed.success) return res.status(400).json({ error: 'Use a folder name between 1 and 60 characters or select a valid note or folder.' });
+    try {
+        await ensureConnection();
+        const user = req.session.user;
+        const users = client.db(userCollection.db).collection(userCollection.collection);
+        const files = client.db(fileCollection.db).collection(fileCollection.collection);
+        const visibility = { ...visibleFilesFilter(user), s3Missing: { $ne: true } };
+        const result = await noteFolders.update(users, files, user.userid, visibility, parsed.data);
+        if (result.error) return res.status(result.status).json({ error: result.error });
+        res.json(result);
+    } catch (err) {
+        console.error('Folder update error:', err.message);
+        res.status(500).json({ error: 'Could not save your changes. Try again.' });
     }
 });
 
