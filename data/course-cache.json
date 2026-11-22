@@ -1,8 +1,8 @@
 {
   "metadata": {
-    "generated": "2026-11-15T10:33:38.429Z",
+    "generated": "2026-11-22T10:56:09.016Z",
     "type": "course-indexed",
-    "coursesCount": 4690,
+    "coursesCount": 4710,
     "yearFilter": "Only years 2021 and after",
     "structure": "course -> professors -> semesters"
   },
@@ -8946,6 +8946,31 @@
           }
         ],
         "Michael Paolisso": []
+      }
+    },
+    "ANTH603": {
+      "courseInfo": {
+        "id": "ANTH603",
+        "name": "Queer Anthropology"
+      },
+      "professors": {
+        "Matthew Thomann": [
+          {
+            "semester": "Spring",
+            "year": 2023,
+            "semesterId": "202301"
+          },
+          {
+            "semester": "Spring",
+            "year": 2024,
+            "semesterId": "202401"
+          },
+          {
+            "semester": "Spring",
+            "year": 2026,
+            "semesterId": "202601"
+          }
+        ]
       }
     },
     "ANTH613": {
@@ -54057,6 +54082,13 @@
         ]
       }
     },
+    "BSCI350": {
+      "courseInfo": {
+        "id": "BSCI350",
+        "name": "Infectious diseases and medicine"
+      },
+      "professors": {}
+    },
     "BSCI353": {
       "courseInfo": {
         "id": "BSCI353",
@@ -55636,6 +55668,36 @@
             "year": 2022,
             "semesterId": "202201"
           },
+          {
+            "semester": "Spring",
+            "year": 2023,
+            "semesterId": "202301"
+          },
+          {
+            "semester": "Spring",
+            "year": 2024,
+            "semesterId": "202401"
+          },
+          {
+            "semester": "Spring",
+            "year": 2025,
+            "semesterId": "202501"
+          },
+          {
+            "semester": "Spring",
+            "year": 2026,
+            "semesterId": "202601"
+          }
+        ]
+      }
+    },
+    "BSCI426": {
+      "courseInfo": {
+        "id": "BSCI426",
+        "name": "Global Change Biology"
+      },
+      "professors": {
+        "Karen Carleton": [
           {
             "semester": "Spring",
             "year": 2023,
@@ -110853,6 +110915,13 @@
       },
       "professors": {}
     },
+    "EDHI798C": {
+      "courseInfo": {
+        "id": "EDHI798C",
+        "name": "Special Problems in Education; International Education Policy and Advocacy Post-2025"
+      },
+      "professors": {}
+    },
     "EDHI799": {
       "courseInfo": {
         "id": "EDHI799",
@@ -115675,6 +115744,13 @@
         ]
       }
     },
+    "ENAE488J": {
+      "courseInfo": {
+        "id": "ENAE488J",
+        "name": "Topics in Aerospace Engineering; Fundamental Quantum Computing and Engineering Applications"
+      },
+      "professors": {}
+    },
     "ENAE488O": {
       "courseInfo": {
         "id": "ENAE488O",
@@ -116493,6 +116569,66 @@
             "semester": "Fall",
             "year": 2024,
             "semesterId": "202408"
+          }
+        ]
+      }
+    },
+    "ENAE788G": {
+      "courseInfo": {
+        "id": "ENAE788G",
+        "name": "Selected Topics in Aerospace Engineering; Aeroacoustics"
+      },
+      "professors": {
+        "James Baeder": [
+          {
+            "semester": "Fall",
+            "year": 2022,
+            "semesterId": "202208"
+          },
+          {
+            "semester": "Spring",
+            "year": 2024,
+            "semesterId": "202401"
+          },
+          {
+            "semester": "Fall",
+            "year": 2024,
+            "semesterId": "202408"
+          },
+          {
+            "semester": "Spring",
+            "year": 2025,
+            "semesterId": "202501"
+          },
+          {
+            "semester": "Fall",
+            "year": 2025,
+            "semesterId": "202508"
+          },
+          {
+            "semester": "Spring",
+            "year": 2026,
+            "semesterId": "202601"
+          }
+        ]
+      }
+    },
+    "ENAE788J": {
+      "courseInfo": {
+        "id": "ENAE788J",
+        "name": "Selected Topics in Aerospace Engineering; Fundamental Quantum Computing and Engineering Applications"
+      },
+      "professors": {
+        "Christoph Brehm": [
+          {
+            "semester": "Spring",
+            "year": 2022,
+            "semesterId": "202201"
+          },
+          {
+            "semester": "Spring",
+            "year": 2023,
+            "semesterId": "202301"
           }
         ]
       }
@@ -158257,6 +158393,43 @@
         ]
       }
     },
+    "ENVH381": {
+      "courseInfo": {
+        "id": "ENVH381",
+        "name": "Introduction to Public Health Aerobiology Research"
+      },
+      "professors": {
+        "Donald Milton": [
+          {
+            "semester": "Fall",
+            "year": 2025,
+            "semesterId": "202508"
+          },
+          {
+            "semester": "Spring",
+            "year": 2026,
+            "semesterId": "202601"
+          },
+          {
+            "semester": "Fall",
+            "year": 2026,
+            "semesterId": "202608"
+          }
+        ],
+        "Kristen Coleman": [
+          {
+            "semester": "Fall",
+            "year": 2025,
+            "semesterId": "202508"
+          },
+          {
+            "semester": "Spring",
+            "year": 2026,
+            "semesterId": "202601"
+          }
+        ]
+      }
+    },
     "ENVH414": {
       "courseInfo": {
         "id": "ENVH414",
@@ -198078,6 +198251,13 @@
         ]
       }
     },
+    "HLTH677": {
+      "courseInfo": {
+        "id": "HLTH677",
+        "name": "Advanced Women's Health"
+      },
+      "professors": {}
+    },
     "HLTH688": {
       "courseInfo": {
         "id": "HLTH688",
@@ -205252,6 +205432,13 @@
           }
         ]
       }
+    },
+    "INST162": {
+      "courseInfo": {
+        "id": "INST162",
+        "name": "Data Visualization in Sport"
+      },
+      "professors": {}
     },
     "INST201": {
       "courseInfo": {
@@ -225909,6 +226096,13 @@
         ]
       }
     },
+    "JWST219K": {
+      "courseInfo": {
+        "id": "JWST219K",
+        "name": "Special Topics in Jewish Studies; Sumerian"
+      },
+      "professors": {}
+    },
     "JWST233": {
       "courseInfo": {
         "id": "JWST233",
@@ -231328,6 +231522,20 @@
           }
         ]
       }
+    },
+    "LARC411": {
+      "courseInfo": {
+        "id": "LARC411",
+        "name": "Construction Technology I: Principles of Site Engineering"
+      },
+      "professors": {}
+    },
+    "LARC413": {
+      "courseInfo": {
+        "id": "LARC413",
+        "name": "Construction Technology III: Water Soil-Centric Practices"
+      },
+      "professors": {}
     },
     "LARC454": {
       "courseInfo": {
@@ -244624,6 +244832,13 @@
           }
         ]
       }
+    },
+    "MEES644": {
+      "courseInfo": {
+        "id": "MEES644",
+        "name": "Hydrological Systems Modeling and Applications"
+      },
+      "professors": {}
     },
     "MEES661": {
       "courseInfo": {
@@ -260866,6 +261081,21 @@
       },
       "professors": {}
     },
+    "MUSC679L": {
+      "courseInfo": {
+        "id": "MUSC679L",
+        "name": "Seminar in Ethnomusicology; Music of Latino/a Communities in the US"
+      },
+      "professors": {
+        "Fernando Rios": [
+          {
+            "semester": "Spring",
+            "year": 2024,
+            "semesterId": "202401"
+          }
+        ]
+      }
+    },
     "MUSC688": {
       "courseInfo": {
         "id": "MUSC688",
@@ -261165,6 +261395,41 @@
           }
         ],
         "Minna Han": [
+          {
+            "semester": "Spring",
+            "year": 2026,
+            "semesterId": "202601"
+          }
+        ]
+      }
+    },
+    "MUSC801S": {
+      "courseInfo": {
+        "id": "MUSC801S",
+        "name": "Advanced Seminar in Music Pedagogy"
+      },
+      "professors": {
+        "Irina Muresanu": [
+          {
+            "semester": "Spring",
+            "year": 2021,
+            "semesterId": "202101"
+          },
+          {
+            "semester": "Spring",
+            "year": 2023,
+            "semesterId": "202301"
+          },
+          {
+            "semester": "Spring",
+            "year": 2024,
+            "semesterId": "202401"
+          },
+          {
+            "semester": "Spring",
+            "year": 2025,
+            "semesterId": "202501"
+          },
           {
             "semester": "Spring",
             "year": 2026,
@@ -281460,6 +281725,13 @@
         ]
       }
     },
+    "PLSC489A": {
+      "courseInfo": {
+        "id": "PLSC489A",
+        "name": "Special Topics in Plant Science; Exploring Maryland Native Flora"
+      },
+      "professors": {}
+    },
     "PLSC608T": {
       "courseInfo": {
         "id": "PLSC608T",
@@ -294581,6 +294853,13 @@
         ]
       }
     },
+    "SOCY498M": {
+      "courseInfo": {
+        "id": "SOCY498M",
+        "name": "Selected Topics in Sociology; Community-Based Research Practicum"
+      },
+      "professors": {}
+    },
     "SOCY602": {
       "courseInfo": {
         "id": "SOCY602",
@@ -294617,6 +294896,13 @@
           }
         ]
       }
+    },
+    "SOCY609": {
+      "courseInfo": {
+        "id": "SOCY609",
+        "name": "Practicum in Social Research"
+      },
+      "professors": {}
     },
     "SOCY632": {
       "courseInfo": {
@@ -322505,6 +322791,13 @@
           }
         ]
       }
+    },
+    "WGSS207": {
+      "courseInfo": {
+        "id": "WGSS207",
+        "name": "What is Care?"
+      },
+      "professors": {}
     },
     "WGSS230": {
       "courseInfo": {
