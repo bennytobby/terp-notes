@@ -1,8 +1,6 @@
 const { expect, test } = require("@playwright/test");
-const { needsDb, seedUser, withDb } = require("./helpers");
+const { seedUser, withDb } = require("./helpers");
 const { indexFile } = require("../utils/study-buddy");
-
-test.skip(needsDb, "needs a test MongoDB");
 
 test("a signed-in student can generate a cited quiz without typing a question", async ({ request }) => {
     const user = { userid: "e2e_quiz_api", email: "e2e_quiz_api@terpmail.umd.edu" };

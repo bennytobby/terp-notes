@@ -3,10 +3,14 @@ const bcrypt = require("bcrypt");
 const { MongoClient } = require("mongodb");
 
 const mongoUrl = process.env.MONGO_CONNECTION_STRING;
+const localMongoUrl = "mongodb://127.0.0.1:27017";
 const DB = "terpnotes_e2e";
 
 async function withDb(fn) {
-    const client = new MongoClient(mongoUrl);
+    if (process.env.BASE_URL) {
+        throw new Error("Database fixtures are only available for local E2E tests");
+    }
+    const client = new MongoClient(mongoUrl || localMongoUrl);
     await client.connect();
     try {
         return await fn(client.db(DB));
@@ -41,4 +45,4 @@ async function signIn(page, userid, password) {
 
 const needsDb = !mongoUrl || Boolean(process.env.BASE_URL);
 
-module.exports = { withDb, seedUser, signIn, needsDb, DB };
+module.exports = { withDb, seedUser, signIn, needsDb, DB, localMongoUrl };

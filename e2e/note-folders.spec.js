@@ -1,7 +1,5 @@
 const { expect, test } = require("@playwright/test");
-const { needsDb, seedUser, signIn, withDb } = require("./helpers");
-
-test.skip(needsDb, "needs a test MongoDB");
+const { seedUser, signIn, withDb } = require("./helpers");
 
 const owner = { userid: "e2e_folders", email: "e2e_folders@terpmail.umd.edu" };
 const classmate = { userid: "e2e_folders_other", email: "e2e_folders_other@terpmail.umd.edu" };
