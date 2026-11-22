@@ -22,14 +22,16 @@
 
     const state = { open: false, course: '', files: [], thread: [] };
     try {
-        Object.assign(state, JSON.parse(sessionStorage.getItem(STORE) || '{}'));
+        const saved = JSON.parse(sessionStorage.getItem(STORE) || '{}');
+        if (saved.account === panel.dataset.account) Object.assign(state, saved);
+        else sessionStorage.removeItem(STORE);
     } catch (e) { /* private mode or bad data: start fresh */ }
     if (!Array.isArray(state.files)) state.files = [];
     if (!Array.isArray(state.thread)) state.thread = [];
 
     function save() {
         try {
-            sessionStorage.setItem(STORE, JSON.stringify({ ...state, thread: state.thread.slice(-30) }));
+            sessionStorage.setItem(STORE, JSON.stringify({ ...state, account: panel.dataset.account, thread: state.thread.slice(-30) }));
         } catch (e) { /* storage full or blocked: the chat still works for this page */ }
     }
 
@@ -228,8 +230,21 @@
         badge.textContent = turn.mode === 'ai' ? (turn.kind && turn.kind !== 'ask' ? `${KIND_LABEL[turn.kind]} · AI` : 'AI answer') : 'From your class notes';
         const body = document.createElement('div');
         body.className = 'tn-buddy-answer';
-        body.innerHTML = markdown(turn.text);
+        const keyHeading = /^(?:#{1,6}[ \t]+)?(?:\*\*)?Answer key:?(?:\*\*)?[ \t]*\r?$/im.exec(turn.text);
+        const showKey = turn.mode === 'ai' && ['quiz', 'exam'].includes(turn.kind) && keyHeading;
+        body.innerHTML = markdown(showKey ? turn.text.slice(0, keyHeading.index) : turn.text);
         div.append(badge, body);
+        if (showKey) {
+            const key = document.createElement('details');
+            key.className = 'sources';
+            const summary = document.createElement('summary');
+            summary.textContent = 'Reveal answer key';
+            const content = document.createElement('div');
+            content.className = 'tn-buddy-answer';
+            content.innerHTML = markdown(turn.text.slice(keyHeading.index + keyHeading[0].length));
+            key.append(summary, content);
+            div.appendChild(key);
+        }
 
         if (turn.sources && turn.sources.length) {
             const details = document.createElement('details');
@@ -260,24 +275,30 @@
             actions.className = 'tn-buddy-actions';
             const copy = document.createElement('button');
             copy.type = 'button';
-            copy.textContent = 'Copy';
+            const material = KIND_LABEL[turn.kind]?.toLowerCase();
+            const label = material ? `Copy ${material}` : 'Copy answer';
+            const references = (turn.sources || []).map(s =>
+                `[${s.n}] ${s.originalName} — ${new URL(`/download/${encodeURIComponent(s.filename)}`, location.origin).href}`
+            );
+            const exportText = references.length ? `${turn.text}\n\n## Sources\n${references.join('\n')}\n` : turn.text;
+            copy.textContent = label;
             copy.addEventListener('click', async () => {
                 try {
-                    await navigator.clipboard.writeText(turn.text);
+                    await navigator.clipboard.writeText(exportText);
                     copy.textContent = 'Copied';
                 } catch (e) {
                     copy.textContent = "Couldn't copy";
                 }
-                setTimeout(() => { copy.textContent = 'Copy'; }, 1500);
+                setTimeout(() => { copy.textContent = label; }, 1500);
             });
             actions.appendChild(copy);
-            if (turn.kind && turn.kind !== 'ask') {
+            if (material) {
                 const dl = document.createElement('button');
                 dl.type = 'button';
-                dl.textContent = 'Download';
+                dl.textContent = `Download ${material}`;
                 dl.addEventListener('click', () => {
                     const name = `${(turn.course || 'notes').toLowerCase()}-${turn.kind}.md`;
-                    const url = URL.createObjectURL(new Blob([turn.text], { type: 'text/markdown' }));
+                    const url = URL.createObjectURL(new Blob([exportText], { type: 'text/markdown' }));
                     const a = Object.assign(document.createElement('a'), { href: url, download: name });
                     document.body.appendChild(a);
                     a.click();
@@ -291,7 +312,7 @@
         return div;
     }
 
-    function renderThread() {
+    function renderThread(scrollToTurn) {
         els.thread.textContent = '';
         if (!state.thread.length) {
             els.thread.appendChild(emptyThread());
@@ -307,7 +328,10 @@
                 els.thread.appendChild(buddyBubble(turn));
             }
         }
-        els.thread.scrollTop = els.thread.scrollHeight;
+        const target = scrollToTurn && els.thread.children[state.thread.indexOf(scrollToTurn)];
+        els.thread.scrollTop = target
+            ? target.getBoundingClientRect().top - els.thread.getBoundingClientRect().top
+            : els.thread.scrollHeight;
     }
 
     // Earlier question-and-answer turns, so "what about the second one?" makes sense to the model.
@@ -328,6 +352,7 @@
         if (!state.course && !state.files.length) return say('Pick a course first.');
         if (mode === 'ask' && question.length < 3) return say('Type a question first.');
 
+        const course = state.course;
         const earlier = earlierTurns();
         const label = mode === 'ask' ? question : `${REQUEST_LABEL[mode]}${question ? `: ${question}` : state.course ? ` for ${state.course}` : ''}`;
         state.thread.push({ role: 'you', text: label });
@@ -345,20 +370,24 @@
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    classCode: state.course, question, mode,
+                    classCode: course, question, mode,
                     files: state.files.map((f) => f.filename),
                     history: mode === 'ask' ? earlier : [],
                 }),
             });
-            Object.assign(pending, { pending: false, mode: data.mode, kind: data.kind || mode, text: data.answer, sources: data.sources || [], course: state.course });
+            Object.assign(pending, { pending: false, mode: data.mode, kind: data.kind || mode, text: data.answer, sources: data.sources || [], course });
         } catch (err) {
             Object.assign(pending, { pending: false, error: true, text: err.message });
+            if (state.course === course && !els.question.value) {
+                els.question.value = question;
+                autosize();
+            }
         } finally {
             busy = false;
             els.send.disabled = false;
             els.make.querySelectorAll('button').forEach((b) => { b.disabled = false; });
             save();
-            renderThread();
+            renderThread(pending);
         }
     }
 

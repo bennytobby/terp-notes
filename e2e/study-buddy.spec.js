@@ -2,6 +2,7 @@
 // Needs MongoDB and an S3-compatible store (CI); the AI model is e2e/mock-llm.js.
 const { expect, test } = require("@playwright/test");
 const AWS = require("aws-sdk");
+const { readFile } = require("node:fs/promises");
 const { needsDb, seedUser, signIn, withDb } = require("./helpers");
 
 test.skip(needsDb || !process.env.AWS_S3_ENDPOINT, "needs MongoDB and an S3 endpoint");
@@ -52,7 +53,23 @@ test("a student asks the study buddy about uploaded notes and gets a cited answe
     await expect(source).toHaveAttribute("href", /^\/download\//);
 
     await panel.getByRole("button", { name: "Quiz me" }).click();
-    await expect(page.locator(".msg.buddy").last()).toContainText("mock quiz from stacks-and-queues.txt");
+    const quiz = page.locator(".msg.buddy").last();
+    await expect(quiz).toContainText("mock quiz from stacks-and-queues.txt");
+    await expect(quiz.getByText("Last in, first out", { exact: false })).toBeHidden();
+    await quiz.getByText("Reveal answer key").click();
+    await expect(quiz.getByText("Last in, first out", { exact: false })).toBeVisible();
+    await page.context().grantPermissions(["clipboard-read", "clipboard-write"]);
+    await quiz.getByRole("button", { name: "Copy quiz" }).click();
+    await expect(quiz.getByRole("button", { name: "Copied" })).toBeVisible();
+    const clipboard = await page.evaluate(() => navigator.clipboard.readText());
+    expect(clipboard).toContain("## Answer key");
+    expect(clipboard).toContain("/download/");
+    const [download] = await Promise.all([
+        page.waitForEvent("download"),
+        quiz.getByRole("button", { name: "Download quiz" }).click(),
+    ]);
+    expect(download.suggestedFilename()).toBe("cmsc132-quiz.md");
+    expect(await readFile(await download.path(), "utf8")).toBe(clipboard);
 
     // Study material from one chosen file: pick it, then ask for a cheat sheet.
     await panel.getByRole("button", { name: "All notes" }).click();
@@ -62,7 +79,7 @@ test("a student asks the study buddy about uploaded notes and gets a cited answe
     const sheet = page.locator(".msg.buddy").last();
     await expect(sheet).toContainText("Cheat sheet");
     await expect(sheet).toContainText("mock cheat sheet from stacks-and-queues.txt");
-    await expect(sheet.getByRole("button", { name: "Download" })).toBeVisible();
+    await expect(sheet.getByRole("button", { name: "Download cheat sheet" })).toBeVisible();
 
     // The chat follows the student to other pages.
     await page.goto("/settings");

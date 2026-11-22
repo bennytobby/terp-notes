@@ -124,7 +124,7 @@
     </div>
 </section>
 
-<%- include('buddy', { aiEnabled: Boolean(navShell.aiEnabled) }) %>
+<%- include('buddy', { aiEnabled: Boolean(navShell.aiEnabled), buddyAccount: navUser.userid || '' }) %>
 <script src="/javascripts/course-picker.js" defer></script>
 <script src="/javascripts/shell.js" defer></script>
 <script src="/javascripts/buddy.js" defer></script>

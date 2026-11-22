@@ -3,6 +3,7 @@
 // - live: `BASE_URL=https://terp-notes.org npm run test:live` runs only the read-only
 //   @live tests against production, without starting anything locally.
 const { defineConfig } = require("@playwright/test");
+const { localMongoUrl } = require("./e2e/helpers");
 
 const live = process.env.BASE_URL;
 const port = 3311;
@@ -37,7 +38,7 @@ module.exports = defineConfig({
                   env: {
                       PORT: String(port),
                       MONGO_CONNECTION_STRING:
-                          process.env.MONGO_CONNECTION_STRING || "mongodb://127.0.0.1:27017",
+                          process.env.MONGO_CONNECTION_STRING || localMongoUrl,
                       MONGO_DB_NAME: "terpnotes_e2e",
                       MONGO_FILECOLLECTION: "files",
                       MONGO_USERCOLLECTION: "users",

@@ -150,3 +150,24 @@ test("the daily limit holds when requests arrive together", async () => {
     const results = await Promise.all(Array.from({ length: 6 }, () => sb.takeDailyQuota(db, "burst", 4)));
     assert.equal(results.filter(Boolean).length, 4);
 });
+
+test("a blank-topic quiz puts its task ahead of the reference notes and rejects off-task completions", async () => {
+    const db = await seed();
+    const config = { baseUrl: "https://api.groq.com/openai/v1", model: "qwen/qwen3.8-27b", dailyLimit: 5 };
+    const args = { db, filesCollection: "files", classCode: "CMSC132", mode: "quiz", userid: "quiz", config };
+    const completion = (content, finish_reason = "stop") => async (url, init) => {
+        const body = JSON.parse(init.body);
+        assert.equal(url, "https://api.groq.com/openai/v1/chat/completions");
+        assert.equal(init.method, "POST");
+        assert.equal(body.model, "qwen/qwen3.8-27b");
+        assert.equal(body.max_completion_tokens, 1400);
+        assert.equal(body.reasoning_effort, "none");
+        assert.match(body.messages.at(-1).content, /^Write a 5-question practice quiz/);
+        return { ok: true, json: async () => ({ choices: [{ finish_reason, message: { content } }] }) };
+    };
+    await assert.rejects(sb.answer({ ...args, fetchImpl: completion("Hello! What would you like to study?") }), /incomplete quiz/i);
+    const quiz = "## Questions\n1. A?\n2. B?\n3. C?\n4. D?\n5. E?\n\n## Answer key\n1. A [1]\n2. B [1]\n3. C [1]\n4. D [1]\n5. E [1]";
+    await assert.rejects(sb.answer({ ...args, fetchImpl: completion(quiz, "length") }), /ended before it was complete/i);
+    const result = await sb.answer({ ...args, fetchImpl: completion(quiz) });
+    assert.equal(result.answer, quiz);
+});

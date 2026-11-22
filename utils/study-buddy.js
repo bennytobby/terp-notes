@@ -103,7 +103,7 @@ const MODES = {
         passages: 8,
         maxTokens: 1400,
         task: (topic) =>
-            `Write a 5-question practice quiz on: ${topic}. Mix multiple choice and short answer. Put an answer key with [n] citations at the end.`,
+            `Write a 5-question practice quiz on: ${topic}. Mix multiple choice and short answer. Start with "## Questions" and number the questions 1 through 5. Put multiple-choice options on separate lines labeled A), B), C), and D). End with "## Answer key" and five numbered answers, each with a source citation [n]. Start directly with the questions and keep each answer short.`,
     },
     cheatsheet: {
         label: "Cheat sheet",
@@ -117,7 +117,7 @@ const MODES = {
         passages: 12,
         maxTokens: 2200,
         task: (topic) =>
-            `Write a practice exam on: ${topic}. Include 4 multiple-choice questions, 3 short-answer questions and 1 longer problem, with point values that add up to 100. Match the style and difficulty of the notes. After the exam, add a section headed "Answer key" with worked answers and [n] citations.`,
+            `Write a practice exam on: ${topic}. Include 4 multiple-choice questions, 3 short-answer questions and 1 longer problem, with point values that add up to 100. Match the style and difficulty of the notes. Keep the questions and worked answers concise so the full exam and answer key fit. Each multiple-choice question must have exactly one correct option and the explanation must support that option. After the exam, add a section headed "Answer key" with worked answers and [n] citations.`,
     },
     flashcards: {
         label: "Flashcards",
@@ -162,28 +162,30 @@ function buildMessages({ question, passages, classCode, mode, history }) {
     return [
         { role: "system", content: system },
         ...cleanHistory(history),
-        { role: "user", content: `Course notes:\n\n${sources || "(no matching notes)"}\n\n${task}` },
+        { role: "user", content: `${task}\n\nCourse notes (reference only):\n\n${sources || "(no matching notes)"}` },
     ];
 }
 
 async function callModel(config, messages, fetchImpl = globalThis.fetch, { maxTokens = 900 } = {}) {
+    const groqQwen = config.baseUrl === "https://api.groq.com/openai/v1" && config.model === "qwen/qwen3.8-27b";
     const res = await fetchImpl(`${config.baseUrl}/chat/completions`, {
         method: "POST",
         headers: {
             "Content-Type": "application/json",
             ...(config.apiKey ? { Authorization: `Bearer ${config.apiKey}` } : {}),
         },
-        body: JSON.stringify({ model: config.model, messages, temperature: 0.3, max_tokens: maxTokens }),
+        body: JSON.stringify({ model: config.model, messages, temperature: 0.3, ...(groqQwen ? { reasoning_effort: "none", max_completion_tokens: maxTokens } : { max_tokens: maxTokens }) }),
         // Under the 60-second limit the hosting platform gives one request.
         signal: AbortSignal.timeout ? AbortSignal.timeout(50_000) : undefined,
     });
     if (!res.ok) {
-        const detail = await res.text().catch(() => "");
-        throw new Error(`AI request failed (${res.status}) ${detail.slice(0, 200)}`);
+        throw new Error(`AI request failed (${res.status})`);
     }
     const data = await res.json();
-    const text = data?.choices?.[0]?.message?.content;
-    if (!text) throw new Error("AI response had no text");
+    const choice = data?.choices?.[0];
+    if (choice?.finish_reason === "length") throw new Error("AI response ended before it was complete");
+    const text = choice?.message?.content;
+    if (typeof text !== "string" || !text.trim()) throw new Error("AI response had no text");
     return text.trim();
 }
 
@@ -346,6 +348,16 @@ async function answer({ db, filesCollection, classCode, question, mode = "ask", 
     const text = await callModel(config, buildMessages({ question, passages: top, classCode, mode: kind, history }), fetchImpl, {
         maxTokens: MODES[kind].maxTokens,
     });
+    if (kind === "quiz") {
+        const sections = text.split(/^(?:#{1,6}[ \t]+)?(?:\*\*)?Answer key:?(?:\*\*)?[ \t]*\r?$/im);
+        const numbers = (part) => [...part.matchAll(/^[ \t]*(\d+)[.)][ \t]+\S/gm)].map(match => match[1]).join(",");
+        const [questions, key] = sections;
+        const answers = key?.split(/^[ \t]*[1-5][.)][ \t]+/m).slice(1);
+        if (sections.length !== 2 || numbers(questions) !== "1,2,3,4,5" || numbers(key) !== "1,2,3,4,5" ||
+            !answers.every(answer => [...answer.matchAll(/\[(\d+)\]/g)].some(match => sources.some(source => source.n === Number(match[1]))))) {
+            throw new Error("AI returned an incomplete quiz");
+        }
+    }
     return { mode: "ai", kind, answer: text, sources };
 }
 
