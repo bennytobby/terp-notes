@@ -290,6 +290,23 @@ Connect Google Docs, Notion or OneNote with secure OAuth 2.0 authentication
 - Integration Encryption Key (for token encryption)
 - BASE_URL environment variable (for OAuth redirects)
 
+### Enable AI in Study Buddy
+
+Create a key in [Groq Console → API Keys](https://console.groq.com/keys). Start on the free plan and check your [Groq rate limits](https://console.groq.com/docs/rate-limits) for model availability and quotas. Groq lists Qwen 3.8 27B as a preview model. [Model details and paid rates](https://console.groq.com/docs/model/qwen/qwen3.8-27b)
+
+In Vercel, open the Terp Notes project and go to **Settings → Environment Variables**. Add each row as a separate variable in **Preview**. Mark the key as sensitive.
+
+| Name | Value |
+| --- | --- |
+| `AI_API_KEY` | Your Groq API key |
+| `AI_BASE_URL` | `https://api.groq.com/openai/v1` |
+| `AI_MODEL` | `qwen/qwen3.8-27b` |
+| `AI_DAILY_LIMIT` | `10` to start (optional, defaults to 25 requests per account per UTC day) |
+
+Study Buddy adds `/chat/completions` to the base URL. For local development, set the same variables in your gitignored `.env` and restart the app. For Vercel, redeploy Preview after saving the values. Once Preview works, repeat for **Production** and redeploy there. [Vercel environment variables](https://vercel.com/docs/environment-variables/managing-environment-variables)
+
+Sign in on the new deployment and open **Study Buddy**. Select a test note with a fact you can check and ask about it. Look for **AI answer**, check the answer against the note, and open the source link. To verify the model, check the matching request in your Groq project's [usage dashboard](https://console.groq.com/dashboard/metrics). Without AI configuration, Study Buddy shows matching excerpts. If Groq returns an unknown-URL error, check that the base URL contains exactly the value above and that the model is in its own field.
+
 ---
 
 ## Contributing

@@ -121,32 +121,6 @@
         </div>
     </div>
 
-    <dialog class="tn-dialog tn-dialog-sm" id="saveFolderDialog" aria-labelledby="saveFolderTitle">
-        <form id="saveFolderForm">
-            <div class="tn-dialog-head">
-                <h2 id="saveFolderTitle">Save to folder</h2>
-                <button type="button" class="tn-icon-btn" id="closeFolderDialog" aria-label="Close">&times;</button>
-            </div>
-            <div class="tn-dialog-body">
-                <p id="saveFolderNote"></p>
-                <div class="tn-field">
-                    <label for="saveFolderSelect">Folder</label>
-                    <select id="saveFolderSelect" required></select>
-                </div>
-                <div class="tn-field" id="saveFolderNew" hidden>
-                    <label for="saveFolderName">New folder name</label>
-                    <input type="text" id="saveFolderName" maxlength="60" />
-                </div>
-                <p id="saveFolderStatus" role="status"></p>
-                <a href="/folders">Open saved folders</a>
-            </div>
-            <div class="tn-dialog-foot">
-                <button type="submit" class="tn-btn tn-btn-primary" id="saveFolderButton" disabled>Save note</button>
-            </div>
-        </form>
-    </dialog>
-    <script src="/javascripts/note-folders.js" defer></script>
-
     <!-- Upload / edit (one form) -->
     <dialog class="tn-dialog" id="noteDialog" aria-labelledby="noteDialogTitle">
         <form method="dialog" id="noteForm" novalidate>

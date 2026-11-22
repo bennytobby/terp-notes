@@ -157,6 +157,10 @@ test("a blank-topic quiz puts its task ahead of the reference notes and rejects 
     const args = { db, filesCollection: "files", classCode: "CMSC132", mode: "quiz", userid: "quiz", config };
     const completion = (content, finish_reason = "stop") => async (url, init) => {
         const body = JSON.parse(init.body);
+        assert.equal(url, "https://api.groq.com/openai/v1/chat/completions");
+        assert.equal(init.method, "POST");
+        assert.equal(body.model, "qwen/qwen3.8-27b");
+        assert.equal(body.max_completion_tokens, 1400);
         assert.equal(body.reasoning_effort, "none");
         assert.match(body.messages.at(-1).content, /^Write a 5-question practice quiz/);
         return { ok: true, json: async () => ({ choices: [{ finish_reason, message: { content } }] }) };
