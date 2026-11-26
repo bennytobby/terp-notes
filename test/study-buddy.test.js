@@ -171,3 +171,31 @@ test("a blank-topic quiz puts its task ahead of the reference notes and rejects 
     const result = await sb.answer({ ...args, fetchImpl: completion(quiz) });
     assert.equal(result.answer, quiz);
 });
+
+test("a practice exam has room for the full worked key in one model call", async () => {
+    const db = await seed();
+    const config = { baseUrl: "https://api.groq.com/openai/v1", model: "qwen/qwen3.8-27b", dailyLimit: 2 };
+    const args = { db, filesCollection: "files", classCode: "CMSC132", mode: "exam", userid: "exam", config };
+    const questions = Array.from({ length: 8 }, (_, i) => `${i + 1}. Question about stacks?`).join("\n");
+    const answers = Array.from({ length: 8 }, (_, i) => `${i + 1}. Worked stack answer [1]`).join("\n");
+    const exam = `## Questions\n${questions}\n\n## Answer key\n${answers}`;
+    const calls = [];
+    const fetchImpl = async (url, init) => {
+        const body = JSON.parse(init.body);
+        calls.push(body);
+        // Simulate a worked exam whose completion requires 3,000 tokens.
+        const fits = body.max_completion_tokens >= 3000;
+        return { ok: true, json: async () => ({
+            choices: [{ finish_reason: fits ? "stop" : "length", message: { content: fits ? exam : questions } }],
+        }) };
+    };
+    const result = await sb.answer({ ...args, fetchImpl });
+    assert.equal(result.answer, exam);
+    assert.equal(calls.length, 1);
+    assert.equal(calls[0].reasoning_effort, "none");
+
+    await assert.rejects(sb.answer({ ...args, fetchImpl: async () => ({
+        ok: true,
+        json: async () => ({ choices: [{ finish_reason: "stop", message: { content: exam.replace(/\n8\. Worked stack answer \[1\]$/, "") } }] }),
+    }) }), /incomplete exam/i);
+});

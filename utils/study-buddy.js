@@ -115,9 +115,9 @@ const MODES = {
     exam: {
         label: "Practice exam",
         passages: 12,
-        maxTokens: 2200,
+        maxTokens: 4096,
         task: (topic) =>
-            `Write a practice exam on: ${topic}. Include 4 multiple-choice questions, 3 short-answer questions and 1 longer problem, with point values that add up to 100. Match the style and difficulty of the notes. Keep the questions and worked answers concise so the full exam and answer key fit. Each multiple-choice question must have exactly one correct option and the explanation must support that option. After the exam, add a section headed "Answer key" with worked answers and [n] citations.`,
+            `Write a practice exam on: ${topic}. Start with "## Questions" and number the questions 1 through 8: 4 multiple-choice questions, 3 short-answer questions and 1 longer problem. Give point values that add up to 100. Match the style and difficulty of the notes. Label multiple-choice options A), B), C), and D), with exactly one correct option per question. End with "## Answer key" and eight numbered answers, each with a source citation [n]. Use one or two sentences per answer and explain why each correct option is right. For the longer problem, show the essential steps as bullets.`,
     },
     flashcards: {
         label: "Flashcards",
@@ -348,14 +348,16 @@ async function answer({ db, filesCollection, classCode, question, mode = "ask", 
     const text = await callModel(config, buildMessages({ question, passages: top, classCode, mode: kind, history }), fetchImpl, {
         maxTokens: MODES[kind].maxTokens,
     });
-    if (kind === "quiz") {
+    if (kind === "quiz" || kind === "exam") {
+        const count = kind === "quiz" ? 5 : 8;
+        const expectedNumbers = Array.from({ length: count }, (_, i) => i + 1).join(",");
         const sections = text.split(/^(?:#{1,6}[ \t]+)?(?:\*\*)?Answer key:?(?:\*\*)?[ \t]*\r?$/im);
         const numbers = (part) => [...part.matchAll(/^[ \t]*(\d+)[.)][ \t]+\S/gm)].map(match => match[1]).join(",");
         const [questions, key] = sections;
-        const answers = key?.split(/^[ \t]*[1-5][.)][ \t]+/m).slice(1);
-        if (sections.length !== 2 || numbers(questions) !== "1,2,3,4,5" || numbers(key) !== "1,2,3,4,5" ||
+        const answers = key?.split(/^[ \t]*\d+[.)][ \t]+/m).slice(1);
+        if (sections.length !== 2 || numbers(questions) !== expectedNumbers || numbers(key) !== expectedNumbers ||
             !answers.every(answer => [...answer.matchAll(/\[(\d+)\]/g)].some(match => sources.some(source => source.n === Number(match[1]))))) {
-            throw new Error("AI returned an incomplete quiz");
+            throw new Error(`AI returned an incomplete ${kind}`);
         }
     }
     return { mode: "ai", kind, answer: text, sources };
