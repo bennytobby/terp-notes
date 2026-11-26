@@ -71,6 +71,15 @@ test("a student asks the study buddy about uploaded notes and gets a cited answe
     expect(download.suggestedFilename()).toBe("cmsc132-quiz.md");
     expect(await readFile(await download.path(), "utf8")).toBe(clipboard);
 
+    await panel.getByRole("button", { name: "Practice exam", exact: true }).click();
+    const exam = panel.locator(".msg.buddy").last();
+    await expect(exam).toContainText("mock exam from stacks-and-queues.txt");
+    await expect(exam.getByText("Trace two pushes followed by a pop.")).toBeVisible();
+    const finalAnswer = exam.getByText("The pop removes the second item pushed", { exact: false });
+    await expect(finalAnswer).toBeHidden();
+    await exam.getByText("Reveal answer key").click();
+    await expect(finalAnswer).toBeVisible();
+
     // Study material from one chosen file: pick it, then ask for a cheat sheet.
     await panel.getByRole("button", { name: "All notes" }).click();
     await panel.getByLabel("stacks-and-queues.txt").check();
