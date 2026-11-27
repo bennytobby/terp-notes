@@ -85,6 +85,8 @@ npm start       # plain `node server.js`
 
 Then open <http://localhost:3000>. You should see `Terp Notes Server running on port 3000` in the terminal. If MongoDB can't be reached, the process exits during integration setup, so check your connection string first.
 
+**No database or `.env` yet?** `npm run verify -- --serve` starts the app at <http://127.0.0.1:3311> with a throwaway in-memory MongoDB and a ready-made test account. `npm run verify` signs in, searches for a note and saves screenshots at phone and desktop width; agents run it before calling a change done (`.agents/skills/verify/SKILL.md`).
+
 ## 4. Create a test account
 
 Sign-up only accepts `@umd.edu` and `@terpmail.umd.edu` addresses, and new accounts must verify their email before they can log in.

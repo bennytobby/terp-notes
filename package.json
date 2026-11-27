@@ -39,10 +39,12 @@
         "build": "echo 'Build completed'",
         "test:e2e": "playwright test",
         "test:live": "playwright test --grep @live",
-        "test:unit": "node --test test/*.test.js"
+        "test:unit": "node --test test/*.test.js",
+        "verify": "node scripts/verify.js"
     },
     "devDependencies": {
         "@playwright/test": "^1.65.0",
+        "mongodb-memory-server-core": "^11.4.0",
         "nodemon": "^3.0.0"
     }
 }
